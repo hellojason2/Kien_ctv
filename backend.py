@@ -256,5 +256,7 @@ if __name__ == '__main__':
     print("http://localhost:4000")
     print("=" * 50 + "\n")
     
-    app.run(host='0.0.0.0', port=4000, debug=True)
+    port = int(os.environ.get('PORT', 4000))
+    debug = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    app.run(host='0.0.0.0', port=port, debug=debug)
 
