@@ -88,7 +88,7 @@ def get_tables():
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
-    """Fetch customer data (name, email, phone only)"""
+    """Fetch customer data (id, name, email, phone)"""
     connection = get_db_connection()
     if not connection:
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
@@ -104,11 +104,11 @@ def get_data():
             return jsonify({
                 'status': 'success',
                 'data': [],
-                'message': 'Customers table not found. Run setup_database.py first.'
+                'message': 'Customers table not found. Run migrate_database.py first.'
             })
         
-        # Fetch only name, email, and phone from customers table
-        cursor.execute("SELECT name, email, phone FROM customers ORDER BY id;")
+        # Fetch id, name, email, and phone from customers table
+        cursor.execute("SELECT id, name, email, phone FROM customers ORDER BY id;")
         data = cursor.fetchall()
         
         cursor.close()
@@ -123,6 +123,103 @@ def get_data():
         return jsonify({
             'status': 'error',
             'message': f'Error fetching data: {str(e)}'
+        }), 500
+
+@app.route('/api/customer/<int:customer_id>', methods=['GET'])
+def get_customer(customer_id):
+    """Get full customer details by ID"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Fetch customer details
+        cursor.execute("SELECT * FROM customers WHERE id = %s;", (customer_id,))
+        customer = cursor.fetchone()
+        
+        if not customer:
+            cursor.close()
+            connection.close()
+            return jsonify({
+                'status': 'error',
+                'message': 'Customer not found'
+            }), 404
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'customer': customer
+        })
+    except Error as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error fetching customer: {str(e)}'
+        }), 500
+
+@app.route('/api/customer/<int:customer_id>/services', methods=['GET'])
+def get_customer_services(customer_id):
+    """Get all services for a customer with CTV info"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # First get the customer details
+        cursor.execute("SELECT * FROM customers WHERE id = %s;", (customer_id,))
+        customer = cursor.fetchone()
+        
+        if not customer:
+            cursor.close()
+            connection.close()
+            return jsonify({
+                'status': 'error',
+                'message': 'Customer not found'
+            }), 404
+        
+        # Get all services for this customer with CTV name
+        cursor.execute("""
+            SELECT 
+                s.id,
+                s.service_name,
+                s.date_entered,
+                s.date_scheduled,
+                s.amount,
+                s.status,
+                s.ctv_code,
+                c.name as ctv_name,
+                c.level as ctv_level
+            FROM services s
+            LEFT JOIN ctv_accounts c ON s.ctv_code = c.ctv_code
+            WHERE s.customer_id = %s
+            ORDER BY s.date_entered DESC;
+        """, (customer_id,))
+        services = cursor.fetchall()
+        
+        # Convert date objects to strings for JSON serialization
+        for service in services:
+            if service['date_entered']:
+                service['date_entered'] = service['date_entered'].strftime('%Y-%m-%d')
+            if service['date_scheduled']:
+                service['date_scheduled'] = service['date_scheduled'].strftime('%Y-%m-%d')
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'customer': customer,
+            'services': services
+        })
+    except Error as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error fetching services: {str(e)}'
         }), 500
 
 if __name__ == '__main__':
