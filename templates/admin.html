@@ -731,33 +731,33 @@
             <!-- Overview Page -->
             <div class="page-section active" id="page-overview">
                 <div class="header">
-                    <h2>Dashboard Overview</h2>
+                    <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
                 </div>
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card cyan">
-                        <div class="label">Total CTV</div>
+                        <div class="label" data-i18n="total_ctv">Total CTV</div>
                         <div class="value" id="statTotalCTV">-</div>
                     </div>
                     <div class="stat-card green">
-                        <div class="label">Monthly Commission</div>
+                        <div class="label" data-i18n="monthly_commission">Monthly Commission</div>
                         <div class="value" id="statMonthlyCommission">-</div>
                     </div>
                     <div class="stat-card orange">
-                        <div class="label">Monthly Transactions</div>
+                        <div class="label" data-i18n="monthly_transactions">Monthly Transactions</div>
                         <div class="value" id="statMonthlyTx">-</div>
                     </div>
                     <div class="stat-card purple">
-                        <div class="label">Monthly Revenue</div>
+                        <div class="label" data-i18n="monthly_revenue">Monthly Revenue</div>
                         <div class="value" id="statMonthlyRevenue">-</div>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3>Top Earners This Month</h3>
+                        <h3 data-i18n="top_earners">Top Earners This Month</h3>
                     </div>
                     <div class="card-body">
                         <div class="top-earners" id="topEarners">
-                            <div class="loading">Loading...</div>
+                            <div class="loading" data-i18n="loading">Loading...</div>
                         </div>
                     </div>
                 </div>
@@ -766,33 +766,33 @@
             <!-- CTV Management Page -->
             <div class="page-section" id="page-ctv">
                 <div class="header">
-                    <h2>CTV Management</h2>
+                    <h2 data-i18n="ctv_management">CTV Management</h2>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="showCreateCTVModal()">+ Add CTV</button>
+                        <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add CTV</button>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
                         <div class="search-box">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            <input type="text" id="ctvSearch" placeholder="Search by name, email, phone...">
+                            <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder" placeholder="Search by name, email, phone...">
                         </div>
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Code</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Referrer</th>
-                                        <th>Level</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th data-i18n="code">Code</th>
+                                        <th data-i18n="name">Name</th>
+                                        <th data-i18n="email">Email</th>
+                                        <th data-i18n="phone">Phone</th>
+                                        <th data-i18n="referrer">Referrer</th>
+                                        <th data-i18n="level">Level</th>
+                                        <th data-i18n="status">Status</th>
+                                        <th data-i18n="actions">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ctvTableBody">
-                                    <tr><td colspan="8" class="loading">Loading...</td></tr>
+                                    <tr><td colspan="8" class="loading" data-i18n="loading">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -803,18 +803,18 @@
             <!-- Hierarchy Page -->
             <div class="page-section" id="page-hierarchy">
                 <div class="header">
-                    <h2>Hierarchy Tree</h2>
+                    <h2 data-i18n="hierarchy_tree">Hierarchy Tree</h2>
                 </div>
                 <div class="card">
                     <div class="card-body">
                         <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
-                            <label>Select Root CTV</label>
+                            <label data-i18n="select_root">Select Root CTV</label>
                             <select id="hierarchyRoot" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                <option value="">Loading...</option>
+                                <option value="" data-i18n="loading">Loading...</option>
                             </select>
                         </div>
                         <div class="hierarchy-container" id="hierarchyTree">
-                            <div class="loading">Select a CTV to view hierarchy</div>
+                            <div class="loading" data-i18n="select_ctv_view">Select a CTV to view hierarchy</div>
                         </div>
                     </div>
                 </div>
@@ -823,25 +823,25 @@
             <!-- Commissions Page -->
             <div class="page-section" id="page-commissions">
                 <div class="header">
-                    <h2>Commission Reports</h2>
+                    <h2 data-i18n="commission_reports">Commission Reports</h2>
                 </div>
                 <div class="card">
                     <div class="card-body">
                         <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
                             <div class="form-group" style="flex:1; min-width:150px;">
-                                <label>Filter by CTV</label>
+                                <label data-i18n="filter_ctv">Filter by CTV</label>
                                 <select id="commissionCtvFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                    <option value="">All CTVs</option>
+                                    <option value="" data-i18n="all_ctvs">All CTVs</option>
                                 </select>
                             </div>
                             <div class="form-group" style="flex:1; min-width:150px;">
-                                <label>Filter by Month</label>
+                                <label data-i18n="filter_month">Filter by Month</label>
                                 <input type="month" id="commissionMonthFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
                             </div>
                             <div class="form-group" style="flex:1; min-width:150px;">
-                                <label>Filter by Level</label>
+                                <label data-i18n="filter_level">Filter by Level</label>
                                 <select id="commissionLevelFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                    <option value="">All Levels</option>
+                                    <option value="" data-i18n="all_levels">All Levels</option>
                                     <option value="0">Level 0 (Self)</option>
                                     <option value="1">Level 1</option>
                                     <option value="2">Level 2</option>
@@ -856,15 +856,15 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>CTV</th>
-                                        <th>Level</th>
-                                        <th>Rate</th>
-                                        <th>Transaction</th>
-                                        <th>Commission</th>
-                                        <th>Date</th>
+                                        <th data-i18n="level">Level</th>
+                                        <th data-i18n="rate">Rate</th>
+                                        <th data-i18n="transaction">Transaction</th>
+                                        <th data-i18n="commission">Commission</th>
+                                        <th data-i18n="date">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody id="commissionsTableBody">
-                                    <tr><td colspan="7" class="loading">Loading...</td></tr>
+                                    <tr><td colspan="7" class="loading" data-i18n="loading">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -875,18 +875,18 @@
             <!-- Settings Page -->
             <div class="page-section" id="page-settings">
                 <div class="header">
-                    <h2>Commission Settings</h2>
+                    <h2 data-i18n="commission_settings">Commission Settings</h2>
                     <div class="header-actions">
-                        <button class="btn btn-primary" onclick="saveCommissionSettings()">Save Changes</button>
+                        <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes">Save Changes</button>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3>Commission Rates by Level</h3>
+                        <h3 data-i18n="commission_rates">Commission Rates by Level</h3>
                     </div>
                     <div class="card-body">
                         <div class="commission-grid" id="commissionSettings">
-                            <div class="loading">Loading...</div>
+                            <div class="loading" data-i18n="loading">Loading...</div>
                         </div>
                     </div>
                 </div>
@@ -1323,6 +1323,7 @@
                 hierarchy_tree: 'Cây Cấp Bậc',
                 select_root: 'Chọn CTV Gốc',
                 select_ctv: 'Chọn CTV',
+                select_ctv_view: 'Chọn CTV để xem cấp bậc',
                 
                 // Commission Reports
                 commission_reports: 'Báo Cáo Hoa Hồng',
@@ -1332,6 +1333,10 @@
                 all_ctvs: 'Tất cả CTV',
                 all_levels: 'Tất cả Cấp',
                 no_commissions: 'Không có hoa hồng',
+                rate: 'Tỷ Lệ',
+                transaction: 'Giao Dịch',
+                commission: 'Hoa Hồng',
+                date: 'Ngày',
                 
                 // Modal
                 add_new_ctv: 'Thêm CTV Mới',
@@ -1399,6 +1404,7 @@
                 hierarchy_tree: 'Hierarchy Tree',
                 select_root: 'Select Root CTV',
                 select_ctv: 'Select CTV',
+                select_ctv_view: 'Select a CTV to view hierarchy',
                 
                 // Commission Reports
                 commission_reports: 'Commission Reports',
@@ -1408,6 +1414,10 @@
                 all_ctvs: 'All CTVs',
                 all_levels: 'All Levels',
                 no_commissions: 'No commissions found',
+                rate: 'Rate',
+                transaction: 'Transaction',
+                commission: 'Commission',
+                date: 'Date',
                 
                 // Modal
                 add_new_ctv: 'Add New CTV',
