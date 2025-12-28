@@ -1166,11 +1166,15 @@
             return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
         }
 
-        // Remember me - load saved email on page load
+        // Remember me - load saved credentials on page load
         const savedEmail = localStorage.getItem('ctv_remember_email');
+        const savedPassword = localStorage.getItem('ctv_remember_password');
         if (savedEmail) {
             document.getElementById('email').value = savedEmail;
             document.getElementById('rememberMe').checked = true;
+        }
+        if (savedPassword) {
+            document.getElementById('password').value = savedPassword;
         }
 
         // Login
@@ -1184,11 +1188,13 @@
             const loginForm = document.getElementById('loginForm');
             const loginSuccess = document.getElementById('loginSuccess');
             
-            // Save or remove email based on remember me checkbox
+            // Save or remove credentials based on remember me checkbox
             if (rememberMe) {
                 localStorage.setItem('ctv_remember_email', email);
+                localStorage.setItem('ctv_remember_password', password);
             } else {
                 localStorage.removeItem('ctv_remember_email');
+                localStorage.removeItem('ctv_remember_password');
             }
             
             loginBtn.disabled = true;
