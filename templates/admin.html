@@ -122,6 +122,25 @@
             text-align: center;
         }
 
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .back-link a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link a:hover {
+            color: var(--accent-cyan);
+        }
+
         /* Main Dashboard */
         .dashboard {
             display: none;
@@ -609,6 +628,9 @@
                 <button type="submit" class="btn btn-primary">Login</button>
                 <div class="error-msg" id="loginError"></div>
             </form>
+            <div class="back-link">
+                <a href="/">← Quay về trang chủ</a>
+            </div>
         </div>
     </div>
 

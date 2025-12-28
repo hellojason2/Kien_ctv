@@ -161,6 +161,24 @@
             display: block;
         }
 
+        .back-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .back-link a {
+            color: #666666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link a:hover {
+            color: #1a1a1a;
+        }
+
         /* Login Success Animation */
         .login-success {
             display: none;
@@ -858,6 +876,10 @@
                 <button type="submit" class="btn btn-primary" id="loginBtn">Đăng Nhập</button>
                 <div class="error-msg" id="loginError"></div>
             </form>
+
+            <div class="back-link">
+                <a href="/">← Quay về trang chủ</a>
+            </div>
 
             <!-- Success Animation -->
             <div class="login-success" id="loginSuccess">
