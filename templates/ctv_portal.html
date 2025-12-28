@@ -179,6 +179,39 @@
             color: #1a1a1a;
         }
 
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+        }
+
+        .lang-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .lang-btn.active {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
         /* Login Success Animation */
         .login-success {
             display: none;
@@ -846,6 +879,12 @@
     </style>
 </head>
 <body>
+    <!-- Language Toggle -->
+    <div class="lang-toggle">
+        <button class="lang-btn" data-lang="vi" onclick="setLanguage('vi')">VI</button>
+        <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+    </div>
+
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
         <div class="login-box">
@@ -858,27 +897,27 @@
                 </svg>
             </div>
             <h1>CTV Portal</h1>
-            <p class="subtitle">Đăng nhập để xem hoa hồng và mạng lưới</p>
+            <p class="subtitle" data-i18n="login_subtitle">Đăng nhập để xem hoa hồng và mạng lưới</p>
             
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Email</label>
+                    <label data-i18n="email">Email</label>
                     <input type="email" id="email" placeholder="your.email@example.com" required>
                 </div>
                 <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" id="password" placeholder="Nhập mật khẩu" required>
+                    <label data-i18n="password">Mật khẩu</label>
+                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhập mật khẩu" required>
                 </div>
                 <div class="remember-me">
                     <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe">Ghi nhớ đăng nhập</label>
+                    <label for="rememberMe" data-i18n="remember_me">Ghi nhớ đăng nhập</label>
                 </div>
-                <button type="submit" class="btn btn-primary" id="loginBtn">Đăng Nhập</button>
+                <button type="submit" class="btn btn-primary" id="loginBtn" data-i18n="login">Đăng Nhập</button>
                 <div class="error-msg" id="loginError"></div>
             </form>
 
             <div class="back-link">
-                <a href="/">← Quay về trang chủ</a>
+                <a href="/" data-i18n="back_home">← Quay về trang chủ</a>
             </div>
 
             <!-- Success Animation -->
@@ -898,7 +937,7 @@
     <div class="portal" id="portal">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-icon active" data-page="dashboard" title="Tổng Quan">
+            <div class="sidebar-icon active" data-page="dashboard" data-i18n-title="overview" title="Tổng Quan">
                 <svg viewBox="0 0 24 24">
                     <rect x="3" y="3" width="7" height="7" rx="1"></rect>
                     <rect x="14" y="3" width="7" height="7" rx="1"></rect>
@@ -906,13 +945,13 @@
                     <rect x="3" y="14" width="7" height="7" rx="1"></rect>
                 </svg>
             </div>
-            <div class="sidebar-icon" data-page="earnings" title="Hoa Hồng">
+            <div class="sidebar-icon" data-page="earnings" data-i18n-title="earnings" title="Hoa Hồng">
                 <svg viewBox="0 0 24 24">
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
             </div>
-            <div class="sidebar-icon" data-page="network" title="Mạng Lưới">
+            <div class="sidebar-icon" data-page="network" data-i18n-title="network" title="Mạng Lưới">
                 <svg viewBox="0 0 24 24">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -920,7 +959,7 @@
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
             </div>
-            <div class="sidebar-icon" data-page="customers" title="Khách Hàng">
+            <div class="sidebar-icon" data-page="customers" data-i18n-title="customers" title="Khách Hàng">
                 <svg viewBox="0 0 24 24">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -928,13 +967,13 @@
                     <line x1="22" y1="11" x2="16" y2="11"></line>
                 </svg>
             </div>
-            <div class="sidebar-icon" data-page="search" title="Tìm Kiếm">
+            <div class="sidebar-icon" data-page="search" data-i18n-title="search" title="Tìm Kiếm">
                 <svg viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </div>
-            <div class="sidebar-icon sidebar-logout" id="logoutBtn" title="Đăng Xuất">
+            <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout" title="Đăng Xuất">
                 <svg viewBox="0 0 24 24">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
@@ -1686,7 +1725,244 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // LANGUAGE SYSTEM
+        // ═══════════════════════════════════════════════════════════════════
+        
+        const translations = {
+            vi: {
+                // Login
+                login_subtitle: 'Đăng nhập để xem hoa hồng và mạng lưới',
+                email: 'Email',
+                password: 'Mật khẩu',
+                enter_password: 'Nhập mật khẩu',
+                remember_me: 'Ghi nhớ đăng nhập',
+                login: 'Đăng Nhập',
+                back_home: '← Quay về trang chủ',
+                login_success: 'Đăng nhập thành công!',
+                login_failed: 'Đăng nhập thất bại',
+                logging_in: 'Đang đăng nhập...',
+                
+                // Dashboard
+                overview: 'Tổng Quan',
+                earnings: 'Hoa Hồng',
+                network: 'Mạng Lưới',
+                customers: 'Khách Hàng',
+                search: 'Tìm Kiếm',
+                logout: 'Đăng Xuất',
+                
+                // Stats
+                total_earnings: 'Tổng Thu Nhập',
+                this_month: 'Thu Nhập Tháng Này',
+                network_size: 'Số Lượng Mạng Lưới',
+                direct_referrals: 'Giới Thiệu Trực Tiếp',
+                
+                // Filters
+                from_date: 'Từ ngày:',
+                to_date: 'Đến ngày:',
+                filter: 'Lọc',
+                all: 'Tất Cả',
+                all_status: 'Tất cả trạng thái',
+                
+                // Commission
+                all_commissions: 'Tất Cả Hoa Hồng',
+                no_commissions: 'Chưa có hoa hồng nào',
+                total_commission: 'Tổng Hoa Hồng',
+                level: 'Cấp',
+                rate: 'Tỷ Lệ',
+                amount: 'Số Tiền',
+                customer: 'Khách Hàng',
+                service: 'Dịch Vụ',
+                date: 'Ngày',
+                
+                // Network
+                your_network: 'Mạng Lưới Của Bạn',
+                direct_list: 'Danh Sách CTV Trực Tiếp',
+                no_referrals: 'Bạn chưa giới thiệu ai',
+                stats_by_level: 'Thống Kê Theo Cấp',
+                count: 'Số Lượng',
+                
+                // Search
+                search_network: 'Tìm Kiếm Trong Mạng Lưới',
+                search_placeholder: 'Tìm theo tên, số điện thoại, email...',
+                search_hint: 'Chỉ hiển thị kết quả trong mạng lưới của bạn',
+                enter_keyword: 'Nhập từ khóa để tìm kiếm',
+                min_chars: 'Nhập ít nhất 2 ký tự',
+                no_results: 'Không tìm thấy kết quả',
+                searching: 'Đang tìm...',
+                
+                // Customers
+                my_customers: 'Khách Hàng Của Tôi',
+                no_customers: 'Chưa có khách hàng nào',
+                phone: 'Số Điện Thoại',
+                status: 'Trạng Thái',
+                total_amount: 'Tổng Tiền',
+                deposit: 'Tiền Cọc',
+                remaining: 'Còn Lại',
+                note: 'Ghi Chú',
+                
+                // Phone Check
+                phone_check_title: 'Đối Chiếu Số Điện Thoại',
+                phone_check_placeholder: 'Nhập số điện thoại...',
+                check: 'Đối Chiếu',
+                checking: 'Đang kiểm tra...',
+                duplicate: 'TRÙNG',
+                not_duplicate: 'KHÔNG TRÙNG',
+                
+                // Status
+                completed: 'Đã đến làm',
+                deposited: 'Đã cọc',
+                cancelled: 'Hủy lịch',
+                pending: 'Chờ xác nhận',
+                
+                // Loading
+                loading: 'Đang tải...',
+                no_data: 'Chưa có dữ liệu'
+            },
+            en: {
+                // Login
+                login_subtitle: 'Login to view commissions and network',
+                email: 'Email',
+                password: 'Password',
+                enter_password: 'Enter password',
+                remember_me: 'Remember me',
+                login: 'Login',
+                back_home: '← Back to Home',
+                login_success: 'Login successful!',
+                login_failed: 'Login failed',
+                logging_in: 'Logging in...',
+                
+                // Dashboard
+                overview: 'Overview',
+                earnings: 'Earnings',
+                network: 'Network',
+                customers: 'Customers',
+                search: 'Search',
+                logout: 'Logout',
+                
+                // Stats
+                total_earnings: 'Total Earnings',
+                this_month: 'This Month',
+                network_size: 'Network Size',
+                direct_referrals: 'Direct Referrals',
+                
+                // Filters
+                from_date: 'From:',
+                to_date: 'To:',
+                filter: 'Filter',
+                all: 'All',
+                all_status: 'All Status',
+                
+                // Commission
+                all_commissions: 'All Commissions',
+                no_commissions: 'No commissions yet',
+                total_commission: 'Total Commission',
+                level: 'Level',
+                rate: 'Rate',
+                amount: 'Amount',
+                customer: 'Customer',
+                service: 'Service',
+                date: 'Date',
+                
+                // Network
+                your_network: 'Your Network',
+                direct_list: 'Direct Referrals List',
+                no_referrals: 'No referrals yet',
+                stats_by_level: 'Stats by Level',
+                count: 'Count',
+                
+                // Search
+                search_network: 'Search in Network',
+                search_placeholder: 'Search by name, phone, email...',
+                search_hint: 'Only shows results within your network',
+                enter_keyword: 'Enter keyword to search',
+                min_chars: 'Enter at least 2 characters',
+                no_results: 'No results found',
+                searching: 'Searching...',
+                
+                // Customers
+                my_customers: 'My Customers',
+                no_customers: 'No customers yet',
+                phone: 'Phone',
+                status: 'Status',
+                total_amount: 'Total Amount',
+                deposit: 'Deposit',
+                remaining: 'Remaining',
+                note: 'Note',
+                
+                // Phone Check
+                phone_check_title: 'Phone Number Check',
+                phone_check_placeholder: 'Enter phone number...',
+                check: 'Check',
+                checking: 'Checking...',
+                duplicate: 'DUPLICATE',
+                not_duplicate: 'NOT DUPLICATE',
+                
+                // Status
+                completed: 'Completed',
+                deposited: 'Deposited',
+                cancelled: 'Cancelled',
+                pending: 'Pending',
+                
+                // Loading
+                loading: 'Loading...',
+                no_data: 'No data'
+            }
+        };
+
+        let currentLang = localStorage.getItem('ctv_language') || 'vi';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('ctv_language', lang);
+            applyTranslations();
+            
+            // Update button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || translations['vi'][key] || key;
+        }
+
+        function applyTranslations() {
+            // Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            
+            // Update titles (tooltips)
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (translations[currentLang][key]) {
+                    el.title = translations[currentLang][key];
+                }
+            });
+            
+            // Update page title
+            document.title = currentLang === 'vi' ? 'CTV Portal' : 'CTV Portal';
+        }
+
+        // Initialize language on page load
+        function initLanguage() {
+            setLanguage(currentLang);
+        }
+
         // Init
+        initLanguage();
         checkAuth();
     </script>
 </body>

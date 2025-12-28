@@ -141,6 +141,40 @@
             color: var(--accent-cyan);
         }
 
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-family: inherit;
+        }
+
+        .lang-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .lang-btn.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
         /* Main Dashboard */
         .dashboard {
             display: none;
@@ -611,25 +645,31 @@
     </style>
 </head>
 <body>
+    <!-- Language Toggle -->
+    <div class="lang-toggle">
+        <button class="lang-btn" data-lang="vi" onclick="setLanguage('vi')">VI</button>
+        <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+    </div>
+
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
         <div class="login-box">
-            <h1>Admin Login</h1>
-            <p>CTV Management System</p>
+            <h1 data-i18n="admin_login">Admin Login</h1>
+            <p data-i18n="ctv_system">CTV Management System</p>
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="username" placeholder="Enter username" required>
+                    <label data-i18n="username">Username</label>
+                    <input type="text" id="username" data-i18n-placeholder="enter_username" placeholder="Enter username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Enter password" required>
+                    <label data-i18n="password">Password</label>
+                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Enter password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary" data-i18n="login">Login</button>
                 <div class="error-msg" id="loginError"></div>
             </form>
             <div class="back-link">
-                <a href="/">← Quay về trang chủ</a>
+                <a href="/" data-i18n="back_home">← Quay về trang chủ</a>
             </div>
         </div>
     </div>
@@ -644,43 +684,43 @@
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
-                ← Home Dashboard
+                <span data-i18n="home_dashboard">← Home Dashboard</span>
             </a>
             <ul class="sidebar-nav">
                 <li>
                     <a href="#" class="active" data-page="overview">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                        <span>Overview</span>
+                        <span data-i18n="overview">Overview</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="ctv">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        <span>CTV Management</span>
+                        <span data-i18n="ctv_management">CTV Management</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="hierarchy">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
-                        <span>Hierarchy</span>
+                        <span data-i18n="hierarchy">Hierarchy</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="commissions">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                        <span>Commissions</span>
+                        <span data-i18n="commissions">Commissions</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="settings">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        <span>Settings</span>
+                        <span data-i18n="settings">Settings</span>
                     </a>
                 </li>
                 <li style="margin-top: auto; padding-top: 20px;">
                     <a href="#" id="logoutBtn">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                        <span>Logout</span>
+                        <span data-i18n="logout">Logout</span>
                     </a>
                 </li>
             </ul>
@@ -1224,7 +1264,210 @@
             if (page === 'commissions') loadCommissions();
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // LANGUAGE SYSTEM
+        // ═══════════════════════════════════════════════════════════════════
+        
+        const translations = {
+            vi: {
+                // Login
+                admin_login: 'Đăng Nhập Admin',
+                ctv_system: 'Hệ Thống Quản Lý CTV',
+                username: 'Tên đăng nhập',
+                password: 'Mật khẩu',
+                enter_username: 'Nhập tên đăng nhập',
+                enter_password: 'Nhập mật khẩu',
+                login: 'Đăng Nhập',
+                back_home: '← Quay về trang chủ',
+                login_failed: 'Đăng nhập thất bại',
+                
+                // Navigation
+                home_dashboard: '← Trang Chủ',
+                overview: 'Tổng Quan',
+                ctv_management: 'Quản Lý CTV',
+                hierarchy: 'Cấp Bậc',
+                commissions: 'Hoa Hồng',
+                settings: 'Cài Đặt',
+                logout: 'Đăng Xuất',
+                
+                // Dashboard
+                dashboard_overview: 'Tổng Quan Dashboard',
+                total_ctv: 'Tổng CTV',
+                monthly_commission: 'Hoa Hồng Tháng',
+                monthly_transactions: 'Giao Dịch Tháng',
+                monthly_revenue: 'Doanh Thu Tháng',
+                top_earners: 'Top Thu Nhập Tháng Này',
+                no_earnings: 'Chưa có thu nhập tháng này',
+                
+                // CTV Management
+                add_ctv: '+ Thêm CTV',
+                search_placeholder: 'Tìm theo tên, email, điện thoại...',
+                code: 'Mã',
+                name: 'Tên',
+                email: 'Email',
+                phone: 'Điện Thoại',
+                referrer: 'Người Giới Thiệu',
+                level: 'Cấp Bậc',
+                status: 'Trạng Thái',
+                actions: 'Thao Tác',
+                active: 'Hoạt động',
+                inactive: 'Ngừng hoạt động',
+                
+                // Commission Settings
+                commission_settings: 'Cài Đặt Hoa Hồng',
+                commission_rates: 'Tỷ Lệ Hoa Hồng Theo Cấp',
+                save_changes: 'Lưu Thay Đổi',
+                settings_saved: 'Đã lưu cài đặt!',
+                
+                // Hierarchy
+                hierarchy_tree: 'Cây Cấp Bậc',
+                select_root: 'Chọn CTV Gốc',
+                select_ctv: 'Chọn CTV',
+                
+                // Commission Reports
+                commission_reports: 'Báo Cáo Hoa Hồng',
+                filter_ctv: 'Lọc theo CTV',
+                filter_month: 'Lọc theo Tháng',
+                filter_level: 'Lọc theo Cấp',
+                all_ctvs: 'Tất cả CTV',
+                all_levels: 'Tất cả Cấp',
+                no_commissions: 'Không có hoa hồng',
+                
+                // Modal
+                add_new_ctv: 'Thêm CTV Mới',
+                ctv_code: 'Mã CTV',
+                full_name: 'Họ tên đầy đủ',
+                referrer_label: 'Người giới thiệu',
+                none_root: 'Không (CTV Gốc)',
+                cancel: 'Hủy',
+                create_ctv: 'Tạo CTV',
+                
+                // Loading
+                loading: 'Đang tải...'
+            },
+            en: {
+                // Login
+                admin_login: 'Admin Login',
+                ctv_system: 'CTV Management System',
+                username: 'Username',
+                password: 'Password',
+                enter_username: 'Enter username',
+                enter_password: 'Enter password',
+                login: 'Login',
+                back_home: '← Back to Home',
+                login_failed: 'Login failed',
+                
+                // Navigation
+                home_dashboard: '← Home Dashboard',
+                overview: 'Overview',
+                ctv_management: 'CTV Management',
+                hierarchy: 'Hierarchy',
+                commissions: 'Commissions',
+                settings: 'Settings',
+                logout: 'Logout',
+                
+                // Dashboard
+                dashboard_overview: 'Dashboard Overview',
+                total_ctv: 'Total CTV',
+                monthly_commission: 'Monthly Commission',
+                monthly_transactions: 'Monthly Transactions',
+                monthly_revenue: 'Monthly Revenue',
+                top_earners: 'Top Earners This Month',
+                no_earnings: 'No earnings this month',
+                
+                // CTV Management
+                add_ctv: '+ Add CTV',
+                search_placeholder: 'Search by name, email, phone...',
+                code: 'Code',
+                name: 'Name',
+                email: 'Email',
+                phone: 'Phone',
+                referrer: 'Referrer',
+                level: 'Level',
+                status: 'Status',
+                actions: 'Actions',
+                active: 'Active',
+                inactive: 'Inactive',
+                
+                // Commission Settings
+                commission_settings: 'Commission Settings',
+                commission_rates: 'Commission Rates by Level',
+                save_changes: 'Save Changes',
+                settings_saved: 'Settings saved!',
+                
+                // Hierarchy
+                hierarchy_tree: 'Hierarchy Tree',
+                select_root: 'Select Root CTV',
+                select_ctv: 'Select CTV',
+                
+                // Commission Reports
+                commission_reports: 'Commission Reports',
+                filter_ctv: 'Filter by CTV',
+                filter_month: 'Filter by Month',
+                filter_level: 'Filter by Level',
+                all_ctvs: 'All CTVs',
+                all_levels: 'All Levels',
+                no_commissions: 'No commissions found',
+                
+                // Modal
+                add_new_ctv: 'Add New CTV',
+                ctv_code: 'CTV Code',
+                full_name: 'Full name',
+                referrer_label: 'Referrer',
+                none_root: 'None (Root CTV)',
+                cancel: 'Cancel',
+                create_ctv: 'Create CTV',
+                
+                // Loading
+                loading: 'Loading...'
+            }
+        };
+
+        let currentLang = localStorage.getItem('admin_language') || 'en';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('admin_language', lang);
+            applyTranslations();
+            
+            // Update button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || translations['en'][key] || key;
+        }
+
+        function applyTranslations() {
+            // Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            
+            // Update page title
+            document.title = currentLang === 'vi' ? 'Admin Dashboard - Hệ Thống CTV' : 'Admin Dashboard - CTV System';
+        }
+
+        // Initialize language on page load
+        function initLanguage() {
+            setLanguage(currentLang);
+        }
+
         // Init
+        initLanguage();
         checkAuth();
     </script>
 </body>
