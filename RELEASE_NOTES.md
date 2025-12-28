@@ -1,5 +1,97 @@
 # Release Notes - CTV Dashboard
 
+## Version 1.5.0 - December 28, 2025
+
+### Bulk Data Import from Google Sheets
+
+**Time:** 23:30 (GMT+7)
+
+---
+
+### Data Import Summary
+
+Successfully imported production data from Google Sheets:
+
+| Data Type | Records | Source |
+|-----------|---------|--------|
+| CTV | 52 | `Du lieu - CTV.csv` |
+| Auto-created CTV | 109 | From customer data |
+| Customers | 6,800 | `Du lieu - Check trung.csv` |
+
+### Import Script Created
+
+**File:** `import_csv_data.py`
+
+**Features:**
+- Topological sorting for CTV hierarchy (referrers inserted first)
+- Date format conversion (DD/MM/YYYY to YYYY-MM-DD)
+- Currency parsing (14.100.000 to 14100000)
+- Case-insensitive CTV code matching
+- Auto-creation of missing CTVs from customer data
+- Batch insert with progress reporting
+- Data verification report
+
+**Usage:**
+```bash
+python3 import_csv_data.py              # Import all data
+python3 import_csv_data.py --ctv-only   # CTVs only
+python3 import_csv_data.py --customers-only  # Customers only
+python3 import_csv_data.py --dry-run    # Preview without inserting
+```
+
+### Database Schema Updates
+
+Columns modified to handle real-world data:
+- `khach_hang.gio` VARCHAR(20) -> VARCHAR(100)
+- `khach_hang.sdt` VARCHAR(15) -> VARCHAR(50)
+- `khach_hang.trang_thai` VARCHAR(50) -> VARCHAR(100)
+
+### Data Verification Results
+
+- CTV hierarchy depth: 10 levels
+- Total revenue tracked: 32+ billion VND
+- Date range: 2020-2025
+- Top performers identified with revenue breakdown
+
+---
+
+## Version 1.4.0 - January 2025
+
+### Database Optimization Analysis & Recommendations
+
+**Time:** January 2025
+
+---
+
+### Database Performance Analysis
+
+**Analysis Completed:**
+- Reviewed current MySQL setup and query patterns
+- Identified optimization opportunities
+- Created comprehensive database recommendation document
+
+**Key Findings:**
+- MySQL is appropriate for current use case (structured relational data)
+- Performance can be improved 5-10x with proper indexing
+- No need to switch databases at current scale
+
+**Files Added:**
+- `DATABASE_RECOMMENDATION.md` - Comprehensive database analysis and recommendations
+- `optimize_database.py` - Script to add indexes and optimize queries
+
+**Recommendations:**
+1. **Stay with MySQL** - Optimize current setup first
+2. **Add composite indexes** - For phone lookups, date ranges, CTV queries
+3. **Implement caching** - Redis for frequently accessed data
+4. **Monitor performance** - Track query times as data grows
+
+**Next Steps:**
+- Run `python optimize_database.py` to add performance indexes
+- Consider PostgreSQL only if >10M customers
+- Consider hybrid approach (MySQL + Elasticsearch) only for advanced search needs
+
+---
+
 ## Version 1.3.0 - December 28, 2025
 
 ### CTV System Restructure - New Customer Management
