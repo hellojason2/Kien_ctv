@@ -995,17 +995,8 @@
             currentUser = null;
             localStorage.removeItem('ctvToken');
             
-            // Reset login form
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('loginSuccess').classList.remove('show');
-            document.getElementById('loginForm').reset();
-            document.getElementById('loginBtn').disabled = false;
-            document.getElementById('loginBtn').textContent = 'Đăng Nhập';
-            document.getElementById('loginError').classList.remove('show');
-            
-            // Show login page
-            document.getElementById('loginPage').style.display = 'flex';
-            document.getElementById('portal').classList.remove('active');
+            // Redirect to main dashboard
+            window.location.href = '/';
         });
 
         // Show Portal
