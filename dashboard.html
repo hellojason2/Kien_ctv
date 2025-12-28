@@ -510,6 +510,34 @@
             letter-spacing: 0.5px;
         }
 
+        /* Admin Panel Button in Sidebar */
+        .sidebar-icon.admin-login {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-icon.admin-login:hover {
+            background: linear-gradient(135deg, #e8930a 0%, #c56a05 100%);
+            transform: scale(1.05);
+        }
+
+        .sidebar-icon.admin-login svg {
+            stroke: #ffffff;
+        }
+
+        .sidebar-icon.admin-login::after {
+            content: 'ADMIN';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            font-weight: 700;
+            color: #f59e0b;
+            letter-spacing: 0.5px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -615,6 +643,14 @@
                 </svg>
             </div>
             
+            <!-- Admin Panel Button -->
+            <div class="sidebar-icon admin-login" onclick="window.location.href='/admin/dashboard'" title="Admin Panel">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
+
             <!-- CTV Portal Button -->
             <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'" title="CTV Portal">
                 <svg viewBox="0 0 24 24">
