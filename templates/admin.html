@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CTV System</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-red: #ef4444;
+            --border-color: #27272a;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Login Page */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0f172a 100%);
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--accent-cyan);
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #0891b2;
+        }
+
+        .error-msg {
+            color: var(--accent-red);
+            font-size: 13px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            min-height: 100vh;
+            padding: 24px 16px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 32px;
+            padding: 0 12px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .sidebar-nav svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.orange .value { color: var(--accent-orange); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--bg-tertiary);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-gold { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+        .badge-silver { background: rgba(161, 161, 170, 0.2); color: var(--text-secondary); }
+        .badge-bronze { background: rgba(180, 83, 9, 0.2); color: #d97706; }
+        .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .badge-inactive { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+        /* Commission Settings */
+        .commission-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .commission-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .commission-card .level {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .commission-card .rate {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .commission-card input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .commission-card.l0 .rate { color: var(--accent-green); }
+        .commission-card.l1 .rate { color: var(--accent-orange); }
+        .commission-card.l2 .rate { color: var(--accent-purple); }
+        .commission-card.l3 .rate { color: var(--accent-pink); }
+        .commission-card.l4 .rate { color: var(--accent-cyan); }
+
+        /* Hierarchy Tree */
+        .hierarchy-container {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .tree-node {
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        .tree-node:hover {
+            border-color: var(--accent-cyan);
+        }
+
+        .tree-node .name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tree-node .info {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .tree-children {
+            margin-left: 24px;
+            border-left: 2px solid var(--border-color);
+            padding-left: 16px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Search */
+        .search-box {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Top Earners */
+        .top-earners {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .earner-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .earner-row .name {
+            font-weight: 600;
+        }
+
+        .earner-row .amount {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .commission-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 16px 8px;
+            }
+            .sidebar-logo {
+                font-size: 14px;
+                text-align: center;
+                padding: 0;
+            }
+            .sidebar-nav a span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .commission-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <h1>Admin Login</h1>
+            <p>CTV Management System</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="error-msg" id="loginError"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">CTV Admin</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="#" class="active" data-page="overview">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-page="ctv">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>CTV Management</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-page="hierarchy">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
+                        <span>Hierarchy</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-page="commissions">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>Commissions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-page="settings">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li style="margin-top: auto; padding-top: 20px;">
+                    <a href="#" id="logoutBtn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Overview Page -->
+            <div class="page-section active" id="page-overview">
+                <div class="header">
+                    <h2>Dashboard Overview</h2>
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card cyan">
+                        <div class="label">Total CTV</div>
+                        <div class="value" id="statTotalCTV">-</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="label">Monthly Commission</div>
+                        <div class="value" id="statMonthlyCommission">-</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="label">Monthly Transactions</div>
+                        <div class="value" id="statMonthlyTx">-</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="label">Monthly Revenue</div>
+                        <div class="value" id="statMonthlyRevenue">-</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Top Earners This Month</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="top-earners" id="topEarners">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTV Management Page -->
+            <div class="page-section" id="page-ctv">
+                <div class="header">
+                    <h2>CTV Management</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showCreateCTVModal()">+ Add CTV</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="search-box">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <input type="text" id="ctvSearch" placeholder="Search by name, email, phone...">
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Referrer</th>
+                                        <th>Level</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ctvTableBody">
+                                    <tr><td colspan="8" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hierarchy Page -->
+            <div class="page-section" id="page-hierarchy">
+                <div class="header">
+                    <h2>Hierarchy Tree</h2>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
+                            <label>Select Root CTV</label>
+                            <select id="hierarchyRoot" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="hierarchy-container" id="hierarchyTree">
+                            <div class="loading">Select a CTV to view hierarchy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commissions Page -->
+            <div class="page-section" id="page-commissions">
+                <div class="header">
+                    <h2>Commission Reports</h2>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+                            <div class="form-group" style="flex:1; min-width:150px;">
+                                <label>Filter by CTV</label>
+                                <select id="commissionCtvFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                                    <option value="">All CTVs</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:1; min-width:150px;">
+                                <label>Filter by Month</label>
+                                <input type="month" id="commissionMonthFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                            </div>
+                            <div class="form-group" style="flex:1; min-width:150px;">
+                                <label>Filter by Level</label>
+                                <select id="commissionLevelFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                                    <option value="">All Levels</option>
+                                    <option value="0">Level 0 (Self)</option>
+                                    <option value="1">Level 1</option>
+                                    <option value="2">Level 2</option>
+                                    <option value="3">Level 3</option>
+                                    <option value="4">Level 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>CTV</th>
+                                        <th>Level</th>
+                                        <th>Rate</th>
+                                        <th>Transaction</th>
+                                        <th>Commission</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="commissionsTableBody">
+                                    <tr><td colspan="7" class="loading">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page-section" id="page-settings">
+                <div class="header">
+                    <h2>Commission Settings</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="saveCommissionSettings()">Save Changes</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Commission Rates by Level</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="commission-grid" id="commissionSettings">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create CTV Modal -->
+    <div class="modal-overlay" id="createCTVModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add New CTV</h3>
+                <button class="modal-close" onclick="closeModal('createCTVModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createCTVForm">
+                    <div class="form-group">
+                        <label>CTV Code *</label>
+                        <input type="text" id="newCtvCode" placeholder="e.g., CTV012" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input type="text" id="newCtvName" placeholder="Full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="newCtvEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" id="newCtvPhone" placeholder="0901234567">
+                    </div>
+                    <div class="form-group">
+                        <label>Referrer (Nguoi gioi thieu)</label>
+                        <select id="newCtvReferrer" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                            <option value="">None (Root CTV)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Level</label>
+                        <select id="newCtvLevel" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                            <option value="Bronze">Bronze</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Gold">Gold</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createCTVModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="createCTV()">Create CTV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let authToken = localStorage.getItem('adminToken');
+        let allCTV = [];
+
+        // API Helper
+        async function api(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+            };
+            
+            const response = await fetch(endpoint, { ...options, headers });
+            return response.json();
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const result = await api('/admin/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (result.status === 'success') {
+                authToken = result.token;
+                localStorage.setItem('adminToken', authToken);
+                showDashboard();
+            } else {
+                document.getElementById('loginError').textContent = result.message || 'Login failed';
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await api('/admin/logout', { method: 'POST' });
+            authToken = null;
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+        });
+
+        // Show Dashboard
+        async function showDashboard() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            await loadStats();
+            await loadCTVList();
+            await loadCommissionSettings();
+        }
+
+        // Check Auth on Load
+        async function checkAuth() {
+            if (authToken) {
+                const result = await api('/admin/check-auth');
+                if (result.authenticated) {
+                    showDashboard();
+                } else {
+                    authToken = null;
+                    localStorage.removeItem('adminToken');
+                }
+            }
+        }
+
+        // Load Stats
+        async function loadStats() {
+            const result = await api('/api/admin/stats');
+            if (result.status === 'success') {
+                const s = result.stats;
+                document.getElementById('statTotalCTV').textContent = s.total_ctv;
+                document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission);
+                document.getElementById('statMonthlyTx').textContent = s.monthly_transactions;
+                document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue);
+                
+                // Top earners
+                const topEarnersEl = document.getElementById('topEarners');
+                if (s.top_earners.length > 0) {
+                    topEarnersEl.innerHTML = s.top_earners.map(e => `
+                        <div class="earner-row">
+                            <div>
+                                <div class="name">${e.ten}</div>
+                                <div style="font-size:12px;color:var(--text-secondary)">${e.ctv_code}</div>
+                            </div>
+                            <div class="amount">${formatCurrency(e.total_earned)}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    topEarnersEl.innerHTML = '<div style="color:var(--text-secondary)">No earnings this month</div>';
+                }
+            }
+        }
+
+        // Load CTV List
+        async function loadCTVList() {
+            const result = await api('/api/admin/ctv');
+            if (result.status === 'success') {
+                allCTV = result.data;
+                renderCTVTable(allCTV);
+                populateCTVSelects();
+            }
+        }
+
+        function renderCTVTable(data) {
+            const tbody = document.getElementById('ctvTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">No CTVs found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(ctv => `
+                <tr>
+                    <td>${ctv.ma_ctv}</td>
+                    <td>${ctv.ten}</td>
+                    <td>${ctv.email || '-'}</td>
+                    <td>${ctv.sdt || '-'}</td>
+                    <td>${ctv.nguoi_gioi_thieu_name || '-'}</td>
+                    <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
+                    <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="viewHierarchy('${ctv.ma_ctv}')">Tree</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateCTVSelects() {
+            const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
+            
+            document.getElementById('hierarchyRoot').innerHTML = '<option value="">Select CTV</option>' + options;
+            document.getElementById('commissionCtvFilter').innerHTML = '<option value="">All CTVs</option>' + options;
+            document.getElementById('newCtvReferrer').innerHTML = '<option value="">None (Root CTV)</option>' + options;
+        }
+
+        // Search CTV
+        document.getElementById('ctvSearch').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allCTV.filter(c => 
+                c.ma_ctv.toLowerCase().includes(term) ||
+                c.ten.toLowerCase().includes(term) ||
+                (c.email || '').toLowerCase().includes(term) ||
+                (c.sdt || '').includes(term)
+            );
+            renderCTVTable(filtered);
+        });
+
+        // Load Hierarchy
+        document.getElementById('hierarchyRoot').addEventListener('change', async (e) => {
+            const ctvCode = e.target.value;
+            if (!ctvCode) {
+                document.getElementById('hierarchyTree').innerHTML = '<div class="loading">Select a CTV to view hierarchy</div>';
+                return;
+            }
+            await loadHierarchy(ctvCode);
+        });
+
+        async function loadHierarchy(ctvCode) {
+            const result = await api(`/api/admin/hierarchy/${ctvCode}`);
+            if (result.status === 'success') {
+                document.getElementById('hierarchyTree').innerHTML = renderTree(result.hierarchy);
+            }
+        }
+
+        function renderTree(node, level = 0) {
+            const levelColors = ['var(--accent-green)', 'var(--accent-orange)', 'var(--accent-purple)', 'var(--accent-pink)', 'var(--accent-cyan)'];
+            const color = levelColors[level] || 'var(--text-primary)';
+            
+            let html = `
+                <div class="tree-node" style="border-left:3px solid ${color}">
+                    <div class="name" style="color:${color}">${node.ten} (${node.ma_ctv})</div>
+                    <div class="info">Level ${node.level} | ${(node.commission_rate * 100).toFixed(2)}% | ${node.cap_bac || 'Bronze'}</div>
+                </div>
+            `;
+            
+            if (node.children && node.children.length > 0) {
+                html += '<div class="tree-children">';
+                node.children.forEach(child => {
+                    html += renderTree(child, level + 1);
+                });
+                html += '</div>';
+            }
+            
+            return html;
+        }
+
+        function viewHierarchy(ctvCode) {
+            document.getElementById('hierarchyRoot').value = ctvCode;
+            loadHierarchy(ctvCode);
+            navigateTo('hierarchy');
+        }
+
+        // Load Commission Settings
+        async function loadCommissionSettings() {
+            const result = await api('/api/admin/commission-settings');
+            if (result.status === 'success') {
+                const container = document.getElementById('commissionSettings');
+                container.innerHTML = result.settings.map(s => `
+                    <div class="commission-card l${s.level}">
+                        <div class="level">Level ${s.level}</div>
+                        <div class="rate">${(s.rate * 100).toFixed(2)}%</div>
+                        <input type="number" step="0.0001" value="${s.rate}" data-level="${s.level}" placeholder="Rate">
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function saveCommissionSettings() {
+            const inputs = document.querySelectorAll('#commissionSettings input');
+            const settings = Array.from(inputs).map(input => ({
+                level: parseInt(input.dataset.level),
+                rate: parseFloat(input.value)
+            }));
+            
+            const result = await api('/api/admin/commission-settings', {
+                method: 'PUT',
+                body: JSON.stringify({ settings })
+            });
+            
+            if (result.status === 'success') {
+                alert('Commission settings saved!');
+                loadCommissionSettings();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        // Load Commissions
+        async function loadCommissions() {
+            const ctv = document.getElementById('commissionCtvFilter').value;
+            const month = document.getElementById('commissionMonthFilter').value;
+            const level = document.getElementById('commissionLevelFilter').value;
+            
+            let url = '/api/admin/commissions?';
+            if (ctv) url += `ctv_code=${ctv}&`;
+            if (month) url += `month=${month}&`;
+            if (level) url += `level=${level}&`;
+            
+            const result = await api(url);
+            if (result.status === 'success') {
+                const tbody = document.getElementById('commissionsTableBody');
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary)">No commissions found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = result.data.map(c => `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.ctv_name} (${c.ctv_code})</td>
+                        <td>Level ${c.level}</td>
+                        <td>${(c.commission_rate * 100).toFixed(2)}%</td>
+                        <td>${formatCurrency(c.transaction_amount)}</td>
+                        <td style="color:var(--accent-green)">${formatCurrency(c.commission_amount)}</td>
+                        <td>${c.created_at}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        document.getElementById('commissionCtvFilter').addEventListener('change', loadCommissions);
+        document.getElementById('commissionMonthFilter').addEventListener('change', loadCommissions);
+        document.getElementById('commissionLevelFilter').addEventListener('change', loadCommissions);
+
+        // Create CTV
+        function showCreateCTVModal() {
+            document.getElementById('createCTVModal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        async function createCTV() {
+            const data = {
+                ma_ctv: document.getElementById('newCtvCode').value,
+                ten: document.getElementById('newCtvName').value,
+                email: document.getElementById('newCtvEmail').value,
+                sdt: document.getElementById('newCtvPhone').value,
+                nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
+                cap_bac: document.getElementById('newCtvLevel').value
+            };
+            
+            const result = await api('/api/admin/ctv', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (result.status === 'success') {
+                alert(`CTV created! Default password: ${result.default_password}`);
+                closeModal('createCTVModal');
+                document.getElementById('createCTVForm').reset();
+                loadCTVList();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        // Navigation
+        document.querySelectorAll('.sidebar-nav a[data-page]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = e.currentTarget.dataset.page;
+                navigateTo(page);
+            });
+        });
+
+        function navigateTo(page) {
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`.sidebar-nav a[data-page="${page}"]`).classList.add('active');
+            
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+            
+            if (page === 'commissions') loadCommissions();
+        }
+
+        // Init
+        checkAuth();
+    </script>
+</body>
+</html>
+
