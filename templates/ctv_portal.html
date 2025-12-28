@@ -630,6 +630,148 @@
             color: #999999;
         }
 
+        /* Date Filter */
+        .date-filter {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-filter input[type="date"] {
+            padding: 10px 16px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .date-filter input[type="date"]:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        .date-filter .btn-filter {
+            padding: 10px 20px;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .date-filter .btn-filter:hover {
+            background: #333333;
+        }
+
+        /* Customer Table */
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .customer-table th,
+        .customer-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .customer-table th {
+            background: #fafafa;
+            font-weight: 600;
+            font-size: 13px;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .customer-table td {
+            font-size: 14px;
+            color: #1a1a1a;
+        }
+
+        .customer-table tr:hover td {
+            background: #f9f9f9;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: #dcfce7;
+            color: #22c55e;
+        }
+
+        .status-badge.pending {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .status-badge.cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-badge.waiting {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Phone Check in Portal */
+        .phone-check-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .phone-check-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .phone-check-row input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .phone-check-row input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        .phone-check-row .result {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .phone-check-row .result.trung {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .phone-check-row .result.khong-trung {
+            background: #dcfce7;
+            color: #22c55e;
+        }
+
         /* Page Sections */
         .page-section {
             display: none;
@@ -756,6 +898,14 @@
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
             </div>
+            <div class="sidebar-icon" data-page="customers" title="Khách Hàng">
+                <svg viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <line x1="19" y1="8" x2="19" y2="14"></line>
+                    <line x1="22" y1="11" x2="16" y2="11"></line>
+                </svg>
+            </div>
             <div class="sidebar-icon" data-page="search" title="Tìm Kiếm">
                 <svg viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -796,6 +946,16 @@
             <div class="content">
                 <!-- Dashboard Page -->
                 <div class="page-section active" id="page-dashboard">
+                    <!-- Phone Check Card -->
+                    <div class="phone-check-card">
+                        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;">Đối Chiếu Số Điện Thoại</h3>
+                        <div class="phone-check-row">
+                            <input type="tel" id="dashPhoneInput" placeholder="Nhập số điện thoại...">
+                            <button class="btn-filter" onclick="checkPhonePortal()">Đối Chiếu</button>
+                            <div class="result" id="dashPhoneResult" style="display:none;"></div>
+                        </div>
+                    </div>
+
                     <div class="stats-grid">
                         <div class="stat-card green">
                             <div class="label">Tổng Thu Nhập</div>
@@ -829,6 +989,31 @@
 
                 <!-- Earnings Page -->
                 <div class="page-section" id="page-earnings">
+                    <!-- Date Filter -->
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-body">
+                            <div class="date-filter">
+                                <label style="font-size:14px;color:#666;">Từ ngày:</label>
+                                <input type="date" id="commissionFromDate">
+                                <label style="font-size:14px;color:#666;">Đến ngày:</label>
+                                <input type="date" id="commissionToDate">
+                                <button class="btn-filter" onclick="loadCommissionWithFilter()">Lọc</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commission Summary from khach_hang -->
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header">
+                            <h3>Hoa Hồng Theo Khách Hàng</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="khachHangCommission">
+                                <div class="empty-state">Chọn ngày và nhấn Lọc để xem hoa hồng</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header">
                             <h3>Tất Cả Hoa Hồng</h3>
@@ -881,6 +1066,54 @@
                             <div id="directDownline">
                                 <div class="empty-state">Đang tải...</div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customers Page -->
+                <div class="page-section" id="page-customers">
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-body">
+                            <div class="date-filter">
+                                <label style="font-size:14px;color:#666;">Từ ngày:</label>
+                                <input type="date" id="customerFromDate">
+                                <label style="font-size:14px;color:#666;">Đến ngày:</label>
+                                <input type="date" id="customerToDate">
+                                <select id="customerStatusFilter">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="Da den lam">Đã đến làm</option>
+                                    <option value="Da coc">Đã cọc</option>
+                                    <option value="Huy lich">Hủy lịch</option>
+                                    <option value="Cho xac nhan">Chờ xác nhận</option>
+                                </select>
+                                <button class="btn-filter" onclick="loadMyCustomers()">Lọc</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Khách Hàng Của Tôi</h3>
+                            <div id="customerSummary" style="font-size:14px;color:#666;"></div>
+                        </div>
+                        <div class="card-body" style="overflow-x:auto;">
+                            <table class="customer-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên Khách</th>
+                                        <th>SĐT</th>
+                                        <th>Ngày Hẹn</th>
+                                        <th>Dịch Vụ</th>
+                                        <th>Tổng Tiền</th>
+                                        <th>Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customerTableBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">Nhấn Lọc để xem danh sách</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1262,6 +1495,7 @@
                 // Load page data
                 if (page === 'earnings') loadAllCommissions();
                 if (page === 'network') loadNetwork();
+                if (page === 'customers') loadMyCustomers();
             });
         });
 
@@ -1269,6 +1503,160 @@
         document.getElementById('earningsFilter').addEventListener('change', (e) => {
             loadAllCommissions(e.target.value);
         });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // PHONE CHECK IN PORTAL
+        // ═══════════════════════════════════════════════════════════════════
+        
+        async function checkPhonePortal() {
+            const input = document.getElementById('dashPhoneInput');
+            const result = document.getElementById('dashPhoneResult');
+            const phone = input.value.trim();
+            
+            if (!phone || phone.length < 9) {
+                result.textContent = 'Nhap SDT';
+                result.className = 'result';
+                result.style.display = 'block';
+                result.style.background = '#fef3c7';
+                result.style.color = '#d97706';
+                return;
+            }
+            
+            try {
+                const response = await api('/api/ctv/check-phone', {
+                    method: 'POST',
+                    body: JSON.stringify({ phone })
+                });
+                
+                if (response.is_duplicate) {
+                    result.textContent = 'TRUNG';
+                    result.className = 'result trung';
+                } else {
+                    result.textContent = 'KHONG TRUNG';
+                    result.className = 'result khong-trung';
+                }
+                result.style.display = 'block';
+            } catch (error) {
+                result.textContent = 'Loi';
+                result.style.display = 'block';
+            }
+        }
+        
+        // Enter key for phone input
+        document.getElementById('dashPhoneInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPhonePortal();
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MY CUSTOMERS (khach_hang table)
+        // ═══════════════════════════════════════════════════════════════════
+        
+        async function loadMyCustomers() {
+            const fromDate = document.getElementById('customerFromDate').value;
+            const toDate = document.getElementById('customerToDate').value;
+            const status = document.getElementById('customerStatusFilter').value;
+            
+            let url = '/api/ctv/customers?';
+            if (fromDate) url += `from=${fromDate}&`;
+            if (toDate) url += `to=${toDate}&`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            
+            const result = await api(url);
+            const tbody = document.getElementById('customerTableBody');
+            const summary = document.getElementById('customerSummary');
+            
+            if (result.status === 'success') {
+                if (result.customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Khong co khach hang nao</td></tr>';
+                } else {
+                    tbody.innerHTML = result.customers.map(c => {
+                        let statusClass = 'waiting';
+                        if (c.trang_thai === 'Da den lam') statusClass = 'completed';
+                        else if (c.trang_thai === 'Da coc') statusClass = 'pending';
+                        else if (c.trang_thai === 'Huy lich') statusClass = 'cancelled';
+                        
+                        return `
+                            <tr>
+                                <td>${c.ten_khach || '-'}</td>
+                                <td>${c.sdt || '-'}</td>
+                                <td>${c.ngay_hen_lam || '-'}</td>
+                                <td>${c.dich_vu || '-'}</td>
+                                <td style="font-weight:600">${formatCurrency(c.tong_tien)}</td>
+                                <td><span class="status-badge ${statusClass}">${c.trang_thai || '-'}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+                
+                summary.innerHTML = `
+                    Tong: ${result.summary.total} | 
+                    Da lam: ${result.summary.completed} | 
+                    Dang cho: ${result.summary.pending} | 
+                    Doanh thu: <strong style="color:#22c55e">${formatCurrency(result.summary.total_revenue)}</strong>
+                `;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // COMMISSION WITH DATE FILTER (khach_hang based)
+        // ═══════════════════════════════════════════════════════════════════
+        
+        async function loadCommissionWithFilter() {
+            const fromDate = document.getElementById('commissionFromDate').value;
+            const toDate = document.getElementById('commissionToDate').value;
+            
+            let url = '/api/ctv/commission?';
+            if (fromDate) url += `from=${fromDate}&`;
+            if (toDate) url += `to=${toDate}&`;
+            
+            const result = await api(url);
+            const container = document.getElementById('khachHangCommission');
+            
+            if (result.status === 'success') {
+                if (!result.by_level || result.by_level.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Khong co hoa hong trong khoang thoi gian nay</div>';
+                } else {
+                    const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
+                    
+                    container.innerHTML = `
+                        <div class="stats-grid" style="margin-bottom:20px;">
+                            <div class="stat-card green">
+                                <div class="label">Tong Hoa Hong</div>
+                                <div class="value">${formatCurrency(result.total.commission)}</div>
+                            </div>
+                            <div class="stat-card blue">
+                                <div class="label">Giao Dich</div>
+                                <div class="value">${result.total.transactions}</div>
+                            </div>
+                        </div>
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#fafafa;">
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Level</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Doanh Thu</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Giao Dich</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Ti Le</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Hoa Hong</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.by_level.map(l => `
+                                    <tr>
+                                        <td style="padding:12px;border-bottom:1px solid #e0e0e0;">
+                                            <span class="level-badge level-${l.level}">Level ${l.level}</span>
+                                        </td>
+                                        <td style="padding:12px;border-bottom:1px solid #e0e0e0;">${formatCurrency(l.total_revenue)}</td>
+                                        <td style="padding:12px;border-bottom:1px solid #e0e0e0;">${l.transaction_count}</td>
+                                        <td style="padding:12px;border-bottom:1px solid #e0e0e0;">${l.rate.toFixed(2)}%</td>
+                                        <td style="padding:12px;border-bottom:1px solid #e0e0e0;color:#22c55e;font-weight:600;">${formatCurrency(l.commission)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            }
+        }
 
         // Init
         checkAuth();

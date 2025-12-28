@@ -380,6 +380,99 @@ def validate_ctv_data(ctv_list):
     return True, None
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# PUBLIC API ENDPOINTS (No authentication required)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/check-duplicate', methods=['POST'])
+def check_duplicate():
+    """
+    PUBLIC: Check if a phone number already exists in the system
+    
+    DOES: Check phone against khach_hang table with specific duplicate conditions
+    INPUTS: JSON with "phone" field
+    OUTPUTS: { "is_duplicate": true/false, "message": "..." }
+    
+    Duplicate conditions (ANY = duplicate):
+    1. trang_thai IN ('Da den lam', 'Da coc')
+    2. ngay_hen_lam >= TODAY AND < TODAY + 180 days
+    3. ngay_nhap_don >= TODAY - 60 days
+    
+    IMPORTANT: Only returns "Trung" or "Khong trung" - NO customer details!
+    """
+    data = request.get_json()
+    
+    if not data or not data.get('phone'):
+        return jsonify({
+            'status': 'error',
+            'message': 'Phone number is required'
+        }), 400
+    
+    phone = data['phone'].strip()
+    
+    # Normalize phone number (remove spaces, dashes)
+    phone = ''.join(c for c in phone if c.isdigit())
+    
+    if len(phone) < 9:
+        return jsonify({
+            'status': 'error',
+            'message': 'Invalid phone number'
+        }), 400
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Check for duplicates using the three conditions from specification
+        # Condition 1: trang_thai IN ('Da den lam', 'Da coc')
+        # Condition 2: ngay_hen_lam >= TODAY AND < TODAY + 180 days
+        # Condition 3: ngay_nhap_don >= TODAY - 60 days
+        cursor.execute("""
+            SELECT COUNT(*) > 0 AS is_duplicate
+            FROM khach_hang
+            WHERE sdt = %s
+              AND (
+                -- Condition 1: Status is completed or deposited
+                trang_thai IN ('Da den lam', 'Da coc')
+                
+                -- Condition 2: Future appointment within 180 days
+                OR (ngay_hen_lam >= CURDATE() 
+                    AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
+                
+                -- Condition 3: Order entry within last 60 days
+                OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
+              );
+        """, (phone,))
+        
+        result = cursor.fetchone()
+        is_duplicate = bool(result[0]) if result else False
+        
+        cursor.close()
+        connection.close()
+        
+        if is_duplicate:
+            return jsonify({
+                'status': 'success',
+                'is_duplicate': True,
+                'message': 'Trung - So dien thoai nay da co trong he thong'
+            })
+        else:
+            return jsonify({
+                'status': 'success',
+                'is_duplicate': False,
+                'message': 'Khong trung - So dien thoai nay chua co trong he thong'
+            })
+        
+    except Error as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error checking duplicate: {str(e)}'
+        }), 500
+
+
 @app.route('/')
 def index():
     """Serve the dashboard HTML"""

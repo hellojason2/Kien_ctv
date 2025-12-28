@@ -94,7 +94,7 @@ def get_commission_rates(connection=None):
     INPUTS: Optional connection (creates new if not provided)
     OUTPUTS: Dict {level: rate} or DEFAULT_COMMISSION_RATES on failure
     
-    Loads rates from commission_settings table, falls back to defaults if empty.
+    Loads rates from hoa_hong_config table (primary) or commission_settings (fallback).
     """
     should_close = False
     if connection is None:
@@ -106,21 +106,44 @@ def get_commission_rates(connection=None):
     
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT level, rate FROM commission_settings ORDER BY level;")
-        rows = cursor.fetchall()
-        cursor.close()
         
+        # Try hoa_hong_config first (new table)
+        cursor.execute("SHOW TABLES LIKE 'hoa_hong_config';")
+        if cursor.fetchone():
+            cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level;")
+            rows = cursor.fetchall()
+            
+            if rows:
+                rates = {}
+                for row in rows:
+                    # Convert percent to decimal (e.g., 25.0 -> 0.25)
+                    rates[row['level']] = float(row['percent']) / 100
+                cursor.close()
+                if should_close:
+                    connection.close()
+                return rates
+        
+        # Fallback to commission_settings
+        cursor.execute("SHOW TABLES LIKE 'commission_settings';")
+        if cursor.fetchone():
+            cursor.execute("SELECT level, rate FROM commission_settings ORDER BY level;")
+            rows = cursor.fetchall()
+            cursor.close()
+            
+            if should_close:
+                connection.close()
+            
+            if rows:
+                rates = {}
+                for row in rows:
+                    rates[row['level']] = float(row['rate'])
+                return rates
+        
+        cursor.close()
         if should_close:
             connection.close()
         
-        if not rows:
-            return DEFAULT_COMMISSION_RATES.copy()
-        
-        rates = {}
-        for row in rows:
-            rates[row['level']] = float(row['rate'])
-        
-        return rates
+        return DEFAULT_COMMISSION_RATES.copy()
         
     except Error:
         if should_close and connection:
@@ -465,6 +488,164 @@ def validate_ctv_data(ctv_list):
                 return False, f"Circular reference detected involving CTV {ctv_code}"
     
     return True, None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# KHACH HANG COMMISSION CALCULATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+def calculate_khach_hang_commission(ctv_code, from_date=None, to_date=None, connection=None):
+    """
+    DOES: Calculate commission from khach_hang table with date filtering
+    INPUTS: 
+        - ctv_code: CTV to calculate for
+        - from_date: Optional start date for ngay_hen_lam filter (YYYY-MM-DD)
+        - to_date: Optional end date for ngay_hen_lam filter (YYYY-MM-DD)
+    OUTPUTS: Dict with commission breakdown by level
+    
+    KEY CONDITIONS:
+    - Only counts transactions where trang_thai = 'Da den lam'
+    - Filters by ngay_hen_lam date range
+    - Uses rates from hoa_hong_config table
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'error': 'Database connection failed'}
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        commission_rates = get_commission_rates(connection)
+        
+        # Get all descendants for level 1-4 commissions
+        all_network = get_all_descendants(ctv_code, connection)
+        
+        result = {
+            'by_level': [],
+            'total_commission': 0,
+            'total_transactions': 0
+        }
+        
+        # Calculate for each level (0-4)
+        for level in range(MAX_LEVEL + 1):
+            # Get CTVs at this level relative to ctv_code
+            level_ctv_list = []
+            
+            for descendant_code in all_network:
+                desc_level = calculate_level(cursor, descendant_code, ctv_code)
+                if desc_level == level:
+                    level_ctv_list.append(descendant_code)
+            
+            if not level_ctv_list:
+                continue
+            
+            # Build query for this level
+            placeholders = ','.join(['%s'] * len(level_ctv_list))
+            query = f"""
+                SELECT 
+                    SUM(tong_tien) as total_revenue,
+                    COUNT(*) as transaction_count
+                FROM khach_hang
+                WHERE nguoi_chot IN ({placeholders})
+                AND trang_thai = 'Da den lam'
+            """
+            params = list(level_ctv_list)
+            
+            if from_date:
+                query += " AND ngay_hen_lam >= %s"
+                params.append(from_date)
+            if to_date:
+                query += " AND ngay_hen_lam <= %s"
+                params.append(to_date)
+            
+            cursor.execute(query, params)
+            level_data = cursor.fetchone()
+            
+            revenue = float(level_data['total_revenue'] or 0)
+            count = int(level_data['transaction_count'] or 0)
+            rate = commission_rates.get(level, 0)
+            commission = revenue * rate
+            
+            if revenue > 0 or count > 0:
+                result['by_level'].append({
+                    'level': level,
+                    'total_revenue': revenue,
+                    'transaction_count': count,
+                    'rate': rate * 100,  # Convert to percentage
+                    'commission': commission
+                })
+                result['total_commission'] += commission
+                result['total_transactions'] += count
+        
+        cursor.close()
+        if should_close:
+            connection.close()
+        
+        return result
+        
+    except Error as e:
+        print(f"Error calculating khach_hang commission: {e}")
+        if should_close and connection:
+            connection.close()
+        return {'error': str(e)}
+
+
+def check_phone_duplicate(phone, connection=None):
+    """
+    DOES: Check if phone number is a duplicate based on business rules
+    INPUTS: phone - phone number to check
+    OUTPUTS: Dict with is_duplicate flag and message
+    
+    DUPLICATE CONDITIONS (ANY = duplicate):
+    1. trang_thai IN ('Da den lam', 'Da coc')
+    2. ngay_hen_lam >= TODAY AND < TODAY + 180 days
+    3. ngay_nhap_don >= TODAY - 60 days
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'error': 'Database connection failed'}
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Normalize phone
+        phone = ''.join(c for c in phone if c.isdigit())
+        
+        cursor.execute("""
+            SELECT COUNT(*) > 0 AS is_duplicate
+            FROM khach_hang
+            WHERE sdt = %s
+              AND (
+                trang_thai IN ('Da den lam', 'Da coc')
+                OR (ngay_hen_lam >= CURDATE() 
+                    AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
+                OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
+              );
+        """, (phone,))
+        
+        result = cursor.fetchone()
+        is_duplicate = bool(result[0]) if result else False
+        
+        cursor.close()
+        if should_close:
+            connection.close()
+        
+        return {
+            'is_duplicate': is_duplicate,
+            'message': 'Trung' if is_duplicate else 'Khong trung'
+        }
+        
+    except Error as e:
+        if should_close and connection:
+            connection.close()
+        return {'error': str(e)}
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -618,3 +618,353 @@ def get_my_stats():
     except Error as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# KHACH HANG (CUSTOMER) ENDPOINTS - Based on new khach_hang table
+# ══════════════════════════════════════════════════════════════════════════════
+
+@ctv_bp.route('/api/ctv/customers', methods=['GET'])
+@require_ctv
+def get_ctv_customers():
+    """
+    Get all customers where nguoi_chot = logged-in CTV
+    Uses the new khach_hang table
+    
+    Query params:
+    - status: Filter by trang_thai (Da den lam, Da coc, Huy lich, Cho xac nhan)
+    - from: Filter ngay_hen_lam >= from date (YYYY-MM-DD)
+    - to: Filter ngay_hen_lam <= to date (YYYY-MM-DD)
+    """
+    ctv = g.current_user
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Build query with optional filters
+        query = """
+            SELECT 
+                id,
+                ngay_nhap_don,
+                ten_khach,
+                sdt,
+                co_so,
+                ngay_hen_lam,
+                gio,
+                dich_vu,
+                tong_tien,
+                tien_coc,
+                phai_dong,
+                nguoi_chot,
+                ghi_chu,
+                trang_thai,
+                created_at
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+        """
+        params = [ctv['ma_ctv']]
+        
+        # Filter by status
+        status = request.args.get('status')
+        if status:
+            query += " AND trang_thai = %s"
+            params.append(status)
+        
+        # Filter by date range (on ngay_hen_lam)
+        from_date = request.args.get('from')
+        to_date = request.args.get('to')
+        
+        if from_date:
+            query += " AND ngay_hen_lam >= %s"
+            params.append(from_date)
+        
+        if to_date:
+            query += " AND ngay_hen_lam <= %s"
+            params.append(to_date)
+        
+        query += " ORDER BY ngay_hen_lam DESC, id DESC LIMIT 100;"
+        
+        cursor.execute(query, params)
+        customers = cursor.fetchall()
+        
+        # Convert dates and decimals for JSON
+        for c in customers:
+            if c.get('ngay_nhap_don'):
+                c['ngay_nhap_don'] = c['ngay_nhap_don'].strftime('%Y-%m-%d')
+            if c.get('ngay_hen_lam'):
+                c['ngay_hen_lam'] = c['ngay_hen_lam'].strftime('%Y-%m-%d')
+            if c.get('created_at'):
+                c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            c['tong_tien'] = float(c['tong_tien'] or 0)
+            c['tien_coc'] = float(c['tien_coc'] or 0)
+            c['phai_dong'] = float(c['phai_dong'] or 0)
+        
+        # Get summary stats
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_count,
+                SUM(CASE WHEN trang_thai = 'Da den lam' THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN trang_thai = 'Da den lam' THEN tong_tien ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN trang_thai = 'Da coc' THEN 1 ELSE 0 END) as pending_count
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+        """, (ctv['ma_ctv'],))
+        
+        summary = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'customers': customers,
+            'summary': {
+                'total': int(summary['total_count'] or 0),
+                'completed': int(summary['completed_count'] or 0),
+                'pending': int(summary['pending_count'] or 0),
+                'total_revenue': float(summary['total_revenue'] or 0)
+            }
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@ctv_bp.route('/api/ctv/commission', methods=['GET'])
+@require_ctv
+def get_ctv_commission():
+    """
+    Get commission based on khach_hang table with date filter on ngay_hen_lam
+    Only counts transactions where trang_thai = 'Da den lam'
+    
+    Query params:
+    - from: Start date (YYYY-MM-DD) for ngay_hen_lam
+    - to: End date (YYYY-MM-DD) for ngay_hen_lam
+    
+    Commission calculation:
+    - Level 0 (self): 25% of tong_tien where trang_thai = 'Da den lam'
+    """
+    ctv = g.current_user
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get date filters
+        from_date = request.args.get('from')
+        to_date = request.args.get('to')
+        
+        # Get commission rates from config
+        cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+        rates_rows = cursor.fetchall()
+        commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
+        
+        # Level 0: Own revenue (nguoi_chot = me, trang_thai = 'Da den lam')
+        level0_query = """
+            SELECT 
+                SUM(tong_tien) as total_revenue,
+                COUNT(*) as transaction_count
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+            AND trang_thai = 'Da den lam'
+        """
+        level0_params = [ctv['ma_ctv']]
+        
+        if from_date:
+            level0_query += " AND ngay_hen_lam >= %s"
+            level0_params.append(from_date)
+        if to_date:
+            level0_query += " AND ngay_hen_lam <= %s"
+            level0_params.append(to_date)
+        
+        cursor.execute(level0_query, level0_params)
+        level0 = cursor.fetchone()
+        
+        level0_revenue = float(level0['total_revenue'] or 0)
+        level0_count = int(level0['transaction_count'] or 0)
+        level0_commission = level0_revenue * commission_rates.get(0, 0.25)
+        
+        # Get all descendants for level 1-4 commissions
+        my_network = get_all_descendants(ctv['ma_ctv'], connection)
+        my_network_excluding_self = [c for c in my_network if c != ctv['ma_ctv']]
+        
+        level_commissions = [{
+            'level': 0,
+            'description': 'Doanh so ban than',
+            'total_revenue': level0_revenue,
+            'transaction_count': level0_count,
+            'rate': commission_rates.get(0, 0.25) * 100,
+            'commission': level0_commission
+        }]
+        
+        # Calculate commissions for each level (1-4)
+        if my_network_excluding_self:
+            for level in range(1, 5):
+                # Get CTVs at this level
+                cursor_check = connection.cursor(dictionary=True)
+                level_ctv_list = []
+                
+                for descendant_code in my_network_excluding_self:
+                    # Calculate level of this descendant relative to me
+                    desc_level = calculate_level_simple(ctv['ma_ctv'], descendant_code, connection)
+                    if desc_level == level:
+                        level_ctv_list.append(descendant_code)
+                
+                cursor_check.close()
+                
+                if level_ctv_list:
+                    placeholders = ','.join(['%s'] * len(level_ctv_list))
+                    level_query = f"""
+                        SELECT 
+                            SUM(tong_tien) as total_revenue,
+                            COUNT(*) as transaction_count
+                        FROM khach_hang
+                        WHERE nguoi_chot IN ({placeholders})
+                        AND trang_thai = 'Da den lam'
+                    """
+                    level_params = list(level_ctv_list)
+                    
+                    if from_date:
+                        level_query += " AND ngay_hen_lam >= %s"
+                        level_params.append(from_date)
+                    if to_date:
+                        level_query += " AND ngay_hen_lam <= %s"
+                        level_params.append(to_date)
+                    
+                    cursor.execute(level_query, level_params)
+                    level_data = cursor.fetchone()
+                    
+                    level_revenue = float(level_data['total_revenue'] or 0)
+                    level_count = int(level_data['transaction_count'] or 0)
+                    level_commission = level_revenue * commission_rates.get(level, 0)
+                    
+                    level_commissions.append({
+                        'level': level,
+                        'description': f'Doanh so Level {level}',
+                        'total_revenue': level_revenue,
+                        'transaction_count': level_count,
+                        'rate': commission_rates.get(level, 0) * 100,
+                        'commission': level_commission
+                    })
+        
+        # Calculate totals
+        total_commission = sum(lc['commission'] for lc in level_commissions)
+        total_transactions = sum(lc['transaction_count'] for lc in level_commissions)
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'filter': {
+                'from': from_date,
+                'to': to_date
+            },
+            'by_level': level_commissions,
+            'total': {
+                'commission': total_commission,
+                'transactions': total_transactions
+            }
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+def calculate_level_simple(ancestor_code, descendant_code, connection):
+    """
+    Simple helper to calculate level between ancestor and descendant
+    Returns the level (1-4) or None if not in hierarchy
+    """
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        current = descendant_code
+        level = 0
+        visited = set()
+        
+        while current and level <= 4:
+            if current in visited:
+                return None
+            visited.add(current)
+            
+            if current == ancestor_code:
+                cursor.close()
+                return level
+            
+            cursor.execute("SELECT nguoi_gioi_thieu FROM ctv WHERE ma_ctv = %s", (current,))
+            result = cursor.fetchone()
+            
+            if not result or not result.get('nguoi_gioi_thieu'):
+                cursor.close()
+                return None
+            
+            current = result['nguoi_gioi_thieu']
+            level += 1
+        
+        cursor.close()
+        return None
+        
+    except Error:
+        return None
+
+
+@ctv_bp.route('/api/ctv/check-phone', methods=['POST'])
+@require_ctv
+def check_phone():
+    """
+    CTV can check phone duplicate (same logic as public endpoint but requires auth)
+    
+    Body: { "phone": "0979832523" }
+    """
+    data = request.get_json()
+    
+    if not data or not data.get('phone'):
+        return jsonify({'status': 'error', 'message': 'Phone number required'}), 400
+    
+    phone = data['phone'].strip()
+    phone = ''.join(c for c in phone if c.isdigit())
+    
+    if len(phone) < 9:
+        return jsonify({'status': 'error', 'message': 'Invalid phone number'}), 400
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT COUNT(*) > 0 AS is_duplicate
+            FROM khach_hang
+            WHERE sdt = %s
+              AND (
+                trang_thai IN ('Da den lam', 'Da coc')
+                OR (ngay_hen_lam >= CURDATE() 
+                    AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
+                OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
+              );
+        """, (phone,))
+        
+        result = cursor.fetchone()
+        is_duplicate = bool(result[0]) if result else False
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'is_duplicate': is_duplicate,
+            'message': 'Trung' if is_duplicate else 'Khong trung'
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+

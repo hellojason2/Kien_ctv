@@ -1,5 +1,111 @@
 # Release Notes - CTV Dashboard
 
+## Version 1.3.0 - December 28, 2025
+
+### CTV System Restructure - New Customer Management
+
+**Time:** 18:55 (GMT+7)
+
+---
+
+### New Features Added
+
+#### Database Schema Changes
+
+**New Table: `khach_hang`** (Customer Transactions)
+- `id` INT PRIMARY KEY AUTO_INCREMENT
+- `ngay_nhap_don` DATE - Order entry date
+- `ten_khach` VARCHAR(100) - Customer name
+- `sdt` VARCHAR(15) INDEX - Phone number (for duplicate check)
+- `co_so` VARCHAR(100) - Facility/location
+- `ngay_hen_lam` DATE - Appointment date (key for commission)
+- `gio` VARCHAR(20) - Time
+- `dich_vu` VARCHAR(500) - Service
+- `tong_tien` DECIMAL(15,0) - Total amount (commission basis)
+- `tien_coc` DECIMAL(15,0) - Deposit
+- `phai_dong` DECIMAL(15,0) - Remaining
+- `nguoi_chot` VARCHAR(20) FK - CTV code
+- `ghi_chu` TEXT - Notes
+- `trang_thai` VARCHAR(50) - Status (Da den lam, Da coc, Huy lich, Cho xac nhan)
+
+**New Table: `hoa_hong_config`** (Commission Rates)
+| Level | Percent | Description |
+|-------|---------|-------------|
+| 0 | 25.0% | Doanh so ban than |
+| 1 | 5.0% | Level 1 (truc tiep gioi thieu) |
+| 2 | 2.5% | Level 2 |
+| 3 | 1.25% | Level 3 |
+| 4 | 0.625% | Level 4 (cap cuoi) |
+
+#### Public Phone Duplicate Check (No Auth Required)
+
+**New API Endpoint:** `POST /api/check-duplicate`
+- Input: `{ "phone": "0979832523" }`
+- Output: `{ "is_duplicate": true/false, "message": "..." }`
+- Duplicate conditions (ANY = duplicate):
+  1. `trang_thai IN ('Da den lam', 'Da coc')`
+  2. `ngay_hen_lam >= TODAY AND < TODAY + 180 days`
+  3. `ngay_nhap_don >= TODAY - 60 days`
+
+**Dashboard UI:** Added phone check input in header
+- Shows "TRUNG" (red) or "KHONG TRUNG" (green)
+- No login required
+- Enter key support
+
+#### CTV Portal Enhancements
+
+**New Page: "Khach Hang Cua Toi" (My Customers)**
+- Lists all customers where `nguoi_chot` = logged-in CTV
+- Date range filter on `ngay_hen_lam`
+- Status filter (Da den lam, Da coc, Huy lich, Cho xac nhan)
+- Summary stats (total, completed, pending, revenue)
+
+**New API Endpoints:**
+- `GET /api/ctv/customers` - List CTV's customers
+  - Query params: `?from=YYYY-MM-DD&to=YYYY-MM-DD&status=...`
+- `GET /api/ctv/commission` - Commission with date filter
+  - Query params: `?from=YYYY-MM-DD&to=YYYY-MM-DD`
+  - Only counts transactions where `trang_thai = 'Da den lam'`
+- `POST /api/ctv/check-phone` - Phone check (requires auth)
+
+**Dashboard Additions:**
+- Phone check card at top of dashboard
+- Date filter for commission calculation
+
+**Earnings Page Additions:**
+- Date range filter for `ngay_hen_lam`
+- New "Hoa Hong Theo Khach Hang" section
+- Commission breakdown by level with date filtering
+
+#### Updated Commission Calculation
+
+- Commission now based on `khach_hang` table instead of `services`
+- Only counts transactions where `trang_thai = 'Da den lam'`
+- Filter by `ngay_hen_lam` date range
+- Uses rates from `hoa_hong_config` table
+
+#### Migration Script
+
+**New File: `migrate_khach_hang.py`**
+- Creates `khach_hang` and `hoa_hong_config` tables
+- Inserts sample customer data with various statuses
+- Run: `python3 migrate_khach_hang.py sample`
+
+---
+
+### Files Modified/Created
+
+| File | Action |
+|------|--------|
+| `migrate_khach_hang.py` | Created - New migration script |
+| `modules/mlm_core.py` | Modified - Updated commission logic, added `hoa_hong_config` support |
+| `modules/ctv_routes.py` | Modified - Added customer endpoints, date filter |
+| `backend.py` | Modified - Added public check-duplicate endpoint |
+| `dashboard.html` | Modified - Added phone check UI |
+| `templates/ctv_portal.html` | Modified - Added customer list, date filter, phone check |
+
+---
+
 ## Version 1.2.0 - December 28, 2025
 
 ### Admin & CTV Portal System Implementation

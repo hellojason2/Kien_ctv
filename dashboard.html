@@ -68,6 +68,92 @@
             stroke: #ffffff;
         }
 
+        /* ═══════════════════════════════════════════════════════════════════
+           PHONE CHECK UI (Public - No login required)
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        .phone-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .phone-check-input {
+            width: 180px;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .phone-check-input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+        }
+
+        .phone-check-input::placeholder {
+            color: #aaa;
+        }
+
+        .phone-check-btn {
+            padding: 12px 20px;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .phone-check-btn:hover {
+            background: #333333;
+        }
+
+        .phone-check-btn:active {
+            transform: scale(0.98);
+        }
+
+        .phone-check-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .phone-check-result {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+            display: none;
+        }
+
+        .phone-check-result.duplicate {
+            display: block;
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .phone-check-result.not-duplicate {
+            display: block;
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .phone-check-result.error {
+            display: block;
+            background: #fef3c7;
+            color: #d97706;
+        }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -446,6 +532,24 @@
                 max-width: 100%;
             }
 
+            .phone-check {
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                margin-top: 15px;
+                flex-wrap: wrap;
+            }
+
+            .phone-check-input {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .phone-check-result {
+                width: 100%;
+                margin-top: 10px;
+            }
+
             .content {
                 padding: 20px;
             }
@@ -540,6 +644,19 @@
                         <span>K</span>
                     </div>
                 </div>
+                
+                <!-- Phone Check (Public - No login required) -->
+                <div class="phone-check">
+                    <input type="tel" 
+                           id="phoneCheckInput" 
+                           class="phone-check-input" 
+                           placeholder="Doi Chieu SDT..."
+                           maxlength="15">
+                    <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()">
+                        Doi Chieu
+                    </button>
+                    <div id="phoneCheckResult" class="phone-check-result"></div>
+                </div>
             </header>
 
             <!-- Content -->
@@ -589,6 +706,83 @@
 
     <script>
         let allCustomers = [];
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // PHONE DUPLICATE CHECK (Public - No login required)
+        // ═══════════════════════════════════════════════════════════════════
+        
+        async function checkPhoneDuplicate() {
+            const phoneInput = document.getElementById('phoneCheckInput');
+            const btn = document.getElementById('phoneCheckBtn');
+            const result = document.getElementById('phoneCheckResult');
+            
+            const phone = phoneInput.value.trim();
+            
+            if (!phone || phone.length < 9) {
+                result.className = 'phone-check-result error';
+                result.textContent = 'Nhap SDT';
+                result.style.display = 'block';
+                return;
+            }
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.textContent = 'Dang kiem tra...';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/check-duplicate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    if (data.is_duplicate) {
+                        result.className = 'phone-check-result duplicate';
+                        result.textContent = 'TRUNG';
+                    } else {
+                        result.className = 'phone-check-result not-duplicate';
+                        result.textContent = 'KHONG TRUNG';
+                    }
+                } else {
+                    result.className = 'phone-check-result error';
+                    result.textContent = 'Loi';
+                }
+                
+            } catch (error) {
+                console.error('Phone check error:', error);
+                result.className = 'phone-check-result error';
+                result.textContent = 'Loi ket noi';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Doi Chieu';
+                result.style.display = 'block';
+            }
+        }
+        
+        // Handle Enter key in phone input
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.getElementById('phoneCheckInput');
+            if (phoneInput) {
+                phoneInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkPhoneDuplicate();
+                    }
+                });
+                
+                // Clear result when input changes
+                phoneInput.addEventListener('input', function() {
+                    document.getElementById('phoneCheckResult').style.display = 'none';
+                });
+            }
+        });
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // CUSTOMER DATA FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════
         
         // Fetch data from backend
         async function loadData() {
