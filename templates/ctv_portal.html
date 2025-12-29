@@ -558,43 +558,183 @@
             font-weight: 600;
         }
 
-        .level-0 { background: #dcfce7; color: #22c55e; }
-        .level-1 { background: #dbeafe; color: #3b82f6; }
-        .level-2 { background: #fef3c7; color: #d97706; }
-        .level-3 { background: #fce7f3; color: #ec4899; }
-        .level-4 { background: #ede9fe; color: #8b5cf6; }
+        /* Level badges with L1-L5 mapping */
+        .level-badge.l1 { background: #ff6b6b; color: #fff; }
+        .level-badge.l2 { background: #ffa502; color: #000; }
+        .level-badge.l3 { background: #2ed573; color: #000; }
+        .level-badge.l4 { background: #1e90ff; color: #fff; }
+        .level-badge.l5 { background: #a55eea; color: #fff; }
+
+        /* Tree Container */
+        .tree-wrapper {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .tree-wrapper ul {
+            list-style: none;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .tree-wrapper > ul {
+            padding-left: 0;
+        }
+
+        .tree-wrapper li {
+            position: relative;
+            padding: 4px 0;
+        }
+
+        .tree-wrapper li::before {
+            content: '';
+            position: absolute;
+            left: -16px;
+            top: 0;
+            border-left: 2px solid #ddd;
+            height: 100%;
+        }
+
+        .tree-wrapper li::after {
+            content: '';
+            position: absolute;
+            left: -16px;
+            top: 20px;
+            border-top: 2px solid #ddd;
+            width: 14px;
+        }
+
+        .tree-wrapper > ul > li::before,
+        .tree-wrapper > ul > li::after {
+            display: none;
+        }
+
+        .tree-wrapper li:last-child::before {
+            height: 20px;
+        }
 
         /* Tree Nodes */
         .tree-node {
-            background: #fafafa;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 8px 0;
-        }
-
-        .tree-node .node-header {
-            display: flex;
-            justify-content: space-between;
+            display: inline-flex;
             align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-wrap: wrap;
         }
 
-        .tree-node .name {
+        .tree-node:hover {
+            border-color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tree-node.has-children::before {
+            content: '';
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 5px solid #666;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            transition: transform 0.3s;
+        }
+
+        .tree-node.expanded::before {
+            transform: rotate(90deg);
+        }
+
+        .tree-node .node-name {
             font-weight: 600;
             font-size: 14px;
             color: #1a1a1a;
         }
 
-        .tree-node .info {
-            font-size: 13px;
-            color: #666666;
-            margin-top: 4px;
+        .tree-node .node-code {
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .tree-node .node-info {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .cutoff-badge {
+            font-size: 10px;
+            background: #ff4757;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .tree-children {
-            margin-left: 24px;
-            padding-left: 20px;
-            border-left: 2px solid #e0e0e0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .tree-children.collapsed {
+            max-height: 0 !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Tree Controls */
+        .tree-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .tree-btn {
+            padding: 8px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tree-btn:hover {
+            background: #1a1a1a;
+            color: #fff;
+            border-color: #1a1a1a;
+        }
+
+        /* Tree Stats */
+        .tree-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tree-stat {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        .tree-stat .number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .tree-stat .label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
         }
 
         /* Search */
@@ -832,16 +972,36 @@
             display: block;
         }
 
-        /* Responsive */
+        /* Responsive - Tablet */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Responsive - Mobile */
         @media (max-width: 768px) {
             .sidebar {
                 width: 60px;
-                padding-top: 20px;
+                padding: 16px 8px;
             }
 
             .sidebar-icon {
-                width: 40px;
-                height: 40px;
+                width: 42px;
+                height: 42px;
+            }
+
+            .sidebar-logo {
+                font-size: 12px;
+            }
+
+            .sidebar-nav a span {
+                display: none;
+            }
+
+            .sidebar-nav a {
+                padding: 12px 8px;
+                justify-content: center;
             }
 
             .main-wrapper {
@@ -849,32 +1009,500 @@
             }
 
             .header {
-                padding: 16px 20px;
+                padding: 16px;
                 flex-direction: column;
                 gap: 12px;
             }
 
+            .header h1 {
+                font-size: 20px;
+            }
+
             .content {
-                padding: 20px;
+                padding: 16px;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-card .value {
+                font-size: 22px;
+            }
+
+            .stat-card .label {
+                font-size: 11px;
+            }
+
+            .card {
+                margin-bottom: 16px;
+            }
+
+            .card-header,
+            .card-body {
+                padding: 16px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 500px;
+            }
+
+            th, td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            /* Form elements */
+            .form-group input,
+            .form-group select {
+                padding: 10px 14px;
+            }
+
+            .btn {
+                padding: 12px 16px;
+                font-size: 13px;
             }
         }
 
+        /* Responsive - Small Mobile */
         @media (max-width: 480px) {
             .sidebar {
                 width: 50px;
+                padding: 12px 6px;
+            }
+
+            .sidebar-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .sidebar-nav svg {
+                width: 18px;
+                height: 18px;
             }
 
             .main-wrapper {
                 margin-left: 50px;
             }
 
+            .header {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .content {
+                padding: 12px;
+            }
+
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
+
+            .stat-card .value {
+                font-size: 24px;
+            }
+
+            .card-header,
+            .card-body {
+                padding: 12px;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            /* Phone check responsive */
+            .phone-check-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .phone-check-row input {
+                width: 100%;
+            }
+
+            /* Modal responsive */
+            .modal {
+                max-width: 95%;
+                margin: 10px;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 16px;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           CLIENT CARDS STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        .clients-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .client-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .client-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .client-avatar {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .client-main-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .client-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .client-phone {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .client-phone svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .service-count-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .client-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px 24px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+        }
+
+        .client-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .client-info-label {
+            font-size: 11px;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .client-info-value {
+            font-size: 13px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .client-status-badge {
+            margin-left: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .client-status-badge.deposited {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+
+        .client-status-badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+        }
+
+        .client-status-badge.not-deposited {
+            background: rgba(107, 114, 128, 0.15);
+            color: #6b7280;
+        }
+
+        .services-container {
+            padding: 20px 24px;
+        }
+
+        .services-title {
+            font-size: 13px;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .client-info-row {
+                gap: 12px;
+            }
+            
+            .client-info-item {
+                min-width: 45%;
+            }
+            
+            .client-card-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+            
+            .client-main-info {
+                margin-left: 0;
+            }
+        }
+
+        .service-card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .service-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .service-deposit-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .service-deposit-status.deposited {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+
+        .service-deposit-status.not-deposited {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+        }
+
+        .service-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            min-height: 40px;
+        }
+
+        .service-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .service-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .service-detail-label {
+            color: #666666;
+        }
+
+        .service-detail-value {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .service-detail-value.amount {
+            color: #059669;
+        }
+
+        .service-detail-value.deposit {
+            color: #667eea;
+        }
+
+        .service-detail-value.remaining {
+            color: #d97706;
+        }
+
+        .service-appointment {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .service-appointment svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .service-appointment .date {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .no-clients-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666666;
+        }
+
+        .no-clients-message svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .view-toggle-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-toggle-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .view-toggle-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .view-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .client-search-box {
+            margin-bottom: 20px;
+        }
+
+        .client-search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #ffffff;
+        }
+
+        .client-search-box input:focus {
+            outline: none;
+            border-color: #667eea;
         }
     </style>
 </head>
@@ -1133,48 +1761,91 @@
 
                 <!-- Customers Page -->
                 <div class="page-section" id="page-customers">
-                    <div class="card" style="margin-bottom:20px;">
-                        <div class="card-body">
-                            <div class="date-filter">
-                                <label style="font-size:14px;color:#666;">Từ ngày:</label>
-                                <input type="date" id="customerFromDate">
-                                <label style="font-size:14px;color:#666;">Đến ngày:</label>
-                                <input type="date" id="customerToDate">
-                                <select id="customerStatusFilter">
-                                    <option value="">Tất cả trạng thái</option>
-                                    <option value="Da den lam">Đã đến làm</option>
-                                    <option value="Da coc">Đã cọc</option>
-                                    <option value="Huy lich">Hủy lịch</option>
-                                    <option value="Cho xac nhan">Chờ xác nhận</option>
-                                </select>
-                                <button class="btn-filter" onclick="loadMyCustomers()">Lọc</button>
+                    <!-- View Toggle -->
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" id="cardViewBtn" onclick="switchToCardView()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                            Card View
+                        </button>
+                        <button class="view-toggle-btn" id="tableViewBtn" onclick="switchToTableView()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                            Table View
+                        </button>
+                    </div>
+
+                    <!-- Card View (Default) -->
+                    <div id="cardViewSection">
+                        <div class="client-search-box">
+                            <input type="text" id="ctvClientSearch" placeholder="Tìm theo tên hoặc số điện thoại...">
+                        </div>
+                        <div class="clients-grid" id="ctvClientsGrid">
+                            <div class="no-clients-message">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <p>Đang tải...</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Khách Hàng Của Tôi</h3>
-                            <div id="customerSummary" style="font-size:14px;color:#666;"></div>
+                    <!-- Table View (Hidden by default) -->
+                    <div id="tableViewSection" style="display: none;">
+                        <div class="card" style="margin-bottom:20px;">
+                            <div class="card-body">
+                                <div class="date-filter">
+                                    <label style="font-size:14px;color:#666;">Từ ngày:</label>
+                                    <input type="date" id="customerFromDate">
+                                    <label style="font-size:14px;color:#666;">Đến ngày:</label>
+                                    <input type="date" id="customerToDate">
+                                    <select id="customerStatusFilter">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="Da den lam">Đã đến làm</option>
+                                        <option value="Da coc">Đã cọc</option>
+                                        <option value="Huy lich">Hủy lịch</option>
+                                        <option value="Cho xac nhan">Chờ xác nhận</option>
+                                    </select>
+                                    <button class="btn-filter" onclick="loadMyCustomers()">Lọc</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body" style="overflow-x:auto;">
-                            <table class="customer-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tên Khách</th>
-                                        <th>SĐT</th>
-                                        <th>Ngày Hẹn</th>
-                                        <th>Dịch Vụ</th>
-                                        <th>Tổng Tiền</th>
-                                        <th>Trạng Thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="customerTableBody">
-                                    <tr>
-                                        <td colspan="6" class="empty-state">Nhấn Lọc để xem danh sách</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Khách Hàng Của Tôi</h3>
+                                <div id="customerSummary" style="font-size:14px;color:#666;"></div>
+                            </div>
+                            <div class="card-body" style="overflow-x:auto;">
+                                <table class="customer-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên Khách</th>
+                                            <th>SĐT</th>
+                                            <th>Ngày Hẹn</th>
+                                            <th>Dịch Vụ</th>
+                                            <th>Tổng Tiền</th>
+                                            <th>Trạng Thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customerTableBody">
+                                        <tr>
+                                            <td colspan="6" class="empty-state">Nhấn Lọc để xem danh sách</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1428,12 +2099,58 @@
             }
         }
 
+        // Calculate tree stats helper
+        function calculateTreeStats(node, depth = 1) {
+            let stats = {
+                totalMembers: 1,
+                maxDepth: depth,
+                directRecruits: node.children ? node.children.length : 0
+            };
+            
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    const childStats = calculateTreeStats(child, depth + 1);
+                    stats.totalMembers += childStats.totalMembers;
+                    stats.maxDepth = Math.max(stats.maxDepth, childStats.maxDepth);
+                });
+            }
+            
+            return stats;
+        }
+
         // Load Network
         async function loadNetwork() {
             // Load hierarchy tree
             const treeResult = await api('/api/ctv/my-hierarchy');
             if (treeResult.status === 'success') {
-                document.getElementById('networkTree').innerHTML = renderTree(treeResult.hierarchy);
+                // Calculate stats
+                const stats = calculateTreeStats(treeResult.hierarchy);
+                
+                // Render with wrapper structure
+                const treeHTML = `
+                    <div class="tree-stats">
+                        <div class="tree-stat">
+                            <div class="number">${stats.totalMembers}</div>
+                            <div class="label">Total Members</div>
+                        </div>
+                        <div class="tree-stat">
+                            <div class="number">${stats.maxDepth}</div>
+                            <div class="label">Levels Deep</div>
+                        </div>
+                        <div class="tree-stat">
+                            <div class="number">${stats.directRecruits}</div>
+                            <div class="label">Direct Recruits</div>
+                        </div>
+                    </div>
+                    <div class="tree-controls">
+                        <button class="tree-btn" onclick="expandAllTreeNodes()">Expand All</button>
+                        <button class="tree-btn" onclick="collapseAllTreeNodes()">Collapse All</button>
+                    </div>
+                    <div class="tree-wrapper">
+                        <ul>${renderTree(treeResult.hierarchy)}</ul>
+                    </div>
+                `;
+                document.getElementById('networkTree').innerHTML = treeHTML;
             }
             
             // Load direct downline
@@ -1441,17 +2158,17 @@
             if (downlineResult.status === 'success') {
                 const container = document.getElementById('directDownline');
                 if (downlineResult.downline.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Bạn chưa giới thiệu ai</div>';
+                    container.innerHTML = '<div class="empty-state">Ban chua gioi thieu ai</div>';
                 } else {
                     container.innerHTML = `
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Mã CTV</th>
-                                    <th>Tên</th>
+                                    <th>Ma CTV</th>
+                                    <th>Ten</th>
                                     <th>Email</th>
-                                    <th>SĐT</th>
-                                    <th>Cấp Bậc</th>
+                                    <th>SDT</th>
+                                    <th>Cap Bac</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1471,28 +2188,66 @@
             }
         }
 
-        function renderTree(node, level = 0) {
+        function renderTree(node) {
+            // Map database level (0-4) to display level (L1-L5)
+            const displayLevel = node.level + 1;
+            const levelClass = `l${displayLevel}`;
+            
+            const hasChildren = node.children && node.children.length > 0;
+            const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
+            
+            // Cut-off badge for level 4 (displayed as L5)
+            const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
+            
             let html = `
-                <div class="tree-node">
-                    <div class="node-header">
-                        <div>
-                            <div class="name">${node.ten} (${node.ma_ctv})</div>
-                            <div class="info">${node.email || '-'} | ${node.sdt || '-'}</div>
-                        </div>
-                        <span class="level-badge level-${node.level}">Level ${node.level}</span>
+                <li>
+                    <div class="tree-node ${hasChildrenClass}" onclick="toggleTreeNode(this)">
+                        <span class="level-badge ${levelClass}">L${displayLevel}</span>
+                        <span class="node-name">${node.ten || 'Unknown'}</span>
+                        <span class="node-code">${node.ma_ctv}</span>
+                        <span class="node-info">${node.cap_bac || 'Bronze'}</span>
+                        ${cutoffBadge}
                     </div>
-                </div>
             `;
             
-            if (node.children && node.children.length > 0) {
-                html += '<div class="tree-children">';
+            if (hasChildren) {
+                html += '<ul class="tree-children">';
                 node.children.forEach(child => {
-                    html += renderTree(child, level + 1);
+                    html += renderTree(child);
                 });
-                html += '</div>';
+                html += '</ul>';
             }
             
+            html += '</li>';
             return html;
+        }
+
+        function toggleTreeNode(element) {
+            const li = element.parentElement;
+            const children = li.querySelector(':scope > ul.tree-children');
+            
+            if (children) {
+                element.classList.toggle('expanded');
+                children.classList.toggle('collapsed');
+            }
+        }
+
+        function expandAllTreeNodes() {
+            document.querySelectorAll('#networkTree .tree-node.has-children').forEach(node => {
+                node.classList.add('expanded');
+            });
+            document.querySelectorAll('#networkTree .tree-children').forEach(child => {
+                child.classList.remove('collapsed');
+            });
+        }
+
+        function collapseAllTreeNodes() {
+            document.querySelectorAll('#networkTree .tree-node.has-children').forEach(node => {
+                node.classList.remove('expanded');
+            });
+            document.querySelectorAll('#networkTree .tree-children').forEach(child => {
+                child.classList.add('collapsed');
+            });
         }
 
         // Search
@@ -1562,7 +2317,14 @@
                 // Load page data
                 if (page === 'earnings') loadAllCommissions();
                 if (page === 'network') loadNetwork();
-                if (page === 'customers') loadMyCustomers();
+                if (page === 'customers') {
+                    // Default to card view
+                    if (currentView === 'card') {
+                        loadCtvClientsWithServices();
+                    } else {
+                        loadMyCustomers();
+                    }
+                }
             });
         });
 
@@ -1615,7 +2377,213 @@
         });
 
         // ═══════════════════════════════════════════════════════════════════
-        // MY CUSTOMERS (khach_hang table)
+        // CLIENT CARDS VIEW
+        // ═══════════════════════════════════════════════════════════════════
+        
+        let ctvClients = [];
+        let currentView = 'card';
+
+        function switchToCardView() {
+            currentView = 'card';
+            document.getElementById('cardViewSection').style.display = 'block';
+            document.getElementById('tableViewSection').style.display = 'none';
+            document.getElementById('cardViewBtn').classList.add('active');
+            document.getElementById('tableViewBtn').classList.remove('active');
+            loadCtvClientsWithServices();
+        }
+
+        function switchToTableView() {
+            currentView = 'table';
+            document.getElementById('cardViewSection').style.display = 'none';
+            document.getElementById('tableViewSection').style.display = 'block';
+            document.getElementById('cardViewBtn').classList.remove('active');
+            document.getElementById('tableViewBtn').classList.add('active');
+        }
+
+        async function loadCtvClientsWithServices() {
+            const search = document.getElementById('ctvClientSearch')?.value || '';
+            let url = '/api/ctv/clients-with-services';
+            if (search) {
+                url += `?search=${encodeURIComponent(search)}`;
+            }
+            
+            const result = await api(url);
+            const grid = document.getElementById('ctvClientsGrid');
+            
+            if (result.status === 'success') {
+                ctvClients = result.clients;
+                renderCtvClientCards(result.clients);
+            } else {
+                grid.innerHTML = `
+                    <div class="no-clients-message">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>Loi tai du lieu</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCtvClientCards(clients) {
+            const grid = document.getElementById('ctvClientsGrid');
+            
+            if (!clients || clients.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-clients-message">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <p>Khong co khach hang nao</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = clients.map(client => renderCtvClientCard(client)).join('');
+        }
+
+        function renderCtvClientCard(client) {
+            const initials = getCtvInitials(client.ten_khach);
+            const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+            
+            const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
+            
+            return `
+                <div class="client-card">
+                    <div class="client-card-header">
+                        <div class="client-avatar">${initials}</div>
+                        <div class="client-main-info">
+                            <div class="client-name">${escapeHtmlCTV(client.ten_khach)}</div>
+                            <div class="client-phone">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                ${escapeHtmlCTV(client.sdt)}
+                            </div>
+                        </div>
+                        <div class="service-count-badge">${client.service_count} ${t('dich_vu')}</div>
+                    </div>
+                    <div class="client-info-row">
+                        <div class="client-info-item">
+                            <span class="client-info-label">${t('co_so')}</span>
+                            <span class="client-info-value">${escapeHtmlCTV(client.co_so || '-')}</span>
+                        </div>
+                        <div class="client-info-item">
+                            <span class="client-info-label">${t('first_visit')}</span>
+                            <span class="client-info-value">${client.first_visit_date || '-'}</span>
+                        </div>
+                        <span class="client-status-badge ${depositClass}">${depositText}</span>
+                    </div>
+                    <div class="services-container">
+                        <div class="services-title">${t('services_title')} (${client.services.length})</div>
+                        <div class="services-grid">
+                            ${servicesHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCtvServiceCard(service, index) {
+            const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
+            
+            const datesHTML = `
+                ${service.ngay_nhap_don 
+                    ? `<div class="service-appointment">
+                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                               <line x1="16" y1="2" x2="16" y2="6"/>
+                               <line x1="8" y1="2" x2="8" y2="6"/>
+                               <line x1="3" y1="10" x2="21" y2="10"/>
+                           </svg>
+                           <span>${t('ngay_nhap_don')}</span>
+                           <span class="date">${service.ngay_nhap_don}</span>
+                       </div>` 
+                    : ''}
+                ${service.ngay_hen_lam 
+                    ? `<div class="service-appointment">
+                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                               <line x1="16" y1="2" x2="16" y2="6"/>
+                               <line x1="8" y1="2" x2="8" y2="6"/>
+                               <line x1="3" y1="10" x2="21" y2="10"/>
+                           </svg>
+                           <span>${t('ngay_hen_lam')}</span>
+                           <span class="date">${service.ngay_hen_lam}</span>
+                       </div>` 
+                    : ''}
+            `;
+            
+            return `
+                <div class="service-card">
+                    <div class="service-card-header">
+                        <div class="service-number">${service.service_number}</div>
+                        <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                    </div>
+                    <div class="service-name">${escapeHtmlCTV(service.dich_vu || t('unknown_service'))}</div>
+                    <div class="service-details">
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('tong_tien')}</span>
+                            <span class="service-detail-value amount">${formatCtvCurrency(service.tong_tien)}</span>
+                        </div>
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('tien_coc')}</span>
+                            <span class="service-detail-value deposit">${formatCtvCurrency(service.tien_coc)}</span>
+                        </div>
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('phai_dong')}</span>
+                            <span class="service-detail-value remaining">${formatCtvCurrency(service.phai_dong)}</span>
+                        </div>
+                    </div>
+                    ${datesHTML}
+                </div>
+            `;
+        }
+
+        function getCtvInitials(name) {
+            if (!name) return '?';
+            const words = name.trim().split(/\s+/);
+            if (words.length >= 2) {
+                return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function escapeHtmlCTV(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatCtvCurrency(amount) {
+            if (!amount && amount !== 0) return '-';
+            return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+        }
+
+        function debounceCTV(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Client search event
+        document.getElementById('ctvClientSearch')?.addEventListener('input', debounceCTV(() => {
+            loadCtvClientsWithServices();
+        }, 300));
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MY CUSTOMERS (khach_hang table - Table View)
         // ═══════════════════════════════════════════════════════════════════
         
         async function loadMyCustomers() {
@@ -1814,10 +2782,26 @@
                 deposited: 'Đã cọc',
                 cancelled: 'Hủy lịch',
                 pending: 'Chờ xác nhận',
+                da_coc: 'Da coc',
+                chua_coc: 'Chua coc',
                 
                 // Loading
                 loading: 'Đang tải...',
-                no_data: 'Chưa có dữ liệu'
+                no_data: 'Chưa có dữ liệu',
+                
+                // Service Card Labels
+                tong_tien: 'Tong tien:',
+                tien_coc: 'Tien coc:',
+                phai_dong: 'Phai dong:',
+                ngay_nhap_don: 'Ngày nhập đơn:',
+                ngay_hen_lam: 'Ngày hẹn làm:',
+                
+                // Client Card Labels
+                co_so: 'Co so',
+                first_visit: 'Lan dau',
+                dich_vu: 'Dich Vu',
+                services_title: 'Dich Vu',
+                unknown_service: 'Dich vu khong xac dinh'
             },
             en: {
                 // Login
@@ -1903,10 +2887,26 @@
                 deposited: 'Deposited',
                 cancelled: 'Cancelled',
                 pending: 'Pending',
+                da_coc: 'Deposited',
+                chua_coc: 'Not Deposited',
                 
                 // Loading
                 loading: 'Loading...',
-                no_data: 'No data'
+                no_data: 'No data',
+                
+                // Service Card Labels
+                tong_tien: 'Total:',
+                tien_coc: 'Deposit:',
+                phai_dong: 'Due:',
+                ngay_nhap_don: 'Order Date:',
+                ngay_hen_lam: 'Appointment Date:',
+                
+                // Client Card Labels
+                co_so: 'Facility',
+                first_visit: 'First Visit',
+                dich_vu: 'Services',
+                services_title: 'Services',
+                unknown_service: 'Unknown Service'
             }
         };
 
@@ -1921,6 +2921,12 @@
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
+            
+            // Re-render client cards if they're currently displayed
+            const customersPage = document.getElementById('customersPage');
+            if (customersPage && customersPage.style.display !== 'none') {
+                loadCtvClientsWithServices();
+            }
         }
 
         function t(key) {

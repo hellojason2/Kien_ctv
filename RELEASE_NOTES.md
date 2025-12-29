@@ -1,5 +1,236 @@
 # Release Notes - CTV Dashboard
 
+## Version 1.6.0 - December 29, 2025
+
+### Client Services View Implementation
+
+**Time:** Current Session
+
+---
+
+### Overview
+
+Implemented a new Client Services card view displaying clients with their grouped services. Clients are grouped by phone number + name, with up to 3 services displayed per client card.
+
+### Changes Made
+
+#### Backend API Endpoints
+
+**Admin Endpoint: `GET /api/admin/clients-with-services`**
+- Groups `khach_hang` records by `sdt` + `ten_khach`
+- Returns up to 3 services per client sorted by most recent
+- Includes deposit status for each service (`Da coc` / `Chua coc`)
+- Query params: `search`, `nguoi_chot`, `limit`
+
+**CTV Endpoint: `GET /api/ctv/clients-with-services`**
+- Same structure as admin endpoint
+- **Access Control:** Only shows clients where `nguoi_chot` = logged-in CTV code
+- Query params: `search`, `limit`
+
+#### Admin Dashboard (`templates/admin.html`)
+
+**New Sidebar Menu Item:**
+- Added "Clients" / "Khách Hàng" menu option between Commissions and Settings
+
+**New Clients Page Section:**
+- Client cards with gradient purple header (#667eea to #764ba2)
+- Client avatar with initials
+- Client info row (Cơ sở, Ngày nhập đơn, Người chốt, Status badge)
+- Services grid (3 columns on desktop, 2 on tablet, 1 on mobile)
+- Service cards with deposit status, amounts, and appointment dates
+- Search functionality with debounced input
+
+**New CSS Styles:**
+- `.client-card` - Main card container with hover effects
+- `.client-card-header` - Gradient header with avatar
+- `.client-info-row` - Client metadata display
+- `.services-grid` - Responsive grid layout
+- `.service-card` - Individual service display
+- Responsive breakpoints at 1024px and 640px
+
+**New JavaScript Functions:**
+- `loadClientsWithServices()` - Fetch client data
+- `renderClientCards()` - Render all cards
+- `renderClientCard()` - Generate single card HTML
+- `renderServiceCard()` - Generate service card HTML
+- `getInitials()` - Extract name initials
+- `formatClientCurrency()` - Vietnamese currency format
+- `debounce()` - Search input debouncing
+
+#### CTV Portal (`templates/ctv_portal.html`)
+
+**View Toggle Feature:**
+- Toggle between Card View and Table View
+- Card View is default
+
+**Client Cards View:**
+- Same card design as admin dashboard
+- Filtered to show only CTV's own clients
+- Search functionality
+- Service grouping and display
+
+**Updated Customers Page:**
+- Split into two sections: cardViewSection and tableViewSection
+- View toggle buttons at top
+- Maintained original table view functionality
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `modules/admin_routes.py` | Added `/api/admin/clients-with-services` endpoint |
+| `modules/ctv_routes.py` | Added `/api/ctv/clients-with-services` endpoint |
+| `templates/admin.html` | Added Clients menu, page section, CSS, and JavaScript |
+| `templates/ctv_portal.html` | Added card view with toggle, CSS, and JavaScript |
+
+#### Data Structure
+
+```json
+{
+  "status": "success",
+  "clients": [
+    {
+      "ten_khach": "Minh Thủy Nguyễn",
+      "sdt": "0988942155",
+      "co_so": "Hồ Chí Minh",
+      "ngay_nhap_don": "03/07/2020",
+      "nguoi_chot": "Dungntt",
+      "service_count": 2,
+      "overall_status": "Da coc",
+      "overall_deposit": "Da coc",
+      "services": [
+        {
+          "id": 1,
+          "service_number": 1,
+          "dich_vu": "Cắt mí",
+          "tong_tien": 23200000,
+          "tien_coc": 1000000,
+          "phai_dong": 22200000,
+          "ngay_hen_lam": "15/07/2020",
+          "trang_thai": "Da den lam",
+          "deposit_status": "Da coc"
+        }
+      ]
+    }
+  ],
+  "total": 50
+}
+```
+
+#### Responsive Design
+
+- **Desktop (>1024px):** 3-column services grid
+- **Tablet (640-1024px):** 2-column services grid
+- **Mobile (<640px):** 1-column services grid, stacked header elements
+
+---
+
+## Version 1.5.3 - December 29, 2025
+
+### Responsive Design Improvements
+
+**Time:** Previous Session
+
+---
+
+### Changes Made
+
+**Admin Dashboard (`templates/admin.html`):**
+- Fixed stats grid layout for tablet (2 columns) and mobile (1-2 columns)
+- Fixed sidebar collapse on mobile - hides text labels, shows only icons
+- Added horizontal scroll for tables on mobile devices
+- Improved form elements sizing for touch devices
+- Added modal responsive styles
+
+**Main Dashboard (`dashboard.html`):**
+- Converted sidebar to bottom navigation bar on mobile
+- Improved header layout for mobile (stacked elements)
+- Added touch-friendly table scrolling
+- Optimized phone check input for mobile
+
+**CTV Portal (`templates/ctv_portal.html`):**
+- Matched responsive behavior with admin dashboard
+- Updated hierarchy tree with new L1-L5 level badges
+- Added tree stats (Total Members, Levels Deep, Direct Recruits)
+- Added expand/collapse all buttons
+- Improved table responsive behavior
+
+**Files Modified:**
+- `templates/admin.html`
+- `dashboard.html`
+- `templates/ctv_portal.html`
+
+---
+
+## Version 1.5.2 - December 28, 2025
+
+### Hierarchy Tree Redesign
+
+**Time:** Previous Session
+
+---
+
+### Changes Made
+
+**Visual Redesign:**
+- Updated hierarchy tree with modern dark theme design
+- Added gradient background with purple/blue tones (`linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)`)
+- Implemented level badges with distinct colors:
+  - L1 (Level 0): Red (#ff6b6b)
+  - L2 (Level 1): Orange (#ffa502)
+  - L3 (Level 2): Green (#2ed573)
+  - L4 (Level 3): Blue (#1e90ff)
+  - L5 (Level 4): Purple (#a55eea) with "CUT OFF" badge
+
+**New Features:**
+- **Stats Cards**: Display total members, levels deep, and direct recruits at the top
+- **Expand/Collapse All**: Buttons to quickly expand or collapse the entire tree
+- **Real-time Search**: Search by name or CTV code with highlighting and auto-scroll
+- **Collapsible Nodes**: Click on any node with children to expand/collapse
+- **Responsive Design**: Works on mobile, tablet, and desktop
+
+**Level Mapping:**
+- Database Level 0 = Display as L1 (root)
+- Database Level 1 = Display as L2
+- Database Level 2 = Display as L3
+- Database Level 3 = Display as L4
+- Database Level 4 = Display as L5 (with CUT OFF badge)
+
+**Files Modified:**
+- `templates/admin.html`: Updated CSS, HTML structure, and JavaScript functions
+
+---
+
+## Version 1.5.1 - December 28, 2025
+
+### Commission Backfill Fix
+
+**Time:** Current Session
+
+---
+
+### Issue Fixed
+
+**Problem:** Admin dashboard showed "No commissions found" even though there were 1,207 completed transactions in the `khach_hang` table.
+
+**Root Cause:** 
+- The `commissions` table existed but was empty (0 records)
+- Commissions are only automatically calculated when transactions are created via `/api/services` endpoint
+- Historical transactions imported from CSV were never processed for commission calculation
+
+**Solution:**
+- Created and executed commission backfill script
+- Processed all 1,127 completed transactions (`trang_thai = 'Da den lam'`)
+- Calculated commissions for entire MLM hierarchy (levels 0-4)
+- Created 2,356 commission records in the database
+
+**Result:**
+- Commissions now visible in admin dashboard
+- All historical transactions have commission records
+- Commission filtering (by CTV, month, level) now works correctly
+
+---
+
 ## Version 1.5.0 - December 28, 2025
 
 ### Bulk Data Import from Google Sheets

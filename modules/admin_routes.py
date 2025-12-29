@@ -809,3 +809,152 @@ def create_admin():
     except Error as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLIENT SERVICES ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/api/admin/clients-with-services', methods=['GET'])
+@require_admin
+def get_clients_with_services():
+    """
+    Get all clients with their services grouped
+    Groups khach_hang records by phone + name combination
+    Returns up to 3 services per client
+    
+    Query params:
+    - search: Search by name or phone
+    - nguoi_chot: Filter by CTV code
+    - limit: Max number of clients (default 50)
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        search = request.args.get('search', '').strip()
+        nguoi_chot = request.args.get('nguoi_chot', '').strip()
+        limit = request.args.get('limit', 50, type=int)
+        
+        # First, get unique clients (grouped by phone + name)
+        # MIN(ngay_nhap_don) = first time visiting (earliest date they entered the system)
+        client_query = """
+            SELECT 
+                sdt,
+                ten_khach,
+                MIN(co_so) as co_so,
+                MIN(ngay_nhap_don) as first_visit_date,
+                MIN(nguoi_chot) as nguoi_chot,
+                COUNT(*) as service_count
+            FROM khach_hang
+            WHERE sdt IS NOT NULL AND sdt != ''
+        """
+        params = []
+        
+        if search:
+            client_query += " AND (ten_khach LIKE %s OR sdt LIKE %s)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term])
+        
+        if nguoi_chot:
+            client_query += " AND nguoi_chot = %s"
+            params.append(nguoi_chot)
+        
+        client_query += f"""
+            GROUP BY sdt, ten_khach
+            ORDER BY MAX(ngay_nhap_don) DESC
+            LIMIT {limit};
+        """
+        
+        cursor.execute(client_query, params)
+        clients_raw = cursor.fetchall()
+        
+        # For each client, get their services (up to 3)
+        clients = []
+        for client_row in clients_raw:
+            sdt = client_row['sdt']
+            ten_khach = client_row['ten_khach']
+            
+            # Get services for this client
+            cursor.execute("""
+                SELECT 
+                    id,
+                    dich_vu,
+                    tong_tien,
+                    tien_coc,
+                    phai_dong,
+                    ngay_hen_lam,
+                    ngay_nhap_don,
+                    trang_thai,
+                    nguoi_chot
+                FROM khach_hang
+                WHERE sdt = %s AND ten_khach = %s
+                ORDER BY ngay_nhap_don DESC
+                LIMIT 3;
+            """, (sdt, ten_khach))
+            
+            services_raw = cursor.fetchall()
+            
+            # Process services
+            services = []
+            for idx, svc in enumerate(services_raw):
+                tien_coc = float(svc['tien_coc'] or 0)
+                tong_tien = float(svc['tong_tien'] or 0)
+                phai_dong = float(svc['phai_dong'] or 0)
+                
+                # Determine deposit status based on tien_coc
+                if tien_coc > 0:
+                    deposit_status = 'Da coc'
+                else:
+                    deposit_status = 'Chua coc'
+                
+                services.append({
+                    'id': svc['id'],
+                    'service_number': idx + 1,
+                    'dich_vu': svc['dich_vu'] or '',
+                    'tong_tien': tong_tien,
+                    'tien_coc': tien_coc,
+                    'phai_dong': phai_dong,
+                    'ngay_nhap_don': svc['ngay_nhap_don'].strftime('%d/%m/%Y') if svc['ngay_nhap_don'] else None,
+                    'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
+                    'trang_thai': svc['trang_thai'] or '',
+                    'deposit_status': deposit_status
+                })
+            
+            # Determine overall client status (from most recent service)
+            overall_status = services[0]['trang_thai'] if services else ''
+            overall_deposit = services[0]['deposit_status'] if services else 'Chua coc'
+            
+            # Format first_visit_date (earliest date they entered the system)
+            first_visit = client_row['first_visit_date']
+            if first_visit:
+                first_visit_str = first_visit.strftime('%d/%m/%Y')
+            else:
+                first_visit_str = None
+            
+            clients.append({
+                'ten_khach': ten_khach or '',
+                'sdt': sdt or '',
+                'co_so': client_row['co_so'] or '',
+                'first_visit_date': first_visit_str,
+                'nguoi_chot': client_row['nguoi_chot'] or '',
+                'service_count': client_row['service_count'],
+                'overall_status': overall_status,
+                'overall_deposit': overall_deposit,
+                'services': services
+            })
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'clients': clients,
+            'total': len(clients)
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+

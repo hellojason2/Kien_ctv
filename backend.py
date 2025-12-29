@@ -413,6 +413,10 @@ def check_duplicate():
     # Normalize phone number (remove spaces, dashes)
     phone = ''.join(c for c in phone if c.isdigit())
     
+    # Strip leading zeros to match database format
+    # Database stores: 988942155, User inputs: 0988942155
+    phone = phone.lstrip('0')
+    
     if len(phone) < 9:
         return jsonify({
             'status': 'error',

@@ -74,19 +74,33 @@
         
         .phone-check {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 1px solid #e0e0e0;
+            justify-content: center;
+            gap: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .phone-check-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
         }
 
         .phone-check-input {
-            width: 180px;
-            padding: 12px 16px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
@@ -101,13 +115,13 @@
         }
 
         .phone-check-btn {
-            padding: 12px 20px;
+            padding: 16px 32px;
             background: #1a1a1a;
             color: #ffffff;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
             white-space: nowrap;
@@ -159,75 +173,13 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Header */
-        .header {
-            background-color: #ffffff;
-            padding: 30px 40px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo {
-            width: 48px;
-            height: 48px;
-        }
-
-        .logo svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 600px;
             position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            background-color: #fafafa;
-            outline: none;
-            transition: border-color 0.2s, background-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: #1a1a1a;
-            background-color: #ffffff;
-        }
-
-        .search-input::placeholder {
-            color: #999999;
-        }
-
-        .keyboard-shortcut {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 13px;
-            color: #666666;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 2px;
         }
 
         /* Content Area */
         .content {
             flex: 1;
-            padding: 40px;
+            padding: 0 40px 40px 40px;
             overflow-y: auto;
         }
 
@@ -538,11 +490,109 @@
             letter-spacing: 0.5px;
         }
 
-        /* Responsive */
+        /* Responsive - Tablet */
+        @media (max-width: 1024px) {
+            .header {
+                padding: 24px 30px;
+            }
+            
+            .search-container {
+                max-width: 500px;
+            }
+            
+            .phone-check-input {
+                width: 150px;
+            }
+        }
+
+        /* Responsive - Mobile */
         @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
             .sidebar {
-                width: 60px;
-                padding-top: 20px;
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 10px 15px;
+                gap: 10px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                border-right: none;
+                border-top: 1px solid #e0e0e0;
+                justify-content: space-around;
+            }
+
+            .sidebar-icon {
+                width: 44px;
+                height: 44px;
+            }
+
+            .main-content {
+                padding-bottom: 80px; /* Space for fixed bottom nav */
+            }
+
+            .header {
+                padding: 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .logo {
+                width: 40px;
+                height: 40px;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .search-input {
+                padding: 12px 16px;
+                font-size: 15px;
+            }
+
+            .phone-check {
+                position: static;
+                transform: none;
+                margin: 40px auto;
+                padding: 20px;
+            }
+
+            .phone-check-row {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .phone-check-input {
+                width: 100%;
+                padding: 14px 16px;
+            }
+
+            .phone-check-btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+
+            .phone-check-result {
+                width: 100%;
+            }
+
+            .side-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 480px) {
+            .sidebar {
+                padding: 8px 10px;
             }
 
             .sidebar-icon {
@@ -550,68 +600,18 @@
                 height: 40px;
             }
 
-            .header {
-                padding: 20px;
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-container {
-                max-width: 100%;
-            }
-
             .phone-check {
-                margin-left: 0;
-                padding-left: 0;
-                border-left: none;
-                margin-top: 15px;
-                flex-wrap: wrap;
-            }
-
-            .phone-check-input {
-                flex: 1;
-                min-width: 120px;
-            }
-
-            .phone-check-result {
-                width: 100%;
-                margin-top: 10px;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            table {
-                font-size: 14px;
-            }
-
-            th, td {
-                padding: 12px 16px;
+                padding: 20px 16px;
+                margin: 30px auto;
             }
 
             .side-panel {
-                width: 90%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .sidebar {
-                width: 50px;
-            }
-
-            th, td {
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-
-            .side-panel {
-                width: 100%;
+                border-radius: 16px 16px 0 0;
             }
 
             .services-table th,
             .services-table td {
-                padding: 10px 6px;
+                padding: 8px 6px;
                 font-size: 11px;
             }
         }
@@ -623,11 +623,15 @@
         <aside class="sidebar">
             <div class="sidebar-icon active">
                 <svg viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                    <circle cx="6.5" cy="17.5" r="1.5" fill="#666666"></circle>
+                    <circle cx="12" cy="5" r="2"></circle>
+                    <circle cx="6" cy="12" r="2"></circle>
+                    <circle cx="18" cy="12" r="2"></circle>
+                    <circle cx="12" cy="19" r="2"></circle>
+                    <line x1="12" y1="7" x2="12" y2="17"></line>
+                    <line x1="8" y1="12" x2="10" y2="12"></line>
+                    <line x1="14" y1="12" x2="16" y2="12"></line>
+                    <line x1="10" y1="12" x2="12" y2="17"></line>
+                    <line x1="14" y1="12" x2="12" y2="17"></line>
                 </svg>
             </div>
             <div class="sidebar-icon">
@@ -663,26 +667,9 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="logo">
-                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3" fill="none"/>
-                        <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3"/>
-                        <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3"/>
-                        <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3"/>
-                    </svg>
-                </div>
-                <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Search anythings...">
-                    <div class="keyboard-shortcut">
-                        <span>⌘</span>
-                        <span>K</span>
-                    </div>
-                </div>
-                
-                <!-- Phone Check (Public - No login required) -->
-                <div class="phone-check">
+            <!-- Phone Check Section (Centered) -->
+            <div class="phone-check">
+                <div class="phone-check-row">
                     <input type="tel" 
                            id="phoneCheckInput" 
                            class="phone-check-input" 
@@ -691,32 +678,8 @@
                     <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()">
                         Doi Chieu
                     </button>
-                    <div id="phoneCheckResult" class="phone-check-result"></div>
                 </div>
-            </header>
-
-            <!-- Content -->
-            <div class="content">
-                <div class="card">
-                    <div class="table-container">
-                        <table>
-                            <thead id="tableHeader">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                <tr>
-                                    <td colspan="3" style="text-align: center; padding: 40px; color: #999;">
-                                        Start typing to search for customers...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div id="phoneCheckResult" class="phone-check-result"></div>
             </div>
         </main>
     </div>
@@ -809,8 +772,17 @@
                     }
                 });
                 
-                // Clear result when input changes
+                // Clear result and remove spaces when input changes
                 phoneInput.addEventListener('input', function() {
+                    // Remove spaces, dashes, and other non-digit characters except at cursor
+                    const cursorPos = this.selectionStart;
+                    const oldLength = this.value.length;
+                    this.value = this.value.replace(/[\s\-\.]/g, '');
+                    const newLength = this.value.length;
+                    // Adjust cursor position
+                    const newCursorPos = cursorPos - (oldLength - newLength);
+                    this.setSelectionRange(newCursorPos, newCursorPos);
+                    
                     document.getElementById('phoneCheckResult').style.display = 'none';
                 });
             }

@@ -446,39 +446,263 @@
         .commission-card.l3 .rate { color: var(--accent-pink); }
         .commission-card.l4 .rate { color: var(--accent-cyan); }
 
-        /* Hierarchy Tree */
-        .hierarchy-container {
+        /* Hierarchy Tree - Dark Theme Design */
+        .hierarchy-page-wrapper {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
             padding: 20px;
-            overflow-x: auto;
+            min-height: 400px;
+        }
+
+        .hierarchy-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hierarchy-stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .hierarchy-stat-card .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .hierarchy-stat-card .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .hierarchy-search-container {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+        }
+
+        .hierarchy-search-box {
+            width: 100%;
+            padding: 10px 16px;
+            font-size: 14px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #0f0f1a;
+            color: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .hierarchy-search-box:focus {
+            border-color: #00d4ff;
+        }
+
+        .hierarchy-search-box::placeholder {
+            color: #666;
+        }
+
+        .search-result-info {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #00d4ff;
+            min-height: 18px;
+        }
+
+        .hierarchy-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .hierarchy-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-family: inherit;
+        }
+
+        .hierarchy-btn-expand {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        .hierarchy-btn-collapse {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .hierarchy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .hierarchy-tree-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .hierarchy-tree-container ul {
+            list-style: none;
+            padding-left: 25px;
+            margin: 0;
+        }
+
+        .hierarchy-tree-container > ul {
+            padding-left: 0;
+        }
+
+        .hierarchy-tree-container li {
+            position: relative;
+            padding: 6px 0;
+        }
+
+        .hierarchy-tree-container li::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 0;
+            border-left: 2px solid #444;
+            height: 100%;
+        }
+
+        .hierarchy-tree-container li::after {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            border-top: 2px solid #444;
+            width: 18px;
+        }
+
+        .hierarchy-tree-container > ul > li::before,
+        .hierarchy-tree-container > ul > li::after {
+            display: none;
+        }
+
+        .hierarchy-tree-container li:last-child::before {
+            height: 20px;
         }
 
         .tree-node {
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3a 100%);
             border-radius: 8px;
-            margin: 8px 0;
+            border: 1px solid #444;
             cursor: pointer;
+            transition: all 0.3s;
+            flex-wrap: wrap;
         }
 
         .tree-node:hover {
-            border-color: var(--accent-cyan);
+            border-color: #00d4ff;
+            transform: translateX(5px);
         }
 
-        .tree-node .name {
+        .tree-node.highlighted {
+            background: linear-gradient(135deg, #004d40 0%, #00695c 100%);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .tree-node.has-children::before {
+            content: '';
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 6px solid #00d4ff;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            transition: transform 0.3s;
+        }
+
+        .tree-node.expanded::before {
+            transform: rotate(90deg);
+        }
+
+        .tree-node .node-name {
             font-weight: 600;
-            margin-bottom: 4px;
+            color: #fff;
+            font-size: 13px;
         }
 
-        .tree-node .info {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .tree-node .node-code {
+            font-size: 0.8rem;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .tree-node .node-rank {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .level-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .level-badge.l1 { background: #ff6b6b; color: #fff; }
+        .level-badge.l2 { background: #ffa502; color: #000; }
+        .level-badge.l3 { background: #2ed573; color: #000; }
+        .level-badge.l4 { background: #1e90ff; color: #fff; }
+        .level-badge.l5 { background: #a55eea; color: #fff; }
+
+        .cutoff-badge {
+            font-size: 0.65rem;
+            background: #ff4757;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
         }
 
         .tree-children {
-            margin-left: 24px;
-            border-left: 2px solid var(--border-color);
-            padding-left: 16px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .tree-children.collapsed {
+            max-height: 0 !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        @media (max-width: 600px) {
+            .tree-node {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .hierarchy-tree-container ul {
+                padding-left: 15px;
+            }
         }
 
         /* Modal */
@@ -609,7 +833,7 @@
             color: var(--text-secondary);
         }
 
-        /* Responsive */
+        /* Responsive - Tablet */
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -619,28 +843,525 @@
             }
         }
 
+        /* Responsive - Mobile */
         @media (max-width: 768px) {
             .sidebar {
                 width: 60px;
                 padding: 16px 8px;
             }
             .sidebar-logo {
-                font-size: 14px;
+                font-size: 12px;
                 text-align: center;
                 padding: 0;
+            }
+            .sidebar-nav a {
+                padding: 12px 8px;
+                justify-content: center;
             }
             .sidebar-nav a span {
                 display: none;
             }
+            .home-btn {
+                padding: 10px 8px;
+                justify-content: center;
+            }
+            .home-btn span {
+                display: none;
+            }
             .main-content {
                 margin-left: 60px;
+                padding: 16px;
             }
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .stat-card {
+                padding: 16px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .stat-card .label {
+                font-size: 10px;
             }
             .commission-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .header h2 {
+                font-size: 20px;
+            }
+            .card-body {
+                padding: 16px;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            table {
+                min-width: 600px;
+            }
+            th, td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            /* Hierarchy page responsive */
+            .hierarchy-stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .hierarchy-stat-card {
+                padding: 10px;
+            }
+            .hierarchy-stat-card .stat-number {
+                font-size: 1.4rem;
+            }
+            .hierarchy-stat-card .stat-label {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 50px;
+                padding: 12px 6px;
+            }
+            .sidebar-logo {
+                font-size: 10px;
+            }
+            .sidebar-nav a {
+                padding: 10px 6px;
+            }
+            .sidebar-nav svg {
+                width: 18px;
+                height: 18px;
+            }
+            .main-content {
+                margin-left: 50px;
+                padding: 12px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .stat-card .value {
+                font-size: 24px;
+            }
+            .commission-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .commission-card {
+                padding: 14px;
+            }
+            .commission-card .rate {
+                font-size: 24px;
+            }
+            .header h2 {
+                font-size: 18px;
+            }
+            /* Form elements responsive */
+            .form-group {
+                margin-bottom: 16px;
+            }
+            .form-group input,
+            .form-group select {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            .btn {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+            /* Modal responsive */
+            .modal {
+                max-width: 95%;
+                margin: 10px;
+            }
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 16px;
+            }
+            /* Hierarchy page small mobile */
+            .hierarchy-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .hierarchy-search-box {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            .hierarchy-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Searchable Dropdown */
+        .searchable-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .searchable-dropdown input {
+            width: 100%;
+            padding: 12px;
+            padding-right: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .searchable-dropdown input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .searchable-dropdown .dropdown-arrow {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+        .searchable-dropdown.open .dropdown-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        .searchable-dropdown .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            z-index: 1000;
+            display: none;
+        }
+        .searchable-dropdown.open .dropdown-list {
+            display: block;
+        }
+        .searchable-dropdown .dropdown-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 14px;
+        }
+        .searchable-dropdown .dropdown-item:hover,
+        .searchable-dropdown .dropdown-item.highlighted {
+            background: var(--primary);
+            color: white;
+        }
+        .searchable-dropdown .dropdown-item.selected {
+            background: rgba(79, 209, 197, 0.2);
+        }
+        .searchable-dropdown .no-results {
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           CLIENT CARDS STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        .clients-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .client-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .client-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .client-avatar {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .client-main-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .client-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .client-phone {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .client-phone svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .service-count-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .client-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px 24px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .client-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .client-info-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .client-info-value {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .client-status-badge {
+            margin-left: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .client-status-badge.deposited {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .client-status-badge.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .client-status-badge.not-deposited {
+            background: rgba(161, 161, 170, 0.2);
+            color: #a1a1aa;
+        }
+
+        .services-container {
+            padding: 20px 24px;
+        }
+
+        .services-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .client-info-row {
+                gap: 12px;
+            }
+            
+            .client-info-item {
+                min-width: 45%;
+            }
+        }
+
+        .service-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .service-number {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .service-deposit-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .service-deposit-status.deposited {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .service-deposit-status.not-deposited {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .service-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+            min-height: 40px;
+        }
+
+        .service-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .service-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .service-detail-label {
+            color: var(--text-secondary);
+        }
+
+        .service-detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .service-detail-value.amount {
+            color: var(--accent-green);
+        }
+
+        .service-detail-value.deposit {
+            color: var(--accent-cyan);
+        }
+
+        .service-detail-value.remaining {
+            color: var(--accent-orange);
+        }
+
+        .service-appointment {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .service-appointment svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .service-appointment .date {
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        .no-clients-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-clients-message svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -695,7 +1416,7 @@
                 </li>
                 <li>
                     <a href="#" data-page="ctv">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 20v-1a5 5 0 0 1 10 0v1"/></svg>
                         <span data-i18n="ctv_management">CTV Management</span>
                     </a>
                 </li>
@@ -709,6 +1430,12 @@
                     <a href="#" data-page="commissions">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         <span data-i18n="commissions">Commissions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-page="clients">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span data-i18n="clients">Clients</span>
                     </a>
                 </li>
                 <li>
@@ -807,14 +1534,57 @@
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
+                        <!-- CTV Selection Dropdown -->
+                        <div class="form-group" style="max-width: 400px; margin-bottom: 20px;">
                             <label data-i18n="select_root">Select Root CTV</label>
-                            <select id="hierarchyRoot" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                <option value="" data-i18n="loading">Loading...</option>
-                            </select>
+                            <div class="searchable-dropdown" id="hierarchyDropdown">
+                                <input type="text" id="hierarchySearch" placeholder="Type to search CTV..." autocomplete="off">
+                                <span class="dropdown-arrow">&#9660;</span>
+                                <div class="dropdown-list" id="hierarchyList"></div>
+                            </div>
+                            <input type="hidden" id="hierarchyRoot" value="">
                         </div>
-                        <div class="hierarchy-container" id="hierarchyTree">
-                            <div class="loading" data-i18n="select_ctv_view">Select a CTV to view hierarchy</div>
+                        
+                        <!-- Hierarchy Tree Wrapper -->
+                        <div class="hierarchy-page-wrapper" id="hierarchyTreeWrapper" style="display: none;">
+                            <!-- Stats Cards -->
+                            <div class="hierarchy-stats" id="hierarchyStats">
+                                <div class="hierarchy-stat-card">
+                                    <div class="stat-number" id="statTotalMembers">0</div>
+                                    <div class="stat-label" data-i18n="total_members">Total Members</div>
+                                </div>
+                                <div class="hierarchy-stat-card">
+                                    <div class="stat-number" id="statLevelsDeep">0</div>
+                                    <div class="stat-label" data-i18n="levels_deep">Levels Deep</div>
+                                </div>
+                                <div class="hierarchy-stat-card">
+                                    <div class="stat-number" id="statDirectRecruits">0</div>
+                                    <div class="stat-label" data-i18n="direct_recruits">Direct Recruits</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Search Box -->
+                            <div class="hierarchy-search-container">
+                                <input type="text" class="hierarchy-search-box" id="treeSearchBox" placeholder="Search by name or CTV code...">
+                                <div class="search-result-info" id="treeSearchInfo"></div>
+                            </div>
+                            
+                            <!-- Controls -->
+                            <div class="hierarchy-controls">
+                                <button class="hierarchy-btn hierarchy-btn-expand" onclick="expandAllNodes()" data-i18n="expand_all">Expand All</button>
+                                <button class="hierarchy-btn hierarchy-btn-collapse" onclick="collapseAllNodes()" data-i18n="collapse_all">Collapse All</button>
+                            </div>
+                            
+                            <!-- Tree Container -->
+                            <div class="hierarchy-tree-container" id="hierarchyTree">
+                                <div class="loading" data-i18n="select_ctv_view">Select a CTV to view hierarchy</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder when no CTV selected -->
+                        <div id="hierarchyPlaceholder" class="loading" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
+                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 16px; opacity: 0.5;"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
+                            <p data-i18n="select_ctv_view">Select a CTV to view hierarchy</p>
                         </div>
                     </div>
                 </div>
@@ -889,6 +1659,24 @@
                             <div class="loading" data-i18n="loading">Loading...</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Clients Page -->
+            <div class="page-section" id="page-clients">
+                <div class="header">
+                    <h2 data-i18n="client_management">Client Management</h2>
+                </div>
+                <!-- Search Bar -->
+                <div class="client-search-container">
+                    <div class="search-box" style="max-width: 400px; margin-bottom: 20px;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" id="clientSearch" placeholder="Search by name or phone..." data-i18n-placeholder="client_search_placeholder">
+                    </div>
+                </div>
+                <!-- Client Cards Container -->
+                <div class="clients-grid" id="clientsGrid">
+                    <div class="loading" data-i18n="loading">Loading...</div>
                 </div>
             </div>
         </main>
@@ -1078,12 +1866,145 @@
         function populateCTVSelects() {
             const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
             
-            document.getElementById('hierarchyRoot').innerHTML = '<option value="">Select CTV</option>' + options;
+            // Populate regular dropdowns
             document.getElementById('commissionCtvFilter').innerHTML = '<option value="">All CTVs</option>' + options;
             document.getElementById('newCtvReferrer').innerHTML = '<option value="">None (Root CTV)</option>' + options;
+            
+            // Initialize searchable dropdown for hierarchy
+            initHierarchyDropdown();
         }
 
-        // Search CTV
+        // Searchable Dropdown for Hierarchy
+        let hierarchyDropdownOpen = false;
+        let highlightedIndex = -1;
+        
+        function initHierarchyDropdown() {
+            const dropdown = document.getElementById('hierarchyDropdown');
+            const input = document.getElementById('hierarchySearch');
+            const list = document.getElementById('hierarchyList');
+            const hiddenInput = document.getElementById('hierarchyRoot');
+            
+            // Render all items initially
+            renderHierarchyList('');
+            
+            // Input events
+            input.addEventListener('focus', () => {
+                openHierarchyDropdown();
+            });
+            
+            input.addEventListener('input', (e) => {
+                renderHierarchyList(e.target.value);
+                openHierarchyDropdown();
+                highlightedIndex = -1;
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                const items = list.querySelectorAll('.dropdown-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+                    updateHighlight(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = Math.max(highlightedIndex - 1, 0);
+                    updateHighlight(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlightedIndex >= 0 && items[highlightedIndex]) {
+                        selectHierarchyCTV(items[highlightedIndex].dataset.value);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeHierarchyDropdown();
+                }
+            });
+            
+            // Click outside to close
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target)) {
+                    closeHierarchyDropdown();
+                }
+            });
+            
+            // Arrow click to toggle
+            dropdown.querySelector('.dropdown-arrow').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (hierarchyDropdownOpen) {
+                    closeHierarchyDropdown();
+                } else {
+                    input.focus();
+                    openHierarchyDropdown();
+                }
+            });
+        }
+        
+        function openHierarchyDropdown() {
+            const dropdown = document.getElementById('hierarchyDropdown');
+            dropdown.classList.add('open');
+            hierarchyDropdownOpen = true;
+        }
+        
+        function closeHierarchyDropdown() {
+            const dropdown = document.getElementById('hierarchyDropdown');
+            dropdown.classList.remove('open');
+            hierarchyDropdownOpen = false;
+            highlightedIndex = -1;
+        }
+        
+        function renderHierarchyList(searchTerm) {
+            const list = document.getElementById('hierarchyList');
+            const term = searchTerm.toLowerCase();
+            
+            const filtered = allCTV.filter(c => 
+                c.ma_ctv.toLowerCase().includes(term) ||
+                c.ten.toLowerCase().includes(term)
+            );
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="no-results">No CTVs found</div>';
+                return;
+            }
+            
+            // Sort: exact code match first, then by code
+            filtered.sort((a, b) => {
+                const aExact = a.ma_ctv.toLowerCase() === term;
+                const bExact = b.ma_ctv.toLowerCase() === term;
+                if (aExact && !bExact) return -1;
+                if (!aExact && bExact) return 1;
+                return a.ma_ctv.localeCompare(b.ma_ctv);
+            });
+            
+            const selectedValue = document.getElementById('hierarchyRoot').value;
+            
+            list.innerHTML = filtered.slice(0, 50).map(c => `
+                <div class="dropdown-item ${c.ma_ctv === selectedValue ? 'selected' : ''}" 
+                     data-value="${c.ma_ctv}" 
+                     onclick="selectHierarchyCTV('${c.ma_ctv}')">
+                    <strong>${c.ma_ctv}</strong> - ${c.ten}
+                </div>
+            `).join('');
+        }
+        
+        function updateHighlight(items) {
+            items.forEach((item, i) => {
+                item.classList.toggle('highlighted', i === highlightedIndex);
+            });
+            if (highlightedIndex >= 0 && items[highlightedIndex]) {
+                items[highlightedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+        
+        function selectHierarchyCTV(ctvCode) {
+            const ctv = allCTV.find(c => c.ma_ctv === ctvCode);
+            if (ctv) {
+                document.getElementById('hierarchySearch').value = `${ctv.ma_ctv} - ${ctv.ten}`;
+                document.getElementById('hierarchyRoot').value = ctvCode;
+                closeHierarchyDropdown();
+                loadHierarchy(ctvCode);
+            }
+        }
+
+        // Search CTV (table search)
         document.getElementById('ctvSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = allCTV.filter(c => 
@@ -1095,47 +2016,191 @@
             renderCTVTable(filtered);
         });
 
-        // Load Hierarchy
-        document.getElementById('hierarchyRoot').addEventListener('change', async (e) => {
-            const ctvCode = e.target.value;
-            if (!ctvCode) {
-                document.getElementById('hierarchyTree').innerHTML = '<div class="loading">Select a CTV to view hierarchy</div>';
-                return;
-            }
-            await loadHierarchy(ctvCode);
-        });
-
+        // ═══════════════════════════════════════════════════════════════════
+        // HIERARCHY TREE FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════
+        
+        let currentHierarchyData = null;
+        
         async function loadHierarchy(ctvCode) {
             const result = await api(`/api/admin/hierarchy/${ctvCode}`);
             if (result.status === 'success') {
-                document.getElementById('hierarchyTree').innerHTML = renderTree(result.hierarchy);
+                currentHierarchyData = result.hierarchy;
+                
+                // Show the wrapper, hide placeholder
+                document.getElementById('hierarchyTreeWrapper').style.display = 'block';
+                document.getElementById('hierarchyPlaceholder').style.display = 'none';
+                
+                // Calculate and display stats
+                const stats = calculateTreeStats(result.hierarchy);
+                document.getElementById('statTotalMembers').textContent = stats.totalMembers;
+                document.getElementById('statLevelsDeep').textContent = stats.maxDepth;
+                document.getElementById('statDirectRecruits').textContent = stats.directRecruits;
+                
+                // Render the tree
+                document.getElementById('hierarchyTree').innerHTML = '<ul>' + renderTree(result.hierarchy) + '</ul>';
+                
+                // Initialize search
+                initTreeSearch();
+                
+                // Expand all by default
+                expandAllNodes();
             }
         }
-
-        function renderTree(node, level = 0) {
-            const levelColors = ['var(--accent-green)', 'var(--accent-orange)', 'var(--accent-purple)', 'var(--accent-pink)', 'var(--accent-cyan)'];
-            const color = levelColors[level] || 'var(--text-primary)';
-            
-            let html = `
-                <div class="tree-node" style="border-left:3px solid ${color}">
-                    <div class="name" style="color:${color}">${node.ten} (${node.ma_ctv})</div>
-                    <div class="info">Level ${node.level} | ${(node.commission_rate * 100).toFixed(2)}% | ${node.cap_bac || 'Bronze'}</div>
-                </div>
-            `;
+        
+        function calculateTreeStats(node, depth = 1) {
+            let stats = {
+                totalMembers: 1,
+                maxDepth: depth,
+                directRecruits: node.children ? node.children.length : 0
+            };
             
             if (node.children && node.children.length > 0) {
-                html += '<div class="tree-children">';
                 node.children.forEach(child => {
-                    html += renderTree(child, level + 1);
+                    const childStats = calculateTreeStats(child, depth + 1);
+                    stats.totalMembers += childStats.totalMembers;
+                    stats.maxDepth = Math.max(stats.maxDepth, childStats.maxDepth);
                 });
-                html += '</div>';
             }
             
+            return stats;
+        }
+
+        function renderTree(node) {
+            // Map database level (0-4) to display level (L1-L5)
+            const displayLevel = node.level + 1;
+            const levelClass = `l${displayLevel}`;
+            
+            const hasChildren = node.children && node.children.length > 0;
+            const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
+            
+            // Commission rate display
+            const commissionPercent = (node.commission_rate * 100).toFixed(2);
+            
+            // Cut-off badge for level 4 (displayed as L5)
+            const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
+            
+            let html = `
+                <li>
+                    <div class="tree-node ${hasChildrenClass}" 
+                         data-name="${node.ten || ''}" 
+                         data-code="${node.ma_ctv || ''}"
+                         onclick="toggleTreeNode(this)">
+                        <span class="level-badge ${levelClass}">L${displayLevel}</span>
+                        <span class="node-name">${node.ten || 'Unknown'}</span>
+                        <span class="node-code">${node.ma_ctv}</span>
+                        <span class="node-rank">${node.cap_bac || 'Bronze'} | ${commissionPercent}%</span>
+                        ${cutoffBadge}
+                    </div>
+            `;
+            
+            if (hasChildren) {
+                html += '<ul class="tree-children">';
+                node.children.forEach(child => {
+                    html += renderTree(child);
+                });
+                html += '</ul>';
+            }
+            
+            html += '</li>';
             return html;
+        }
+        
+        function toggleTreeNode(element) {
+            const li = element.parentElement;
+            const children = li.querySelector(':scope > ul.tree-children');
+            
+            if (children) {
+                element.classList.toggle('expanded');
+                children.classList.toggle('collapsed');
+            }
+        }
+        
+        function expandAllNodes() {
+            document.querySelectorAll('#hierarchyTree .tree-node.has-children').forEach(node => {
+                node.classList.add('expanded');
+            });
+            document.querySelectorAll('#hierarchyTree .tree-children').forEach(child => {
+                child.classList.remove('collapsed');
+            });
+        }
+        
+        function collapseAllNodes() {
+            document.querySelectorAll('#hierarchyTree .tree-node.has-children').forEach(node => {
+                node.classList.remove('expanded');
+            });
+            document.querySelectorAll('#hierarchyTree .tree-children').forEach(child => {
+                child.classList.add('collapsed');
+            });
+        }
+        
+        function initTreeSearch() {
+            const searchBox = document.getElementById('treeSearchBox');
+            const searchInfo = document.getElementById('treeSearchInfo');
+            
+            // Clear previous listeners by cloning
+            const newSearchBox = searchBox.cloneNode(true);
+            searchBox.parentNode.replaceChild(newSearchBox, searchBox);
+            
+            newSearchBox.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                const allNodes = document.querySelectorAll('#hierarchyTree .tree-node');
+                
+                // Remove all highlights first
+                allNodes.forEach(node => node.classList.remove('highlighted'));
+                
+                if (query === '') {
+                    searchInfo.textContent = '';
+                    return;
+                }
+                
+                let matchCount = 0;
+                let firstMatch = null;
+                
+                allNodes.forEach(node => {
+                    const name = (node.dataset.name || '').toLowerCase();
+                    const code = (node.dataset.code || '').toLowerCase();
+                    
+                    if (name.includes(query) || code.includes(query)) {
+                        node.classList.add('highlighted');
+                        matchCount++;
+                        
+                        if (!firstMatch) {
+                            firstMatch = node;
+                        }
+                        
+                        // Expand all parents to show this node
+                        let parent = node.parentElement;
+                        while (parent) {
+                            if (parent.classList && parent.classList.contains('tree-children')) {
+                                parent.classList.remove('collapsed');
+                                const parentNode = parent.parentElement.querySelector(':scope > .tree-node');
+                                if (parentNode) {
+                                    parentNode.classList.add('expanded');
+                                }
+                            }
+                            parent = parent.parentElement;
+                        }
+                    }
+                });
+                
+                if (matchCount > 0) {
+                    searchInfo.textContent = `Found ${matchCount} result(s)`;
+                    if (firstMatch) {
+                        firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } else {
+                    searchInfo.textContent = 'No results found';
+                }
+            });
         }
 
         function viewHierarchy(ctvCode) {
-            document.getElementById('hierarchyRoot').value = ctvCode;
+            const ctv = allCTV.find(c => c.ma_ctv === ctvCode);
+            if (ctv) {
+                document.getElementById('hierarchySearch').value = `${ctv.ma_ctv} - ${ctv.ten}`;
+                document.getElementById('hierarchyRoot').value = ctvCode;
+            }
             loadHierarchy(ctvCode);
             navigateTo('hierarchy');
         }
@@ -1211,6 +2276,198 @@
         document.getElementById('commissionMonthFilter').addEventListener('change', loadCommissions);
         document.getElementById('commissionLevelFilter').addEventListener('change', loadCommissions);
 
+        // ═══════════════════════════════════════════════════════════════════
+        // CLIENT SERVICES FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════
+
+        let allClients = [];
+
+        async function loadClientsWithServices() {
+            const search = document.getElementById('clientSearch')?.value || '';
+            let url = '/api/admin/clients-with-services';
+            if (search) {
+                url += `?search=${encodeURIComponent(search)}`;
+            }
+            
+            const result = await api(url);
+            const grid = document.getElementById('clientsGrid');
+            
+            if (result.status === 'success') {
+                allClients = result.clients;
+                renderClientCards(result.clients);
+            } else {
+                grid.innerHTML = `
+                    <div class="no-clients-message">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>Error loading clients</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderClientCards(clients) {
+            const grid = document.getElementById('clientsGrid');
+            
+            if (!clients || clients.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-clients-message">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <p>No clients found</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = clients.map(client => renderClientCard(client)).join('');
+        }
+
+        function renderClientCard(client) {
+            const initials = getInitials(client.ten_khach);
+            const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+            
+            const servicesHTML = client.services.map((svc, idx) => renderServiceCard(svc, idx)).join('');
+            
+            return `
+                <div class="client-card">
+                    <div class="client-card-header">
+                        <div class="client-avatar">${initials}</div>
+                        <div class="client-main-info">
+                            <div class="client-name">${escapeHtml(client.ten_khach)}</div>
+                            <div class="client-phone">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                ${escapeHtml(client.sdt)}
+                            </div>
+                        </div>
+                        <div class="service-count-badge">${client.service_count} ${client.service_count === 1 ? t('service') : t('services')}</div>
+                    </div>
+                    <div class="client-info-row">
+                        <div class="client-info-item">
+                            <span class="client-info-label">${t('co_so')}</span>
+                            <span class="client-info-value">${escapeHtml(client.co_so || '-')}</span>
+                        </div>
+                        <div class="client-info-item">
+                            <span class="client-info-label">${t('first_visit')}</span>
+                            <span class="client-info-value">${client.first_visit_date || '-'}</span>
+                        </div>
+                        <div class="client-info-item">
+                            <span class="client-info-label">${t('nguoi_chot')}</span>
+                            <span class="client-info-value">${escapeHtml(client.nguoi_chot || '-')}</span>
+                        </div>
+                        <span class="client-status-badge ${depositClass}">${depositText}</span>
+                    </div>
+                    <div class="services-container">
+                        <div class="services-title">${t('services_title')} (${client.services.length})</div>
+                        <div class="services-grid">
+                            ${servicesHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderServiceCard(service, index) {
+            const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
+            
+            const datesHTML = `
+                ${service.ngay_nhap_don 
+                    ? `<div class="service-appointment">
+                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                               <line x1="16" y1="2" x2="16" y2="6"/>
+                               <line x1="8" y1="2" x2="8" y2="6"/>
+                               <line x1="3" y1="10" x2="21" y2="10"/>
+                           </svg>
+                           <span>${t('ngay_nhap_don')}</span>
+                           <span class="date">${service.ngay_nhap_don}</span>
+                       </div>` 
+                    : ''}
+                ${service.ngay_hen_lam 
+                    ? `<div class="service-appointment">
+                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                               <line x1="16" y1="2" x2="16" y2="6"/>
+                               <line x1="8" y1="2" x2="8" y2="6"/>
+                               <line x1="3" y1="10" x2="21" y2="10"/>
+                           </svg>
+                           <span>${t('ngay_hen_lam')}</span>
+                           <span class="date">${service.ngay_hen_lam}</span>
+                       </div>` 
+                    : ''}
+            `;
+            
+            return `
+                <div class="service-card">
+                    <div class="service-card-header">
+                        <div class="service-number">${service.service_number}</div>
+                        <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                    </div>
+                    <div class="service-name">${escapeHtml(service.dich_vu || t('unknown_service'))}</div>
+                    <div class="service-details">
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('tong_tien')}</span>
+                            <span class="service-detail-value amount">${formatClientCurrency(service.tong_tien)}</span>
+                        </div>
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('tien_coc')}</span>
+                            <span class="service-detail-value deposit">${formatClientCurrency(service.tien_coc)}</span>
+                        </div>
+                        <div class="service-detail-row">
+                            <span class="service-detail-label">${t('phai_dong')}</span>
+                            <span class="service-detail-value remaining">${formatClientCurrency(service.phai_dong)}</span>
+                        </div>
+                    </div>
+                    ${datesHTML}
+                </div>
+            `;
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const words = name.trim().split(/\s+/);
+            if (words.length >= 2) {
+                return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatClientCurrency(amount) {
+            if (!amount && amount !== 0) return '-';
+            return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+        }
+
+        // Client search
+        document.getElementById('clientSearch')?.addEventListener('input', debounce(() => {
+            loadClientsWithServices();
+        }, 300));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
         // Create CTV
         function showCreateCTVModal() {
             document.getElementById('createCTVModal').classList.add('active');
@@ -1262,6 +2519,7 @@
             document.getElementById(`page-${page}`).classList.add('active');
             
             if (page === 'commissions') loadCommissions();
+            if (page === 'clients') loadClientsWithServices();
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -1287,8 +2545,13 @@
                 ctv_management: 'Quản Lý CTV',
                 hierarchy: 'Cấp Bậc',
                 commissions: 'Hoa Hồng',
+                clients: 'Khách Hàng',
                 settings: 'Cài Đặt',
                 logout: 'Đăng Xuất',
+                
+                // Client Management
+                client_management: 'Quản Lý Khách Hàng',
+                client_search_placeholder: 'Tìm theo tên hoặc số điện thoại...',
                 
                 // Dashboard
                 dashboard_overview: 'Tổng Quan Dashboard',
@@ -1324,6 +2587,13 @@
                 select_root: 'Chọn CTV Gốc',
                 select_ctv: 'Chọn CTV',
                 select_ctv_view: 'Chọn CTV để xem cấp bậc',
+                type_to_search: 'Gõ để tìm CTV...',
+                no_ctv_found: 'Không tìm thấy CTV',
+                total_members: 'Tổng Thành Viên',
+                levels_deep: 'Độ Sâu',
+                direct_recruits: 'Trực Tiếp',
+                expand_all: 'Mở Rộng',
+                collapse_all: 'Thu Gọn',
                 
                 // Commission Reports
                 commission_reports: 'Báo Cáo Hoa Hồng',
@@ -1338,6 +2608,10 @@
                 commission: 'Hoa Hồng',
                 date: 'Ngày',
                 
+                // Status
+                da_coc: 'Da coc',
+                chua_coc: 'Chua coc',
+                
                 // Modal
                 add_new_ctv: 'Thêm CTV Mới',
                 ctv_code: 'Mã CTV',
@@ -1348,7 +2622,24 @@
                 create_ctv: 'Tạo CTV',
                 
                 // Loading
-                loading: 'Đang tải...'
+                loading: 'Đang tải...',
+                
+                // Service Card Labels
+                tong_tien: 'Tong tien:',
+                tien_coc: 'Tien coc:',
+                phai_dong: 'Phai dong:',
+                ngay_hen: 'Ngay hen:',
+                ngay_nhap_don: 'Ngày nhập đơn:',
+                ngay_hen_lam: 'Ngày hẹn làm:',
+                
+                // Client Card Labels
+                co_so: 'Co so',
+                first_visit: 'Lan dau',
+                nguoi_chot: 'Nguoi chot',
+                service: 'Dich Vu',
+                services: 'Dich Vu',
+                services_title: 'Dich Vu',
+                unknown_service: 'Dich vu khong xac dinh'
             },
             en: {
                 // Login
@@ -1368,8 +2659,13 @@
                 ctv_management: 'CTV Management',
                 hierarchy: 'Hierarchy',
                 commissions: 'Commissions',
+                clients: 'Clients',
                 settings: 'Settings',
                 logout: 'Logout',
+                
+                // Client Management
+                client_management: 'Client Management',
+                client_search_placeholder: 'Search by name or phone...',
                 
                 // Dashboard
                 dashboard_overview: 'Dashboard Overview',
@@ -1405,6 +2701,13 @@
                 select_root: 'Select Root CTV',
                 select_ctv: 'Select CTV',
                 select_ctv_view: 'Select a CTV to view hierarchy',
+                type_to_search: 'Type to search CTV...',
+                no_ctv_found: 'No CTV found',
+                total_members: 'Total Members',
+                levels_deep: 'Levels Deep',
+                direct_recruits: 'Direct Recruits',
+                expand_all: 'Expand All',
+                collapse_all: 'Collapse All',
                 
                 // Commission Reports
                 commission_reports: 'Commission Reports',
@@ -1428,8 +2731,29 @@
                 cancel: 'Cancel',
                 create_ctv: 'Create CTV',
                 
+                // Status
+                da_coc: 'Deposited',
+                chua_coc: 'Not Deposited',
+                
                 // Loading
-                loading: 'Loading...'
+                loading: 'Loading...',
+                
+                // Service Card Labels
+                tong_tien: 'Total:',
+                tien_coc: 'Deposit:',
+                phai_dong: 'Due:',
+                ngay_hen: 'Appointment:',
+                ngay_nhap_don: 'Order Date:',
+                ngay_hen_lam: 'Appointment Date:',
+                
+                // Client Card Labels
+                co_so: 'Facility',
+                first_visit: 'First Visit',
+                nguoi_chot: 'Closer',
+                service: 'Service',
+                services: 'Services',
+                services_title: 'Services',
+                unknown_service: 'Unknown Service'
             }
         };
 
@@ -1444,6 +2768,12 @@
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
+            
+            // Re-render client cards if they're currently displayed
+            const clientsPage = document.getElementById('clientsPage');
+            if (clientsPage && clientsPage.style.display !== 'none') {
+                loadClientsWithServices();
+            }
         }
 
         function t(key) {
