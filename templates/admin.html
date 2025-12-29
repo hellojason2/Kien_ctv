@@ -146,7 +146,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999;
+            z-index: 999;
             display: flex;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -1686,46 +1686,38 @@
     <div class="modal-overlay" id="createCTVModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Add New CTV</h3>
+                <h3 data-i18n="add_new_ctv">Add New CTV</h3>
                 <button class="modal-close" onclick="closeModal('createCTVModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="createCTVForm">
                     <div class="form-group">
-                        <label>CTV Code *</label>
-                        <input type="text" id="newCtvCode" placeholder="e.g., CTV012" required>
+                        <label><span data-i18n="ctv_code">CTV Code</span> *</label>
+                        <input type="text" id="newCtvCode" data-i18n-placeholder="ctv_code_placeholder" placeholder="VD: CTV012" required>
                     </div>
                     <div class="form-group">
-                        <label>Name *</label>
-                        <input type="text" id="newCtvName" placeholder="Full name" required>
+                        <label><span data-i18n="name">Name</span> *</label>
+                        <input type="text" id="newCtvName" data-i18n-placeholder="full_name" placeholder="Full name" required>
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
+                        <label data-i18n="email">Email</label>
                         <input type="email" id="newCtvEmail" placeholder="email@example.com">
                     </div>
                     <div class="form-group">
-                        <label>Phone</label>
+                        <label data-i18n="phone">Phone</label>
                         <input type="text" id="newCtvPhone" placeholder="0901234567">
                     </div>
                     <div class="form-group">
-                        <label>Referrer (Nguoi gioi thieu)</label>
+                        <label data-i18n="referrer_label">Referrer</label>
                         <select id="newCtvReferrer" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                            <option value="">None (Root CTV)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Level</label>
-                        <select id="newCtvLevel" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                            <option value="Bronze">Bronze</option>
-                            <option value="Silver">Silver</option>
-                            <option value="Gold">Gold</option>
+                            <option value="" data-i18n="none_root">None (Root CTV)</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('createCTVModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="createCTV()">Create CTV</button>
+                <button class="btn btn-secondary" onclick="closeModal('createCTVModal')" data-i18n="cancel">Cancel</button>
+                <button class="btn btn-primary" onclick="createCTV()" data-i18n="create_ctv">Create CTV</button>
             </div>
         </div>
     </div>
@@ -1867,8 +1859,8 @@
             const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
             
             // Populate regular dropdowns
-            document.getElementById('commissionCtvFilter').innerHTML = '<option value="">All CTVs</option>' + options;
-            document.getElementById('newCtvReferrer').innerHTML = '<option value="">None (Root CTV)</option>' + options;
+            document.getElementById('commissionCtvFilter').innerHTML = `<option value="">${t('all_ctvs')}</option>` + options;
+            document.getElementById('newCtvReferrer').innerHTML = `<option value="">${t('none_root')}</option>` + options;
             
             // Initialize searchable dropdown for hierarchy
             initHierarchyDropdown();
@@ -2471,6 +2463,13 @@
         // Create CTV
         function showCreateCTVModal() {
             document.getElementById('createCTVModal').classList.add('active');
+            // Re-apply translations to modal elements
+            applyTranslations();
+            // Re-populate referrer dropdown with translated option
+            if (allCTV.length > 0) {
+                const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
+                document.getElementById('newCtvReferrer').innerHTML = `<option value="">${t('none_root')}</option>` + options;
+            }
         }
 
         function closeModal(id) {
@@ -2484,7 +2483,7 @@
                 email: document.getElementById('newCtvEmail').value,
                 sdt: document.getElementById('newCtvPhone').value,
                 nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
-                cap_bac: document.getElementById('newCtvLevel').value
+                cap_bac: 'Bronze'
             };
             
             const result = await api('/api/admin/ctv', {
@@ -2615,8 +2614,9 @@
                 // Modal
                 add_new_ctv: 'Thêm CTV Mới',
                 ctv_code: 'Mã CTV',
+                ctv_code_placeholder: 'VD: CTV012',
                 full_name: 'Họ tên đầy đủ',
-                referrer_label: 'Người giới thiệu',
+                referrer_label: 'Người Giới Thiệu',
                 none_root: 'Không (CTV Gốc)',
                 cancel: 'Hủy',
                 create_ctv: 'Tạo CTV',
@@ -2725,6 +2725,7 @@
                 // Modal
                 add_new_ctv: 'Add New CTV',
                 ctv_code: 'CTV Code',
+                ctv_code_placeholder: 'e.g., CTV012',
                 full_name: 'Full name',
                 referrer_label: 'Referrer',
                 none_root: 'None (Root CTV)',
@@ -2768,6 +2769,11 @@
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
+            
+            // Re-populate dropdowns with translated options
+            if (allCTV.length > 0) {
+                populateCTVSelects();
+            }
             
             // Re-render client cards if they're currently displayed
             const clientsPage = document.getElementById('clientsPage');

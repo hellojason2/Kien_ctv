@@ -42,7 +42,8 @@ from .auth import (
     require_ctv,
     ctv_login,
     destroy_session,
-    get_current_user
+    get_current_user,
+    change_ctv_password
 )
 from .mlm_core import (
     build_hierarchy_tree,
@@ -87,7 +88,8 @@ def get_db_connection():
 def login():
     """
     CTV login endpoint
-    Body: {"email": "kien@example.com", "password": "ctv123"}
+    Body: {"ma_ctv": "BsDieu", "password": "123456"}
+    Login is case-insensitive (can enter "BSDIEU" or "bsdieu")
     Returns: {"token": "...", "ctv": {...}}
     """
     data = request.get_json()
@@ -95,13 +97,13 @@ def login():
     if not data:
         return jsonify({'status': 'error', 'message': 'Request body required'}), 400
     
-    email = data.get('email', '').strip()
+    ma_ctv = data.get('ma_ctv', '').strip()
     password = data.get('password', '')
     
-    if not email or not password:
-        return jsonify({'status': 'error', 'message': 'Email and password required'}), 400
+    if not ma_ctv or not password:
+        return jsonify({'status': 'error', 'message': 'CTV code and password required'}), 400
     
-    result = ctv_login(email, password)
+    result = ctv_login(ma_ctv, password)
     
     if 'error' in result:
         return jsonify({'status': 'error', 'message': result['error']}), 401
@@ -156,6 +158,34 @@ def check_auth():
     if user and user.get('user_type') == 'ctv':
         return jsonify({'status': 'success', 'authenticated': True, 'user': user})
     return jsonify({'status': 'error', 'authenticated': False}), 401
+
+
+@ctv_bp.route('/api/ctv/change-password', methods=['POST'])
+@require_ctv
+def change_password():
+    """
+    Change CTV password
+    Body: {"current_password": "123456", "new_password": "newpass123"}
+    Requires authentication
+    """
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Request body required'}), 400
+    
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+    
+    if not current_password or not new_password:
+        return jsonify({'status': 'error', 'message': 'Current and new password required'}), 400
+    
+    ctv = g.current_user
+    result = change_ctv_password(ctv['ma_ctv'], current_password, new_password)
+    
+    if 'error' in result:
+        return jsonify({'status': 'error', 'message': result['error']}), 400
+    
+    return jsonify({'status': 'success', 'message': 'Password changed successfully'})
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -727,6 +757,60 @@ def get_ctv_customers():
                 'pending': int(summary['pending_count'] or 0),
                 'total_revenue': float(summary['total_revenue'] or 0)
             }
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@ctv_bp.route('/api/ctv/earliest-date', methods=['GET'])
+@require_ctv
+def get_ctv_earliest_date():
+    """
+    Get the earliest customer date for the CTV and their network.
+    Returns the minimum ngay_hen_lam from khach_hang table.
+    This is used to set default start date in date filters.
+    
+    Returns:
+    - earliest_date: The first date when CTV received a customer (YYYY-MM-DD)
+    """
+    ctv = g.current_user
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get all CTV codes in network (self + descendants)
+        my_network = get_all_descendants(ctv['ma_ctv'], connection)
+        
+        if not my_network:
+            my_network = [ctv['ma_ctv']]
+        
+        # Find the earliest ngay_hen_lam across the network
+        placeholders = ','.join(['%s'] * len(my_network))
+        query = f"""
+            SELECT MIN(ngay_hen_lam) as earliest_date
+            FROM khach_hang
+            WHERE nguoi_chot IN ({placeholders})
+            AND ngay_hen_lam IS NOT NULL
+        """
+        
+        cursor.execute(query, my_network)
+        result = cursor.fetchone()
+        
+        earliest_date = None
+        if result and result['earliest_date']:
+            earliest_date = result['earliest_date'].strftime('%Y-%m-%d')
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'earliest_date': earliest_date
         })
         
     except Error as e:

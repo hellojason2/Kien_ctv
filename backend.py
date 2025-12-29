@@ -394,7 +394,7 @@ def check_duplicate():
     OUTPUTS: { "is_duplicate": true/false, "message": "..." }
     
     Duplicate conditions (ANY = duplicate):
-    1. trang_thai IN ('Da den lam', 'Da coc')
+    1. trang_thai IN ('Da den lam', 'Da coc') AND ngay_hen_lam within last 360 days
     2. ngay_hen_lam >= TODAY AND < TODAY + 180 days
     3. ngay_nhap_don >= TODAY - 60 days
     
@@ -431,7 +431,7 @@ def check_duplicate():
         cursor = connection.cursor()
         
         # Check for duplicates using the three conditions from specification
-        # Condition 1: trang_thai IN ('Da den lam', 'Da coc')
+        # Condition 1: trang_thai IN ('Da den lam', 'Da coc') AND within last 360 days
         # Condition 2: ngay_hen_lam >= TODAY AND < TODAY + 180 days
         # Condition 3: ngay_nhap_don >= TODAY - 60 days
         cursor.execute("""
@@ -439,8 +439,9 @@ def check_duplicate():
             FROM khach_hang
             WHERE sdt = %s
               AND (
-                -- Condition 1: Status is completed or deposited
-                trang_thai IN ('Da den lam', 'Da coc')
+                -- Condition 1: Status is completed or deposited AND within last 360 days
+                (trang_thai IN ('Da den lam', 'Da coc')
+                 AND ngay_hen_lam >= DATE_SUB(CURDATE(), INTERVAL 360 DAY))
                 
                 -- Condition 2: Future appointment within 180 days
                 OR (ngay_hen_lam >= CURDATE() 

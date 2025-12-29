@@ -184,7 +184,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999;
+            z-index: 999;
             display: flex;
             background: #ffffff;
             border-radius: 8px;
@@ -1529,12 +1529,12 @@
             
             <form id="loginForm">
                 <div class="form-group">
-                    <label data-i18n="email">Email</label>
-                    <input type="email" id="email" placeholder="your.email@example.com" required>
+                    <label data-i18n="ctv_code">Ma CTV</label>
+                    <input type="text" id="maCTV" placeholder="BsDieu" required>
                 </div>
                 <div class="form-group">
-                    <label data-i18n="password">Mật khẩu</label>
-                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhập mật khẩu" required>
+                    <label data-i18n="password">Mat khau</label>
+                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhap mat khau" required>
                 </div>
                 <div class="remember-me">
                     <input type="checkbox" id="rememberMe">
@@ -1595,13 +1595,19 @@
                     <line x1="22" y1="11" x2="16" y2="11"></line>
                 </svg>
             </div>
-            <div class="sidebar-icon" data-page="search" data-i18n-title="search" title="Tìm Kiếm">
+            <div class="sidebar-icon" data-page="search" data-i18n-title="search" title="Tim Kiem">
                 <svg viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </div>
-            <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout" title="Đăng Xuất">
+            <div class="sidebar-icon" data-page="settings" data-i18n-title="settings" title="Cai Dat">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
+            <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout" title="Dang Xuat">
                 <svg viewBox="0 0 24 24">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
@@ -1637,40 +1643,40 @@
                 <div class="page-section active" id="page-dashboard">
                     <!-- Phone Check Card -->
                     <div class="phone-check-card">
-                        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;">Đối Chiếu Số Điện Thoại</h3>
+                        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title">Doi Chieu So Dien Thoai</h3>
                         <div class="phone-check-row">
-                            <input type="tel" id="dashPhoneInput" placeholder="Nhập số điện thoại...">
-                            <button class="btn-filter" onclick="checkPhonePortal()">Đối Chiếu</button>
+                            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder" placeholder="Nhap so dien thoai...">
+                            <button class="btn-filter" onclick="checkPhonePortal()" data-i18n="check">Doi Chieu</button>
                             <div class="result" id="dashPhoneResult" style="display:none;"></div>
                         </div>
                     </div>
 
                     <div class="stats-grid">
                         <div class="stat-card green">
-                            <div class="label">Tổng Thu Nhập</div>
-                            <div class="value" id="statTotalEarnings">0đ</div>
+                            <div class="label" data-i18n="total_earnings">Tong Thu Nhap</div>
+                            <div class="value" id="statTotalEarnings">0d</div>
                         </div>
                         <div class="stat-card blue">
-                            <div class="label">Thu Nhập Tháng Này</div>
-                            <div class="value" id="statMonthlyEarnings">0đ</div>
+                            <div class="label" data-i18n="this_month">Thu Nhap Thang Nay</div>
+                            <div class="value" id="statMonthlyEarnings">0d</div>
                         </div>
                         <div class="stat-card gold">
-                            <div class="label">Số Lượng Mạng Lưới</div>
+                            <div class="label" data-i18n="network_size">So Luong Mang Luoi</div>
                             <div class="value" id="statNetworkSize">0</div>
                         </div>
                         <div class="stat-card pink">
-                            <div class="label">Trực Tiếp (Level 1)</div>
+                            <div class="label" data-i18n="direct_level1">Truc Tiep (Level 1)</div>
                             <div class="value" id="statDirectCount">0</div>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Hoa Hồng Gần Đây</h3>
+                            <h3 data-i18n="recent_commissions">Hoa Hong Gan Day</h3>
                         </div>
                         <div class="card-body">
                             <div id="recentCommissions">
-                                <div class="empty-state">Đang tải...</div>
+                                <div class="empty-state" data-i18n="loading">Dang tai...</div>
                             </div>
                         </div>
                     </div>
@@ -1682,11 +1688,11 @@
                     <div class="card" style="margin-bottom:20px;">
                         <div class="card-body">
                             <div class="date-filter">
-                                <label style="font-size:14px;color:#666;">Từ ngày:</label>
+                                <label style="font-size:14px;color:#666;" data-i18n="from_date">Tu ngay:</label>
                                 <input type="date" id="commissionFromDate">
-                                <label style="font-size:14px;color:#666;">Đến ngày:</label>
+                                <label style="font-size:14px;color:#666;" data-i18n="to_date">Den ngay:</label>
                                 <input type="date" id="commissionToDate">
-                                <button class="btn-filter" onclick="loadCommissionWithFilter()">Lọc</button>
+                                <button class="btn-filter" onclick="loadCommissionWithFilter()" data-i18n="filter">Loc</button>
                             </div>
                         </div>
                     </div>
@@ -1694,21 +1700,21 @@
                     <!-- Commission Summary from khach_hang -->
                     <div class="card" style="margin-bottom:20px;">
                         <div class="card-header">
-                            <h3>Hoa Hồng Theo Khách Hàng</h3>
+                            <h3 data-i18n="commission_by_customer">Hoa Hong Theo Khach Hang</h3>
                         </div>
                         <div class="card-body">
                             <div id="khachHangCommission">
-                                <div class="empty-state">Chọn ngày và nhấn Lọc để xem hoa hồng</div>
+                                <div class="empty-state" data-i18n="select_filter_hint">Chon ngay va nhan Loc de xem hoa hong</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Tất Cả Hoa Hồng</h3>
+                            <h3 data-i18n="all_commissions">Tat Ca Hoa Hong</h3>
                             <select id="earningsFilter">
-                                <option value="">Tất Cả</option>
-                                <option value="0">Level 0 (Bản Thân)</option>
+                                <option value="" data-i18n="all">Tat Ca</option>
+                                <option value="0" data-i18n="level_0_self">Level 0 (Ban Than)</option>
                                 <option value="1">Level 1</option>
                                 <option value="2">Level 2</option>
                                 <option value="3">Level 3</option>
@@ -1717,18 +1723,18 @@
                         </div>
                         <div class="card-body">
                             <div id="earningsList">
-                                <div class="empty-state">Đang tải...</div>
+                                <div class="empty-state" data-i18n="loading">Dang tai...</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Thống Kê Theo Cấp</h3>
+                            <h3 data-i18n="stats_by_level">Thong Ke Theo Cap</h3>
                         </div>
                         <div class="card-body">
                             <div id="earningsSummary">
-                                <div class="empty-state">Đang tải...</div>
+                                <div class="empty-state" data-i18n="loading">Dang tai...</div>
                             </div>
                         </div>
                     </div>
@@ -1738,22 +1744,22 @@
                 <div class="page-section" id="page-network">
                     <div class="card">
                         <div class="card-header">
-                            <h3>Mạng Lưới Của Bạn</h3>
+                            <h3 data-i18n="your_network">Mang Luoi Cua Ban</h3>
                         </div>
                         <div class="card-body">
                             <div id="networkTree">
-                                <div class="empty-state">Đang tải...</div>
+                                <div class="empty-state" data-i18n="loading">Dang tai...</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Danh Sách CTV Trực Tiếp</h3>
+                            <h3 data-i18n="direct_list">Danh Sach CTV Truc Tiep</h3>
                         </div>
                         <div class="card-body">
                             <div id="directDownline">
-                                <div class="empty-state">Đang tải...</div>
+                                <div class="empty-state" data-i18n="loading">Dang tai...</div>
                             </div>
                         </div>
                     </div>
@@ -1770,7 +1776,7 @@
                                 <rect x="3" y="14" width="7" height="7" rx="1"/>
                                 <rect x="14" y="14" width="7" height="7" rx="1"/>
                             </svg>
-                            Card View
+                            <span data-i18n="card_view">Card View</span>
                         </button>
                         <button class="view-toggle-btn" id="tableViewBtn" onclick="switchToTableView()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1781,14 +1787,14 @@
                                 <line x1="3" y1="12" x2="3.01" y2="12"/>
                                 <line x1="3" y1="18" x2="3.01" y2="18"/>
                             </svg>
-                            Table View
+                            <span data-i18n="table_view">Table View</span>
                         </button>
                     </div>
 
                     <!-- Card View (Default) -->
                     <div id="cardViewSection">
                         <div class="client-search-box">
-                            <input type="text" id="ctvClientSearch" placeholder="Tìm theo tên hoặc số điện thoại...">
+                            <input type="text" id="ctvClientSearch" data-i18n-placeholder="search_name_phone" placeholder="Tim theo ten hoac so dien thoai...">
                         </div>
                         <div class="clients-grid" id="ctvClientsGrid">
                             <div class="no-clients-message">
@@ -1796,7 +1802,7 @@
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                     <circle cx="12" cy="7" r="4"/>
                                 </svg>
-                                <p>Đang tải...</p>
+                                <p data-i18n="loading">Dang tai...</p>
                             </div>
                         </div>
                     </div>
@@ -1806,42 +1812,42 @@
                         <div class="card" style="margin-bottom:20px;">
                             <div class="card-body">
                                 <div class="date-filter">
-                                    <label style="font-size:14px;color:#666;">Từ ngày:</label>
+                                    <label style="font-size:14px;color:#666;" data-i18n="from_date">Tu ngay:</label>
                                     <input type="date" id="customerFromDate">
-                                    <label style="font-size:14px;color:#666;">Đến ngày:</label>
+                                    <label style="font-size:14px;color:#666;" data-i18n="to_date">Den ngay:</label>
                                     <input type="date" id="customerToDate">
                                     <select id="customerStatusFilter">
-                                        <option value="">Tất cả trạng thái</option>
-                                        <option value="Da den lam">Đã đến làm</option>
-                                        <option value="Da coc">Đã cọc</option>
-                                        <option value="Huy lich">Hủy lịch</option>
-                                        <option value="Cho xac nhan">Chờ xác nhận</option>
+                                        <option value="" data-i18n="all_status">Tat ca trang thai</option>
+                                        <option value="Da den lam" data-i18n="completed">Da den lam</option>
+                                        <option value="Da coc" data-i18n="deposited">Da coc</option>
+                                        <option value="Huy lich" data-i18n="cancelled">Huy lich</option>
+                                        <option value="Cho xac nhan" data-i18n="pending">Cho xac nhan</option>
                                     </select>
-                                    <button class="btn-filter" onclick="loadMyCustomers()">Lọc</button>
+                                    <button class="btn-filter" onclick="loadMyCustomers()" data-i18n="filter">Loc</button>
                                 </div>
                             </div>
                         </div>
 
                         <div class="card">
                             <div class="card-header">
-                                <h3>Khách Hàng Của Tôi</h3>
+                                <h3 data-i18n="my_customers">Khach Hang Cua Toi</h3>
                                 <div id="customerSummary" style="font-size:14px;color:#666;"></div>
                             </div>
                             <div class="card-body" style="overflow-x:auto;">
                                 <table class="customer-table">
                                     <thead>
                                         <tr>
-                                            <th>Tên Khách</th>
-                                            <th>SĐT</th>
-                                            <th>Ngày Hẹn</th>
-                                            <th>Dịch Vụ</th>
-                                            <th>Tổng Tiền</th>
-                                            <th>Trạng Thái</th>
+                                            <th data-i18n="customer_name">Ten Khach</th>
+                                            <th data-i18n="phone_short">SDT</th>
+                                            <th data-i18n="appointment_date">Ngay Hen</th>
+                                            <th data-i18n="service">Dich Vu</th>
+                                            <th data-i18n="total_amount">Tong Tien</th>
+                                            <th data-i18n="status">Trang Thai</th>
                                         </tr>
                                     </thead>
                                     <tbody id="customerTableBody">
                                         <tr>
-                                            <td colspan="6" class="empty-state">Nhấn Lọc để xem danh sách</td>
+                                            <td colspan="6" class="empty-state" data-i18n="click_filter_hint">Nhan Loc de xem danh sach</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1854,7 +1860,7 @@
                 <div class="page-section" id="page-search">
                     <div class="card">
                         <div class="card-header">
-                            <h3>Tìm Kiếm Trong Mạng Lưới</h3>
+                            <h3 data-i18n="search_network">Tim Kiem Trong Mang Luoi</h3>
                         </div>
                         <div class="card-body">
                             <div class="search-container">
@@ -1862,14 +1868,42 @@
                                     <circle cx="11" cy="11" r="8"/>
                                     <path d="m21 21-4.35-4.35"/>
                                 </svg>
-                                <input type="text" class="search-input" id="searchInput" placeholder="Tìm theo tên, số điện thoại, email...">
+                                <input type="text" class="search-input" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Tim theo ten, so dien thoai, email...">
                             </div>
-                            <p style="color:#999;font-size:13px;margin-bottom:16px;">
-                                Chỉ hiển thị kết quả trong mạng lưới của bạn
+                            <p style="color:#999;font-size:13px;margin-bottom:16px;" data-i18n="search_hint">
+                                Chi hien thi ket qua trong mang luoi cua ban
                             </p>
                             <div id="searchResults">
-                                <div class="empty-state">Nhập từ khóa để tìm kiếm</div>
+                                <div class="empty-state" data-i18n="enter_keyword">Nhap tu khoa de tim kiem</div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div class="page-section" id="page-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 data-i18n="change_password">Doi Mat Khau</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="changePasswordForm" style="max-width:400px;">
+                                <div class="form-group">
+                                    <label data-i18n="current_password">Mat khau hien tai</label>
+                                    <input type="password" id="currentPassword" placeholder="Nhap mat khau hien tai" required>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="new_password">Mat khau moi</label>
+                                    <input type="password" id="newPassword" placeholder="Nhap mat khau moi (it nhat 6 ky tu)" required minlength="6">
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="confirm_password">Xac nhan mat khau moi</label>
+                                    <input type="password" id="confirmPassword" placeholder="Nhap lai mat khau moi" required minlength="6">
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="changePasswordBtn" data-i18n="change_password_btn">Doi Mat Khau</button>
+                                <div class="error-msg" id="changePasswordError"></div>
+                                <div class="success-msg" id="changePasswordSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -1899,10 +1933,10 @@
         }
 
         // Remember me - load saved credentials on page load
-        const savedEmail = localStorage.getItem('ctv_remember_email');
+        const savedMaCTV = localStorage.getItem('ctv_remember_ma_ctv');
         const savedPassword = localStorage.getItem('ctv_remember_password');
-        if (savedEmail) {
-            document.getElementById('email').value = savedEmail;
+        if (savedMaCTV) {
+            document.getElementById('maCTV').value = savedMaCTV;
             document.getElementById('rememberMe').checked = true;
         }
         if (savedPassword) {
@@ -1912,7 +1946,7 @@
         // Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const maCTV = document.getElementById('maCTV').value;
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             const loginBtn = document.getElementById('loginBtn');
@@ -1922,20 +1956,20 @@
             
             // Save or remove credentials based on remember me checkbox
             if (rememberMe) {
-                localStorage.setItem('ctv_remember_email', email);
+                localStorage.setItem('ctv_remember_ma_ctv', maCTV);
                 localStorage.setItem('ctv_remember_password', password);
             } else {
-                localStorage.removeItem('ctv_remember_email');
+                localStorage.removeItem('ctv_remember_ma_ctv');
                 localStorage.removeItem('ctv_remember_password');
             }
             
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Đang đăng nhập...';
+            loginBtn.textContent = 'Dang dang nhap...';
             loginError.classList.remove('show');
             
             const result = await api('/ctv/login', {
                 method: 'POST',
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ ma_ctv: maCTV, password })
             });
             
             if (result.status === 'success') {
@@ -1970,12 +2004,102 @@
             window.location.href = '/';
         });
 
+        // Change Password
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorEl = document.getElementById('changePasswordError');
+            const successEl = document.getElementById('changePasswordSuccess');
+            const submitBtn = document.getElementById('changePasswordBtn');
+            
+            // Reset messages
+            errorEl.classList.remove('show');
+            errorEl.textContent = '';
+            successEl.style.display = 'none';
+            successEl.textContent = '';
+            
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                errorEl.textContent = 'Mat khau moi khong khop';
+                errorEl.classList.add('show');
+                return;
+            }
+            
+            // Validate length
+            if (newPassword.length < 6) {
+                errorEl.textContent = 'Mat khau moi phai co it nhat 6 ky tu';
+                errorEl.classList.add('show');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Dang xu ly...';
+            
+            const result = await api('/api/ctv/change-password', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    current_password: currentPassword, 
+                    new_password: newPassword 
+                })
+            });
+            
+            if (result.status === 'success') {
+                successEl.textContent = 'Doi mat khau thanh cong!';
+                successEl.style.display = 'block';
+                // Clear form
+                document.getElementById('changePasswordForm').reset();
+            } else {
+                errorEl.textContent = result.message || 'Doi mat khau that bai';
+                errorEl.classList.add('show');
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Doi Mat Khau';
+        });
+
         // Show Portal
         async function showPortal() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('portal').classList.add('active');
             await loadProfile();
             await loadRecentCommissions();
+            await setDefaultDateFilters();
+        }
+
+        // Set default date filters to earliest customer date
+        async function setDefaultDateFilters() {
+            try {
+                const result = await api('/api/ctv/earliest-date');
+                if (result.status === 'success' && result.earliest_date) {
+                    // Set earliest date as default "from" date for all date filters
+                    const commissionFromDate = document.getElementById('commissionFromDate');
+                    const customerFromDate = document.getElementById('customerFromDate');
+                    
+                    if (commissionFromDate) {
+                        commissionFromDate.value = result.earliest_date;
+                    }
+                    if (customerFromDate) {
+                        customerFromDate.value = result.earliest_date;
+                    }
+                    
+                    // Set today as default "to" date
+                    const today = new Date().toISOString().split('T')[0];
+                    const commissionToDate = document.getElementById('commissionToDate');
+                    const customerToDate = document.getElementById('customerToDate');
+                    
+                    if (commissionToDate) {
+                        commissionToDate.value = today;
+                    }
+                    if (customerToDate) {
+                        customerToDate.value = today;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching earliest date:', error);
+            }
         }
 
         // Check Auth
@@ -2017,7 +2141,7 @@
             if (result.status === 'success') {
                 const container = document.getElementById('recentCommissions');
                 if (result.commissions.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Chưa có hoa hồng nào</div>';
+                    container.innerHTML = `<div class="empty-state">${t('no_commissions')}</div>`;
                     return;
                 }
                 
@@ -2049,7 +2173,7 @@
                 const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
                 
                 if (result.commissions.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Không có hoa hồng nào</div>';
+                    container.innerHTML = `<div class="empty-state">${t('no_commissions')}</div>`;
                 } else {
                     container.innerHTML = result.commissions.map(c => `
                         <div class="commission-item">
@@ -2068,15 +2192,15 @@
                 // Summary
                 const summaryContainer = document.getElementById('earningsSummary');
                 if (result.summary.by_level.length === 0) {
-                    summaryContainer.innerHTML = '<div class="empty-state">Chưa có dữ liệu</div>';
+                    summaryContainer.innerHTML = `<div class="empty-state">${t('no_data')}</div>`;
                 } else {
                     summaryContainer.innerHTML = `
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Level</th>
-                                    <th>Số Lượng</th>
-                                    <th>Tổng Hoa Hồng</th>
+                                    <th>${t('level')}</th>
+                                    <th>${t('count')}</th>
+                                    <th>${t('total_commission')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2088,7 +2212,7 @@
                                     </tr>
                                 `).join('')}
                                 <tr style="font-weight:700">
-                                    <td>Tổng</td>
+                                    <td>${t('all')}</td>
                                     <td></td>
                                     <td style="color:#22c55e">${formatCurrency(result.summary.total)}</td>
                                 </tr>
@@ -2131,20 +2255,20 @@
                     <div class="tree-stats">
                         <div class="tree-stat">
                             <div class="number">${stats.totalMembers}</div>
-                            <div class="label">Total Members</div>
+                            <div class="label">${t('total_members')}</div>
                         </div>
                         <div class="tree-stat">
                             <div class="number">${stats.maxDepth}</div>
-                            <div class="label">Levels Deep</div>
+                            <div class="label">${t('levels_deep')}</div>
                         </div>
                         <div class="tree-stat">
                             <div class="number">${stats.directRecruits}</div>
-                            <div class="label">Direct Recruits</div>
+                            <div class="label">${t('direct_recruits')}</div>
                         </div>
                     </div>
                     <div class="tree-controls">
-                        <button class="tree-btn" onclick="expandAllTreeNodes()">Expand All</button>
-                        <button class="tree-btn" onclick="collapseAllTreeNodes()">Collapse All</button>
+                        <button class="tree-btn" onclick="expandAllTreeNodes()">${t('expand_all')}</button>
+                        <button class="tree-btn" onclick="collapseAllTreeNodes()">${t('collapse_all')}</button>
                     </div>
                     <div class="tree-wrapper">
                         <ul>${renderTree(treeResult.hierarchy)}</ul>
@@ -2158,17 +2282,17 @@
             if (downlineResult.status === 'success') {
                 const container = document.getElementById('directDownline');
                 if (downlineResult.downline.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Ban chua gioi thieu ai</div>';
+                    container.innerHTML = `<div class="empty-state">${t('no_referrals')}</div>`;
                 } else {
                     container.innerHTML = `
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Ma CTV</th>
-                                    <th>Ten</th>
-                                    <th>Email</th>
-                                    <th>SDT</th>
-                                    <th>Cap Bac</th>
+                                    <th>${t('ctv_code_col')}</th>
+                                    <th>${t('name_col')}</th>
+                                    <th>${t('email_col')}</th>
+                                    <th>${t('phone_col')}</th>
+                                    <th>${t('rank_col')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2257,7 +2381,7 @@
             const term = e.target.value.trim();
             
             if (term.length < 2) {
-                document.getElementById('searchResults').innerHTML = '<div class="empty-state">Nhập ít nhất 2 ký tự</div>';
+                document.getElementById('searchResults').innerHTML = `<div class="empty-state">${t('min_chars')}</div>`;
                 return;
             }
             
@@ -2265,14 +2389,14 @@
         });
 
         async function performSearch(term) {
-            document.getElementById('searchResults').innerHTML = '<div class="empty-state">Đang tìm...</div>';
+            document.getElementById('searchResults').innerHTML = `<div class="empty-state">${t('searching')}</div>`;
             
             const result = await api(`/api/ctv/my-network/search?q=${encodeURIComponent(term)}`);
             if (result.status === 'success') {
                 const container = document.getElementById('searchResults');
                 
                 if (result.total === 0) {
-                    container.innerHTML = '<div class="empty-state">Không tìm thấy kết quả</div>';
+                    container.innerHTML = `<div class="empty-state">${t('no_results')}</div>`;
                     return;
                 }
                 
@@ -2291,7 +2415,7 @@
                 if (result.customers.length > 0) {
                     html += result.customers.map(c => `
                         <div class="result-item">
-                            <div class="type">Khách Hàng</div>
+                            <div class="type">${t('customer')}</div>
                             <div class="name">${c.name}</div>
                             <div class="details">${c.phone || '-'} | ${c.email || '-'}</div>
                         </div>
@@ -2343,7 +2467,7 @@
             const phone = input.value.trim();
             
             if (!phone || phone.length < 9) {
-                result.textContent = 'Nhap SDT';
+                result.textContent = t('phone_short');
                 result.className = 'result';
                 result.style.display = 'block';
                 result.style.background = '#fef3c7';
@@ -2358,15 +2482,15 @@
                 });
                 
                 if (response.is_duplicate) {
-                    result.textContent = 'TRUNG';
+                    result.textContent = t('duplicate');
                     result.className = 'result trung';
                 } else {
-                    result.textContent = 'KHONG TRUNG';
+                    result.textContent = t('not_duplicate');
                     result.className = 'result khong-trung';
                 }
                 result.style.display = 'block';
             } catch (error) {
-                result.textContent = 'Loi';
+                result.textContent = 'Error';
                 result.style.display = 'block';
             }
         }
@@ -2419,7 +2543,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <p>Loi tai du lieu</p>
+                        <p>Error</p>
                     </div>
                 `;
             }
@@ -2435,7 +2559,7 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                             <circle cx="12" cy="7" r="4"/>
                         </svg>
-                        <p>Khong co khach hang nao</p>
+                        <p>${t('no_customers')}</p>
                     </div>
                 `;
                 return;
@@ -2602,7 +2726,7 @@
             
             if (result.status === 'success') {
                 if (result.customers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Khong co khach hang nao</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${t('no_customers')}</td></tr>`;
                 } else {
                     tbody.innerHTML = result.customers.map(c => {
                         let statusClass = 'waiting';
@@ -2624,10 +2748,10 @@
                 }
                 
                 summary.innerHTML = `
-                    Tong: ${result.summary.total} | 
-                    Da lam: ${result.summary.completed} | 
-                    Dang cho: ${result.summary.pending} | 
-                    Doanh thu: <strong style="color:#22c55e">${formatCurrency(result.summary.total_revenue)}</strong>
+                    ${t('all')}: ${result.summary.total} | 
+                    ${t('completed')}: ${result.summary.completed} | 
+                    ${t('pending')}: ${result.summary.pending} | 
+                    ${t('total_amount')}: <strong style="color:#22c55e">${formatCurrency(result.summary.total_revenue)}</strong>
                 `;
             }
         }
@@ -2649,29 +2773,29 @@
             
             if (result.status === 'success') {
                 if (!result.by_level || result.by_level.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Khong co hoa hong trong khoang thoi gian nay</div>';
+                    container.innerHTML = `<div class="empty-state">${t('no_commissions_period')}</div>`;
                 } else {
                     const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
                     
                     container.innerHTML = `
                         <div class="stats-grid" style="margin-bottom:20px;">
                             <div class="stat-card green">
-                                <div class="label">Tong Hoa Hong</div>
+                                <div class="label">${t('total_commission')}</div>
                                 <div class="value">${formatCurrency(result.total.commission)}</div>
                             </div>
                             <div class="stat-card blue">
-                                <div class="label">Giao Dich</div>
+                                <div class="label">${t('transactions')}</div>
                                 <div class="value">${result.total.transactions}</div>
                             </div>
                         </div>
                         <table style="width:100%;border-collapse:collapse;">
                             <thead>
                                 <tr style="background:#fafafa;">
-                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Level</th>
-                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Doanh Thu</th>
-                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Giao Dich</th>
-                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Ti Le</th>
-                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">Hoa Hong</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">${t('level')}</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">${t('revenue')}</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">${t('transactions')}</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">${t('rate')}</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:1px solid #e0e0e0;">${t('amount')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2700,101 +2824,134 @@
         const translations = {
             vi: {
                 // Login
-                login_subtitle: 'Đăng nhập để xem hoa hồng và mạng lưới',
-                email: 'Email',
-                password: 'Mật khẩu',
-                enter_password: 'Nhập mật khẩu',
-                remember_me: 'Ghi nhớ đăng nhập',
-                login: 'Đăng Nhập',
-                back_home: '← Quay về trang chủ',
-                login_success: 'Đăng nhập thành công!',
-                login_failed: 'Đăng nhập thất bại',
-                logging_in: 'Đang đăng nhập...',
+                login_subtitle: 'Dang nhap de xem hoa hong va mang luoi',
+                ctv_code: 'Ma CTV',
+                password: 'Mat khau',
+                enter_password: 'Nhap mat khau',
+                remember_me: 'Ghi nho dang nhap',
+                login: 'Dang Nhap',
+                back_home: 'Quay ve trang chu',
+                login_success: 'Dang nhap thanh cong!',
+                login_failed: 'Dang nhap that bai',
+                logging_in: 'Dang dang nhap...',
                 
                 // Dashboard
-                overview: 'Tổng Quan',
-                earnings: 'Hoa Hồng',
-                network: 'Mạng Lưới',
-                customers: 'Khách Hàng',
-                search: 'Tìm Kiếm',
-                logout: 'Đăng Xuất',
+                overview: 'Tong Quan',
+                earnings: 'Hoa Hong',
+                network: 'Mang Luoi',
+                customers: 'Khach Hang',
+                search: 'Tim Kiem',
+                settings: 'Cai Dat',
+                logout: 'Dang Xuat',
                 
                 // Stats
-                total_earnings: 'Tổng Thu Nhập',
-                this_month: 'Thu Nhập Tháng Này',
-                network_size: 'Số Lượng Mạng Lưới',
-                direct_referrals: 'Giới Thiệu Trực Tiếp',
+                total_earnings: 'Tong Thu Nhap',
+                this_month: 'Thu Nhap Thang Nay',
+                network_size: 'So Luong Mang Luoi',
+                direct_referrals: 'Gioi Thieu Truc Tiep',
+                direct_level1: 'Truc Tiep (Level 1)',
+                recent_commissions: 'Hoa Hong Gan Day',
                 
                 // Filters
-                from_date: 'Từ ngày:',
-                to_date: 'Đến ngày:',
-                filter: 'Lọc',
-                all: 'Tất Cả',
-                all_status: 'Tất cả trạng thái',
+                from_date: 'Tu ngay:',
+                to_date: 'Den ngay:',
+                filter: 'Loc',
+                all: 'Tat Ca',
+                all_status: 'Tat ca trang thai',
+                select_filter_hint: 'Chon ngay va nhan Loc de xem hoa hong',
+                click_filter_hint: 'Nhan Loc de xem danh sach',
                 
                 // Commission
-                all_commissions: 'Tất Cả Hoa Hồng',
-                no_commissions: 'Chưa có hoa hồng nào',
-                total_commission: 'Tổng Hoa Hồng',
-                level: 'Cấp',
-                rate: 'Tỷ Lệ',
-                amount: 'Số Tiền',
-                customer: 'Khách Hàng',
-                service: 'Dịch Vụ',
-                date: 'Ngày',
+                all_commissions: 'Tat Ca Hoa Hong',
+                commission_by_customer: 'Hoa Hong Theo Khach Hang',
+                no_commissions: 'Chua co hoa hong nao',
+                total_commission: 'Tong Hoa Hong',
+                level: 'Cap',
+                level_0_self: 'Level 0 (Ban Than)',
+                rate: 'Ty Le',
+                amount: 'So Tien',
+                customer: 'Khach Hang',
+                service: 'Dich Vu',
+                date: 'Ngay',
                 
                 // Network
-                your_network: 'Mạng Lưới Của Bạn',
-                direct_list: 'Danh Sách CTV Trực Tiếp',
-                no_referrals: 'Bạn chưa giới thiệu ai',
-                stats_by_level: 'Thống Kê Theo Cấp',
-                count: 'Số Lượng',
+                your_network: 'Mang Luoi Cua Ban',
+                direct_list: 'Danh Sach CTV Truc Tiep',
+                no_referrals: 'Ban chua gioi thieu ai',
+                stats_by_level: 'Thong Ke Theo Cap',
+                count: 'So Luong',
+                total_members: 'TONG THANH VIEN',
+                levels_deep: 'SO CAP',
+                direct_recruits: 'GIOI THIEU TRUC TIEP',
+                expand_all: 'Mo Rong',
+                collapse_all: 'Thu Gon',
+                ctv_code_col: 'Ma CTV',
+                name_col: 'Ten',
+                email_col: 'Email',
+                phone_col: 'SDT',
+                rank_col: 'Cap Bac',
                 
                 // Search
-                search_network: 'Tìm Kiếm Trong Mạng Lưới',
-                search_placeholder: 'Tìm theo tên, số điện thoại, email...',
-                search_hint: 'Chỉ hiển thị kết quả trong mạng lưới của bạn',
-                enter_keyword: 'Nhập từ khóa để tìm kiếm',
-                min_chars: 'Nhập ít nhất 2 ký tự',
-                no_results: 'Không tìm thấy kết quả',
-                searching: 'Đang tìm...',
+                search_network: 'Tim Kiem Trong Mang Luoi',
+                search_placeholder: 'Tim theo ten, so dien thoai, email...',
+                search_hint: 'Chi hien thi ket qua trong mang luoi cua ban',
+                enter_keyword: 'Nhap tu khoa de tim kiem',
+                min_chars: 'Nhap it nhat 2 ky tu',
+                no_results: 'Khong tim thay ket qua',
+                search_name_phone: 'Tim theo ten hoac so dien thoai...',
+                
+                // Settings / Change Password
+                change_password: 'Doi Mat Khau',
+                current_password: 'Mat khau hien tai',
+                new_password: 'Mat khau moi',
+                confirm_password: 'Xac nhan mat khau moi',
+                change_password_btn: 'Doi Mat Khau',
+                password_changed: 'Doi mat khau thanh cong!',
+                password_mismatch: 'Mat khau moi khong khop',
+                password_too_short: 'Mat khau moi phai co it nhat 6 ky tu',
+                searching: 'Dang tim...',
                 
                 // Customers
-                my_customers: 'Khách Hàng Của Tôi',
-                no_customers: 'Chưa có khách hàng nào',
-                phone: 'Số Điện Thoại',
-                status: 'Trạng Thái',
-                total_amount: 'Tổng Tiền',
-                deposit: 'Tiền Cọc',
-                remaining: 'Còn Lại',
-                note: 'Ghi Chú',
+                my_customers: 'Khach Hang Cua Toi',
+                no_customers: 'Chua co khach hang nao',
+                phone: 'So Dien Thoai',
+                phone_short: 'SDT',
+                status: 'Trang Thai',
+                total_amount: 'Tong Tien',
+                deposit: 'Tien Coc',
+                remaining: 'Con Lai',
+                note: 'Ghi Chu',
+                customer_name: 'Ten Khach',
+                appointment_date: 'Ngay Hen',
+                card_view: 'Card View',
+                table_view: 'Table View',
                 
                 // Phone Check
-                phone_check_title: 'Đối Chiếu Số Điện Thoại',
-                phone_check_placeholder: 'Nhập số điện thoại...',
-                check: 'Đối Chiếu',
-                checking: 'Đang kiểm tra...',
-                duplicate: 'TRÙNG',
-                not_duplicate: 'KHÔNG TRÙNG',
+                phone_check_title: 'Doi Chieu So Dien Thoai',
+                phone_check_placeholder: 'Nhap so dien thoai...',
+                check: 'Doi Chieu',
+                checking: 'Dang kiem tra...',
+                duplicate: 'TRUNG',
+                not_duplicate: 'KHONG TRUNG',
                 
                 // Status
-                completed: 'Đã đến làm',
-                deposited: 'Đã cọc',
-                cancelled: 'Hủy lịch',
-                pending: 'Chờ xác nhận',
+                completed: 'Da den lam',
+                deposited: 'Da coc',
+                cancelled: 'Huy lich',
+                pending: 'Cho xac nhan',
                 da_coc: 'Da coc',
                 chua_coc: 'Chua coc',
                 
                 // Loading
-                loading: 'Đang tải...',
-                no_data: 'Chưa có dữ liệu',
+                loading: 'Dang tai...',
+                no_data: 'Chua co du lieu',
                 
                 // Service Card Labels
                 tong_tien: 'Tong tien:',
                 tien_coc: 'Tien coc:',
                 phai_dong: 'Phai dong:',
-                ngay_nhap_don: 'Ngày nhập đơn:',
-                ngay_hen_lam: 'Ngày hẹn làm:',
+                ngay_nhap_don: 'Ngay nhap don:',
+                ngay_hen_lam: 'Ngay hen lam:',
                 
                 // Client Card Labels
                 co_so: 'Co so',
@@ -2806,12 +2963,12 @@
             en: {
                 // Login
                 login_subtitle: 'Login to view commissions and network',
-                email: 'Email',
+                ctv_code: 'CTV Code',
                 password: 'Password',
                 enter_password: 'Enter password',
                 remember_me: 'Remember me',
                 login: 'Login',
-                back_home: '← Back to Home',
+                back_home: 'Back to Home',
                 login_success: 'Login successful!',
                 login_failed: 'Login failed',
                 logging_in: 'Logging in...',
@@ -2822,6 +2979,7 @@
                 network: 'Network',
                 customers: 'Customers',
                 search: 'Search',
+                settings: 'Settings',
                 logout: 'Logout',
                 
                 // Stats
@@ -2829,6 +2987,8 @@
                 this_month: 'This Month',
                 network_size: 'Network Size',
                 direct_referrals: 'Direct Referrals',
+                direct_level1: 'Direct (Level 1)',
+                recent_commissions: 'Recent Commissions',
                 
                 // Filters
                 from_date: 'From:',
@@ -2836,12 +2996,16 @@
                 filter: 'Filter',
                 all: 'All',
                 all_status: 'All Status',
+                select_filter_hint: 'Select dates and click Filter to view commissions',
+                click_filter_hint: 'Click Filter to view list',
                 
                 // Commission
                 all_commissions: 'All Commissions',
+                commission_by_customer: 'Commission by Customer',
                 no_commissions: 'No commissions yet',
                 total_commission: 'Total Commission',
                 level: 'Level',
+                level_0_self: 'Level 0 (Self)',
                 rate: 'Rate',
                 amount: 'Amount',
                 customer: 'Customer',
@@ -2854,6 +3018,16 @@
                 no_referrals: 'No referrals yet',
                 stats_by_level: 'Stats by Level',
                 count: 'Count',
+                total_members: 'TOTAL MEMBERS',
+                levels_deep: 'LEVELS DEEP',
+                direct_recruits: 'DIRECT RECRUITS',
+                expand_all: 'Expand All',
+                collapse_all: 'Collapse All',
+                ctv_code_col: 'CTV Code',
+                name_col: 'Name',
+                email_col: 'Email',
+                phone_col: 'Phone',
+                rank_col: 'Rank',
                 
                 // Search
                 search_network: 'Search in Network',
@@ -2862,17 +3036,33 @@
                 enter_keyword: 'Enter keyword to search',
                 min_chars: 'Enter at least 2 characters',
                 no_results: 'No results found',
+                search_name_phone: 'Search by name or phone...',
+                
+                // Settings / Change Password
+                change_password: 'Change Password',
+                current_password: 'Current Password',
+                new_password: 'New Password',
+                confirm_password: 'Confirm New Password',
+                change_password_btn: 'Change Password',
+                password_changed: 'Password changed successfully!',
+                password_mismatch: 'New passwords do not match',
+                password_too_short: 'New password must be at least 6 characters',
                 searching: 'Searching...',
                 
                 // Customers
                 my_customers: 'My Customers',
                 no_customers: 'No customers yet',
                 phone: 'Phone',
+                phone_short: 'Phone',
                 status: 'Status',
                 total_amount: 'Total Amount',
                 deposit: 'Deposit',
                 remaining: 'Remaining',
                 note: 'Note',
+                customer_name: 'Customer Name',
+                appointment_date: 'Appointment',
+                card_view: 'Card View',
+                table_view: 'Table View',
                 
                 // Phone Check
                 phone_check_title: 'Phone Number Check',

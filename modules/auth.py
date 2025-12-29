@@ -490,10 +490,10 @@ def admin_login(username, password):
         return {'error': f'Database error: {str(e)}'}
 
 
-def ctv_login(email, password):
+def ctv_login(ma_ctv, password):
     """
-    DOES: Authenticate CTV by email and create session
-    INPUTS: email, password
+    DOES: Authenticate CTV by ma_ctv (case-insensitive) and create session
+    INPUTS: ma_ctv (CTV code, case-insensitive), password
     OUTPUTS: {'token': str, 'ctv': dict} or {'error': str}
     """
     connection = get_db_connection()
@@ -503,23 +503,24 @@ def ctv_login(email, password):
     try:
         cursor = connection.cursor(dictionary=True)
         
+        # Case-insensitive lookup by ma_ctv
         cursor.execute("""
             SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
-            FROM ctv WHERE email = %s;
-        """, (email,))
+            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s);
+        """, (ma_ctv,))
         ctv = cursor.fetchone()
         
         cursor.close()
         connection.close()
         
         if not ctv:
-            return {'error': 'Invalid email or password'}
+            return {'error': 'Invalid CTV code or password'}
         
         if not ctv.get('is_active', True):
             return {'error': 'Account is deactivated'}
         
         if not verify_password(password, ctv.get('password_hash', '')):
-            return {'error': 'Invalid email or password'}
+            return {'error': 'Invalid CTV code or password'}
         
         # Create session
         token = create_session('ctv', ctv['ma_ctv'])
@@ -538,5 +539,62 @@ def ctv_login(email, password):
         }
         
     except Error as e:
+        return {'error': f'Database error: {str(e)}'}
+
+
+def change_ctv_password(ma_ctv, current_password, new_password):
+    """
+    DOES: Change CTV password after verifying current password
+    INPUTS: ma_ctv, current_password, new_password
+    OUTPUTS: {'success': True} or {'error': str}
+    
+    Validation:
+    - Current password must be correct
+    - New password must be at least 6 characters
+    """
+    # Validate new password length
+    if not new_password or len(new_password) < 6:
+        return {'error': 'New password must be at least 6 characters'}
+    
+    connection = get_db_connection()
+    if not connection:
+        return {'error': 'Database connection failed'}
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get current password hash (case-insensitive lookup)
+        cursor.execute("""
+            SELECT ma_ctv, password_hash
+            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s);
+        """, (ma_ctv,))
+        ctv = cursor.fetchone()
+        
+        if not ctv:
+            cursor.close()
+            connection.close()
+            return {'error': 'CTV not found'}
+        
+        # Verify current password
+        if not verify_password(current_password, ctv.get('password_hash', '')):
+            cursor.close()
+            connection.close()
+            return {'error': 'Current password is incorrect'}
+        
+        # Hash and update new password
+        new_password_hash = hash_password(new_password)
+        cursor.execute("""
+            UPDATE ctv SET password_hash = %s WHERE ma_ctv = %s;
+        """, (new_password_hash, ctv['ma_ctv']))
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return {'success': True}
+        
+    except Error as e:
+        if connection:
+            connection.close()
         return {'error': f'Database error: {str(e)}'}
 

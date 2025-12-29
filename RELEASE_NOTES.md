@@ -1,5 +1,218 @@
 # Release Notes - CTV Dashboard
 
+## Version 1.7.3 - December 29, 2025
+
+### Default Start Date in Date Filters
+
+**Time:** December 29, 2025, 11:45 PM
+
+---
+
+#### Overview
+
+All date filter views now automatically default the "From Date" (Tu ngay) to the earliest customer record date for the CTV and their network. This eliminates the need to manually select a start date when filtering data.
+
+#### Changes Made
+
+**Backend (`modules/ctv_routes.py`):**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/ctv/earliest-date` | NEW - Returns the earliest `ngay_hen_lam` date from `khach_hang` table for the CTV's network |
+
+**Frontend (`templates/ctv_portal.html`):**
+
+| Change | Description |
+|--------|-------------|
+| `setDefaultDateFilters()` | NEW - Function that fetches earliest date and sets it as default for all date inputs |
+| `showPortal()` | Updated to call `setDefaultDateFilters()` after loading profile |
+| Commission date filter | Defaults to earliest date -> today |
+| Customer date filter | Defaults to earliest date -> today |
+
+#### How It Works
+
+1. When CTV logs in and portal loads, the system fetches the earliest customer date
+2. The earliest `ngay_hen_lam` (appointment date) across all customers in the CTV's network is returned
+3. All "From Date" inputs are automatically populated with this date
+4. All "To Date" inputs are automatically populated with today's date
+5. User can still manually adjust dates as needed
+
+#### Files Modified
+
+| File | Change |
+|------|--------|
+| `modules/ctv_routes.py` | Added `/api/ctv/earliest-date` endpoint |
+| `templates/ctv_portal.html` | Added `setDefaultDateFilters()` function, updated `showPortal()` |
+
+---
+
+## Version 1.7.2 - December 29, 2025
+
+### Remove Level Dropdown from Create CTV Form
+
+**Time:** December 29, 2025, 11:15 PM
+
+---
+
+#### Changes Made
+
+**File:** `templates/admin.html`
+
+| Change | Description |
+|--------|-------------|
+| Removed Level dropdown | The Level/Bronze/Silver/Gold dropdown has been removed from the "Add New CTV" modal |
+| Default value | New CTVs are now automatically assigned "Bronze" level by default |
+
+#### Reason
+Simplified the CTV creation process by removing the unnecessary Level selection field.
+
+---
+
+## Version 1.7.1 - December 29, 2025
+
+### Add New CTV Modal - Vietnamese Translation Fix
+
+**Time:** December 29, 2025, 10:45 PM
+
+---
+
+#### Issue
+The "Add New CTV" modal in admin panel was displaying labels in English even when Vietnamese language was selected.
+
+#### Changes Made
+
+**File:** `templates/admin.html`
+
+| Element | Before | After |
+|---------|--------|-------|
+| Modal title | `Add New CTV` (hardcoded) | Uses `data-i18n="add_new_ctv"` |
+| CTV Code label | `CTV Code *` (hardcoded) | Uses `data-i18n="ctv_code"` |
+| Name label | `Name *` (hardcoded) | Uses `data-i18n="name"` |
+| Email label | `Email` (hardcoded) | Uses `data-i18n="email"` |
+| Phone label | `Phone` (hardcoded) | Uses `data-i18n="phone"` |
+| Referrer label | `Referrer (Nguoi gioi thieu)` (hardcoded) | Uses `data-i18n="referrer_label"` |
+| Level label | `Level` (hardcoded) | Uses `data-i18n="level"` |
+| Cancel button | `Cancel` (hardcoded) | Uses `data-i18n="cancel"` |
+| Create button | `Create CTV` (hardcoded) | Uses `data-i18n="create_ctv"` |
+| Referrer dropdown | Hardcoded `None (Root CTV)` | Uses `t('none_root')` function |
+| Commission filter | Hardcoded `All CTVs` | Uses `t('all_ctvs')` function |
+
+**New translations added:**
+- `ctv_code_placeholder`: "VD: CTV012" (VI) / "e.g., CTV012" (EN)
+
+**Function updates:**
+- `populateCTVSelects()`: Now uses translation function for dropdown options
+- `setLanguage()`: Now re-populates dropdowns when language changes
+
+---
+
+## Version 1.7.0 - December 29, 2025
+
+### CTV Login System Refactor
+
+**Time:** December 29, 2025
+
+---
+
+### Overview
+
+Major changes to CTV authentication system:
+1. CTV codes sanitized - removed Vietnamese diacritics, spaces, and special characters (only alphanumeric allowed)
+2. Login changed from email to CTV code (case-insensitive)
+3. All passwords reset to "123456"
+4. Added password change functionality
+
+### Changes Made
+
+#### New File: `migrate_ctv_codes.py`
+
+Migration script that:
+- Sanitizes all `ma_ctv` values (removes accents, spaces, special chars)
+- Updates `nguoi_gioi_thieu` references to match new codes
+- Updates `khach_hang.nguoi_chot` references
+- Resets all CTV passwords to "123456" (hashed)
+
+**Usage:**
+```bash
+python migrate_ctv_codes.py           # Preview changes
+python migrate_ctv_codes.py migrate   # Apply changes
+```
+
+#### Backend (`modules/auth.py`)
+
+| Function | Change |
+|----------|--------|
+| `ctv_login()` | Now authenticates by `ma_ctv` (case-insensitive) instead of email |
+| `change_ctv_password()` | NEW - Allows CTVs to change their password |
+
+#### Backend (`modules/ctv_routes.py`)
+
+| Endpoint | Change |
+|----------|--------|
+| `POST /ctv/login` | Now accepts `ma_ctv` field instead of `email` |
+| `POST /api/ctv/change-password` | NEW - Change password endpoint (requires auth) |
+
+#### Frontend (`templates/ctv_portal.html`)
+
+| Change | Description |
+|--------|-------------|
+| Login form | Changed from Email input to CTV Code input |
+| Settings page | NEW - Added settings page with change password form |
+| Sidebar | Added settings icon |
+| Translations | Added Vietnamese/English for settings section |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `migrate_ctv_codes.py` | NEW - Migration script |
+| `modules/auth.py` | Updated login, added password change |
+| `modules/ctv_routes.py` | Updated login endpoint, added change-password endpoint |
+| `templates/ctv_portal.html` | Updated login form, added settings page |
+
+### Login Instructions
+
+After running migration:
+- **Username:** CTV code (case-insensitive, e.g., "BsDieu" or "BSDIEU")
+- **Password:** 123456 (users should change this)
+
+---
+
+## Version 1.6.1 - December 29, 2025
+
+### Phone Duplicate Check - 360 Day Time Limit
+
+**Time:** December 29, 2025
+
+---
+
+### Overview
+
+Added a 360-day time limit to the "Đã đến làm" / "Đã cọc" status condition in the phone duplicate checker. Previously, any record with these statuses would be considered a duplicate regardless of when it occurred. Now, only records within the last 360 days are considered duplicates.
+
+### Changes Made
+
+#### Backend (`backend.py`)
+
+**Modified Duplicate Condition 1:**
+- **Before:** `trang_thai IN ('Da den lam', 'Da coc')` - always matched
+- **After:** `trang_thai IN ('Da den lam', 'Da coc') AND ngay_hen_lam >= DATE_SUB(CURDATE(), INTERVAL 360 DAY)`
+
+**Updated Logic:**
+| Condition | Description | Time Limit |
+|-----------|-------------|------------|
+| 1 | Status = "Đã đến làm" or "Đã cọc" | Within last 360 days |
+| 2 | Future appointment scheduled | Today to +180 days |
+| 3 | Order entry date | Within last 60 days |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `backend.py` | Updated SQL query to add 360-day limit to Condition 1 |
+
+---
+
 ## Version 1.6.0 - December 29, 2025
 
 ### Client Services View Implementation
