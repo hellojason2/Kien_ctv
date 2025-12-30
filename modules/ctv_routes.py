@@ -56,28 +56,11 @@ from .mlm_core import (
 # Create Blueprint
 ctv_bp = Blueprint('ctv', __name__)
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
-}
-
 # Get base directory for templates
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-def get_db_connection():
-    """Create and return a database connection"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"CTV Routes - Error connecting to MySQL: {e}")
-        return None
+# Use connection pool for better performance
+from .db_pool import get_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -269,6 +252,12 @@ def get_my_commissions():
     """
     Get own commission earnings with breakdown
     Query params: ?month=2025-12, ?level=1
+    
+    Returns commission records with:
+    - source_ctv_name: Name of the CTV who made the sale (nguoi_chot)
+    - source_ctv_code: Code of the CTV who made the sale
+    - customer_name: Name of the customer
+    - service_name: Name of the service
     """
     ctv = g.current_user
     
@@ -282,7 +271,7 @@ def get_my_commissions():
         month = request.args.get('month')
         level = request.args.get('level')
         
-        # Build query
+        # Build query with JOINs to get source CTV, customer, and service info
         query = """
             SELECT 
                 c.id,
@@ -291,8 +280,15 @@ def get_my_commissions():
                 c.commission_rate,
                 c.transaction_amount,
                 c.commission_amount,
-                c.created_at
+                c.created_at,
+                s.nguoi_chot as source_ctv_code,
+                s.service_name,
+                ctv_source.ten as source_ctv_name,
+                cust.name as customer_name
             FROM commissions c
+            LEFT JOIN services s ON c.transaction_id = s.id
+            LEFT JOIN ctv ctv_source ON s.nguoi_chot = ctv_source.ma_ctv
+            LEFT JOIN customers cust ON s.customer_id = cust.id
             WHERE c.ctv_code = %s
         """
         params = [ctv['ma_ctv']]
@@ -316,6 +312,11 @@ def get_my_commissions():
             c['commission_amount'] = float(c['commission_amount'])
             if c.get('created_at'):
                 c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            # Provide fallback values if JOINs returned NULL
+            c['source_ctv_name'] = c.get('source_ctv_name') or c.get('source_ctv_code') or 'N/A'
+            c['source_ctv_code'] = c.get('source_ctv_code') or 'N/A'
+            c['customer_name'] = c.get('customer_name') or 'N/A'
+            c['service_name'] = c.get('service_name') or 'N/A'
         
         # Get summary by level
         summary_query = """

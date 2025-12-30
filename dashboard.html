@@ -462,6 +462,85 @@
             stroke: #ffffff;
         }
 
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: #ffffff;
+            color: #666666;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn:hover {
+            border-color: #1a1a1a;
+            color: #1a1a1a;
+        }
+
+        .lang-btn.active {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        /* Tooltip Styles */
+        .sidebar-icon {
+            position: relative;
+        }
+
+        .sidebar-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-icon::before {
+            content: '';
+            position: absolute;
+            left: calc(100% + 4px);
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: #1a1a1a;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .sidebar-icon:hover::after,
+        .sidebar-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
 
         /* Responsive - Tablet */
         @media (max-width: 1024px) {
@@ -503,6 +582,21 @@
             .sidebar-icon {
                 width: 44px;
                 height: 44px;
+            }
+
+            /* Tooltip on mobile - show above the icon */
+            .sidebar-icon::after {
+                left: 50%;
+                top: auto;
+                bottom: calc(100% + 12px);
+                transform: translateX(-50%);
+            }
+
+            .sidebar-icon::before {
+                left: 50%;
+                top: auto;
+                bottom: calc(100% + 4px);
+                transform: translateX(-50%) rotate(-90deg);
             }
 
             .main-content {
@@ -592,9 +686,15 @@
 </head>
 <body>
     <div class="container">
+        <!-- Language Toggle -->
+        <div class="lang-toggle">
+            <button class="lang-btn active" data-lang="vi" onclick="setLanguage('vi')">VI</button>
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+        </div>
+
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-icon active">
+            <div class="sidebar-icon active" data-i18n-tooltip="home">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="5" r="2"></circle>
                     <circle cx="6" cy="12" r="2"></circle>
@@ -607,13 +707,13 @@
                     <line x1="14" y1="12" x2="12" y2="17"></line>
                 </svg>
             </div>
-            <div class="sidebar-icon">
+            <div class="sidebar-icon" data-i18n-tooltip="phone_check">
                 <svg viewBox="0 0 24 24">
                     <polyline points="9 11 12 14 22 4"></polyline>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                 </svg>
             </div>
-            <div class="sidebar-icon">
+            <div class="sidebar-icon" data-i18n-tooltip="customers">
                 <svg viewBox="0 0 24 24">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
@@ -621,7 +721,7 @@
             </div>
             
             <!-- Admin Panel Button -->
-            <div class="sidebar-icon admin-login" onclick="window.location.href='/admin/dashboard'" title="Admin Panel">
+            <div class="sidebar-icon admin-login" onclick="window.location.href='/admin/dashboard'" data-i18n-tooltip="admin_panel">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -629,7 +729,7 @@
             </div>
 
             <!-- CTV Portal Button -->
-            <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'" title="CTV Portal">
+            <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'" data-i18n-tooltip="ctv_portal">
                 <svg viewBox="0 0 24 24">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>
@@ -646,9 +746,10 @@
                     <input type="tel" 
                            id="phoneCheckInput" 
                            class="phone-check-input" 
+                           data-i18n-placeholder="phone_placeholder"
                            placeholder="Doi Chieu SDT..."
                            maxlength="15">
-                    <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()">
+                    <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()" data-i18n="check_btn">
                         Doi Chieu
                     </button>
                 </div>
@@ -680,6 +781,120 @@
         let allCustomers = [];
         
         // ═══════════════════════════════════════════════════════════════════
+        // TRANSLATIONS
+        // ═══════════════════════════════════════════════════════════════════
+        
+        const translations = {
+            vi: {
+                // Sidebar tooltips
+                home: 'Trang Chu',
+                phone_check: 'Doi Chieu',
+                customers: 'Khach Hang',
+                admin_panel: 'Quan Tri',
+                ctv_portal: 'Cong CTV',
+                
+                // Phone check
+                phone_placeholder: 'Doi Chieu SDT...',
+                check_btn: 'Doi Chieu',
+                checking: 'Dang kiem tra...',
+                enter_phone: 'Nhap SDT',
+                duplicate: 'TRUNG',
+                not_duplicate: 'KHONG TRUNG',
+                error: 'Loi',
+                connection_error: 'Loi ket noi',
+                
+                // Panel
+                customer_details: 'Thong Tin Khach Hang',
+                loading: 'Dang tai...',
+                contact_info: 'Thong Tin Lien He',
+                email: 'Email',
+                phone: 'SDT',
+                services_history: 'Lich Su Dich Vu',
+                service: 'Dich Vu',
+                date: 'Ngay',
+                amount: 'So Tien',
+                status: 'Trang Thai',
+                ctv: 'CTV',
+                no_services: 'Khong co dich vu nao'
+            },
+            en: {
+                // Sidebar tooltips
+                home: 'Home',
+                phone_check: 'Phone Check',
+                customers: 'Customers',
+                admin_panel: 'Admin Panel',
+                ctv_portal: 'CTV Portal',
+                
+                // Phone check
+                phone_placeholder: 'Check Phone Number...',
+                check_btn: 'Check',
+                checking: 'Checking...',
+                enter_phone: 'Enter Phone',
+                duplicate: 'DUPLICATE',
+                not_duplicate: 'NOT DUPLICATE',
+                error: 'Error',
+                connection_error: 'Connection Error',
+                
+                // Panel
+                customer_details: 'Customer Details',
+                loading: 'Loading...',
+                contact_info: 'Contact Information',
+                email: 'Email',
+                phone: 'Phone',
+                services_history: 'Services History',
+                service: 'Service',
+                date: 'Date',
+                amount: 'Amount',
+                status: 'Status',
+                ctv: 'CTV',
+                no_services: 'No services found'
+            }
+        };
+        
+        let currentLang = localStorage.getItem('dashboard_language') || 'vi';
+        
+        function t(key) {
+            return translations[currentLang][key] || translations['vi'][key] || key;
+        }
+        
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('dashboard_language', lang);
+            applyTranslations();
+            
+            // Update button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        function applyTranslations() {
+            // Update elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            
+            // Update tooltips
+            document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
+                const key = el.getAttribute('data-i18n-tooltip');
+                if (translations[currentLang][key]) {
+                    el.setAttribute('data-tooltip', translations[currentLang][key]);
+                }
+            });
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════
         // PHONE DUPLICATE CHECK (Public - No login required)
         // ═══════════════════════════════════════════════════════════════════
         
@@ -692,14 +907,14 @@
             
             if (!phone || phone.length < 9) {
                 result.className = 'phone-check-result error';
-                result.textContent = 'Nhap SDT';
+                result.textContent = t('enter_phone');
                 result.style.display = 'block';
                 return;
             }
             
             // Show loading state
             btn.disabled = true;
-            btn.textContent = 'Dang kiem tra...';
+            btn.textContent = t('checking');
             result.style.display = 'none';
             
             try {
@@ -714,29 +929,32 @@
                 if (data.status === 'success') {
                     if (data.is_duplicate) {
                         result.className = 'phone-check-result duplicate';
-                        result.textContent = 'TRUNG';
+                        result.textContent = t('duplicate');
                     } else {
                         result.className = 'phone-check-result not-duplicate';
-                        result.textContent = 'KHONG TRUNG';
+                        result.textContent = t('not_duplicate');
                     }
                 } else {
                     result.className = 'phone-check-result error';
-                    result.textContent = 'Loi';
+                    result.textContent = t('error');
                 }
                 
             } catch (error) {
                 console.error('Phone check error:', error);
                 result.className = 'phone-check-result error';
-                result.textContent = 'Loi ket noi';
+                result.textContent = t('connection_error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Doi Chieu';
+                btn.textContent = t('check_btn');
                 result.style.display = 'block';
             }
         }
         
         // Handle Enter key in phone input
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize language
+            setLanguage(currentLang);
+            
             const phoneInput = document.getElementById('phoneCheckInput');
             if (phoneInput) {
                 phoneInput.addEventListener('keypress', function(e) {

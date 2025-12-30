@@ -21,16 +21,22 @@ CORS(app)
 # - modules/ctv_routes.py -> CTV Portal API endpoints  
 # - modules/auth.py -> Authentication & session management
 # - modules/mlm_core.py -> MLM hierarchy & commission functions
+# - modules/activity_logger.py -> Activity logging & tracking
 #
 # ══════════════════════════════════════════════════════════════════════════════
 
 try:
     from modules.admin_routes import admin_bp
     from modules.ctv_routes import ctv_bp
+    from modules.activity_logger import setup_request_logging
     
     app.register_blueprint(admin_bp)
     app.register_blueprint(ctv_bp)
-    print("Modules loaded: admin_routes, ctv_routes")
+    
+    # Setup activity logging middleware
+    setup_request_logging(app)
+    
+    print("Modules loaded: admin_routes, ctv_routes, activity_logger")
 except ImportError as e:
     print(f"WARNING: Could not load modules: {e}")
     print("Admin and CTV portal features will be unavailable.")

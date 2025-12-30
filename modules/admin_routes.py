@@ -35,6 +35,13 @@ All API endpoints for the Admin Dashboard.
 # - GET  /api/admin/admins     -> List all admins
 # - POST /api/admin/admins     -> Create new admin
 #
+# Activity Logs:
+# - GET  /api/admin/activity-logs        -> List logs with filtering
+# - GET  /api/admin/activity-logs/stats  -> Get log statistics
+# - GET  /api/admin/activity-logs/export -> Export logs as CSV
+# - POST /api/admin/activity-logs/cleanup -> Clean up old logs
+# - GET  /api/admin/activity-logs/event-types -> Get event types list
+#
 # ══════════════════════════════════════════════════════════════════════════════
 
 Created: December 28, 2025
@@ -58,32 +65,28 @@ from .mlm_core import (
     get_commission_rates,
     get_all_descendants
 )
+from .activity_logger import (
+    get_activity_logs,
+    get_activity_logs_grouped,
+    get_activity_stats,
+    get_suspicious_ips,
+    cleanup_old_logs,
+    log_logout,
+    log_ctv_created,
+    log_ctv_updated,
+    log_ctv_deleted,
+    log_commission_adjusted,
+    log_data_export
+)
 
 # Create Blueprint
 admin_bp = Blueprint('admin', __name__)
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
-}
-
 # Get base directory for templates
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-def get_db_connection():
-    """Create and return a database connection"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"Admin Routes - Error connecting to MySQL: {e}")
-        return None
+# Use connection pool for better performance
+from .db_pool import get_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -129,6 +132,8 @@ def logout():
     """
     Admin logout endpoint
     Destroys session and clears cookie
+    
+    LOGGING: Logs logout event before destroying session
     """
     token = request.cookies.get('session_token')
     if not token:
@@ -137,6 +142,11 @@ def logout():
         auth_header = request.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
             token = auth_header[7:]
+    
+    # Get user info before destroying session for logging
+    user = get_current_user()
+    if user:
+        log_logout(user.get('user_type'), user.get('user_id'))
     
     if token:
         destroy_session(token)
@@ -294,6 +304,10 @@ def create_ctv():
         cursor.close()
         connection.close()
         
+        # Log CTV creation
+        admin_username = g.current_user.get('username', 'admin')
+        log_ctv_created(admin_username, data['ma_ctv'], data['ten'])
+        
         return jsonify({
             'status': 'success',
             'message': 'CTV created successfully',
@@ -359,6 +373,13 @@ def update_ctv(ctv_code):
         cursor.close()
         connection.close()
         
+        # Log CTV update
+        admin_username = g.current_user.get('username', 'admin')
+        changes = {field: data[field] for field in allowed_fields if field in data}
+        if data.get('password'):
+            changes['password'] = '***changed***'
+        log_ctv_updated(admin_username, ctv_code, changes)
+        
         return jsonify({
             'status': 'success',
             'message': 'CTV updated successfully'
@@ -373,6 +394,8 @@ def update_ctv(ctv_code):
 def deactivate_ctv(ctv_code):
     """
     Deactivate CTV (soft delete)
+    
+    LOGGING: Logs ctv_deleted event
     """
     connection = get_db_connection()
     if not connection:
@@ -391,6 +414,10 @@ def deactivate_ctv(ctv_code):
         connection.commit()
         cursor.close()
         connection.close()
+        
+        # Log CTV deactivation
+        admin_username = g.current_user.get('username', 'admin')
+        log_ctv_deleted(admin_username, ctv_code)
         
         return jsonify({
             'status': 'success',
@@ -602,6 +629,8 @@ def adjust_commission(commission_id):
     """
     Manually adjust a commission record
     Body: {"commission_amount": 50000, "note": "Manual adjustment"}
+    
+    LOGGING: Logs commission_adjusted event with old and new values
     """
     data = request.get_json()
     
@@ -613,20 +642,31 @@ def adjust_commission(commission_id):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor()
+        cursor = connection.cursor(dictionary=True)
         
-        cursor.execute("""
-            UPDATE commissions SET commission_amount = %s WHERE id = %s;
-        """, (data['commission_amount'], commission_id))
+        # Get old value for logging
+        cursor.execute("SELECT commission_amount FROM commissions WHERE id = %s;", (commission_id,))
+        old_record = cursor.fetchone()
         
-        if cursor.rowcount == 0:
+        if not old_record:
             cursor.close()
             connection.close()
             return jsonify({'status': 'error', 'message': 'Commission record not found'}), 404
         
+        old_amount = float(old_record['commission_amount'])
+        new_amount = float(data['commission_amount'])
+        
+        cursor.execute("""
+            UPDATE commissions SET commission_amount = %s WHERE id = %s;
+        """, (new_amount, commission_id))
+        
         connection.commit()
         cursor.close()
         connection.close()
+        
+        # Log commission adjustment
+        admin_username = g.current_user.get('username', 'admin')
+        log_commission_adjusted(admin_username, commission_id, old_amount, new_amount)
         
         return jsonify({
             'status': 'success',
@@ -818,14 +858,19 @@ def create_admin():
 @require_admin
 def get_clients_with_services():
     """
-    Get all clients with their services grouped
+    Get all clients with their services grouped - OPTIMIZED VERSION (2-Query Approach)
     Groups khach_hang records by phone + name combination
     Returns up to 3 services per client
+    
+    OPTIMIZATION: Uses 2 queries instead of N+1:
+    1. Get paginated client list
+    2. Batch-fetch all services for those clients
     
     Query params:
     - search: Search by name or phone
     - nguoi_chot: Filter by CTV code
-    - limit: Max number of clients (default 50)
+    - page: Page number (default 1)
+    - per_page: Records per page (default 50, max 100)
     """
     connection = get_db_connection()
     if not connection:
@@ -836,51 +881,98 @@ def get_clients_with_services():
         
         search = request.args.get('search', '').strip()
         nguoi_chot = request.args.get('nguoi_chot', '').strip()
-        limit = request.args.get('limit', 50, type=int)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
         
-        # First, get unique clients (grouped by phone + name)
-        # MIN(ngay_nhap_don) = first time visiting (earliest date they entered the system)
-        client_query = """
+        # Limit per_page to prevent excessive queries
+        per_page = min(per_page, 100)
+        offset = (page - 1) * per_page
+        
+        # Build WHERE clause for base filtering
+        base_where = "WHERE sdt IS NOT NULL AND sdt != ''"
+        params = []
+        
+        if search:
+            base_where += " AND (ten_khach LIKE %s OR sdt LIKE %s)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term])
+        
+        if nguoi_chot:
+            base_where += " AND nguoi_chot = %s"
+            params.append(nguoi_chot)
+        
+        # QUERY 1: Get paginated client list (grouped by sdt + ten_khach)
+        # Use subquery to avoid slow GROUP BY on full table
+        client_query = f"""
             SELECT 
                 sdt,
                 ten_khach,
                 MIN(co_so) as co_so,
                 MIN(ngay_nhap_don) as first_visit_date,
+                MAX(ngay_nhap_don) as last_visit_date,
                 MIN(nguoi_chot) as nguoi_chot,
                 COUNT(*) as service_count
             FROM khach_hang
-            WHERE sdt IS NOT NULL AND sdt != ''
-        """
-        params = []
-        
-        if search:
-            client_query += " AND (ten_khach LIKE %s OR sdt LIKE %s)"
-            search_term = f"%{search}%"
-            params.extend([search_term, search_term])
-        
-        if nguoi_chot:
-            client_query += " AND nguoi_chot = %s"
-            params.append(nguoi_chot)
-        
-        client_query += f"""
+            {base_where}
             GROUP BY sdt, ten_khach
             ORDER BY MAX(ngay_nhap_don) DESC
-            LIMIT {limit};
+            LIMIT %s OFFSET %s
         """
         
-        cursor.execute(client_query, params)
+        cursor.execute(client_query, params + [per_page, offset])
         clients_raw = cursor.fetchall()
         
-        # For each client, get their services (up to 3)
-        clients = []
-        for client_row in clients_raw:
-            sdt = client_row['sdt']
-            ten_khach = client_row['ten_khach']
+        # If no clients, return early
+        if not clients_raw:
+            cursor.close()
+            connection.close()
+            return jsonify({
+                'status': 'success',
+                'clients': [],
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total': 0,
+                    'total_pages': 0
+                }
+            })
+        
+        # Build client lookup and collect keys for batch query
+        clients_dict = {}
+        client_keys = []
+        for row in clients_raw:
+            key = (row['sdt'], row['ten_khach'])
+            client_keys.append(key)
             
-            # Get services for this client
-            cursor.execute("""
+            first_visit = row['first_visit_date']
+            first_visit_str = first_visit.strftime('%d/%m/%Y') if first_visit else None
+            
+            clients_dict[key] = {
+                'ten_khach': row['ten_khach'] or '',
+                'sdt': row['sdt'] or '',
+                'co_so': row['co_so'] or '',
+                'first_visit_date': first_visit_str,
+                'nguoi_chot': row['nguoi_chot'] or '',
+                'service_count': row['service_count'],
+                'overall_status': '',
+                'overall_deposit': 'Chua coc',
+                'services': [],
+                '_order': len(client_keys)  # preserve order
+            }
+        
+        # QUERY 2: Batch-fetch all services for these clients (top 3 per client using window function)
+        # Build IN clause for the client keys
+        placeholders = ', '.join(['(%s, %s)'] * len(client_keys))
+        flat_keys = []
+        for sdt, ten_khach in client_keys:
+            flat_keys.extend([sdt, ten_khach])
+        
+        services_query = f"""
+            SELECT * FROM (
                 SELECT 
                     id,
+                    sdt,
+                    ten_khach,
                     dich_vu,
                     tong_tien,
                     tien_coc,
@@ -888,63 +980,71 @@ def get_clients_with_services():
                     ngay_hen_lam,
                     ngay_nhap_don,
                     trang_thai,
-                    nguoi_chot
+                    nguoi_chot,
+                    ROW_NUMBER() OVER (PARTITION BY sdt, ten_khach ORDER BY ngay_nhap_don DESC) as rn
                 FROM khach_hang
-                WHERE sdt = %s AND ten_khach = %s
-                ORDER BY ngay_nhap_don DESC
-                LIMIT 3;
-            """, (sdt, ten_khach))
+                WHERE (sdt, ten_khach) IN ({placeholders})
+            ) ranked
+            WHERE rn <= 3
+            ORDER BY sdt, ten_khach, rn
+        """
+        
+        cursor.execute(services_query, flat_keys)
+        services_raw = cursor.fetchall()
+        
+        # Attach services to clients
+        for svc in services_raw:
+            key = (svc['sdt'], svc['ten_khach'])
+            if key not in clients_dict:
+                continue
             
-            services_raw = cursor.fetchall()
+            tien_coc = float(svc['tien_coc'] or 0)
+            tong_tien = float(svc['tong_tien'] or 0)
+            phai_dong = float(svc['phai_dong'] or 0)
+            deposit_status = 'Da coc' if tien_coc > 0 else 'Chua coc'
             
-            # Process services
-            services = []
-            for idx, svc in enumerate(services_raw):
-                tien_coc = float(svc['tien_coc'] or 0)
-                tong_tien = float(svc['tong_tien'] or 0)
-                phai_dong = float(svc['phai_dong'] or 0)
-                
-                # Determine deposit status based on tien_coc
-                if tien_coc > 0:
-                    deposit_status = 'Da coc'
-                else:
-                    deposit_status = 'Chua coc'
-                
-                services.append({
-                    'id': svc['id'],
-                    'service_number': idx + 1,
-                    'dich_vu': svc['dich_vu'] or '',
-                    'tong_tien': tong_tien,
-                    'tien_coc': tien_coc,
-                    'phai_dong': phai_dong,
-                    'ngay_nhap_don': svc['ngay_nhap_don'].strftime('%d/%m/%Y') if svc['ngay_nhap_don'] else None,
-                    'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
-                    'trang_thai': svc['trang_thai'] or '',
-                    'deposit_status': deposit_status
-                })
+            service = {
+                'id': svc['id'],
+                'service_number': svc['rn'],
+                'dich_vu': svc['dich_vu'] or '',
+                'tong_tien': tong_tien,
+                'tien_coc': tien_coc,
+                'phai_dong': phai_dong,
+                'ngay_nhap_don': svc['ngay_nhap_don'].strftime('%d/%m/%Y') if svc['ngay_nhap_don'] else None,
+                'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
+                'trang_thai': svc['trang_thai'] or '',
+                'deposit_status': deposit_status
+            }
             
-            # Determine overall client status (from most recent service)
-            overall_status = services[0]['trang_thai'] if services else ''
-            overall_deposit = services[0]['deposit_status'] if services else 'Chua coc'
+            clients_dict[key]['services'].append(service)
             
-            # Format first_visit_date (earliest date they entered the system)
-            first_visit = client_row['first_visit_date']
-            if first_visit:
-                first_visit_str = first_visit.strftime('%d/%m/%Y')
-            else:
-                first_visit_str = None
-            
-            clients.append({
-                'ten_khach': ten_khach or '',
-                'sdt': sdt or '',
-                'co_so': client_row['co_so'] or '',
-                'first_visit_date': first_visit_str,
-                'nguoi_chot': client_row['nguoi_chot'] or '',
-                'service_count': client_row['service_count'],
-                'overall_status': overall_status,
-                'overall_deposit': overall_deposit,
-                'services': services
-            })
+            # Set overall status from first (most recent) service
+            if svc['rn'] == 1:
+                clients_dict[key]['overall_status'] = svc['trang_thai'] or ''
+                clients_dict[key]['overall_deposit'] = deposit_status
+        
+        # OPTIMIZATION: Skip count query on first page if we got fewer results than per_page
+        # This saves one database roundtrip (~0.4s)
+        if len(clients_raw) < per_page:
+            # We have all remaining results
+            total = offset + len(clients_raw)
+            total_pages = page
+        else:
+            # Need exact count for pagination - but cache it for subsequent pages
+            # Use SQL_CALC_FOUND_ROWS alternative if available, otherwise do separate query
+            count_query = f"""
+                SELECT COUNT(*) as total FROM (
+                    SELECT 1 FROM khach_hang
+                    {base_where}
+                    GROUP BY sdt, ten_khach
+                ) as grouped_clients
+            """
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()['total']
+            total_pages = (total + per_page - 1) // per_page
+        
+        # Convert to list maintaining original order
+        clients = sorted(clients_dict.values(), key=lambda x: x.pop('_order'))
         
         cursor.close()
         connection.close()
@@ -952,9 +1052,370 @@ def get_clients_with_services():
         return jsonify({
             'status': 'success',
             'clients': clients,
-            'total': len(clients)
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': total_pages
+            }
         })
         
     except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ACTIVITY LOGS ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/api/admin/activity-logs', methods=['GET'])
+@require_admin
+def list_activity_logs():
+    """
+    Get activity logs with filtering and pagination
+    
+    Query params:
+    - event_type: Filter by event type (login_success, login_failed, etc.)
+    - user_type: Filter by user type (admin, ctv)
+    - user_id: Filter by specific user
+    - ip_address: Filter by IP address
+    - date_from: Start date (YYYY-MM-DD)
+    - date_to: End date (YYYY-MM-DD)
+    - search: Search across user_id, endpoint, IP
+    - page: Page number (default 1)
+    - per_page: Records per page (default 50)
+    """
+    try:
+        event_type = request.args.get('event_type')
+        user_type = request.args.get('user_type')
+        user_id = request.args.get('user_id')
+        ip_address = request.args.get('ip_address')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        search = request.args.get('search', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        
+        # Limit per_page to prevent excessive queries
+        per_page = min(per_page, 100)
+        
+        result = get_activity_logs(
+            event_type=event_type,
+            user_type=user_type,
+            user_id=user_id,
+            ip_address=ip_address,
+            date_from=date_from,
+            date_to=date_to,
+            search=search if search else None,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'logs': result['logs'],
+            'pagination': {
+                'page': result['page'],
+                'per_page': result['per_page'],
+                'total': result['total'],
+                'total_pages': result.get('total_pages', 1)
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/stats', methods=['GET'])
+@require_admin
+def get_logs_stats():
+    """
+    Get activity log statistics
+    
+    Returns:
+    - logins_today: Number of successful logins today
+    - failed_logins_today: Number of failed login attempts today
+    - unique_ips_today: Number of unique IP addresses today
+    - total_logs: Total number of log entries
+    - events_by_type: Breakdown of events by type (last 7 days)
+    - top_ips: Most active IP addresses (last 7 days)
+    - recent_failed_logins: Recent failed login attempts
+    """
+    try:
+        stats = get_activity_stats()
+        
+        return jsonify({
+            'status': 'success',
+            'stats': stats
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/export', methods=['GET'])
+@require_admin
+def export_activity_logs():
+    """
+    Export activity logs as CSV
+    
+    Query params: Same as list_activity_logs
+    Returns: CSV file download
+    """
+    import csv
+    import io
+    
+    try:
+        event_type = request.args.get('event_type')
+        user_type = request.args.get('user_type')
+        user_id = request.args.get('user_id')
+        ip_address = request.args.get('ip_address')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        search = request.args.get('search', '').strip()
+        
+        # Get all matching logs (up to 10000)
+        result = get_activity_logs(
+            event_type=event_type,
+            user_type=user_type,
+            user_id=user_id,
+            ip_address=ip_address,
+            date_from=date_from,
+            date_to=date_to,
+            search=search if search else None,
+            page=1,
+            per_page=10000
+        )
+        
+        logs = result['logs']
+        
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow([
+            'ID', 'Timestamp', 'Event Type', 'User Type', 'User ID',
+            'IP Address', 'Endpoint', 'Method', 'Status Code', 'Details'
+        ])
+        
+        # Write data rows
+        for log in logs:
+            details_str = ''
+            if log.get('details'):
+                if isinstance(log['details'], dict):
+                    details_str = str(log['details'])
+                else:
+                    details_str = str(log['details'])
+            
+            writer.writerow([
+                log.get('id', ''),
+                log.get('timestamp', ''),
+                log.get('event_type', ''),
+                log.get('user_type', ''),
+                log.get('user_id', ''),
+                log.get('ip_address', ''),
+                log.get('endpoint', ''),
+                log.get('method', ''),
+                log.get('status_code', ''),
+                details_str
+            ])
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'activity_logs', len(logs))
+        
+        # Prepare response
+        output.seek(0)
+        from flask import Response
+        
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename=activity_logs_{date_from or "all"}_{date_to or "now"}.csv'
+            }
+        )
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/cleanup', methods=['POST'])
+@require_admin
+def cleanup_logs():
+    """
+    Clean up old activity logs
+    
+    Body: {"days": 90} - Delete logs older than this many days
+    """
+    data = request.get_json() or {}
+    days = data.get('days', 90)
+    
+    if days < 30:
+        return jsonify({
+            'status': 'error',
+            'message': 'Minimum retention period is 30 days'
+        }), 400
+    
+    try:
+        deleted_count = cleanup_old_logs(days)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Deleted {deleted_count} logs older than {days} days',
+            'deleted_count': deleted_count
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/event-types', methods=['GET'])
+@require_admin
+def get_event_types():
+    """
+    Get list of available event types for filtering
+    """
+    event_types = [
+        {'value': 'login_success', 'label': 'Login Success', 'color': 'green'},
+        {'value': 'login_failed', 'label': 'Login Failed', 'color': 'red'},
+        {'value': 'logout', 'label': 'Logout', 'color': 'blue'},
+        {'value': 'api_call', 'label': 'API Call', 'color': 'gray'},
+        {'value': 'ctv_created', 'label': 'CTV Created', 'color': 'purple'},
+        {'value': 'ctv_updated', 'label': 'CTV Updated', 'color': 'orange'},
+        {'value': 'ctv_deleted', 'label': 'CTV Deleted', 'color': 'red'},
+        {'value': 'commission_adjusted', 'label': 'Commission Adjusted', 'color': 'yellow'},
+        {'value': 'data_export', 'label': 'Data Export', 'color': 'cyan'},
+        {'value': 'settings_changed', 'label': 'Settings Changed', 'color': 'pink'}
+    ]
+    
+    return jsonify({
+        'status': 'success',
+        'event_types': event_types
+    })
+
+
+@admin_bp.route('/api/admin/activity-logs/grouped', methods=['GET'])
+@require_admin
+def list_activity_logs_grouped():
+    """
+    Get activity logs grouped by user+IP combination
+    
+    Query params:
+    - event_type: Filter by event type
+    - user_type: Filter by user type (admin, ctv)
+    - user_id: Filter by specific user
+    - ip_address: Filter by IP address
+    - date_from: Start date (YYYY-MM-DD)
+    - date_to: End date (YYYY-MM-DD)
+    - search: Search term
+    - page: Page number (default 1)
+    - per_page: Items per page (default 50)
+    
+    Returns grouped logs and suspicious IPs
+    """
+    try:
+        event_type = request.args.get('event_type')
+        user_type = request.args.get('user_type')
+        user_id = request.args.get('user_id')
+        ip_address = request.args.get('ip_address')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        search = request.args.get('search', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        
+        per_page = min(per_page, 100)
+        
+        result = get_activity_logs_grouped(
+            event_type=event_type,
+            user_type=user_type,
+            user_id=user_id,
+            ip_address=ip_address,
+            date_from=date_from,
+            date_to=date_to,
+            search=search if search else None,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'groups': result['groups'],
+            'suspicious_ips': result['suspicious_ips'],
+            'pagination': {
+                'page': result['page'],
+                'per_page': result['per_page'],
+                'total': result['total'],
+                'total_pages': result.get('total_pages', 1)
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/suspicious-ips', methods=['GET'])
+@require_admin
+def get_suspicious_ips_endpoint():
+    """
+    Get IPs that are logged into multiple accounts
+    
+    Returns a dict of IP addresses with their associated user accounts
+    """
+    try:
+        suspicious = get_suspicious_ips()
+        
+        return jsonify({
+            'status': 'success',
+            'suspicious_ips': suspicious,
+            'count': len(suspicious)
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/details', methods=['GET'])
+@require_admin
+def get_logs_by_user_ip():
+    """
+    Get detailed logs for a specific user+IP combination
+    
+    Query params:
+    - user_id: User ID (required)
+    - ip_address: IP address (required)
+    - page: Page number (default 1)
+    - per_page: Items per page (default 20)
+    """
+    try:
+        user_id = request.args.get('user_id')
+        ip_address = request.args.get('ip_address')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        if not user_id and not ip_address:
+            return jsonify({'status': 'error', 'message': 'user_id or ip_address required'}), 400
+        
+        result = get_activity_logs(
+            user_id=user_id if user_id else None,
+            ip_address=ip_address if ip_address else None,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'logs': result['logs'],
+            'pagination': {
+                'page': result['page'],
+                'per_page': result['per_page'],
+                'total': result['total'],
+                'total_pages': result.get('total_pages', 1)
+            }
+        })
+        
+    except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

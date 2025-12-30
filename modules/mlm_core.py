@@ -48,17 +48,10 @@ Contains all MLM hierarchy and commission calculation functions.
 Created: December 28, 2025
 """
 
-import mysql.connector
 from mysql.connector import Error
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
-}
+# Use connection pool for better performance
+from .db_pool import get_db_connection
 
 # Maximum level for commission calculations
 MAX_LEVEL = 4
@@ -71,17 +64,6 @@ DEFAULT_COMMISSION_RATES = {
     3: 0.0125,    # 1.25% - level 3
     4: 0.00625    # 0.625% - level 4
 }
-
-
-def get_db_connection():
-    """Create and return a database connection"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"MLM Core - Error connecting to MySQL: {e}")
-        return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

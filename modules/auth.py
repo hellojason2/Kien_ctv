@@ -51,28 +51,25 @@ from flask import request, jsonify, g
 import mysql.connector
 from mysql.connector import Error
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
-}
+# Import activity logger (lazy import to avoid circular dependency)
+_activity_logger = None
+
+def _get_activity_logger():
+    """Lazy import of activity logger to avoid circular imports"""
+    global _activity_logger
+    if _activity_logger is None:
+        try:
+            from . import activity_logger as al
+            _activity_logger = al
+        except ImportError:
+            _activity_logger = False
+    return _activity_logger if _activity_logger else None
 
 # Session expiry time (24 hours)
 SESSION_EXPIRY_HOURS = 24
 
-
-def get_db_connection():
-    """Create and return a database connection"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"Auth Module - Error connecting to MySQL: {e}")
-        return None
+# Use connection pool for better performance
+from .db_pool import get_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -266,32 +263,31 @@ def get_current_user():
     DOES: Get current user from request Authorization header or cookie
     OUTPUTS: User info dict or None
     
-    Checks:
+    OPTIMIZATION: Only calls validate_session once with the first found token
+    
+    Checks (in order, stops at first found):
     1. Authorization: Bearer <token> header
     2. X-Session-Token header
     3. session_token cookie
     """
+    token = None
+    
     # Check Authorization header
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
         token = auth_header[7:]
-        session = validate_session(token)
-        if session:
-            return session
     
-    # Check X-Session-Token header
-    token = request.headers.get('X-Session-Token')
-    if token:
-        session = validate_session(token)
-        if session:
-            return session
+    # Check X-Session-Token header if no token yet
+    if not token:
+        token = request.headers.get('X-Session-Token')
     
-    # Check cookie
-    token = request.cookies.get('session_token')
+    # Check cookie if still no token
+    if not token:
+        token = request.cookies.get('session_token')
+    
+    # Validate once if we found a token
     if token:
-        session = validate_session(token)
-        if session:
-            return session
+        return validate_session(token)
     
     return None
 
@@ -359,37 +355,97 @@ def require_admin(f):
     DOES: Decorator to protect admin-only routes
     USAGE: @require_admin before route function
     
+    OPTIMIZATION: Combines session validation and admin info retrieval into one DB call
+    
     Sets g.current_user with admin info if authenticated
     Returns 401 if not authenticated or not admin
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = get_current_user()
+        # Get token from request
+        token = None
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header[7:]
+        if not token:
+            token = request.headers.get('X-Session-Token')
+        if not token:
+            token = request.cookies.get('session_token')
         
-        if not user:
+        if not token:
             return jsonify({
                 'status': 'error',
                 'message': 'Authentication required'
             }), 401
         
-        if user.get('user_type') != 'admin':
+        # OPTIMIZED: Single query to validate session AND get admin info
+        connection = get_db_connection()
+        if not connection:
             return jsonify({
                 'status': 'error',
-                'message': 'Admin access required'
-            }), 403
+                'message': 'Database connection failed'
+            }), 500
         
-        # Get full admin info
-        admin_info = get_admin_info(user['user_id'])
-        if not admin_info:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # Combined query: validate session + get admin info in one roundtrip
+            cursor.execute("""
+                SELECT 
+                    s.user_type,
+                    s.user_id,
+                    s.expires_at,
+                    a.id as admin_id,
+                    a.username,
+                    a.name,
+                    a.created_at
+                FROM sessions s
+                LEFT JOIN admins a ON s.user_type = 'admin' AND s.user_id = a.username
+                WHERE s.id = %s AND s.expires_at > NOW()
+            """, (token,))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            connection.close()
+            
+            if not result:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Authentication required'
+                }), 401
+            
+            if result.get('user_type') != 'admin':
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Admin access required'
+                }), 403
+            
+            if not result.get('admin_id'):
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Admin account not found'
+                }), 401
+            
+            # Build admin info from combined result
+            admin_info = {
+                'id': result['admin_id'],
+                'username': result['username'],
+                'name': result['name'],
+                'created_at': result['created_at'].strftime('%Y-%m-%d %H:%M:%S') if result.get('created_at') else None
+            }
+            
+            g.current_user = admin_info
+            g.user_type = 'admin'
+            
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            if connection:
+                connection.close()
             return jsonify({
                 'status': 'error',
-                'message': 'Admin account not found'
-            }), 401
-        
-        g.current_user = admin_info
-        g.user_type = 'admin'
-        
-        return f(*args, **kwargs)
+                'message': f'Authentication error: {str(e)}'
+            }), 500
     
     return decorated_function
 
@@ -449,6 +505,8 @@ def admin_login(username, password):
     DOES: Authenticate admin and create session
     INPUTS: username, password
     OUTPUTS: {'token': str, 'admin': dict} or {'error': str}
+    
+    LOGGING: Logs login_success or login_failed events
     """
     connection = get_db_connection()
     if not connection:
@@ -467,15 +525,28 @@ def admin_login(username, password):
         connection.close()
         
         if not admin:
+            # Log failed login attempt
+            logger = _get_activity_logger()
+            if logger:
+                logger.log_login_failed(username, 'admin')
             return {'error': 'Invalid username or password'}
         
         if not verify_password(password, admin.get('password_hash', '')):
+            # Log failed login attempt
+            logger = _get_activity_logger()
+            if logger:
+                logger.log_login_failed(username, 'admin')
             return {'error': 'Invalid username or password'}
         
         # Create session
         token = create_session('admin', username)
         if not token:
             return {'error': 'Failed to create session'}
+        
+        # Log successful login
+        logger = _get_activity_logger()
+        if logger:
+            logger.log_login_success('admin', username)
         
         return {
             'token': token,
@@ -495,6 +566,8 @@ def ctv_login(ma_ctv, password):
     DOES: Authenticate CTV by ma_ctv (case-insensitive) and create session
     INPUTS: ma_ctv (CTV code, case-insensitive), password
     OUTPUTS: {'token': str, 'ctv': dict} or {'error': str}
+    
+    LOGGING: Logs login_success or login_failed events
     """
     connection = get_db_connection()
     if not connection:
@@ -514,18 +587,35 @@ def ctv_login(ma_ctv, password):
         connection.close()
         
         if not ctv:
+            # Log failed login attempt
+            logger = _get_activity_logger()
+            if logger:
+                logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Invalid CTV code or password'}
         
         if not ctv.get('is_active', True):
+            # Log failed login attempt (deactivated account)
+            logger = _get_activity_logger()
+            if logger:
+                logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Account is deactivated'}
         
         if not verify_password(password, ctv.get('password_hash', '')):
+            # Log failed login attempt
+            logger = _get_activity_logger()
+            if logger:
+                logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Invalid CTV code or password'}
         
         # Create session
         token = create_session('ctv', ctv['ma_ctv'])
         if not token:
             return {'error': 'Failed to create session'}
+        
+        # Log successful login
+        logger = _get_activity_logger()
+        if logger:
+            logger.log_login_success('ctv', ctv['ma_ctv'])
         
         return {
             'token': token,
