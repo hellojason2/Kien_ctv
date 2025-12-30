@@ -1,0 +1,21 @@
+<!-- Settings Page -->
+<div class="page-section" id="page-settings">
+    <div class="header">
+        <h2 data-i18n="commission_settings">Commission Settings</h2>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/commission-settings/export')" data-i18n="export_excel">Export Excel</button>
+            <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes">Save Changes</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="commission_rates">Commission Rates by Level</h3>
+        </div>
+        <div class="card-body">
+            <div class="commission-grid" id="commissionSettings">
+                <div class="loading" data-i18n="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+

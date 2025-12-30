@@ -22,7 +22,6 @@ All API endpoints for the CTV Portal.
 # Network:
 # - GET /api/ctv/my-downline    -> Get all CTVs under me
 # - GET /api/ctv/my-hierarchy   -> Get my hierarchy tree
-# - GET /api/ctv/my-network/search -> Search customers in my network
 #
 # KEY SECURITY:
 # All endpoints filter data to only show records within CTV's network
@@ -34,7 +33,8 @@ Created: December 28, 2025
 """
 
 import os
-from flask import Blueprint, jsonify, request, send_file, g, make_response
+import datetime
+from flask import Blueprint, jsonify, request, send_file, g, make_response, render_template
 import mysql.connector
 from mysql.connector import Error
 
@@ -127,11 +127,15 @@ def logout():
 
 @ctv_bp.route('/ctv/portal', methods=['GET'])
 def portal():
-    """Serve CTV portal HTML"""
-    template_path = os.path.join(BASE_DIR, 'templates', 'ctv_portal.html')
-    if os.path.exists(template_path):
-        return send_file(template_path)
-    return jsonify({'status': 'error', 'message': 'CTV portal not found'}), 404
+    """Serve CTV portal HTML using Jinja2 template"""
+    try:
+        return render_template('ctv/base.html')
+    except Exception as e:
+        # Fallback to old method if new templates don't exist yet
+        template_path = os.path.join(BASE_DIR, 'templates', 'ctv_portal.html')
+        if os.path.exists(template_path):
+            return send_file(template_path)
+        return jsonify({'status': 'error', 'message': f'CTV portal not found: {str(e)}'}), 404
 
 
 @ctv_bp.route('/ctv/check-auth', methods=['GET'])
@@ -208,14 +212,37 @@ def get_profile():
         """, (ctv['ma_ctv'],))
         total_earnings = float(cursor.fetchone()['total'])
         
-        # Get this month's earnings
+        # Calculate date range for current month
+        today = datetime.date.today()
+        start_of_month = today.replace(day=1)
+        if today.month == 12:
+            start_of_next_month = today.replace(year=today.year + 1, month=1, day=1)
+        else:
+            start_of_next_month = today.replace(month=today.month + 1, day=1)
+
+        # Get this month's earnings (based on actual service date from khach_hang)
+        # Optimized to use date range index instead of DATE_FORMAT
         cursor.execute("""
-            SELECT COALESCE(SUM(commission_amount), 0) as total
-            FROM commissions 
-            WHERE ctv_code = %s 
-            AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
-        """, (ctv['ma_ctv'],))
+            SELECT COALESCE(SUM(c.commission_amount), 0) as total
+            FROM commissions c
+            LEFT JOIN khach_hang kh ON c.transaction_id = kh.id
+            WHERE c.ctv_code = %s 
+            AND COALESCE(kh.ngay_hen_lam, c.created_at) >= %s
+            AND COALESCE(kh.ngay_hen_lam, c.created_at) < %s;
+        """, (ctv['ma_ctv'], start_of_month, start_of_next_month))
         monthly_earnings = float(cursor.fetchone()['total'])
+        
+        # Get services count this month (completed services by this CTV)
+        # Optimized to use index on (nguoi_chot, trang_thai, ngay_hen_lam)
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM khach_hang
+            WHERE nguoi_chot = %s 
+            AND trang_thai = 'Da den lam'
+            AND ngay_hen_lam >= %s
+            AND ngay_hen_lam < %s;
+        """, (ctv['ma_ctv'], start_of_month, start_of_next_month))
+        monthly_services_count = int(cursor.fetchone()['count'])
         
         cursor.close()
         connection.close()
@@ -234,7 +261,8 @@ def get_profile():
                 'network_size': stats['total'],
                 'network_by_level': stats['by_level'],
                 'total_earnings': total_earnings,
-                'monthly_earnings': monthly_earnings
+                'monthly_earnings': monthly_earnings,
+                'monthly_services_count': monthly_services_count
             }
         })
         
@@ -251,7 +279,10 @@ def get_profile():
 def get_my_commissions():
     """
     Get own commission earnings with breakdown
-    Query params: ?month=2025-12, ?level=1
+    Query params: 
+    - ?month=2025-12 (legacy)
+    - ?level=1
+    - ?from_date=2025-12-01&to_date=2025-12-31 (new date range filter)
     
     Returns commission records with:
     - source_ctv_name: Name of the CTV who made the sale (nguoi_chot)
@@ -270,6 +301,8 @@ def get_my_commissions():
         
         month = request.args.get('month')
         level = request.args.get('level')
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
         
         # Build query with JOINs to get source CTV, customer, and service info
         query = """
@@ -293,11 +326,15 @@ def get_my_commissions():
         """
         params = [ctv['ma_ctv']]
         
-        if month:
+        # Date range filter (takes priority over month)
+        if from_date and to_date:
+            query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
+            params.extend([from_date, to_date])
+        elif month:
             query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
             params.append(month)
         
-        if level is not None:
+        if level is not None and level != '':
             query += " AND c.level = %s"
             params.append(int(level))
         
@@ -318,7 +355,7 @@ def get_my_commissions():
             c['customer_name'] = c.get('customer_name') or 'N/A'
             c['service_name'] = c.get('service_name') or 'N/A'
         
-        # Get summary by level
+        # Get summary by level with same date filters
         summary_query = """
             SELECT 
                 level,
@@ -329,7 +366,11 @@ def get_my_commissions():
         """
         summary_params = [ctv['ma_ctv']]
         
-        if month:
+        # Apply same date filters to summary
+        if from_date and to_date:
+            summary_query += " AND DATE(created_at) >= %s AND DATE(created_at) <= %s"
+            summary_params.extend([from_date, to_date])
+        elif month:
             summary_query += " AND DATE_FORMAT(created_at, '%Y-%m') = %s"
             summary_params.append(month)
         
@@ -427,97 +468,6 @@ def get_my_hierarchy():
         'status': 'success',
         'hierarchy': tree
     })
-
-
-@ctv_bp.route('/api/ctv/my-network/search', methods=['GET'])
-@require_ctv
-def search_my_network():
-    """
-    Search customers/phone numbers within my network only
-    Query params: ?q=search_term
-    
-    SECURITY: Only returns results where nguoi_chot is in CTV's network
-    """
-    ctv = g.current_user
-    search_term = request.args.get('q', '').strip()
-    
-    if not search_term or len(search_term) < 2:
-        return jsonify({
-            'status': 'error',
-            'message': 'Search term must be at least 2 characters'
-        }), 400
-    
-    connection = get_db_connection()
-    if not connection:
-        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
-    
-    try:
-        # Get all CTVs in my network
-        my_network = get_all_descendants(ctv['ma_ctv'], connection)
-        
-        if not my_network:
-            return jsonify({
-                'status': 'success',
-                'customers': [],
-                'ctv_members': [],
-                'total': 0
-            })
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        # Search customers where nguoi_chot is in my network
-        placeholders = ','.join(['%s'] * len(my_network))
-        search_like = f"%{search_term}%"
-        
-        # Search customers
-        customer_query = f"""
-            SELECT DISTINCT
-                c.id,
-                c.name,
-                c.phone,
-                c.email
-            FROM customers c
-            JOIN services s ON c.id = s.customer_id
-            WHERE s.nguoi_chot IN ({placeholders})
-            AND (c.name LIKE %s OR c.phone LIKE %s OR c.email LIKE %s)
-            LIMIT 20;
-        """
-        params = list(my_network) + [search_like, search_like, search_like]
-        
-        cursor.execute(customer_query, params)
-        customers = cursor.fetchall()
-        
-        # Search CTV members in my network
-        ctv_query = f"""
-            SELECT 
-                ma_ctv,
-                ten,
-                sdt,
-                email,
-                cap_bac
-            FROM ctv
-            WHERE ma_ctv IN ({placeholders})
-            AND (ten LIKE %s OR sdt LIKE %s OR email LIKE %s OR ma_ctv LIKE %s)
-            AND (is_active = TRUE OR is_active IS NULL)
-            LIMIT 20;
-        """
-        ctv_params = list(my_network) + [search_like, search_like, search_like, search_like]
-        
-        cursor.execute(ctv_query, ctv_params)
-        ctv_members = cursor.fetchall()
-        
-        cursor.close()
-        connection.close()
-        
-        return jsonify({
-            'status': 'success',
-            'customers': customers,
-            'ctv_members': ctv_members,
-            'total': len(customers) + len(ctv_members)
-        })
-        
-    except Error as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @ctv_bp.route('/api/ctv/my-network/customers', methods=['GET'])
@@ -1199,4 +1149,3 @@ def get_ctv_clients_with_services():
         
     except Error as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-

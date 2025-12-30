@@ -1,0 +1,45 @@
+<!-- CTV Management Page -->
+<div class="page-section" id="page-ctv">
+    <div class="header">
+        <h2 data-i18n="ctv_management">CTV Management</h2>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/ctv/export')" data-i18n="export_excel">Export Excel</button>
+            <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add CTV</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+                <div class="search-box" style="margin-bottom:0;flex:1;min-width:200px">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder" placeholder="Search by name, email, phone...">
+                </div>
+                <label class="toggle-switch" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                    <input type="checkbox" id="showInactiveCTV" onchange="loadCTVList()">
+                    <span class="toggle-slider"></span>
+                    <span data-i18n="show_inactive">Show Inactive</span>
+                </label>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="code">Code</th>
+                            <th data-i18n="name">Name</th>
+                            <th data-i18n="email">Email</th>
+                            <th data-i18n="phone">Phone</th>
+                            <th data-i18n="referrer">Referrer</th>
+                            <th data-i18n="level">Level</th>
+                            <th data-i18n="status">Status</th>
+                            <th data-i18n="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ctvTableBody">
+                        <tr><td colspan="8" class="loading" data-i18n="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

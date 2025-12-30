@@ -1,0 +1,74 @@
+<!-- CTV Portal - Login Component -->
+<!-- Login Language Toggle -->
+<div class="login-lang-toggle" id="loginLangToggle">
+    <div class="login-lang-btn" onclick="toggleLoginLangPopup(event)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span id="loginLangLabel">VI</span>
+    </div>
+    <div class="login-lang-popup">
+        <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
+            <span class="lang-flag">VN</span>
+            <span class="lang-name">Tieng Viet</span>
+            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
+            <span class="lang-flag">US</span>
+            <span class="lang-name">English</span>
+            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="login-box">
+    <div class="login-logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3" fill="none"/>
+            <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3"/>
+            <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3"/>
+            <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3"/>
+        </svg>
+    </div>
+    <h1>CTV Portal</h1>
+    <p class="subtitle" data-i18n="login_subtitle">Dang nhap de xem hoa hong va mang luoi</p>
+    
+    <form id="loginForm">
+        <div class="form-group">
+            <label data-i18n="ctv_code">Ten dang nhap</label>
+            <input type="text" id="maCTV" placeholder="BsDieu" required>
+        </div>
+        <div class="form-group">
+            <label data-i18n="password">Mat khau</label>
+            <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhap mat khau" required>
+        </div>
+        <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe" data-i18n="remember_me">Ghi nho dang nhap</label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn" data-i18n="login">Dang Nhap</button>
+        <div class="error-msg" id="loginError"></div>
+    </form>
+
+    <div class="back-link">
+        <a href="/" data-i18n="back_home">Quay ve trang chu</a>
+    </div>
+
+    <!-- Success Animation -->
+    <div class="login-success" id="loginSuccess">
+        <div class="success-checkmark">
+            <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <div class="success-text">Dang nhap thanh cong!</div>
+        <div class="success-subtext">Dang chuyen huong...</div>
+    </div>
+</div>
+

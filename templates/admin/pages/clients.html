@@ -1,0 +1,27 @@
+<!-- Clients Page -->
+<div class="page-section" id="page-clients">
+    <div class="header">
+        <h2 data-i18n="client_management">Client Management</h2>
+        <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+            <div id="clientsCount" style="color: var(--text-secondary); font-size: 14px;"></div>
+            <button class="btn btn-secondary" onclick="exportClientsExcel()" data-i18n="export_excel">Export Excel</button>
+        </div>
+    </div>
+    <!-- Search Bar -->
+    <div class="client-search-container">
+        <div class="search-box" style="max-width: 400px; margin-bottom: 20px;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="clientSearch" placeholder="Search by name or phone..." data-i18n-placeholder="client_search_placeholder">
+        </div>
+    </div>
+    <!-- Client Cards Container -->
+    <div class="clients-grid" id="clientsGrid">
+        <div class="loading" data-i18n="loading">Loading...</div>
+    </div>
+    <!-- Pagination -->
+    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+        <div id="clientsPaginationInfo" style="color: var(--text-secondary); font-size: 13px;"></div>
+        <div id="clientsPaginationControls" style="display: flex; gap: 8px;"></div>
+    </div>
+</div>
+

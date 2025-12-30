@@ -1,0 +1,35 @@
+<!-- CTV Portal - Earnings Page -->
+<div class="page-section" id="page-earnings">
+    <!-- Date Filter Card -->
+    <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+            <div class="date-filter">
+                <select id="earningsTimeFilter" style="padding:10px 16px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" onchange="applyTimeFilter()">
+                    <option value="custom" data-i18n="custom_range">Tuy chinh</option>
+                    <option value="day" data-i18n="today">Hom nay</option>
+                    <option value="month" data-i18n="this_month">Thang nay</option>
+                    <option value="3months" data-i18n="three_months">3 thang</option>
+                    <option value="year" data-i18n="this_year">Nam nay</option>
+                </select>
+                <label style="font-size:14px;color:#666;" data-i18n="from_date">Tu ngay:</label>
+                <input type="date" id="earningsFromDate" onchange="document.getElementById('earningsTimeFilter').value='custom'">
+                <label style="font-size:14px;color:#666;" data-i18n="to_date">Den ngay:</label>
+                <input type="date" id="earningsToDate" onchange="document.getElementById('earningsTimeFilter').value='custom'">
+                <button class="btn-filter" onclick="filterCommissions()" data-i18n="filter">Loc</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+            <h3 data-i18n="stats_by_level">Thong Ke Theo Cap</h3>
+        </div>
+        <div class="card-body">
+            <div id="earningsSummary">
+                <div class="empty-state" data-i18n="loading">Dang tai...</div>
+            </div>
+        </div>
+    </div>
+</div>
+

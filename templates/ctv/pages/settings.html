@@ -1,0 +1,28 @@
+<!-- CTV Portal - Settings Page -->
+<div class="page-section" id="page-settings">
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="change_password">Doi Mat Khau</h3>
+        </div>
+        <div class="card-body">
+            <form id="changePasswordForm" style="max-width:400px;">
+                <div class="form-group">
+                    <label data-i18n="current_password">Mat khau hien tai</label>
+                    <input type="password" id="currentPassword" placeholder="Nhap mat khau hien tai" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="new_password">Mat khau moi</label>
+                    <input type="password" id="newPassword" placeholder="Nhap mat khau moi (it nhat 6 ky tu)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="confirm_password">Xac nhan mat khau moi</label>
+                    <input type="password" id="confirmPassword" placeholder="Nhap lai mat khau moi" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" id="changePasswordBtn" data-i18n="change_password_btn">Doi Mat Khau</button>
+                <div class="error-msg" id="changePasswordError"></div>
+                <div class="success-msg" id="changePasswordSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+            </form>
+        </div>
+    </div>
+</div>
+

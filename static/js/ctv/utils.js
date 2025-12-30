@@ -1,0 +1,49 @@
+/**
+ * CTV Portal - Utilities Module
+ * DOES: Provides common utility functions
+ * OUTPUTS: formatCurrency, getCtvInitials, escapeHtmlCTV, formatCtvCurrency, debounceCTV
+ * FLOW: Used by rendering modules (clients.js, commissions.js)
+ */
+
+// Format currency for display
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+}
+
+// Get initials from name
+function getCtvInitials(name) {
+    if (!name) return '?';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+}
+
+// Escape HTML for safe display
+function escapeHtmlCTV(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Format currency for CTV display
+function formatCtvCurrency(amount) {
+    if (!amount && amount !== 0) return '-';
+    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+}
+
+// Debounce function
+function debounceCTV(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+

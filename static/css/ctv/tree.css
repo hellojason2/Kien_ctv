@@ -1,0 +1,190 @@
+/**
+ * CTV Portal - Tree Styles
+ * DOES: Styles for MLM hierarchy tree visualization
+ */
+
+/* Tree Stats */
+.tree-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tree-stat {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+}
+
+.tree-stat .number {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.tree-stat .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+/* Tree Controls */
+.tree-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tree-btn {
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tree-btn:hover {
+    background: #e0e0e0;
+}
+
+/* Tree Wrapper */
+.tree-wrapper {
+    padding: 20px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+.tree-wrapper ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tree-wrapper > ul > li {
+    padding-left: 0;
+}
+
+.tree-wrapper li {
+    padding-left: 24px;
+    position: relative;
+}
+
+.tree-wrapper li::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 50%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tree-wrapper li::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 12px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tree-wrapper > ul > li::before,
+.tree-wrapper > ul > li::after {
+    display: none;
+}
+
+/* Tree Node */
+.tree-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 4px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tree-node:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.tree-node.has-children::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 5px solid white;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.2s;
+}
+
+.tree-node.has-children.expanded::before {
+    transform: rotate(90deg);
+}
+
+.tree-children {
+    margin-top: 4px;
+}
+
+.tree-children.collapsed {
+    display: none;
+}
+
+/* Level Badges */
+.level-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+}
+
+.level-badge.l0 { background: #ff6b6b; }
+.level-badge.l1 { background: #ffa502; }
+.level-badge.l2 { background: #2ed573; }
+.level-badge.l3 { background: #1e90ff; }
+.level-badge.l4 { background: #a55eea; }
+
+/* Node Info */
+.node-name {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.node-code {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+}
+
+.node-info {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}
+
+/* Cutoff Badge */
+.cutoff-badge {
+    background: #ff4757;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+

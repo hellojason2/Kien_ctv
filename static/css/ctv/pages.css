@@ -1,0 +1,322 @@
+/**
+ * CTV Portal - Page Specific Styles
+ * Dashboard, Clients, Hierarchy, Commissions, Settings
+ * 
+ * Created: December 30, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-lang {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.sidebar-lang .sidebar-icon {
+    position: relative;
+    overflow: visible;
+}
+
+.sidebar-lang .lang-current {
+    font-size: 10px;
+    font-weight: 700;
+    color: #666;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1px 4px;
+    border-radius: 3px;
+    line-height: 1;
+}
+
+.sidebar-lang.active .sidebar-icon {
+    background-color: #ebebeb;
+}
+
+.sidebar-lang .sidebar-icon svg {
+    margin-bottom: 6px;
+}
+
+.lang-popup {
+    position: absolute;
+    left: calc(100% + 12px);
+    bottom: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 140px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-8px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.lang-popup::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    bottom: 16px;
+    border: 6px solid transparent;
+    border-right-color: #ffffff;
+}
+
+.sidebar-lang.active .lang-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.lang-popup-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 6px;
+    margin-bottom: 4px;
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    color: #333;
+}
+
+.lang-option:hover {
+    background: #f5f5f5;
+}
+
+.lang-option.active {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+.lang-option .lang-flag {
+    font-size: 18px;
+}
+
+.lang-option .lang-name {
+    font-weight: 500;
+}
+
+.lang-option .lang-check {
+    margin-left: auto;
+    opacity: 0;
+}
+
+.lang-option.active .lang-check {
+    opacity: 1;
+}
+
+/* Login Page Language Toggle */
+.login-lang-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.login-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.login-lang-btn:hover {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+.login-lang-popup {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 140px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+}
+
+.login-lang-toggle.active .login-lang-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TABLE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+tr:hover td {
+    background: #fafafa;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODALS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #666666;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666666;
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGINATION
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.pagination-info {
+    color: #666666;
+    font-size: 13px;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+

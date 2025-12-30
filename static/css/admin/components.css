@@ -1,0 +1,388 @@
+/**
+ * Admin Dashboard - Components
+ * Buttons, Badges, Cards, Modals, Toggle Switch, Language Toggle
+ * 
+ * Created: December 30, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #0891b2;
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent-cyan);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-gold { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+.badge-silver { background: rgba(161, 161, 170, 0.2); color: var(--text-secondary); }
+.badge-bronze { background: rgba(180, 83, 9, 0.2); color: #d97706; }
+.badge-active { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+.badge-inactive { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARDS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════════════════════════════ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOGGLE SWITCH
+   ═══════════════════════════════════════════════════════════════════ */
+
+.toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.toggle-slider {
+    width: 44px;
+    height: 24px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--accent-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.lang-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    display: flex;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Hide language toggle when dashboard is active */
+body:has(.dashboard.active) .lang-toggle {
+    display: none;
+}
+
+.lang-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-family: inherit;
+}
+
+.lang-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.lang-btn.active {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOGIN BOX
+   ═══════════════════════════════════════════════════════════════════ */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #0f172a 100%);
+}
+
+.login-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-box h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--accent-cyan);
+}
+
+.login-box p {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 14px;
+}
+
+.error-msg {
+    color: var(--accent-red);
+    font-size: 13px;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.back-link a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.back-link a:hover {
+    color: var(--accent-cyan);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOP EARNERS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.top-earners {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Top Earners Table - 3 Column Layout */
+.earner-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 8px;
+}
+
+.earner-header .header-name {
+    text-align: left;
+}
+
+.earner-header .header-revenue,
+.earner-header .header-commission {
+    text-align: right;
+}
+
+.earner-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.earner-row .earner-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.earner-row .name {
+    font-weight: 600;
+}
+
+.earner-row .code {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.earner-row .revenue {
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.earner-row .commission {
+    text-align: right;
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE - MODAL
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+    .modal {
+        max-width: 95%;
+        margin: 10px;
+    }
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 16px;
+    }
+    .btn {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}
+

@@ -1,0 +1,43 @@
+<!-- CTV Portal - Dashboard Page -->
+<div class="page-section active" id="page-dashboard">
+    <!-- Phone Check Card -->
+    <div class="phone-check-card">
+        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title">Kiem Tra Trung Lap So Dien Thoai</h3>
+        <div class="phone-check-row">
+            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder" placeholder="Nhap so dien thoai...">
+            <button class="btn-filter" onclick="checkPhonePortal()" data-i18n="check">Kiem Tra</button>
+            <div class="result" id="dashPhoneResult" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card green">
+            <div class="label" data-i18n="total_earnings">Tong Thu Nhap</div>
+            <div class="value" id="statTotalEarnings"><span class="skeleton-loader"></span></div>
+        </div>
+        <div class="stat-card blue">
+            <div class="label" data-i18n="this_month">Thu Nhap Thang Nay</div>
+            <div class="value" id="statMonthlyEarnings"><span class="skeleton-loader"></span></div>
+        </div>
+        <div class="stat-card gold">
+            <div class="label" data-i18n="network_size">So Luong Mang Luoi</div>
+            <div class="value" id="statNetworkSize"><span class="skeleton-loader"></span></div>
+        </div>
+        <div class="stat-card pink">
+            <div class="label" data-i18n="services_this_month">Dich Vu Thang Nay</div>
+            <div class="value" id="statMonthlyServices"><span class="skeleton-loader"></span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="recent_commissions">Hoa Hong Gan Day</h3>
+        </div>
+        <div class="card-body">
+            <div id="recentCommissions">
+                <div class="empty-state" data-i18n="loading">Dang tai...</div>
+            </div>
+        </div>
+    </div>
+</div>
+

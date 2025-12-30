@@ -1,0 +1,322 @@
+/**
+ * Admin Dashboard - Client Cards
+ * Client cards, service cards, client grid
+ * 
+ * Created: December 30, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLIENTS GRID
+   ═══════════════════════════════════════════════════════════════════ */
+
+.clients-grid {
+    display: grid;
+    gap: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLIENT CARD
+   ═══════════════════════════════════════════════════════════════════ */
+
+.client-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.client-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.client-avatar {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+}
+
+.client-main-info {
+    flex: 1;
+    margin-left: 16px;
+}
+
+.client-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.client-phone {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.client-phone svg {
+    width: 14px;
+    height: 14px;
+}
+
+.service-count-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLIENT INFO ROW
+   ═══════════════════════════════════════════════════════════════════ */
+
+.client-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 24px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.client-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.client-info-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.client-info-value {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.client-status-badge {
+    margin-left: auto;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.client-status-badge.deposited {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.client-status-badge.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.client-status-badge.not-deposited {
+    background: rgba(161, 161, 170, 0.2);
+    color: #a1a1aa;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SERVICES CONTAINER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.services-container {
+    padding: 20px 24px;
+}
+
+.services-title {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SERVICE CARD
+   ═══════════════════════════════════════════════════════════════════ */
+
+.service-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+}
+
+.service-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.service-number {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.service-deposit-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.service-deposit-status.deposited {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.service-deposit-status.not-deposited {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.service-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+    min-height: 40px;
+}
+
+.service-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.service-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.service-detail-label {
+    color: var(--text-secondary);
+}
+
+.service-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.service-detail-value.amount {
+    color: var(--accent-green);
+}
+
+.service-detail-value.deposit {
+    color: var(--accent-cyan);
+}
+
+.service-detail-value.remaining {
+    color: var(--accent-orange);
+}
+
+.service-appointment {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.service-appointment svg {
+    width: 14px;
+    height: 14px;
+}
+
+.service-appointment .date {
+    color: var(--accent-purple);
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NO CLIENTS MESSAGE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.no-clients-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.no-clients-message svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .client-info-row {
+        gap: 12px;
+    }
+    
+    .client-info-item {
+        min-width: 45%;
+    }
+}
+

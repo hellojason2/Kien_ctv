@@ -447,52 +447,132 @@
             stroke: #ffffff;
         }
 
-
-        /* Admin Panel Button in Sidebar */
-        .sidebar-icon.admin-login {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        /* Language Toggle in Sidebar */
+        .sidebar-lang {
+            position: relative;
         }
 
-        .sidebar-icon.admin-login:hover {
-            background: linear-gradient(135deg, #e8930a 0%, #c56a05 100%);
-            transform: scale(1.05);
+        .sidebar-lang .sidebar-icon {
+            position: relative;
+            overflow: visible;
         }
 
-        .sidebar-icon.admin-login svg {
-            stroke: #ffffff;
+        .sidebar-lang .lang-current {
+            font-size: 10px;
+            font-weight: 700;
+            color: #666;
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px 4px;
+            border-radius: 3px;
+            line-height: 1;
         }
 
-        /* Language Toggle */
-        .lang-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 8px;
-            z-index: 100;
+        .sidebar-lang.active .sidebar-icon {
+            background-color: #ebebeb;
         }
 
-        .lang-btn {
-            padding: 8px 16px;
-            border: 2px solid #e0e0e0;
+        .sidebar-lang .sidebar-icon svg {
+            margin-bottom: 6px;
+        }
+
+        .lang-popup {
+            position: absolute;
+            left: calc(100% + 12px);
+            bottom: 0;
             background: #ffffff;
-            color: #666666;
-            font-size: 14px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            padding: 8px;
+            min-width: 140px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-8px);
+            transition: all 0.2s ease;
+            z-index: 1100;
+        }
+
+        .lang-popup::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            bottom: 16px;
+            border: 6px solid transparent;
+            border-right-color: #ffffff;
+        }
+
+        .sidebar-lang.active .lang-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .lang-popup-title {
+            font-size: 11px;
             font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px 4px;
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.15s;
         }
 
-        .lang-btn:hover {
-            border-color: #1a1a1a;
-            color: #1a1a1a;
+        .lang-option:hover {
+            background-color: #f5f5f5;
         }
 
-        .lang-btn.active {
-            background: #1a1a1a;
-            border-color: #1a1a1a;
-            color: #ffffff;
+        .lang-option.active {
+            background-color: #f0f0f0;
+        }
+
+        .lang-flag {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .lang-option[data-lang="vi"] .lang-flag {
+            background: linear-gradient(135deg, #da291c 0%, #ffcd00 100%);
+        }
+
+        .lang-option[data-lang="en"] .lang-flag {
+            background: linear-gradient(135deg, #002868 0%, #bf0a30 100%);
+        }
+
+        .lang-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .lang-option .lang-check {
+            margin-left: auto;
+            opacity: 0;
+            stroke: #16a34a;
+        }
+
+        .lang-option.active .lang-check {
+            opacity: 1;
         }
 
         /* Tooltip Styles */
@@ -599,6 +679,24 @@
                 transform: translateX(-50%) rotate(-90deg);
             }
 
+            /* Language popup on mobile - show above */
+            .lang-popup {
+                left: 50%;
+                bottom: calc(100% + 12px);
+                transform: translateX(-50%) translateY(8px);
+            }
+
+            .lang-popup::before {
+                left: 50%;
+                bottom: -10px;
+                top: auto;
+                transform: translateX(-50%) rotate(-90deg);
+            }
+
+            .sidebar-lang.active .lang-popup {
+                transform: translateX(-50%) translateY(0);
+            }
+
             .main-content {
                 padding-bottom: 80px; /* Space for fixed bottom nav */
             }
@@ -686,12 +784,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Language Toggle -->
-        <div class="lang-toggle">
-            <button class="lang-btn active" data-lang="vi" onclick="setLanguage('vi')">VI</button>
-            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
-        </div>
-
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-icon active" data-i18n-tooltip="home">
@@ -720,14 +812,50 @@
                 </svg>
             </div>
             
-            <!-- Admin Panel Button -->
-            <div class="sidebar-icon admin-login" onclick="window.location.href='/admin/dashboard'" data-i18n-tooltip="admin_panel">
+            <!-- Hierarchy Button -->
+            <div class="sidebar-icon" onclick="window.location.href='/hierarchy'" data-i18n-tooltip="hierarchy">
                 <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    <circle cx="12" cy="4" r="2"></circle>
+                    <line x1="12" y1="6" x2="12" y2="10"></line>
+                    <line x1="6" y1="10" x2="18" y2="10"></line>
+                    <line x1="6" y1="10" x2="6" y2="14"></line>
+                    <line x1="18" y1="10" x2="18" y2="14"></line>
+                    <circle cx="6" cy="16" r="2"></circle>
+                    <circle cx="18" cy="16" r="2"></circle>
+                    <line x1="12" y1="10" x2="12" y2="18"></line>
+                    <circle cx="12" cy="20" r="2"></circle>
                 </svg>
             </div>
-
+            
+            <!-- Language Toggle -->
+            <div class="sidebar-lang" id="langSwitcher">
+                <div class="sidebar-icon" onclick="toggleLangPopup(event)" data-i18n-tooltip="language">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span class="lang-current" id="currentLangLabel">VI</span>
+                </div>
+                <div class="lang-popup">
+                    <div class="lang-popup-title" data-i18n="choose_language">Chon Ngon Ngu</div>
+                    <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
+                        <span class="lang-flag">VN</span>
+                        <span class="lang-name">Tieng Viet</span>
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
+                        <span class="lang-flag">US</span>
+                        <span class="lang-name">English</span>
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
             <!-- CTV Portal Button -->
             <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'" data-i18n-tooltip="ctv_portal">
                 <svg viewBox="0 0 24 24">
@@ -747,10 +875,10 @@
                            id="phoneCheckInput" 
                            class="phone-check-input" 
                            data-i18n-placeholder="phone_placeholder"
-                           placeholder="Doi Chieu SDT..."
+                           placeholder="Nhập SDT Cần Kiểm Tra"
                            maxlength="15">
                     <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()" data-i18n="check_btn">
-                        Doi Chieu
+                        Kiểm Tra Trùng Lặp
                     </button>
                 </div>
                 <div id="phoneCheckResult" class="phone-check-result"></div>
@@ -787,15 +915,17 @@
         const translations = {
             vi: {
                 // Sidebar tooltips
-                home: 'Trang Chu',
-                phone_check: 'Doi Chieu',
+                home: 'Trang Chủ',
+                phone_check: 'Kiểm Tra Trùng Lặp',
                 customers: 'Khach Hang',
-                admin_panel: 'Quan Tri',
+                hierarchy: 'Cap Bac',
                 ctv_portal: 'Cong CTV',
+                language: 'Ngon Ngu',
+                choose_language: 'Chon Ngon Ngu',
                 
                 // Phone check
-                phone_placeholder: 'Doi Chieu SDT...',
-                check_btn: 'Doi Chieu',
+                phone_placeholder: 'Nhập SDT Cần Kiểm Tra',
+                check_btn: 'Kiểm Tra Trùng Lặp',
                 checking: 'Dang kiem tra...',
                 enter_phone: 'Nhap SDT',
                 duplicate: 'TRUNG',
@@ -822,8 +952,10 @@
                 home: 'Home',
                 phone_check: 'Phone Check',
                 customers: 'Customers',
-                admin_panel: 'Admin Panel',
+                hierarchy: 'Hierarchy',
                 ctv_portal: 'CTV Portal',
+                language: 'Language',
+                choose_language: 'Choose Language',
                 
                 // Phone check
                 phone_placeholder: 'Check Phone Number...',
@@ -857,15 +989,41 @@
             return translations[currentLang][key] || translations['vi'][key] || key;
         }
         
-        function setLanguage(lang) {
+        // Toggle language popup
+        function toggleLangPopup(event) {
+            event.stopPropagation();
+            const langSwitcher = document.getElementById('langSwitcher');
+            langSwitcher.classList.toggle('active');
+        }
+        
+        // Select language from popup
+        function selectLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('dashboard_language', lang);
             applyTranslations();
+            updateLangUI();
             
-            // Update button states
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.lang === lang);
+            // Close popup
+            document.getElementById('langSwitcher').classList.remove('active');
+        }
+        
+        // Update language UI elements
+        function updateLangUI() {
+            // Update current label
+            const label = document.getElementById('currentLangLabel');
+            if (label) {
+                label.textContent = currentLang.toUpperCase();
+            }
+            
+            // Update active state on options
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.lang === currentLang);
             });
+        }
+        
+        // Legacy function for compatibility
+        function setLanguage(lang) {
+            selectLanguage(lang);
         }
         
         function applyTranslations() {
@@ -893,6 +1051,14 @@
                 }
             });
         }
+        
+        // Close popup when clicking outside
+        document.addEventListener('click', function(e) {
+            const langSwitcher = document.getElementById('langSwitcher');
+            if (langSwitcher && !langSwitcher.contains(e.target)) {
+                langSwitcher.classList.remove('active');
+            }
+        });
         
         // ═══════════════════════════════════════════════════════════════════
         // PHONE DUPLICATE CHECK (Public - No login required)
@@ -953,7 +1119,8 @@
         // Handle Enter key in phone input
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize language
-            setLanguage(currentLang);
+            applyTranslations();
+            updateLangUI();
             
             const phoneInput = document.getElementById('phoneCheckInput');
             if (phoneInput) {

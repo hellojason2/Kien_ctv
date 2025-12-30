@@ -1,0 +1,376 @@
+/**
+ * Admin Dashboard - Hierarchy Tree
+ * Tree styles, level badges, hierarchy stats
+ * 
+ * Created: December 30, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY PAGE WRAPPER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-page-wrapper {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 400px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY STATS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.hierarchy-stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 15px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #333;
+}
+
+.hierarchy-stat-card .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #00d4ff;
+}
+
+.hierarchy-stat-card .stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY SEARCH
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-search-container {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    background: rgba(26, 26, 46, 0.95);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid #333;
+}
+
+.hierarchy-search-box {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    background: #0f0f1a;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.hierarchy-search-box:focus {
+    border-color: #00d4ff;
+}
+
+.hierarchy-search-box::placeholder {
+    color: #666;
+}
+
+.search-result-info {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #00d4ff;
+    min-height: 18px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY CONTROLS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.hierarchy-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.hierarchy-btn-expand {
+    background: #00d4ff;
+    color: #000;
+}
+
+.hierarchy-btn-collapse {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.hierarchy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY TREE CONTAINER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-tree-container {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #333;
+}
+
+.hierarchy-tree-container ul {
+    list-style: none;
+    padding-left: 25px;
+    margin: 0;
+}
+
+.hierarchy-tree-container > ul {
+    padding-left: 0;
+}
+
+.hierarchy-tree-container li {
+    position: relative;
+    padding: 6px 0;
+}
+
+.hierarchy-tree-container li::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0;
+    border-left: 2px solid #444;
+    height: 100%;
+}
+
+.hierarchy-tree-container li::after {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 20px;
+    border-top: 2px solid #444;
+    width: 18px;
+}
+
+.hierarchy-tree-container > ul > li::before,
+.hierarchy-tree-container > ul > li::after {
+    display: none;
+}
+
+.hierarchy-tree-container li:last-child::before {
+    height: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TREE NODE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.tree-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3a 100%);
+    border-radius: 8px;
+    border: 1px solid #444;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex-wrap: wrap;
+}
+
+.tree-node:hover {
+    border-color: #00d4ff;
+    transform: translateX(5px);
+}
+
+.tree-node.highlighted {
+    background: linear-gradient(135deg, #004d40 0%, #00695c 100%);
+    border-color: #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.tree-node.has-children::before {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 6px solid #00d4ff;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.3s;
+}
+
+.tree-node.expanded::before {
+    transform: rotate(90deg);
+}
+
+.tree-node .node-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 13px;
+}
+
+.tree-node .node-code {
+    font-size: 0.8rem;
+    color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.tree-node .node-rank {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LEVEL BADGES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.level-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Level badges L0-L4 (matches database levels) */
+.level-badge.l0 { background: #ff6b6b; color: #fff; }
+.level-badge.l1 { background: #ffa502; color: #000; }
+.level-badge.l2 { background: #2ed573; color: #000; }
+.level-badge.l3 { background: #1e90ff; color: #fff; }
+.level-badge.l4 { background: #a55eea; color: #fff; }
+
+.cutoff-badge {
+    font-size: 0.65rem;
+    background: #ff4757;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TREE CHILDREN
+   ═══════════════════════════════════════════════════════════════════ */
+
+.tree-children {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.tree-children.collapsed {
+    max-height: 0 !important;
+    padding: 0;
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHY LOADING
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hierarchy-loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.hierarchy-loading.active {
+    display: flex;
+}
+
+.hierarchy-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--surface-elevated);
+    border-top: 4px solid var(--accent-primary);
+    border-radius: 50%;
+    animation: hierarchySpin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes hierarchySpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hierarchy-loading-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.hierarchy-loading-subtext {
+    color: var(--text-secondary);
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .hierarchy-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .hierarchy-stat-card {
+        padding: 10px;
+    }
+    .hierarchy-stat-card .stat-number {
+        font-size: 1.4rem;
+    }
+    .hierarchy-stat-card .stat-label {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .tree-node {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .hierarchy-tree-container ul {
+        padding-left: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hierarchy-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .hierarchy-search-box {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+    .hierarchy-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+

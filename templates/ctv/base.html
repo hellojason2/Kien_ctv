@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTV Portal</title>
+    
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/cards.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/tree.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/clients.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/responsive.css') }}">
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        {% include 'ctv/components/login.html' %}
+    </div>
+
+    <!-- Portal -->
+    <div class="portal" id="portal">
+        <!-- Sidebar -->
+        {% include 'ctv/components/sidebar.html' %}
+
+        <!-- Main Content -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            {% include 'ctv/components/header.html' %}
+
+            <!-- Content -->
+            <div class="content">
+                {% include 'ctv/pages/dashboard.html' %}
+                {% include 'ctv/pages/earnings.html' %}
+                {% include 'ctv/pages/network.html' %}
+                {% include 'ctv/pages/clients.html' %}
+                {% include 'ctv/pages/settings.html' %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modular JavaScript -->
+    <script src="{{ url_for('static', filename='js/ctv/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/profile.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/commissions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/network.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/phone-check.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/clients.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ctv/main.js') }}"></script>
+</body>
+</html>
+

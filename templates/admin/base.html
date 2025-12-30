@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CTV System</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modular CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/forms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/hierarchy.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/clients.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/activity-logs.css') }}">
+</head>
+<body>
+    {% include 'admin/components/login.html' %}
+    
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        {% include 'admin/components/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            {% include 'admin/pages/overview.html' %}
+            {% include 'admin/pages/ctv-management.html' %}
+            {% include 'admin/pages/hierarchy.html' %}
+            {% include 'admin/pages/commissions.html' %}
+            {% include 'admin/pages/settings.html' %}
+            {% include 'admin/pages/clients.html' %}
+            {% include 'admin/pages/activity-logs.html' %}
+        </main>
+    </div>
+    
+    {% include 'admin/components/modals.html' %}
+    
+    <!-- Modular JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/admin/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/overview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/commissions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/clients.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/main.js') }}"></script>
+</body>
+</html>
+

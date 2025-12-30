@@ -1,0 +1,50 @@
+<!-- CTV Portal - Clients Page -->
+<div class="page-section" id="page-clients">
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="no_customers">Khach Hang Cua Ban</h3>
+        </div>
+        <div class="card-body">
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" id="cardViewBtn" onclick="switchToCardView()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                    Cards
+                </button>
+                <button class="view-toggle-btn" id="tableViewBtn" onclick="switchToTableView()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    Table
+                </button>
+            </div>
+
+            <!-- Search Box -->
+            <div class="client-search-box">
+                <input type="text" id="ctvClientSearch" data-i18n-placeholder="search" placeholder="Tim kiem khach hang...">
+            </div>
+
+            <!-- Card View Section -->
+            <div id="cardViewSection">
+                <div class="ctv-clients-grid" id="ctvClientsGrid">
+                    <div class="empty-state" data-i18n="loading">Dang tai...</div>
+                </div>
+            </div>
+
+            <!-- Table View Section -->
+            <div id="tableViewSection" style="display:none;">
+                <div id="ctvClientsTable">
+                    <div class="empty-state" data-i18n="loading">Dang tai...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

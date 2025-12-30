@@ -1,0 +1,252 @@
+/**
+ * Admin Dashboard - Forms
+ * Form Groups, Search Box, Searchable Dropdown, Commission Settings
+ * 
+ * Created: December 30, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORM GROUP
+   ═══════════════════════════════════════════════════════════════════ */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--accent-cyan);
+}
+
+.form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEARCH BOX
+   ═══════════════════════════════════════════════════════════════════ */
+
+.search-box {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEARCHABLE DROPDOWN
+   ═══════════════════════════════════════════════════════════════════ */
+
+.searchable-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.searchable-dropdown input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 40px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.searchable-dropdown input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.searchable-dropdown .dropdown-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.searchable-dropdown.open .dropdown-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.searchable-dropdown .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 1000;
+    display: none;
+}
+
+.searchable-dropdown.open .dropdown-list {
+    display: block;
+}
+
+.searchable-dropdown .dropdown-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 14px;
+}
+
+.searchable-dropdown .dropdown-item:hover,
+.searchable-dropdown .dropdown-item.highlighted {
+    background: var(--primary);
+    color: white;
+}
+
+.searchable-dropdown .dropdown-item.selected {
+    background: rgba(79, 209, 197, 0.2);
+}
+
+.searchable-dropdown .no-results {
+    padding: 10px 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMMISSION SETTINGS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.commission-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+.commission-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.commission-card .level {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.commission-card .rate {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.commission-card input {
+    width: 100%;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.commission-card.l0 .rate { color: var(--accent-green); }
+.commission-card.l1 .rate { color: var(--accent-orange); }
+.commission-card.l2 .rate { color: var(--accent-purple); }
+.commission-card.l3 .rate { color: var(--accent-pink); }
+.commission-card.l4 .rate { color: var(--accent-cyan); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+    .commission-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .commission-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .form-group {
+        margin-bottom: 16px;
+    }
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    .commission-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .commission-card {
+        padding: 14px;
+    }
+    .commission-card .rate {
+        font-size: 24px;
+    }
+}
+

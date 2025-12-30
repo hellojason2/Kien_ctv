@@ -1,5 +1,986 @@
 # Release Notes - CTV Dashboard
 
+## Version 3.0.1 - December 30, 2025
+
+### Top Earners Section - 3-Column Layout Update
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Updated the "Top Thu Nhap Thang Nay" (Top Earners This Month) section to display 3 columns instead of 2.
+
+#### Changes
+
+**Before:**
+- Column 1: CTV Name + Code
+- Column 2: Total Earned (commission only)
+
+**After:**
+- Column 1: CTV Name + Code (unchanged)
+- Column 2: Total Revenue
+- Column 3: Total Commission
+
+#### Files Modified
+
+- `modules/admin_routes.py` - Updated SQL query to include `total_revenue` and `total_commission`
+- `static/js/admin/overview.js` - Updated JS to render 3-column layout with headers
+- `static/css/admin/components.css` - Added grid-based 3-column CSS styles
+- `static/js/admin/translations.js` - Added translations for `ctv_name`, `total_revenue`, `total_commission`
+- `templates/admin.html` - Updated inline CSS and JS for backward compatibility
+
+---
+
+## Version 3.0.0 - December 30, 2025
+
+### Major Frontend Refactoring - Modular Architecture
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Refactored the monolithic `admin.html` (4000+ lines) and `ctv_portal.html` (3000+ lines) into modular components using Jinja2 templates and separate CSS/JS files. This improves maintainability, reduces load times, and enables better code organization.
+
+#### Architecture Changes
+
+**Before:**
+```
+templates/
+  admin.html (4000+ lines - CSS, HTML, JS all in one)
+  ctv_portal.html (3000+ lines - CSS, HTML, JS all in one)
+```
+
+**After:**
+```
+templates/
+  admin/
+    base.html                    # Main template with includes
+    components/
+      lang-toggle.html           # Language toggle buttons
+      login.html                 # Login page
+      sidebar.html               # Sidebar navigation
+      modals.html                # Modal dialogs
+    pages/
+      overview.html              # Dashboard overview
+      ctv-management.html        # CTV management
+      hierarchy.html             # Hierarchy tree
+      commissions.html           # Commission reports
+      clients.html               # Client management
+      settings.html              # Settings page
+      activity-logs.html         # Activity logs
+  ctv/
+    base.html                    # Main template with includes
+    components/
+      login.html                 # Login page
+      sidebar.html               # Sidebar navigation
+      header.html                # Header component
+    pages/
+      dashboard.html             # Dashboard page
+      earnings.html              # Earnings page
+      network.html               # Network/hierarchy
+      clients.html               # Clients page
+      settings.html              # Settings page
+
+static/
+  css/
+    admin/
+      base.css                   # Global resets and variables
+      components.css             # Buttons, badges, modals
+      layout.css                 # Login, dashboard, sidebar
+      forms.css                  # Form elements
+      tables.css                 # Table styles
+      hierarchy.css              # Tree visualization
+      clients.css                # Client cards
+      activity-logs.css          # Activity logs
+    ctv/
+      base.css                   # Global resets and variables
+      login.css                  # Login page
+      layout.css                 # Portal layout
+      components.css             # Shared components
+      cards.css                  # Stat and commission cards
+      tree.css                   # Network tree
+      clients.css                # Client cards
+      responsive.css             # Mobile responsiveness
+  js/
+    admin/
+      api.js                     # API helper function
+      utils.js                   # Utility functions
+      translations.js            # i18n system
+      navigation.js              # Page navigation
+      auth.js                    # Authentication
+      overview.js                # Dashboard stats
+      ctv-management.js          # CTV CRUD operations
+      hierarchy.js               # Tree visualization
+      commissions.js             # Commission reports
+      clients.js                 # Client management
+      settings.js                # Settings page
+      activity-logs.js           # Activity logs
+      excel-export.js            # Excel export
+      main.js                    # Main entry point
+    ctv/
+      api.js                     # API helper function
+      utils.js                   # Utility functions
+      translations.js            # i18n system
+      auth.js                    # Authentication
+      navigation.js              # Page navigation
+      profile.js                 # Profile loading
+      commissions.js             # Commission data
+      network.js                 # MLM tree
+      phone-check.js             # Phone validation
+      clients.js                 # Client cards
+      main.js                    # Main entry point
+```
+
+#### Backend Changes
+
+**Modified Files:**
+
+| File | Change |
+|------|--------|
+| `modules/admin_routes.py` | Changed `/admin89` route from `send_file` to `render_template('admin/base.html')` |
+| `modules/ctv_routes.py` | Changed `/ctv/portal` route from `send_file` to `render_template('ctv/base.html')` |
+
+#### Benefits
+
+1. **Maintainability**: Each module is self-contained and easier to update
+2. **Reusability**: Components can be reused across pages
+3. **Performance**: CSS/JS files can be cached by browser
+4. **Debugging**: Easier to locate and fix issues in smaller files
+5. **Team Collaboration**: Multiple developers can work on different modules
+6. **Testing**: Individual modules can be tested in isolation
+
+#### Module Documentation
+
+Each JavaScript file includes header documentation following the project's modular code organization rules:
+
+```javascript
+/**
+ * Module Name
+ * DOES: Description of module purpose
+ * INPUTS: What the module receives
+ * OUTPUTS: What the module produces
+ * FLOW: How it connects to other modules
+ */
+```
+
+#### Files Created
+
+| Category | Count | Location |
+|----------|-------|----------|
+| Admin CSS | 8 | `static/css/admin/` |
+| Admin JS | 13 | `static/js/admin/` |
+| Admin Templates | 11 | `templates/admin/` |
+| CTV CSS | 8 | `static/css/ctv/` |
+| CTV JS | 11 | `static/js/ctv/` |
+| CTV Templates | 9 | `templates/ctv/` |
+
+#### Migration Notes
+
+- Original `admin.html` and `ctv_portal.html` files are preserved for reference
+- The new modular templates are served via Jinja2's `render_template`
+- All existing functionality is preserved
+- No API changes required
+
+---
+
+## Version 2.0.9 - December 30, 2025
+
+### Excel Export Feature - Admin Panel
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Added Excel (.xlsx) export functionality to all data pages in the Admin Panel. Each page now has an "Export Excel" button that downloads the current data view as a formatted Excel spreadsheet.
+
+#### Changes Made
+
+**1. New Export Module**
+- Created `modules/export_excel.py` with reusable Excel generation utilities
+- Styled headers with dark theme matching the admin UI
+- Auto-sized columns based on content
+- Currency and percentage number formatting
+- Frozen header row for easy scrolling
+
+**2. New API Endpoints**
+
+| Endpoint | Data Exported |
+|----------|---------------|
+| `GET /api/admin/ctv/export` | All CTVs (code, name, phone, email, referrer, level, status, created) |
+| `GET /api/admin/commissions/export` | Commission records with filters |
+| `GET /api/admin/commissions/summary/export` | Commission summary by CTV |
+| `GET /api/admin/clients/export` | Clients with service counts and totals |
+| `GET /api/admin/activity-logs/export-xlsx` | Activity logs (Excel format) |
+| `GET /api/admin/commission-settings/export` | Commission rate settings |
+
+**3. Frontend Export Buttons**
+
+Added "Export Excel" buttons to:
+- **CTV Management page** - Exports all CTVs with current filters
+- **Commissions page** - Exports commission summary by CTV
+- **Clients page** - Exports all clients with service counts
+- **Activity Logs page** - Added Excel option alongside CSV
+- **Settings page** - Exports commission rate settings
+
+**4. JavaScript Functions**
+- `exportToExcel(endpoint)` - Generic export for simple endpoints
+- `exportCommissionsExcel()` - Export commissions with month filter
+- `exportClientsExcel()` - Export clients with search filter
+- `exportActivityLogsExcel()` - Export logs with all filters
+
+**5. Translations**
+- Added `export_excel` translation key
+- Vietnamese: "Xuat Excel"
+- English: "Export Excel"
+
+#### Files Created
+
+| File | Description |
+|------|-------------|
+| `modules/export_excel.py` | Excel generation utilities with column configurations |
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `requirements.txt` | Added openpyxl>=3.1.2 |
+| `modules/admin_routes.py` | Added 6 export endpoints |
+| `templates/admin.html` | Added export buttons, JavaScript functions, translations |
+
+#### Dependencies Added
+
+- `openpyxl>=3.1.2` - Python library for creating Excel files
+
+---
+
+## Version 2.0.8 - December 30, 2025
+
+### Language Toggle Moved to Sidebar
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Moved the language toggle (VI/EN) from the fixed top-right corner to the sidebar menu in `dashboard.html`. The new design features a toggle button with a popup menu, consistent with the CTV portal's design.
+
+#### Changes Made
+
+**1. Removed Fixed Position Language Toggle**
+- Removed the two-button language toggle from top-right corner
+- Cleaned up old `.lang-toggle` and `.lang-btn` CSS
+
+**2. Added Sidebar Language Toggle**
+- New `.sidebar-lang` component placed above CTV Portal button
+- Globe icon with current language label overlay
+- Popup menu with language options (Vietnamese/English)
+- Checkmark indicator for active language
+- Gradient flag icons for visual appeal
+
+**3. Updated JavaScript**
+- Added `toggleLangPopup()` function for popup toggle
+- Added `selectLanguage()` for language selection
+- Added `updateLangUI()` to sync UI state
+- Added click-outside handler to close popup
+- Added new translation keys: `language`, `choose_language`
+
+**4. Mobile Responsive**
+- Popup appears above the icon on mobile (bottom navigation)
+- Proper arrow positioning for mobile view
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `dashboard.html` | Replaced fixed lang-toggle with sidebar-lang component, new CSS, updated JS |
+
+---
+
+## Version 2.0.7 - December 30, 2025
+
+### Commission Page - Grouped by CTV with Totals
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Redesigned the Commissions (Hoa Hong) page in Admin Dashboard to show aggregated data grouped by CTV person instead of individual commission records. The new view displays 5 columns with totals per CTV.
+
+#### Changes Made
+
+**1. New Backend Endpoint**
+- Added `GET /api/admin/commissions/summary` endpoint
+- Groups all commissions by CTV code
+- Returns: CTV code, CTV name, CTV phone, Total service price, Total commission
+- Supports month filter: `?month=2025-12`
+- Returns grand totals for all CTVs
+
+**2. Updated Table Structure**
+- Changed from 7 columns to 5 columns:
+  - Ma CTV (CTV Code)
+  - Ten CTV (CTV Name)
+  - SDT (Phone)
+  - Tong Dich Vu (Total Service Price)
+  - Tong Hoa Hong (Total Commission)
+- Removed: ID, Level, Rate, Transaction, Date columns
+
+**3. Added Grand Total Summary**
+- New summary cards above the table showing:
+  - Tong CTV (Total CTV count)
+  - Tong Dich Vu (Grand total service price)
+  - Tong Hoa Hong (Grand total commission)
+
+**4. Simplified Filters**
+- Removed CTV filter dropdown (no longer needed since data is grouped)
+- Kept month filter for time-based filtering
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `modules/admin_routes.py` | Added `/api/admin/commissions/summary` endpoint |
+| `templates/admin.html` | Updated commissions page HTML structure, JavaScript function, removed CTV filter |
+
+---
+
+## Version 2.0.6 - December 30, 2025
+
+### CTV Active Filter - Default to Show Active Only
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Fixed the CTV Management page to show only active CTVs by default. The `filter_valid_ctv.py` script correctly sets `is_active = 0` for invalid CTVs, but the dashboard was displaying all CTVs regardless of their active status.
+
+#### Changes Made
+
+**1. Added Toggle Switch for Show/Hide Inactive CTVs**
+- New toggle switch in CTV Management page header
+- Default: OFF (only active CTVs shown)
+- Toggle ON to see inactive CTVs as well
+
+**2. Updated `loadCTVList()` Function**
+- Now uses `active_only=true` parameter by default
+- Respects toggle switch state when reloading
+
+**3. Updated `populateCTVSelects()` Function**
+- Accepts optional CTV list parameter
+- Dropdowns always use only active CTVs for better UX
+
+**4. Updated `renderHierarchyList()` Function**
+- Filters to show only active CTVs in hierarchy dropdown
+
+**5. Added Toggle Switch CSS**
+- New `.toggle-switch` and `.toggle-slider` styles
+- Smooth animation on state change
+
+**6. Added Translations**
+- Vietnamese: "Hien CTV Ngung"
+- English: "Show Inactive"
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `templates/admin.html` | Added toggle switch UI, CSS, updated JS functions, added translations |
+
+---
+
+## Version 2.0.5 - December 30, 2025
+
+### Hierarchy Tree Loading Indicator
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Added a loading spinner indicator to the Hierarchy Tree page (Cay Cap Bac) to provide visual feedback while the tree data is being fetched from the server.
+
+#### Changes Made
+
+**1. Added Loading Spinner CSS**
+- New `.hierarchy-loading` class with flexbox centering
+- `.hierarchy-spinner` with rotating animation
+- Loading text and subtext styles
+- `@keyframes hierarchySpin` animation
+
+**2. Added Loading HTML Element**
+- Spinner div with loading text
+- Subtext explaining the wait for large trees
+- Placed between the tree wrapper and placeholder
+
+**3. Updated `loadHierarchy()` Function**
+- Shows loading indicator immediately when function starts
+- Hides placeholder and wrapper during load
+- Hides loading indicator when data arrives or on error
+- Added try/catch error handling
+
+**4. Added Translations**
+- Vietnamese: "Dang tai cay cap bac...", "Vui long doi, co the mat mot luc cho cay lon"
+- English: "Loading hierarchy tree...", "Please wait, this may take a moment for large trees"
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `templates/admin.html` | Added CSS for loading spinner, added loading HTML element, updated loadHierarchy() function, added translations |
+
+---
+
+## Version 2.0.4 - December 30, 2025
+
+### Earnings Filter - Changed from Level Filter to Time Period Filter
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Changed the earnings page filter dropdown from filtering by commission level (Level 0-4) to filtering by time periods (Today, This Month, 3 Months, This Year, Custom).
+
+#### Changes Made
+
+**1. Replaced Level Filter with Time Period Filter**
+- Changed `earningsLevelFilter` select to `earningsTimeFilter`
+- Options now: Custom, Today, This Month, 3 Months, This Year
+- Time filter dropdown moved to appear before the date inputs
+
+**2. Auto Date Range Selection**
+- Selecting a time period automatically sets the From/To date inputs
+- Today: Sets both dates to current date
+- This Month: From 1st of current month to today
+- 3 Months: From 1st of 3 months ago to today
+- This Year: From January 1st to today
+- Custom: Keeps manual date inputs unchanged
+
+**3. Smart Custom Detection**
+- When user manually changes date inputs, dropdown auto-switches to "Custom"
+
+**4. Removed Level Filtering**
+- `loadAllCommissions()` no longer accepts or passes `level` parameter
+- Backend API call no longer includes level filter
+
+**5. Added Translations**
+- Vietnamese: Tuy chinh, Hom nay, 3 thang, Nam nay
+- English: Custom, Today, 3 Months, This Year
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `templates/ctv_portal.html` | Changed filter dropdown, added `applyTimeFilter()` function, updated `filterCommissions()` and `loadAllCommissions()` functions, added translations |
+
+---
+
+## Version 2.0.3 - December 30, 2025
+
+### UI Update - Language Toggle Moved to Sidebar
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Moved the language toggle (VI/EN) from the fixed top-right corner to the sidebar menu, next to the logout button. The new design shows a single toggle button that opens a popup menu to select between Vietnamese and English.
+
+#### Changes Made
+
+**1. Removed Old Language Toggle**
+- Removed fixed position toggle buttons from top-right corner
+- Removed old `.lang-toggle` and `.lang-btn` CSS styles
+
+**2. New Sidebar Language Button**
+- Added globe icon with current language label (VI/EN) in sidebar
+- Positioned between Settings and Logout icons
+- Shows tooltip "Ngon Ngu" (VI) / "Language" (EN) on hover
+
+**3. Language Popup Menu**
+- Click the globe icon to open popup menu
+- Popup slides in from the left of the icon
+- Options: Vietnamese (VN flag) and English (US flag)
+- Active language shows checkmark indicator
+- Click outside to close popup
+
+**4. Login Page Language Toggle**
+- Added floating language button in top-right corner for login page
+- Same popup style as sidebar version
+- Shows current language (VI/EN) with globe icon
+- Popup appears below the button
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `templates/ctv_portal.html` | Removed old lang-toggle, added sidebar-lang component, added login page toggle, updated CSS and JavaScript |
+
+#### UI Components Added
+
+**Sidebar Language Switcher:**
+```html
+<div class="sidebar-lang" id="langSwitcher">
+    <div class="sidebar-icon">
+        <svg>...</svg>  <!-- Globe icon -->
+        <span class="lang-current">VI</span>
+    </div>
+    <div class="lang-popup">
+        <div class="lang-option" data-lang="vi">VN Tieng Viet</div>
+        <div class="lang-option" data-lang="en">US English</div>
+    </div>
+</div>
+```
+
+**Login Page Language Button:**
+```html
+<div class="login-lang-toggle">
+    <div class="login-lang-btn">
+        <svg>...</svg>  <!-- Globe icon -->
+        <span>VI</span>
+    </div>
+    <div class="login-lang-popup">...</div>
+</div>
+```
+
+#### JavaScript Functions Added
+
+| Function | Description |
+|----------|-------------|
+| `toggleLangPopup(e)` | Toggle sidebar language popup |
+| `toggleLoginLangPopup(e)` | Toggle login page language popup |
+| `selectLanguage(lang)` | Select language and close popup |
+
+#### Translation Keys Added
+
+| Key | Vietnamese | English |
+|-----|-----------|---------|
+| `language` | Ngon Ngu | Language |
+| `choose_language` | Chon Ngon Ngu | Choose Language |
+
+---
+
+## Version 2.0.2 - December 30, 2025
+
+### Feature - Filter Valid CTVs Migration Script
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Created a migration script to filter the CTV database to only keep valid CTVs from a provided CSV file. Invalid CTVs are deactivated (cannot login) but their records remain in the database to preserve client service associations.
+
+#### Migration Script
+
+**File:** `filter_valid_ctv.py`
+
+**Features:**
+- Preview mode (default): Shows what changes would be made without modifying the database
+- Execute mode: Applies the changes after confirmation
+- Case-insensitive CTV code matching
+- Updates valid CTVs with details from CSV (name, phone, email, rank, referrer)
+- Deactivates invalid CTVs by setting `is_active = 0` and clearing `password_hash`
+- Preserves all `khach_hang.nguoi_chot` links (client-to-CTV associations remain intact)
+
+**Usage:**
+```bash
+python3 filter_valid_ctv.py          # Preview mode (no changes)
+python3 filter_valid_ctv.py execute  # Apply changes (requires confirmation)
+```
+
+#### Results
+
+| CTV Status | Count | Login Access | Client Links |
+|------------|-------|--------------|--------------|
+| Valid (in CSV) | 52 | YES | Preserved |
+| Invalid (not in CSV) | 94 | NO (deactivated) | Preserved |
+
+#### Database Changes
+
+```sql
+-- For 52 valid CTVs from CSV
+UPDATE ctv SET is_active = 1, ten = ?, sdt = ?, email = ?, cap_bac = ?, nguoi_gioi_thieu = ?
+WHERE LOWER(ma_ctv) = LOWER(?);
+
+-- For 94 invalid CTVs
+UPDATE ctv SET is_active = 0, password_hash = NULL
+WHERE ma_ctv NOT IN (valid_codes);
+```
+
+#### Security
+
+The existing auth system already blocks deactivated CTVs from logging in:
+
+**File:** `modules/auth.py` (lines 596-601)
+```python
+if not ctv.get('is_active', True):
+    return {'error': 'Account is deactivated'}
+```
+
+#### Files Created
+
+| File | Description |
+|------|-------------|
+| `filter_valid_ctv.py` | Migration script with preview and execute modes |
+
+---
+
+## Version 2.0.1 - December 30, 2025
+
+### Changed - MLM Tree Level Display from L1-L5 to L0-L4
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Updated the MLM network tree level badges to display L0-L4 instead of L1-L5 to match the actual database level values (0-4).
+
+#### Files Modified
+
+1. **`templates/admin.html`**
+   - Updated CSS level badge classes from `.l1-.l5` to `.l0-.l4`
+   - Updated `renderTree()` function to use `node.level` directly instead of `node.level + 1`
+   - Updated comments to reflect L0-L4 mapping
+
+2. **`templates/ctv_portal.html`**
+   - Updated CSS level badge classes from `.l1-.l5` to `.l0-.l4`
+   - Updated `renderTree()` function to use `node.level` directly instead of `node.level + 1`
+   - Updated comments to reflect L0-L4 mapping
+
+#### Visual Change
+
+| Before | After |
+|--------|-------|
+| L1 (red) | L0 (red) |
+| L2 (orange) | L1 (orange) |
+| L3 (green) | L2 (green) |
+| L4 (blue) | L3 (blue) |
+| L5 (purple) | L4 (purple) |
+
+---
+
+## Version 2.0.0 - December 30, 2025
+
+### Removed - Customers Page from CTV Portal
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Completely removed the "Khach Hang" (Customers) page from the CTV Portal sidebar navigation. This page is no longer needed.
+
+#### Files Modified
+
+1. **`templates/ctv_portal.html`**
+   - Removed customers sidebar icon from navigation
+   - Removed customers page HTML section (`#page-customers`)
+   - Removed customer table CSS styles (`.customer-table`)
+   - Removed `loadMyCustomers()` JavaScript function
+   - Removed `setDefaultDateFilters()` JavaScript function
+   - Removed customers navigation handlers
+   - Removed customers-related translation strings (Vietnamese and English)
+
+#### Reason
+
+Page functionality no longer needed in the CTV Portal.
+
+---
+
+## Version 1.9.9 - December 30, 2025
+
+### UX Improvement - Stats Loading Skeleton
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Added skeleton loading animation to the dashboard stats cards (Total Earnings, Monthly Earnings, Network Size, Services This Month) to improve user experience during data loading.
+
+#### Features Added
+
+1. **Skeleton Loading Animation**
+   - Smooth shimmer animation while stats are loading
+   - Color-coded skeletons matching each stat card's theme (green, blue, gold, pink)
+   - Responsive skeleton sizes for mobile devices
+
+2. **User Experience**
+   - Users now see animated loading placeholders instead of confusing "0d" values
+   - Clear visual feedback that data is being fetched
+
+#### Files Modified
+
+1. **`templates/ctv_portal.html`**
+   - Added CSS keyframe animation `skeleton-shimmer`
+   - Added `.skeleton-loader` class with responsive styles
+   - Added color-themed skeleton variants for each stat card type
+   - Updated initial stat card HTML to show skeleton loaders instead of zeros
+
+---
+
+## Version 1.9.8 - December 30, 2025
+
+### Feature - Date Filter for Hoa Hong (Commission) Page
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Added date filtering functionality to the Hoa Hong (Earnings/Commission) page in the CTV Portal. Users can now filter their commissions by date range and level.
+
+#### Features Added
+
+1. **Date Filter UI**
+   - From date picker (default: first day of current month)
+   - To date picker (default: today)
+   - Level dropdown filter (All Levels, Level 0-4)
+   - Filter button to apply filters
+
+2. **Default Date Range**
+   - When opening the Hoa Hong page, the filter automatically defaults to:
+     - From: First day of current month
+     - To: Today's date
+
+3. **Commission List Display**
+   - Added "Tat Ca Hoa Hong" (All Commissions) section showing individual commission entries
+   - Each entry shows level, rate, date, amount, and tooltip with CTV/customer/service details
+
+#### Files Modified
+
+1. **`templates/ctv_portal.html`**
+   - Added date filter card with date inputs, level dropdown, and filter button
+   - Added commission list card section
+   - Updated `loadAllCommissions()` function to accept date and level parameters
+   - Added `filterCommissions()` function to handle filter button click
+   - Added `setEarningsDefaultDateFilter()` function to set default dates
+   - Added translation keys: `all_levels` (Vietnamese/English)
+
+2. **`modules/ctv_routes.py`**
+   - Updated `/api/ctv/my-commissions` endpoint to support `from_date` and `to_date` query parameters
+   - Date range filter takes priority over legacy `month` parameter
+   - Both commission list and summary respect the date filters
+
+#### API Changes
+
+`GET /api/ctv/my-commissions` now supports:
+- `?from_date=2025-12-01&to_date=2025-12-31` (new date range filter)
+- `?level=1` (filter by commission level)
+- `?month=2025-12` (legacy, still supported but lower priority)
+
+---
+
+## Version 1.9.7 - December 30, 2025
+
+### Removed - Search Page from CTV Portal
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Completely removed the "Tim Kiem" (Search) page from the CTV Portal sidebar navigation.
+
+#### Files Modified
+
+1. **`templates/ctv_portal.html`**
+   - Removed search sidebar icon from navigation
+   - Removed search page HTML section (`#page-search`)
+   - Removed search-related CSS styles (`.search-container`, `.search-input`, `.result-item`)
+   - Removed search JavaScript functions (`searchTimeout`, `performSearch`)
+   - Removed search translation strings (Vietnamese and English)
+
+2. **`modules/ctv_routes.py`**
+   - Removed `/api/ctv/my-network/search` endpoint
+   - Removed `search_my_network()` function
+   - Removed route comment from header documentation
+
+#### Reason
+
+Page functionality no longer needed in the CTV Portal.
+
+---
+
+## Version 1.9.6 - December 30, 2025
+
+### Feature Update - Dashboard Stat Card Change
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Change
+
+Changed the pink stat card on CTV Portal dashboard from "Truc Tiep (Level 1)" (direct downline count) to "Dich Vu Thang Nay" (Services This Month).
+
+#### Files Modified
+
+1. **`modules/ctv_routes.py`** - `/api/ctv/me` endpoint
+   - Added new query to count completed services this month
+   - Added `monthly_services_count` to stats response
+
+2. **`templates/ctv_portal.html`**
+   - Changed stat card label from `direct_level1` to `services_this_month`
+   - Changed element ID from `statDirectCount` to `statMonthlyServices`
+   - Updated JavaScript to use `monthly_services_count` stat
+   - Added translations for Vietnamese and English
+
+#### Technical Details
+
+**New Backend Query:**
+```sql
+SELECT COUNT(*) as count
+FROM khach_hang
+WHERE nguoi_chot = %s 
+AND trang_thai = 'Da den lam'
+AND DATE_FORMAT(ngay_hen_lam, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+```
+
+- Counts services where `nguoi_chot` = logged-in CTV
+- Only counts completed services (`trang_thai = 'Da den lam'`)
+- Filters by current month based on `ngay_hen_lam` (service date)
+
+---
+
+## Version 1.9.5 - December 30, 2025
+
+### Bug Fix - Monthly Earnings Calculation
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Problem
+
+"Tong Thu Nhap" (Total Earnings) and "Thu Nhap Thang Nay" (This Month's Income) were displaying the same value on the CTV Portal dashboard.
+
+#### Root Cause
+
+The monthly earnings query was filtering by `created_at` (when the commission record was inserted into the database) instead of the actual transaction/service date. If all commissions were imported or migrated at the same time, they would all have the same `created_at` timestamp, making total = monthly.
+
+#### Solution
+
+Updated the monthly earnings SQL query to join with `khach_hang` table and use `ngay_hen_lam` (actual scheduled service date) for filtering.
+
+**File:** `modules/ctv_routes.py`
+
+**Before:**
+```sql
+SELECT COALESCE(SUM(commission_amount), 0) as total
+FROM commissions 
+WHERE ctv_code = %s 
+AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+```
+
+**After:**
+```sql
+SELECT COALESCE(SUM(c.commission_amount), 0) as total
+FROM commissions c
+LEFT JOIN khach_hang kh ON c.transaction_id = kh.id
+WHERE c.ctv_code = %s 
+AND DATE_FORMAT(COALESCE(kh.ngay_hen_lam, c.created_at), '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+```
+
+#### Technical Details
+
+- Uses `LEFT JOIN` to link commissions to their source transaction in `khach_hang`
+- Uses `COALESCE(kh.ngay_hen_lam, c.created_at)` as fallback if transaction record doesn't exist
+- Filters by the actual service month, not the commission insertion date
+
+---
+
+## Version 1.9.4 - December 30, 2025
+
+### Admin Panel Security Update - Hidden URL
+
+**Time:** December 30, 2025 - Night
+
+---
+
+#### Overview
+
+Removed the admin login button from the main dashboard sidebar and changed the admin URL to a secret path (`/admin89`) for security purposes.
+
+#### Changes Made
+
+**1. Removed Admin Button from Dashboard**
+
+**File:** `dashboard.html`
+- Removed the admin panel button (gear icon) from the sidebar
+- Removed associated CSS styles for `.sidebar-icon.admin-login`
+- Removed `admin_panel` translation keys from both VI and EN translations
+
+**2. Changed Admin URL**
+
+**File:** `modules/admin_routes.py`
+- Changed `/admin/dashboard` to `/admin89` (main dashboard page)
+- Changed `/admin/login` to `/admin89/login`
+- Changed `/admin/logout` to `/admin89/logout`
+- Changed `/admin/check-auth` to `/admin89/check-auth`
+- Updated module structure map comments
+
+**3. Updated Admin HTML Template**
+
+**File:** `templates/admin.html`
+- Updated login API call from `/admin/login` to `/admin89/login`
+- Updated logout API call from `/admin/logout` to `/admin89/logout`
+- Updated auth check API call from `/admin/check-auth` to `/admin89/check-auth`
+
+#### Access Instructions
+
+- **Admin Dashboard:** Navigate directly to `/admin89`
+- No visible button on the main site - URL must be remembered
+
+---
+
+## Version 1.9.3 - December 30, 2025
+
+### Vietnamese Translation Update - Phone Check Feature
+
+**Time:** December 30, 2025 - Evening
+
+---
+
+#### Changes
+
+Updated phone check feature with proper Vietnamese accents:
+
+**Dashboard (dashboard.html):**
+- Placeholder: "Doi Chieu SDT..." → "Nhập SDT Cần Kiểm Tra"
+- Button: "Doi Chieu" → "Kiểm Tra Trùng Lặp"
+- Sidebar tooltip: "Doi Chieu" → "Kiểm Tra Trùng Lặp"
+- Translation keys updated with Vietnamese accents
+
+**CTV Portal (ctv_portal.html):**
+- Title: "Doi Chieu So Dien Thoai" → "Kiểm Tra Trùng Lặp Số Điện Thoại"
+- Button: "Doi Chieu" → "Kiểm Tra Trùng Lặp"
+- Placeholder: "Nhap so dien thoai..." → "Nhập SDT Cần Kiểm Tra"
+- All translation keys updated with Vietnamese accents
+
+---
+
 ## Version 1.9.2 - December 30, 2025
 
 ### Activity Logs - Grouped View & Suspicious IP Detection
@@ -1348,7 +2329,6 @@ CTV API Endpoints:
 - `GET /api/ctv/my-commissions` - Own commission earnings
 - `GET /api/ctv/my-downline` - Direct referrals (Level 1)
 - `GET /api/ctv/my-hierarchy` - Full descendant tree
-- `GET /api/ctv/my-network/search` - Search within network
 - `GET /api/ctv/my-network/customers` - Customers in network
 - `GET /api/ctv/my-stats` - Detailed statistics
 

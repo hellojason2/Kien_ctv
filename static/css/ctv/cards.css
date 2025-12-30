@@ -1,0 +1,243 @@
+/**
+ * CTV Portal - Cards Styles
+ * DOES: Styles for stat cards, commission cards, and card components
+ */
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Stat Card */
+.stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.stat-card.green::before { background: #22c55e; }
+.stat-card.blue::before { background: #3b82f6; }
+.stat-card.gold::before { background: #d97706; }
+.stat-card.pink::before { background: #ec4899; }
+
+.stat-card .label {
+    font-size: 13px;
+    color: #666666;
+    margin-bottom: 8px;
+}
+
+.stat-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+/* Card Component */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* Commission Item */
+.commission-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+    cursor: pointer;
+}
+
+.commission-item:last-child {
+    border-bottom: none;
+}
+
+.commission-item .left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.commission-item .level-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.commission-item .info {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.commission-item .date {
+    font-size: 12px;
+    color: #666666;
+    margin-top: 2px;
+}
+
+.commission-item .amount {
+    font-size: 15px;
+    font-weight: 600;
+    color: #22c55e;
+}
+
+/* Commission Tooltip */
+.commission-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    z-index: 10;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.commission-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a1a1a;
+}
+
+.commission-item:hover .commission-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.tooltip-row:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-label {
+    color: #888888;
+}
+
+.tooltip-value {
+    font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666666;
+    font-size: 14px;
+}
+
+/* Skeleton Loader */
+.skeleton-loader {
+    display: inline-block;
+    width: 80px;
+    height: 24px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Phone Check Card */
+.phone-check-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.phone-check-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.phone-check-row input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.phone-check-row input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.phone-check-row .result {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.phone-check-row .result.trung {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.phone-check-row .result.khong-trung {
+    background: #dcfce7;
+    color: #16a34a;
+}
+

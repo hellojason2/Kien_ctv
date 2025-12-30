@@ -313,7 +313,7 @@ def get_all_descendants(ctv_code, connection=None):
     INPUTS: ctv_code
     OUTPUTS: Set of all CTV codes in the network
     
-    Used to filter search results to only show data within CTV's network
+    OPTIMIZED: Loads all CTV relationships into memory once to avoid N+1 queries.
     """
     should_close = False
     if connection is None:
@@ -326,22 +326,33 @@ def get_all_descendants(ctv_code, connection=None):
     try:
         cursor = connection.cursor()
         
-        descendants = {ctv_code}
-        to_process = [ctv_code]
+        # Fetch all active CTV relationships in one query
+        cursor.execute("SELECT ma_ctv, nguoi_gioi_thieu FROM ctv WHERE is_active = TRUE OR is_active IS NULL")
+        all_rows = cursor.fetchall()
         
-        while to_process:
-            current = to_process.pop(0)
-            cursor.execute("""
-                SELECT ma_ctv FROM ctv 
-                WHERE nguoi_gioi_thieu = %s AND (is_active = TRUE OR is_active IS NULL);
-            """, (current,))
-            children = cursor.fetchall()
+        # Build adjacency list
+        children_map = {}
+        for row in all_rows:
+            # Handle tuple result (ma_ctv, nguoi_gioi_thieu)
+            child = row[0]
+            parent = row[1]
             
-            for child in children:
-                child_code = child[0]
-                if child_code not in descendants:
-                    descendants.add(child_code)
-                    to_process.append(child_code)
+            if parent:
+                if parent not in children_map:
+                    children_map[parent] = []
+                children_map[parent].append(child)
+        
+        # BFS traversal in memory
+        descendants = {ctv_code}
+        queue = [ctv_code]
+        
+        while queue:
+            current = queue.pop(0)
+            if current in children_map:
+                for child in children_map[current]:
+                    if child not in descendants:
+                        descendants.add(child)
+                        queue.append(child)
         
         cursor.close()
         if should_close:
@@ -502,9 +513,38 @@ def calculate_khach_hang_commission(ctv_code, from_date=None, to_date=None, conn
         cursor = connection.cursor(dictionary=True)
         commission_rates = get_commission_rates(connection)
         
-        # Get all descendants for level 1-4 commissions
-        all_network = get_all_descendants(ctv_code, connection)
+        # Fetch all active CTV relationships in one query
+        cursor.execute("SELECT ma_ctv, nguoi_gioi_thieu FROM ctv WHERE is_active = TRUE OR is_active IS NULL")
+        all_rows = cursor.fetchall()
         
+        # Build adjacency list
+        children_map = {}
+        for row in all_rows:
+            child = row[0]
+            parent = row[1]
+            if parent:
+                if parent not in children_map:
+                    children_map[parent] = []
+                children_map[parent].append(child)
+        
+        # BFS to group descendants by level
+        level_groups = {0: [], 1: [], 2: [], 3: [], 4: []}
+        queue = [(ctv_code, 0)]
+        visited = {ctv_code}
+        
+        while queue:
+            current_code, current_level = queue.pop(0)
+            
+            if current_level <= MAX_LEVEL:
+                level_groups[current_level].append(current_code)
+                
+                # Add children
+                if current_code in children_map:
+                    for child in children_map[current_code]:
+                        if child not in visited:
+                            visited.add(child)
+                            queue.append((child, current_level + 1))
+
         result = {
             'by_level': [],
             'total_commission': 0,
@@ -513,13 +553,7 @@ def calculate_khach_hang_commission(ctv_code, from_date=None, to_date=None, conn
         
         # Calculate for each level (0-4)
         for level in range(MAX_LEVEL + 1):
-            # Get CTVs at this level relative to ctv_code
-            level_ctv_list = []
-            
-            for descendant_code in all_network:
-                desc_level = calculate_level(cursor, descendant_code, ctv_code)
-                if desc_level == level:
-                    level_ctv_list.append(descendant_code)
+            level_ctv_list = level_groups[level]
             
             if not level_ctv_list:
                 continue
@@ -647,6 +681,8 @@ def get_network_stats(ctv_code, connection=None):
     """
     DOES: Get statistics for a CTV's network
     OUTPUTS: Dict with counts by level
+    
+    OPTIMIZED: Uses in-memory BFS to calculate levels and totals in one pass.
     """
     should_close = False
     if connection is None:
@@ -657,28 +693,60 @@ def get_network_stats(ctv_code, connection=None):
         return {'total': 0, 'by_level': {}}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor()
         
-        # Get all descendants with their levels
-        descendants = get_all_descendants(ctv_code, connection)
+        # Fetch all active CTV relationships in one query
+        cursor.execute("SELECT ma_ctv, nguoi_gioi_thieu FROM ctv WHERE is_active = TRUE OR is_active IS NULL")
+        all_rows = cursor.fetchall()
         
+        # Build adjacency list
+        children_map = {}
+        for row in all_rows:
+            child = row[0]
+            parent = row[1]
+            
+            if parent:
+                if parent not in children_map:
+                    children_map[parent] = []
+                children_map[parent].append(child)
+        
+        # BFS to calculate stats
         by_level = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+        total_descendants = 0 # Excluding self
         
-        for desc_code in descendants:
-            level = calculate_level(cursor, desc_code, ctv_code)
-            if level is not None and level <= MAX_LEVEL:
-                by_level[level] = by_level.get(level, 0) + 1
+        # Queue stores (ctv_code, level)
+        queue = [(ctv_code, 0)]
+        visited = {ctv_code}
+        
+        while queue:
+            current_code, current_level = queue.pop(0)
+            
+            # Update stats (skip level 0 for total count as it's self)
+            if current_level > 0:
+                total_descendants += 1
+                if current_level <= MAX_LEVEL:
+                    by_level[current_level] = by_level.get(current_level, 0) + 1
+            elif current_level == 0:
+                by_level[0] = 1 # Count self in level 0
+            
+            # Add children to queue
+            if current_code in children_map:
+                for child in children_map[current_code]:
+                    if child not in visited:
+                        visited.add(child)
+                        queue.append((child, current_level + 1))
         
         cursor.close()
         if should_close:
             connection.close()
         
         return {
-            'total': len(descendants),
+            'total': total_descendants + 1, # Include self in total to match original logic (len(descendants) included self)
             'by_level': by_level
         }
         
-    except Error:
+    except Error as e:
+        print(f"Error getting network stats: {e}")
         if should_close and connection:
             connection.close()
         return {'total': 0, 'by_level': {}}

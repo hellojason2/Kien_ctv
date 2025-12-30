@@ -154,6 +154,11 @@
             overflow: hidden;
         }
 
+        /* Hide language toggle when dashboard is active */
+        body:has(.dashboard.active) .lang-toggle {
+            display: none;
+        }
+
         .lang-btn {
             padding: 8px 16px;
             border: none;
@@ -457,6 +462,46 @@
         .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
         .badge-inactive { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
 
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            user-select: none;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .toggle-slider {
+            width: 44px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            position: relative;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent-primary);
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
         /* Commission Settings */
         .commission-grid {
             display: grid;
@@ -724,11 +769,12 @@
             font-weight: 600;
         }
 
-        .level-badge.l1 { background: #ff6b6b; color: #fff; }
-        .level-badge.l2 { background: #ffa502; color: #000; }
-        .level-badge.l3 { background: #2ed573; color: #000; }
-        .level-badge.l4 { background: #1e90ff; color: #fff; }
-        .level-badge.l5 { background: #a55eea; color: #fff; }
+        /* Level badges L0-L4 (matches database levels) */
+        .level-badge.l0 { background: #ff6b6b; color: #fff; }
+        .level-badge.l1 { background: #ffa502; color: #000; }
+        .level-badge.l2 { background: #2ed573; color: #000; }
+        .level-badge.l3 { background: #1e90ff; color: #fff; }
+        .level-badge.l4 { background: #a55eea; color: #fff; }
 
         .cutoff-badge {
             font-size: 0.65rem;
@@ -864,20 +910,60 @@
             gap: 12px;
         }
 
+        /* Top Earners Table - 3 Column Layout */
+        .earner-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+
+        .earner-header .header-name {
+            text-align: left;
+        }
+
+        .earner-header .header-revenue,
+        .earner-header .header-commission {
+            text-align: right;
+        }
+
         .earner-row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
             align-items: center;
             padding: 12px;
             background: var(--bg-tertiary);
             border-radius: 8px;
         }
 
+        .earner-row .earner-info {
+            display: flex;
+            flex-direction: column;
+        }
+
         .earner-row .name {
             font-weight: 600;
         }
 
-        .earner-row .amount {
+        .earner-row .code {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .earner-row .revenue {
+            text-align: right;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .earner-row .commission {
+            text-align: right;
             color: var(--accent-green);
             font-weight: 600;
         }
@@ -887,6 +973,47 @@
             text-align: center;
             padding: 40px;
             color: var(--text-secondary);
+        }
+
+        /* Loading Spinner for Hierarchy */
+        .hierarchy-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .hierarchy-loading.active {
+            display: flex;
+        }
+        
+        .hierarchy-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--surface-elevated);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: hierarchySpin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes hierarchySpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hierarchy-loading-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .hierarchy-loading-subtext {
+            color: var(--text-secondary);
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 8px;
         }
 
         /* Responsive - Tablet */
@@ -1557,14 +1684,22 @@
                 <div class="header">
                     <h2 data-i18n="ctv_management">CTV Management</h2>
                     <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/ctv/export')" data-i18n="export_excel">Export Excel</button>
                         <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add CTV</button>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <div class="search-box">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder" placeholder="Search by name, email, phone...">
+                        <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+                            <div class="search-box" style="margin-bottom:0;flex:1;min-width:200px">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder" placeholder="Search by name, email, phone...">
+                            </div>
+                            <label class="toggle-switch" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                <input type="checkbox" id="showInactiveCTV" onchange="loadCTVList()">
+                                <span class="toggle-slider"></span>
+                                <span data-i18n="show_inactive">Show Inactive</span>
+                            </label>
                         </div>
                         <div class="table-container">
                             <table>
@@ -1643,6 +1778,13 @@
                             </div>
                         </div>
                         
+                        <!-- Loading Indicator -->
+                        <div class="hierarchy-loading" id="hierarchyLoading">
+                            <div class="hierarchy-spinner"></div>
+                            <div class="hierarchy-loading-text" data-i18n="loading_hierarchy">Loading hierarchy tree...</div>
+                            <div class="hierarchy-loading-subtext" data-i18n="loading_please_wait">Please wait, this may take a moment for large trees</div>
+                        </div>
+                        
                         <!-- Placeholder when no CTV selected -->
                         <div id="hierarchyPlaceholder" class="loading" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
                             <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 16px; opacity: 0.5;"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
@@ -1655,48 +1797,47 @@
             <!-- Commissions Page -->
             <div class="page-section" id="page-commissions">
                 <div class="header">
-                    <h2 data-i18n="commission_reports">Commission Reports</h2>
+                    <h2 data-i18n="commission_reports">Hoa Hong</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportCommissionsExcel()" data-i18n="export_excel">Export Excel</button>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+                        <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end;">
                             <div class="form-group" style="flex:1; min-width:150px;">
-                                <label data-i18n="filter_ctv">Filter by CTV</label>
-                                <select id="commissionCtvFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                    <option value="" data-i18n="all_ctvs">All CTVs</option>
-                                </select>
-                            </div>
-                            <div class="form-group" style="flex:1; min-width:150px;">
-                                <label data-i18n="filter_month">Filter by Month</label>
+                                <label data-i18n="filter_month">Loc Theo Thang</label>
                                 <input type="month" id="commissionMonthFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
                             </div>
-                            <div class="form-group" style="flex:1; min-width:150px;">
-                                <label data-i18n="filter_level">Filter by Level</label>
-                                <select id="commissionLevelFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
-                                    <option value="" data-i18n="all_levels">All Levels</option>
-                                    <option value="0">Level 0 (Self)</option>
-                                    <option value="1">Level 1</option>
-                                    <option value="2">Level 2</option>
-                                    <option value="3">Level 3</option>
-                                    <option value="4">Level 4</option>
-                                </select>
+                        </div>
+                        <!-- Grand Total Summary -->
+                        <div id="commissionGrandTotal" style="display:flex; gap:20px; margin-bottom:20px; padding:16px; background:var(--bg-tertiary); border-radius:12px; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:150px;">
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong CTV</div>
+                                <div id="totalCtvCount" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Dich Vu</div>
+                                <div id="grandTotalService" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Hoa Hong</div>
+                                <div id="grandTotalCommission" style="font-size:24px; font-weight:700; color:var(--accent-green);">0</div>
                             </div>
                         </div>
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>CTV</th>
-                                        <th data-i18n="level">Level</th>
-                                        <th data-i18n="rate">Rate</th>
-                                        <th data-i18n="transaction">Transaction</th>
-                                        <th data-i18n="commission">Commission</th>
-                                        <th data-i18n="date">Date</th>
+                                        <th>Ma CTV</th>
+                                        <th>Ten CTV</th>
+                                        <th>SDT</th>
+                                        <th>Tong Dich Vu</th>
+                                        <th>Tong Hoa Hong</th>
                                     </tr>
                                 </thead>
                                 <tbody id="commissionsTableBody">
-                                    <tr><td colspan="7" class="loading" data-i18n="loading">Loading...</td></tr>
+                                    <tr><td colspan="5" class="loading" data-i18n="loading">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1709,6 +1850,7 @@
                 <div class="header">
                     <h2 data-i18n="commission_settings">Commission Settings</h2>
                     <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/commission-settings/export')" data-i18n="export_excel">Export Excel</button>
                         <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes">Save Changes</button>
                     </div>
                 </div>
@@ -1728,7 +1870,10 @@
             <div class="page-section" id="page-clients">
                 <div class="header">
                     <h2 data-i18n="client_management">Client Management</h2>
-                    <div id="clientsCount" style="color: var(--text-secondary); font-size: 14px;"></div>
+                    <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+                        <div id="clientsCount" style="color: var(--text-secondary); font-size: 14px;"></div>
+                        <button class="btn btn-secondary" onclick="exportClientsExcel()" data-i18n="export_excel">Export Excel</button>
+                    </div>
                 </div>
                 <!-- Search Bar -->
                 <div class="client-search-container">
@@ -1753,6 +1898,7 @@
                 <div class="header">
                     <h2 data-i18n="activity_logs">Activity Logs</h2>
                     <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="exportActivityLogsExcel()" data-i18n="export_excel">Export Excel</button>
                         <button class="btn btn-secondary" onclick="exportActivityLogs()" data-i18n="export_csv">Export CSV</button>
                         <button class="btn btn-secondary" onclick="refreshActivityLogs()" data-i18n="refresh">Refresh</button>
                     </div>
@@ -1949,7 +2095,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            const result = await api('/admin/login', {
+            const result = await api('/admin89/login', {
                 method: 'POST',
                 body: JSON.stringify({ username, password })
             });
@@ -1966,17 +2112,23 @@
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async (e) => {
             e.preventDefault();
-            await api('/admin/logout', { method: 'POST' });
+            await api('/admin89/logout', { method: 'POST' });
             authToken = null;
             localStorage.removeItem('adminToken');
             document.getElementById('loginPage').style.display = 'flex';
             document.getElementById('dashboard').classList.remove('active');
+            // Show language toggle again on logout
+            const langToggle = document.querySelector('.lang-toggle');
+            if (langToggle) langToggle.style.display = 'flex';
         });
 
         // Show Dashboard
         async function showDashboard() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
+            // Hide language toggle when dashboard is active
+            const langToggle = document.querySelector('.lang-toggle');
+            if (langToggle) langToggle.style.display = 'none';
             await loadStats();
             await loadCTVList();
             await loadCommissionSettings();
@@ -1986,7 +2138,7 @@
         async function checkAuth() {
             // Always check with server - auth might be via cookie even without localStorage token
             try {
-                const result = await api('/admin/check-auth');
+                const result = await api('/admin89/check-auth');
                 if (result.authenticated) {
                     // Update authToken if we got authenticated via cookie
                     if (!authToken && result.user) {
@@ -2014,18 +2166,30 @@
                 document.getElementById('statMonthlyTx').textContent = s.monthly_transactions;
                 document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue);
                 
-                // Top earners
+                // Top earners with revenue and commission columns
                 const topEarnersEl = document.getElementById('topEarners');
                 if (s.top_earners.length > 0) {
-                    topEarnersEl.innerHTML = s.top_earners.map(e => `
-                        <div class="earner-row">
-                            <div>
-                                <div class="name">${e.ten}</div>
-                                <div style="font-size:12px;color:var(--text-secondary)">${e.ctv_code}</div>
-                            </div>
-                            <div class="amount">${formatCurrency(e.total_earned)}</div>
+                    topEarnersEl.innerHTML = `
+                        <div class="earner-header">
+                            <div class="header-name" data-i18n="ctv_name">CTV</div>
+                            <div class="header-revenue" data-i18n="total_revenue">Total Revenue</div>
+                            <div class="header-commission" data-i18n="total_commission">Total Commission</div>
                         </div>
-                    `).join('');
+                        ${s.top_earners.map(e => `
+                        <div class="earner-row">
+                            <div class="earner-info">
+                                <div class="name">${e.ten}</div>
+                                <div class="code">${e.ctv_code}</div>
+                            </div>
+                            <div class="revenue">${formatCurrency(e.total_revenue)}</div>
+                            <div class="commission">${formatCurrency(e.total_commission)}</div>
+                        </div>
+                        `).join('')}
+                    `;
+                    // Apply translations to dynamically added elements
+                    if (typeof applyTranslations === 'function') {
+                        applyTranslations();
+                    }
                 } else {
                     topEarnersEl.innerHTML = '<div style="color:var(--text-secondary)">No earnings this month</div>';
                 }
@@ -2034,11 +2198,17 @@
 
         // Load CTV List
         async function loadCTVList() {
-            const result = await api('/api/admin/ctv');
+            // Check if we should show inactive CTVs
+            const showInactive = document.getElementById('showInactiveCTV')?.checked || false;
+            const activeOnly = !showInactive;
+            
+            const result = await api(`/api/admin/ctv?active_only=${activeOnly}`);
             if (result.status === 'success') {
                 allCTV = result.data;
                 renderCTVTable(allCTV);
-                populateCTVSelects();
+                // For dropdowns, only use active CTVs for better UX
+                const activeCTV = showInactive ? result.data.filter(c => c.is_active !== false) : result.data;
+                populateCTVSelects(activeCTV);
             }
         }
 
@@ -2064,8 +2234,10 @@
             `).join('');
         }
 
-        function populateCTVSelects() {
-            const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
+        function populateCTVSelects(ctvList = null) {
+            // Use provided list or fall back to allCTV (filtered to active only for dropdowns)
+            const listForDropdowns = ctvList || allCTV.filter(c => c.is_active !== false);
+            const options = listForDropdowns.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
             
             // Populate regular dropdowns
             document.getElementById('commissionCtvFilter').innerHTML = `<option value="">${t('all_ctvs')}</option>` + options;
@@ -2090,6 +2262,9 @@
             
             // Input events
             input.addEventListener('focus', () => {
+                // Clear the input when clicked/focused so user can search fresh
+                input.value = '';
+                renderHierarchyList('');
                 openHierarchyDropdown();
             });
             
@@ -2156,9 +2331,11 @@
             const list = document.getElementById('hierarchyList');
             const term = searchTerm.toLowerCase();
             
+            // Only show active CTVs in hierarchy dropdown
             const filtered = allCTV.filter(c => 
-                c.ma_ctv.toLowerCase().includes(term) ||
-                c.ten.toLowerCase().includes(term)
+                c.is_active !== false &&
+                (c.ma_ctv.toLowerCase().includes(term) ||
+                c.ten.toLowerCase().includes(term))
             );
             
             if (filtered.length === 0) {
@@ -2224,28 +2401,50 @@
         let currentHierarchyData = null;
         
         async function loadHierarchy(ctvCode) {
-            const result = await api(`/api/admin/hierarchy/${ctvCode}`);
-            if (result.status === 'success') {
-                currentHierarchyData = result.hierarchy;
+            // Show loading indicator, hide placeholder and wrapper
+            const loadingEl = document.getElementById('hierarchyLoading');
+            const wrapperEl = document.getElementById('hierarchyTreeWrapper');
+            const placeholderEl = document.getElementById('hierarchyPlaceholder');
+            
+            loadingEl.classList.add('active');
+            wrapperEl.style.display = 'none';
+            placeholderEl.style.display = 'none';
+            
+            try {
+                const result = await api(`/api/admin/hierarchy/${ctvCode}`);
                 
-                // Show the wrapper, hide placeholder
-                document.getElementById('hierarchyTreeWrapper').style.display = 'block';
-                document.getElementById('hierarchyPlaceholder').style.display = 'none';
+                // Hide loading indicator
+                loadingEl.classList.remove('active');
                 
-                // Calculate and display stats
-                const stats = calculateTreeStats(result.hierarchy);
-                document.getElementById('statTotalMembers').textContent = stats.totalMembers;
-                document.getElementById('statLevelsDeep').textContent = stats.maxDepth;
-                document.getElementById('statDirectRecruits').textContent = stats.directRecruits;
-                
-                // Render the tree
-                document.getElementById('hierarchyTree').innerHTML = '<ul>' + renderTree(result.hierarchy) + '</ul>';
-                
-                // Initialize search
-                initTreeSearch();
-                
-                // Expand all by default
-                expandAllNodes();
+                if (result.status === 'success') {
+                    currentHierarchyData = result.hierarchy;
+                    
+                    // Show the wrapper
+                    wrapperEl.style.display = 'block';
+                    
+                    // Calculate and display stats
+                    const stats = calculateTreeStats(result.hierarchy);
+                    document.getElementById('statTotalMembers').textContent = stats.totalMembers;
+                    document.getElementById('statLevelsDeep').textContent = stats.maxDepth;
+                    document.getElementById('statDirectRecruits').textContent = stats.directRecruits;
+                    
+                    // Render the tree
+                    document.getElementById('hierarchyTree').innerHTML = '<ul>' + renderTree(result.hierarchy) + '</ul>';
+                    
+                    // Initialize search
+                    initTreeSearch();
+                    
+                    // Expand all by default
+                    expandAllNodes();
+                } else {
+                    // Show placeholder on error
+                    placeholderEl.style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading and show placeholder on error
+                loadingEl.classList.remove('active');
+                placeholderEl.style.display = 'block';
+                console.error('Error loading hierarchy:', error);
             }
         }
         
@@ -2268,8 +2467,8 @@
         }
 
         function renderTree(node) {
-            // Map database level (0-4) to display level (L1-L5)
-            const displayLevel = node.level + 1;
+            // Display level matches database level (L0-L4)
+            const displayLevel = node.level;
             const levelClass = `l${displayLevel}`;
             
             const hasChildren = node.children && node.children.length > 0;
@@ -2278,7 +2477,7 @@
             // Commission rate display
             const commissionPercent = (node.commission_rate * 100).toFixed(2);
             
-            // Cut-off badge for level 4 (displayed as L5)
+            // Cut-off badge for level 4 (L4)
             const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
             
             let html = `
@@ -2441,41 +2640,39 @@
             }
         }
 
-        // Load Commissions
+        // Load Commissions (Grouped by CTV)
         async function loadCommissions() {
-            const ctv = document.getElementById('commissionCtvFilter').value;
             const month = document.getElementById('commissionMonthFilter').value;
-            const level = document.getElementById('commissionLevelFilter').value;
             
-            let url = '/api/admin/commissions?';
-            if (ctv) url += `ctv_code=${ctv}&`;
+            let url = '/api/admin/commissions/summary?';
             if (month) url += `month=${month}&`;
-            if (level) url += `level=${level}&`;
             
             const result = await api(url);
             if (result.status === 'success') {
                 const tbody = document.getElementById('commissionsTableBody');
+                
+                // Update grand totals
+                document.getElementById('totalCtvCount').textContent = result.total_ctv || 0;
+                document.getElementById('grandTotalService').textContent = formatCurrency(result.grand_total?.total_service_price || 0);
+                document.getElementById('grandTotalCommission').textContent = formatCurrency(result.grand_total?.total_commission || 0);
+                
                 if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary)">No commissions found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Khong co hoa hong</td></tr>';
                     return;
                 }
                 tbody.innerHTML = result.data.map(c => `
                     <tr>
-                        <td>${c.id}</td>
-                        <td>${c.ctv_name} (${c.ctv_code})</td>
-                        <td>Level ${c.level}</td>
-                        <td>${(c.commission_rate * 100).toFixed(2)}%</td>
-                        <td>${formatCurrency(c.transaction_amount)}</td>
-                        <td style="color:var(--accent-green)">${formatCurrency(c.commission_amount)}</td>
-                        <td>${c.created_at}</td>
+                        <td style="font-weight:600;">${c.ctv_code}</td>
+                        <td>${c.ctv_name || '-'}</td>
+                        <td>${c.ctv_phone || '-'}</td>
+                        <td>${formatCurrency(c.total_service_price)}</td>
+                        <td style="color:var(--accent-green); font-weight:600;">${formatCurrency(c.total_commission)}</td>
                     </tr>
                 `).join('');
             }
         }
 
-        document.getElementById('commissionCtvFilter').addEventListener('change', loadCommissions);
         document.getElementById('commissionMonthFilter').addEventListener('change', loadCommissions);
-        document.getElementById('commissionLevelFilter').addEventListener('change', loadCommissions);
 
         // ═══════════════════════════════════════════════════════════════════
         // CLIENT SERVICES FUNCTIONS
@@ -3206,6 +3403,55 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
+        // EXCEL EXPORT FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════
+
+        function exportToExcel(endpoint) {
+            // Generic export function for simple endpoints
+            const token = localStorage.getItem('session_token');
+            window.open(`${endpoint}?token=${token}`, '_blank');
+        }
+
+        function exportCommissionsExcel() {
+            // Export commissions with current month filter
+            const month = document.getElementById('commissionMonthFilter').value;
+            const params = new URLSearchParams();
+            if (month) params.append('month', month);
+            
+            const token = localStorage.getItem('session_token');
+            window.open(`/api/admin/commissions/summary/export?${params}&token=${token}`, '_blank');
+        }
+
+        function exportClientsExcel() {
+            // Export clients with current search filter
+            const search = document.getElementById('clientSearch').value;
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            
+            const token = localStorage.getItem('session_token');
+            window.open(`/api/admin/clients/export?${params}&token=${token}`, '_blank');
+        }
+
+        function exportActivityLogsExcel() {
+            // Export activity logs to Excel with current filters
+            const eventType = document.getElementById('logEventType').value;
+            const userType = document.getElementById('logUserType').value;
+            const dateFrom = document.getElementById('logDateFrom').value;
+            const dateTo = document.getElementById('logDateTo').value;
+            const search = document.getElementById('logSearch').value;
+            
+            const params = new URLSearchParams();
+            if (eventType) params.append('event_type', eventType);
+            if (userType) params.append('user_type', userType);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (search) params.append('search', search);
+            
+            const token = localStorage.getItem('session_token');
+            window.open(`/api/admin/activity-logs/export-xlsx?${params}&token=${token}`, '_blank');
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
         // LANGUAGE SYSTEM
         // ═══════════════════════════════════════════════════════════════════
         
@@ -3253,6 +3499,7 @@
                 status: 'Trang Thai',
                 details: 'Chi Tiet',
                 export_csv: 'Xuat CSV',
+                export_excel: 'Xuat Excel',
                 refresh: 'Lam Moi',
                 showing: 'Hien thi',
                 of: 'trong',
@@ -3278,10 +3525,14 @@
                 monthly_revenue: 'Doanh Thu Tháng',
                 top_earners: 'Top Thu Nhập Tháng Này',
                 no_earnings: 'Chưa có thu nhập tháng này',
+                ctv_name: 'CTV',
+                total_revenue: 'Doanh Thu',
+                total_commission: 'Hoa Hồng',
                 
                 // CTV Management
                 add_ctv: '+ Thêm CTV',
                 search_placeholder: 'Tìm theo tên, email, điện thoại...',
+                show_inactive: 'Hien CTV Ngung',
                 code: 'Mã',
                 name: 'Tên',
                 email: 'Email',
@@ -3341,6 +3592,8 @@
                 
                 // Loading
                 loading: 'Đang tải...',
+                loading_hierarchy: 'Đang tải cây cấp bậc...',
+                loading_please_wait: 'Vui lòng đợi, có thể mất một lúc cho cây lớn',
                 
                 // Service Card Labels
                 tong_tien: 'Tong tien:',
@@ -3402,6 +3655,7 @@
                 status: 'Status',
                 details: 'Details',
                 export_csv: 'Export CSV',
+                export_excel: 'Export Excel',
                 refresh: 'Refresh',
                 showing: 'Showing',
                 of: 'of',
@@ -3427,10 +3681,14 @@
                 monthly_revenue: 'Monthly Revenue',
                 top_earners: 'Top Earners This Month',
                 no_earnings: 'No earnings this month',
+                ctv_name: 'CTV',
+                total_revenue: 'Total Revenue',
+                total_commission: 'Total Commission',
                 
                 // CTV Management
                 add_ctv: '+ Add CTV',
                 search_placeholder: 'Search by name, email, phone...',
+                show_inactive: 'Show Inactive',
                 code: 'Code',
                 name: 'Name',
                 email: 'Email',
@@ -3490,6 +3748,8 @@
                 
                 // Loading
                 loading: 'Loading...',
+                loading_hierarchy: 'Loading hierarchy tree...',
+                loading_please_wait: 'Please wait, this may take a moment for large trees',
                 
                 // Service Card Labels
                 tong_tien: 'Total:',
@@ -3578,4 +3838,5 @@
     </script>
 </body>
 </html>
+
 

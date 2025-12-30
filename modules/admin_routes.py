@@ -9,9 +9,9 @@ All API endpoints for the Admin Dashboard.
 # ENDPOINTS:
 #
 # Authentication:
-# - POST /admin/login         -> Admin login
-# - POST /admin/logout        -> Admin logout
-# - GET  /admin/dashboard     -> Serve admin dashboard HTML
+# - POST /admin89/login       -> Admin login
+# - POST /admin89/logout      -> Admin logout
+# - GET  /admin89             -> Serve admin dashboard HTML (secret URL)
 #
 # CTV Management:
 # - GET    /api/admin/ctv            -> List all CTVs
@@ -42,13 +42,22 @@ All API endpoints for the Admin Dashboard.
 # - POST /api/admin/activity-logs/cleanup -> Clean up old logs
 # - GET  /api/admin/activity-logs/event-types -> Get event types list
 #
+# Excel Export:
+# - GET /api/admin/ctv/export                  -> Export CTVs to Excel
+# - GET /api/admin/commissions/export          -> Export commissions to Excel
+# - GET /api/admin/commissions/summary/export  -> Export commission summary to Excel
+# - GET /api/admin/clients/export              -> Export clients to Excel
+# - GET /api/admin/activity-logs/export-xlsx   -> Export activity logs to Excel
+# - GET /api/admin/commission-settings/export  -> Export settings to Excel
+#
 # ══════════════════════════════════════════════════════════════════════════════
 
 Created: December 28, 2025
+Updated: December 30, 2025 - Added Excel export endpoints
 """
 
 import os
-from flask import Blueprint, jsonify, request, send_file, g, make_response
+from flask import Blueprint, jsonify, request, send_file, g, make_response, render_template
 import mysql.connector
 from mysql.connector import Error
 
@@ -78,6 +87,15 @@ from .activity_logger import (
     log_commission_adjusted,
     log_data_export
 )
+from .export_excel import (
+    create_xlsx_response,
+    CTV_EXPORT_COLUMNS,
+    COMMISSION_EXPORT_COLUMNS,
+    COMMISSION_SUMMARY_COLUMNS,
+    CLIENTS_EXPORT_COLUMNS,
+    ACTIVITY_LOG_COLUMNS,
+    COMMISSION_SETTINGS_COLUMNS
+)
 
 # Create Blueprint
 admin_bp = Blueprint('admin', __name__)
@@ -93,7 +111,7 @@ from .db_pool import get_db_connection
 # AUTHENTICATION ENDPOINTS
 # ══════════════════════════════════════════════════════════════════════════════
 
-@admin_bp.route('/admin/login', methods=['POST'])
+@admin_bp.route('/admin89/login', methods=['POST'])
 def login():
     """
     Admin login endpoint
@@ -127,7 +145,7 @@ def login():
     return response
 
 
-@admin_bp.route('/admin/logout', methods=['POST'])
+@admin_bp.route('/admin89/logout', methods=['POST'])
 def logout():
     """
     Admin logout endpoint
@@ -157,16 +175,20 @@ def logout():
     return response
 
 
-@admin_bp.route('/admin/dashboard', methods=['GET'])
+@admin_bp.route('/admin89', methods=['GET'])
 def dashboard():
-    """Serve admin dashboard HTML"""
-    template_path = os.path.join(BASE_DIR, 'templates', 'admin.html')
-    if os.path.exists(template_path):
-        return send_file(template_path)
-    return jsonify({'status': 'error', 'message': 'Admin dashboard not found'}), 404
+    """Serve admin dashboard HTML using Jinja2 template"""
+    try:
+        return render_template('admin/base.html')
+    except Exception as e:
+        # Fallback to old method if new templates don't exist yet
+        template_path = os.path.join(BASE_DIR, 'templates', 'admin.html')
+        if os.path.exists(template_path):
+            return send_file(template_path)
+        return jsonify({'status': 'error', 'message': f'Admin dashboard not found: {str(e)}'}), 404
 
 
-@admin_bp.route('/admin/check-auth', methods=['GET'])
+@admin_bp.route('/admin89/check-auth', methods=['GET'])
 def check_auth():
     """Check if current user is authenticated as admin"""
     user = get_current_user()
@@ -623,6 +645,77 @@ def list_commissions():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@admin_bp.route('/api/admin/commissions/summary', methods=['GET'])
+@require_admin
+def list_commissions_summary():
+    """
+    Get commission summary grouped by CTV
+    
+    DOES: Aggregates all commissions by CTV showing total service price and total commission
+    OUTPUTS: CTV code, CTV name, CTV phone, Total service price, Total commission
+    
+    Query params: ?month=2025-12
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        month = request.args.get('month')
+        
+        query = """
+            SELECT 
+                c.ctv_code,
+                ctv.ten as ctv_name,
+                ctv.sdt as ctv_phone,
+                SUM(c.transaction_amount) as total_service_price,
+                SUM(c.commission_amount) as total_commission
+            FROM commissions c
+            JOIN ctv ON c.ctv_code = ctv.ma_ctv
+            WHERE 1=1
+        """
+        params = []
+        
+        if month:
+            query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
+            params.append(month)
+        
+        query += """
+            GROUP BY c.ctv_code, ctv.ten, ctv.sdt
+            ORDER BY total_commission DESC
+        """
+        
+        cursor.execute(query, params)
+        summary = cursor.fetchall()
+        
+        # Convert decimals for JSON
+        for s in summary:
+            s['total_service_price'] = float(s['total_service_price'] or 0)
+            s['total_commission'] = float(s['total_commission'] or 0)
+        
+        # Get grand total
+        grand_total_commission = sum(s['total_commission'] for s in summary)
+        grand_total_service = sum(s['total_service_price'] for s in summary)
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'data': summary,
+            'grand_total': {
+                'total_service_price': grand_total_service,
+                'total_commission': grand_total_commission
+            },
+            'total_ctv': len(summary)
+        })
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @admin_bp.route('/api/admin/commissions/<int:commission_id>', methods=['PUT'])
 @require_admin
 def adjust_commission(commission_id):
@@ -729,22 +822,24 @@ def get_stats():
         """)
         ctv_by_level = {row['cap_bac']: row['count'] for row in cursor.fetchall()}
         
-        # Top earners this month
+        # Top earners this month (with total revenue and commission)
         cursor.execute("""
             SELECT 
                 c.ctv_code,
                 ctv.ten,
-                SUM(c.commission_amount) as total_earned
+                SUM(c.transaction_amount) as total_revenue,
+                SUM(c.commission_amount) as total_commission
             FROM commissions c
             JOIN ctv ON c.ctv_code = ctv.ma_ctv
             WHERE DATE_FORMAT(c.created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
             GROUP BY c.ctv_code, ctv.ten
-            ORDER BY total_earned DESC
+            ORDER BY total_commission DESC
             LIMIT 5;
         """)
         top_earners = cursor.fetchall()
         for t in top_earners:
-            t['total_earned'] = float(t['total_earned'])
+            t['total_revenue'] = float(t['total_revenue'])
+            t['total_commission'] = float(t['total_commission'])
         
         cursor.close()
         connection.close()
@@ -1419,3 +1514,411 @@ def get_logs_by_user_ip():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EXCEL EXPORT ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/api/admin/ctv/export', methods=['GET'])
+@require_admin
+def export_ctv_excel():
+    """
+    Export all CTVs to Excel file
+    
+    Query params: ?search=term, ?active_only=true (same as list_ctv)
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        search = request.args.get('search', '').strip()
+        active_only = request.args.get('active_only', 'false').lower() == 'true'
+        
+        query = """
+            SELECT 
+                c.ma_ctv,
+                c.ten,
+                c.sdt,
+                c.email,
+                c.nguoi_gioi_thieu,
+                p.ten as nguoi_gioi_thieu_name,
+                c.cap_bac,
+                CASE WHEN c.is_active = TRUE OR c.is_active IS NULL THEN 'Active' ELSE 'Inactive' END as is_active,
+                c.created_at
+            FROM ctv c
+            LEFT JOIN ctv p ON c.nguoi_gioi_thieu = p.ma_ctv
+            WHERE 1=1
+        """
+        params = []
+        
+        if search:
+            query += " AND (c.ma_ctv LIKE %s OR c.ten LIKE %s OR c.email LIKE %s OR c.sdt LIKE %s)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term, search_term, search_term])
+        
+        if active_only:
+            query += " AND (c.is_active = TRUE OR c.is_active IS NULL)"
+        
+        query += " ORDER BY c.created_at DESC;"
+        
+        cursor.execute(query, params)
+        ctv_list = cursor.fetchall()
+        
+        # Convert datetime objects
+        for ctv in ctv_list:
+            if ctv.get('created_at'):
+                ctv['created_at'] = ctv['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.close()
+        connection.close()
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'ctv_list', len(ctv_list))
+        
+        return create_xlsx_response(
+            data=ctv_list,
+            columns=CTV_EXPORT_COLUMNS,
+            filename='ctv_export',
+            sheet_name='CTV List'
+        )
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/commissions/export', methods=['GET'])
+@require_admin
+def export_commissions_excel():
+    """
+    Export commission records to Excel file
+    
+    Query params: ?ctv_code=CTV001, ?month=2025-12, ?level=1
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        ctv_code = request.args.get('ctv_code')
+        month = request.args.get('month')
+        level = request.args.get('level')
+        
+        query = """
+            SELECT 
+                c.id,
+                c.transaction_id,
+                c.ctv_code,
+                ctv.ten as ctv_name,
+                c.level,
+                c.commission_rate,
+                c.transaction_amount,
+                c.commission_amount,
+                c.created_at
+            FROM commissions c
+            JOIN ctv ON c.ctv_code = ctv.ma_ctv
+            WHERE 1=1
+        """
+        params = []
+        
+        if ctv_code:
+            query += " AND c.ctv_code = %s"
+            params.append(ctv_code)
+        
+        if month:
+            query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
+            params.append(month)
+        
+        if level is not None:
+            query += " AND c.level = %s"
+            params.append(int(level))
+        
+        query += " ORDER BY c.created_at DESC LIMIT 10000;"
+        
+        cursor.execute(query, params)
+        commissions = cursor.fetchall()
+        
+        for c in commissions:
+            c['commission_rate'] = float(c['commission_rate'])
+            c['transaction_amount'] = float(c['transaction_amount'])
+            c['commission_amount'] = float(c['commission_amount'])
+            if c.get('created_at'):
+                c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.close()
+        connection.close()
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'commissions', len(commissions))
+        
+        return create_xlsx_response(
+            data=commissions,
+            columns=COMMISSION_EXPORT_COLUMNS,
+            filename='commissions_export',
+            sheet_name='Commissions'
+        )
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/commissions/summary/export', methods=['GET'])
+@require_admin
+def export_commissions_summary_excel():
+    """
+    Export commission summary by CTV to Excel file
+    
+    Query params: ?month=2025-12
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        month = request.args.get('month')
+        
+        query = """
+            SELECT 
+                c.ctv_code,
+                ctv.ten as ctv_name,
+                ctv.sdt as ctv_phone,
+                SUM(c.transaction_amount) as total_service_price,
+                SUM(c.commission_amount) as total_commission
+            FROM commissions c
+            JOIN ctv ON c.ctv_code = ctv.ma_ctv
+            WHERE 1=1
+        """
+        params = []
+        
+        if month:
+            query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
+            params.append(month)
+        
+        query += """
+            GROUP BY c.ctv_code, ctv.ten, ctv.sdt
+            ORDER BY total_commission DESC
+        """
+        
+        cursor.execute(query, params)
+        summary = cursor.fetchall()
+        
+        # Convert decimals for Excel
+        for s in summary:
+            s['total_service_price'] = float(s['total_service_price'] or 0)
+            s['total_commission'] = float(s['total_commission'] or 0)
+        
+        cursor.close()
+        connection.close()
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'commission_summary', len(summary))
+        
+        return create_xlsx_response(
+            data=summary,
+            columns=COMMISSION_SUMMARY_COLUMNS,
+            filename='commission_summary_export',
+            sheet_name='Commission Summary'
+        )
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/clients/export', methods=['GET'])
+@require_admin
+def export_clients_excel():
+    """
+    Export clients with services to Excel file
+    
+    Query params: ?search=term, ?nguoi_chot=CTV001
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        search = request.args.get('search', '').strip()
+        nguoi_chot = request.args.get('nguoi_chot', '').strip()
+        
+        # Build WHERE clause
+        base_where = "WHERE sdt IS NOT NULL AND sdt != ''"
+        params = []
+        
+        if search:
+            base_where += " AND (ten_khach LIKE %s OR sdt LIKE %s)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term])
+        
+        if nguoi_chot:
+            base_where += " AND nguoi_chot = %s"
+            params.append(nguoi_chot)
+        
+        # Get clients grouped by phone + name with aggregated data
+        query = f"""
+            SELECT 
+                sdt,
+                ten_khach,
+                MIN(co_so) as co_so,
+                MIN(nguoi_chot) as nguoi_chot,
+                COUNT(*) as service_count,
+                MIN(ngay_nhap_don) as first_visit_date,
+                MAX(trang_thai) as overall_status,
+                CASE WHEN MAX(tien_coc) > 0 THEN 'Da coc' ELSE 'Chua coc' END as overall_deposit
+            FROM khach_hang
+            {base_where}
+            GROUP BY sdt, ten_khach
+            ORDER BY MAX(ngay_nhap_don) DESC
+            LIMIT 10000
+        """
+        
+        cursor.execute(query, params)
+        clients = cursor.fetchall()
+        
+        # Format dates
+        for client in clients:
+            if client.get('first_visit_date'):
+                client['first_visit_date'] = client['first_visit_date'].strftime('%d/%m/%Y')
+        
+        cursor.close()
+        connection.close()
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'clients', len(clients))
+        
+        return create_xlsx_response(
+            data=clients,
+            columns=CLIENTS_EXPORT_COLUMNS,
+            filename='clients_export',
+            sheet_name='Clients'
+        )
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/activity-logs/export-xlsx', methods=['GET'])
+@require_admin
+def export_activity_logs_excel():
+    """
+    Export activity logs to Excel file
+    
+    Query params: Same as list_activity_logs
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    try:
+        event_type = request.args.get('event_type')
+        user_type = request.args.get('user_type')
+        user_id = request.args.get('user_id')
+        ip_address = request.args.get('ip_address')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        search = request.args.get('search', '').strip()
+        
+        # Get all matching logs (up to 10000)
+        result = get_activity_logs(
+            event_type=event_type,
+            user_type=user_type,
+            user_id=user_id,
+            ip_address=ip_address,
+            date_from=date_from,
+            date_to=date_to,
+            search=search if search else None,
+            page=1,
+            per_page=10000
+        )
+        
+        logs = result['logs']
+        
+        # Convert details dict to string for Excel
+        for log in logs:
+            if log.get('details'):
+                if isinstance(log['details'], dict):
+                    log['details'] = str(log['details'])
+                else:
+                    log['details'] = str(log['details'])
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'activity_logs', len(logs))
+        
+        return create_xlsx_response(
+            data=logs,
+            columns=ACTIVITY_LOG_COLUMNS,
+            filename='activity_logs_export',
+            sheet_name='Activity Logs'
+        )
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/commission-settings/export', methods=['GET'])
+@require_admin
+def export_commission_settings_excel():
+    """
+    Export commission settings to Excel file
+    
+    Returns: XLSX file download
+    
+    LOGGING: Logs data_export event
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        cursor.execute("""
+            SELECT level, rate, description, updated_at, updated_by
+            FROM commission_settings ORDER BY level;
+        """)
+        settings = cursor.fetchall()
+        
+        for s in settings:
+            s['rate'] = float(s['rate'])
+            if s.get('updated_at'):
+                s['updated_at'] = s['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.close()
+        connection.close()
+        
+        # Log the export
+        admin_username = g.current_user.get('username', 'admin')
+        log_data_export('admin', admin_username, 'commission_settings', len(settings))
+        
+        return create_xlsx_response(
+            data=settings,
+            columns=COMMISSION_SETTINGS_COLUMNS,
+            filename='commission_settings_export',
+            sheet_name='Commission Settings'
+        )
+        
+    except Error as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500

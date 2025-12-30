@@ -79,6 +79,12 @@ def optimize_database():
                 'description': 'CTV commission queries'
             },
             {
+                'name': 'idx_khach_hang_chot_status_date',
+                'table': 'khach_hang',
+                'columns': '(nguoi_chot, trang_thai, ngay_hen_lam)',
+                'description': 'CTV monthly services count'
+            },
+            {
                 'name': 'idx_khach_hang_nhap_don',
                 'table': 'khach_hang',
                 'columns': '(ngay_nhap_don)',
