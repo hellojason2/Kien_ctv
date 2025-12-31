@@ -1,5 +1,31 @@
 # Release Notes - CTV Dashboard
 
+## [2025-12-30 19:38] - Admin Login Remember Me Feature
+- Added "Remember Me" checkbox to admin login form (checked by default)
+- Implemented localStorage to save/load credentials when remember me is checked
+- Updated backend to support longer session expiry (30 days) when remember me is enabled
+- Added CSS styling for remember me checkbox in admin components
+- Added translation keys for "remember_me" in both Vietnamese and English
+- Modified `create_session()` function to accept `remember_me` parameter for extended sessions
+- Updated cookie expiry to 30 days when remember me is checked (default: 24 hours)
+
+### Files Modified
+- `templates/admin/components/login.html` - Added remember me checkbox
+- `static/css/admin/components.css` - Added remember me styling
+- `static/js/admin/translations.js` - Added remember_me translation keys
+- `static/js/admin/auth.js` - Added localStorage save/load functionality
+- `modules/admin_routes.py` - Updated login endpoint to handle remember_me
+- `modules/auth.py` - Updated `create_session()` and `admin_login()` to support remember_me
+
+## [2025-12-30 15:45] - Vietnamese Translation Fixes
+- Updated all Vietnamese translations in `static/js/ctv/translations.js` and `static/js/admin/translations.js` with correct accents.
+- Fixed missing accents in `modules/export_excel.py` headers.
+- Updated hardcoded Vietnamese status strings in backend routes (`modules/ctv_routes.py`, `modules/mlm_core.py`, `modules/admin_routes.py`, `backend.py`) to handle both accented and non-accented versions for compatibility.
+- Fixed missing accents in database migration and import scripts (`migrate_khach_hang.py`, `import_csv_data.py`).
+- Updated HTML language attributes to `en` while maintaining full Vietnamese support.
+- Migrated existing database records for `trang_thai` (status) and `cap_bac` (rank) to include correct Vietnamese accents.
+- Updated frontend JavaScript files to use translation functions instead of hardcoded strings.
+
 ## Version 3.0.1 - December 30, 2025
 
 ### Top Earners Section - 3-Column Layout Update

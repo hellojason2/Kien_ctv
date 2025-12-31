@@ -238,7 +238,7 @@ def get_profile():
             SELECT COUNT(*) as count
             FROM khach_hang
             WHERE nguoi_chot = %s 
-            AND trang_thai = 'Da den lam'
+            AND trang_thai IN ('Đã đến làm', 'Da den lam')
             AND ngay_hen_lam >= %s
             AND ngay_hen_lam < %s;
         """, (ctv['ma_ctv'], start_of_month, start_of_next_month))
@@ -687,9 +687,9 @@ def get_ctv_customers():
         cursor.execute("""
             SELECT 
                 COUNT(*) as total_count,
-                SUM(CASE WHEN trang_thai = 'Da den lam' THEN 1 ELSE 0 END) as completed_count,
-                SUM(CASE WHEN trang_thai = 'Da den lam' THEN tong_tien ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN trang_thai = 'Da coc' THEN 1 ELSE 0 END) as pending_count
+                SUM(CASE WHEN trang_thai IN ('Đã đến làm', 'Da den lam') THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN trang_thai IN ('Đã đến làm', 'Da den lam') THEN tong_tien ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN trang_thai IN ('Đã cọc', 'Da coc') THEN 1 ELSE 0 END) as pending_count
             FROM khach_hang
             WHERE nguoi_chot = %s
         """, (ctv['ma_ctv'],))
@@ -773,14 +773,14 @@ def get_ctv_earliest_date():
 def get_ctv_commission():
     """
     Get commission based on khach_hang table with date filter on ngay_hen_lam
-    Only counts transactions where trang_thai = 'Da den lam'
+    Only counts transactions where trang_thai IN ('Đã đến làm', 'Da den lam')
     
     Query params:
     - from: Start date (YYYY-MM-DD) for ngay_hen_lam
     - to: End date (YYYY-MM-DD) for ngay_hen_lam
     
     Commission calculation:
-    - Level 0 (self): 25% of tong_tien where trang_thai = 'Da den lam'
+    - Level 0 (self): 25% of tong_tien where trang_thai IN ('Đã đến làm', 'Da den lam')
     """
     ctv = g.current_user
     
@@ -800,14 +800,14 @@ def get_ctv_commission():
         rates_rows = cursor.fetchall()
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
         
-        # Level 0: Own revenue (nguoi_chot = me, trang_thai = 'Da den lam')
+        # Level 0: Own revenue (nguoi_chot = me, trang_thai IN ('Đã đến làm', 'Da den lam'))
         level0_query = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai = 'Da den lam'
+            AND trang_thai IN ('Đã đến làm', 'Da den lam')
         """
         level0_params = [ctv['ma_ctv']]
         
@@ -861,7 +861,7 @@ def get_ctv_commission():
                             COUNT(*) as transaction_count
                         FROM khach_hang
                         WHERE nguoi_chot IN ({placeholders})
-                        AND trang_thai = 'Da den lam'
+                        AND trang_thai IN ('Đã đến làm', 'Da den lam')
                     """
                     level_params = list(level_ctv_list)
                     
@@ -981,7 +981,7 @@ def check_phone():
             FROM khach_hang
             WHERE sdt = %s
               AND (
-                trang_thai IN ('Da den lam', 'Da coc')
+                trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
                 OR (ngay_hen_lam >= CURDATE() 
                     AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
                 OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
@@ -997,7 +997,7 @@ def check_phone():
         return jsonify({
             'status': 'success',
             'is_duplicate': is_duplicate,
-            'message': 'Trung' if is_duplicate else 'Khong trung'
+            'message': 'Trùng' if is_duplicate else 'Không trùng'
         })
         
     except Error as e:
@@ -1098,9 +1098,9 @@ def get_ctv_clients_with_services():
                 
                 # Determine deposit status based on tien_coc
                 if tien_coc > 0:
-                    deposit_status = 'Da coc'
+                    deposit_status = 'Đã cọc'
                 else:
-                    deposit_status = 'Chua coc'
+                    deposit_status = 'Chưa cọc'
                 
                 services.append({
                     'id': svc['id'],
@@ -1117,7 +1117,7 @@ def get_ctv_clients_with_services():
             
             # Determine overall client status (from most recent service)
             overall_status = services[0]['trang_thai'] if services else ''
-            overall_deposit = services[0]['deposit_status'] if services else 'Chua coc'
+            overall_deposit = services[0]['deposit_status'] if services else 'Chưa cọc'
             
             # Format first_visit_date (earliest date they entered the system)
             first_visit = client_row['first_visit_date']

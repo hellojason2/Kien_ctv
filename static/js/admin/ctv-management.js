@@ -33,7 +33,7 @@ async function loadCTVList() {
 function renderCTVTable(data) {
     const tbody = document.getElementById('ctvTableBody');
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">No CTVs found</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">${t('no_ctv_found')}</td></tr>`;
         return;
     }
     tbody.innerHTML = data.map(ctv => `
@@ -44,7 +44,7 @@ function renderCTVTable(data) {
             <td>${ctv.sdt || '-'}</td>
             <td>${ctv.nguoi_gioi_thieu_name || '-'}</td>
             <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
-            <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? 'Active' : 'Inactive'}</span></td>
+            <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
             <td>
                 <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="viewHierarchy('${ctv.ma_ctv}')">Tree</button>
             </td>

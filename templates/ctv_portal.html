@@ -1746,7 +1746,7 @@
             <div class="login-lang-popup">
                 <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
                     <span class="lang-flag">VN</span>
-                    <span class="lang-name">Tieng Viet</span>
+                    <span class="lang-name">Tiếng Việt</span>
                     <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
@@ -1852,7 +1852,7 @@
                     <div class="lang-popup-title" data-i18n="choose_language">Chon Ngon Ngu</div>
                     <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
                         <span class="lang-flag">VN</span>
-                        <span class="lang-name">Tieng Viet</span>
+                        <span class="lang-name">Tiếng Việt</span>
                         <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
@@ -2663,8 +2663,8 @@
 
         function renderCtvClientCard(client) {
             const initials = getCtvInitials(client.ten_khach);
-            const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+            const depositClass = client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') ? t('da_coc') : t('chua_coc');
             
             const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
             
@@ -2705,8 +2705,8 @@
         }
 
         function renderCtvServiceCard(service, index) {
-            const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
+            const depositClass = service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') ? t('da_coc') : t('chua_coc');
             
             const datesHTML = `
                 ${service.ngay_nhap_don 

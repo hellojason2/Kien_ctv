@@ -63,11 +63,11 @@ def run_migration():
         if cursor.fetchone()[0] == 0:
             print("   Inserting default commission rates...")
             rates = [
-                (0, 25.0, 'Doanh so ban than (Level 0)'),
-                (1, 5.0, 'Doanh so Level 1 (truc tiep gioi thieu)'),
-                (2, 2.5, 'Doanh so Level 2'),
-                (3, 1.25, 'Doanh so Level 3'),
-                (4, 0.625, 'Doanh so Level 4 (cap cuoi)')
+                (0, 25.0, 'Doanh số bản thân (Level 0)'),
+                (1, 5.0, 'Doanh số Level 1 (trực tiếp giới thiệu)'),
+                (2, 2.5, 'Doanh số Level 2'),
+                (3, 1.25, 'Doanh số Level 3'),
+                (4, 0.625, 'Doanh số Level 4 (cấp cuối)')
             ]
             cursor.executemany("""
                 INSERT INTO hoa_hong_config (level, percent, description)
@@ -157,65 +157,65 @@ def insert_sample_data():
         # Different statuses and dates to test duplicate check logic
         sample_customers = [
             # Customers closed by CTV001 (KienTT)
-            (today - timedelta(days=10), 'Pham Thu Ha', '0979832523', 'Co so 1', 
-             today - timedelta(days=5), '10:00', 'Cat chi mat 2 mi', 
-             8000000, 2000000, 6000000, 'CTV001', 'Khach VIP', 'Da den lam'),
+            (today - timedelta(days=10), 'Pham Thu Ha', '0979832523', 'Cơ sở 1', 
+             today - timedelta(days=5), '10:00', 'Cắt chỉ mắt 2 mí', 
+             8000000, 2000000, 6000000, 'CTV001', 'Khách VIP', 'Đã đến làm'),
             
-            (today - timedelta(days=20), 'Nguyen Van A', '0912345678', 'Co so 2',
-             today - timedelta(days=15), '14:00', 'Nang mui S-line',
-             15000000, 5000000, 10000000, 'CTV001', '', 'Da den lam'),
+            (today - timedelta(days=20), 'Nguyen Van A', '0912345678', 'Cơ sở 2',
+             today - timedelta(days=15), '14:00', 'Nâng mũi S-line',
+             15000000, 5000000, 10000000, 'CTV001', '', 'Đã đến làm'),
             
             # Customers closed by CTV002 (DungNTT)
-            (today - timedelta(days=5), 'Tran Thi B', '0923456789', 'Co so 1',
-             today + timedelta(days=10), '09:00', 'Tiem filler',
-             5000000, 1000000, 4000000, 'CTV002', 'Hen lai', 'Da coc'),
+            (today - timedelta(days=5), 'Tran Thi B', '0923456789', 'Cơ sở 1',
+             today + timedelta(days=10), '09:00', 'Tiêm filler',
+             5000000, 1000000, 4000000, 'CTV002', 'Hẹn lại', 'Đã cọc'),
             
-            (today - timedelta(days=30), 'Le Van C', '0934567890', 'Co so 3',
-             today - timedelta(days=25), '11:00', 'Cay mo',
-             11000000, 3000000, 8000000, 'CTV002', '', 'Da den lam'),
+            (today - timedelta(days=30), 'Le Van C', '0934567890', 'Cơ sở 3',
+             today - timedelta(days=25), '11:00', 'Cấy mỡ',
+             11000000, 3000000, 8000000, 'CTV002', '', 'Đã đến làm'),
             
             # Customers closed by CTV003 (TungHV) - high revenue
-            (today - timedelta(days=15), 'Hoang Thi D', '0945678901', 'Co so 1',
-             today - timedelta(days=10), '15:00', 'Don cam + Nang mui',
-             53818000, 10000000, 43818000, 'CTV003', 'Khach gioi thieu', 'Da den lam'),
+            (today - timedelta(days=15), 'Hoang Thi D', '0945678901', 'Cơ sở 1',
+             today - timedelta(days=10), '15:00', 'Độn cằm + Nâng mũi',
+             53818000, 10000000, 43818000, 'CTV003', 'Khách giới thiệu', 'Đã đến làm'),
             
-            (today - timedelta(days=8), 'Vu Van E', '0956789012', 'Co so 2',
-             today - timedelta(days=3), '10:30', 'Tiem botox',
-             8000000, 2000000, 6000000, 'CTV003', '', 'Da den lam'),
+            (today - timedelta(days=8), 'Vu Van E', '0956789012', 'Cơ sở 2',
+             today - timedelta(days=3), '10:30', 'Tiêm botox',
+             8000000, 2000000, 6000000, 'CTV003', '', 'Đã đến làm'),
             
             # Customers closed by CTV100 (CTV One - ctv1@a.com)
-            (today - timedelta(days=12), 'Pham Thi F', '0967890123', 'Co so 1',
-             today - timedelta(days=7), '14:30', 'Cat mi',
-             6000000, 1500000, 4500000, 'CTV100', '', 'Da den lam'),
+            (today - timedelta(days=12), 'Pham Thi F', '0967890123', 'Cơ sở 1',
+             today - timedelta(days=7), '14:30', 'Cắt mí',
+             6000000, 1500000, 4500000, 'CTV100', '', 'Đã đến làm'),
             
-            (today - timedelta(days=3), 'Nguyen Van G', '0978901234', 'Co so 2',
-             today + timedelta(days=5), '09:30', 'Tiem filler moi',
-             4000000, 1000000, 3000000, 'CTV100', 'Khach moi', 'Da coc'),
+            (today - timedelta(days=3), 'Nguyen Van G', '0978901234', 'Cơ sở 2',
+             today + timedelta(days=5), '09:30', 'Tiêm filler môi',
+             4000000, 1000000, 3000000, 'CTV100', 'Khách mới', 'Đã cọc'),
             
             # Customers closed by CTV101 (CTV Two - ctv2@a.com)
-            (today - timedelta(days=25), 'Tran Van H', '0989012345', 'Co so 3',
-             today - timedelta(days=20), '11:30', 'Nang nguc',
-             40345000, 15000000, 25345000, 'CTV101', '', 'Da den lam'),
+            (today - timedelta(days=25), 'Tran Van H', '0989012345', 'Cơ sở 3',
+             today - timedelta(days=20), '11:30', 'Nâng ngực',
+             40345000, 15000000, 25345000, 'CTV101', '', 'Đã đến làm'),
             
             # Customers closed by CTV102 (CTV Three - ctv3@a.com)
-            (today - timedelta(days=7), 'Le Thi I', '0990123456', 'Co so 1',
-             today - timedelta(days=2), '16:00', 'Hut mo bung',
-             25000000, 8000000, 17000000, 'CTV102', '', 'Da den lam'),
+            (today - timedelta(days=7), 'Le Thi I', '0990123456', 'Cơ sở 1',
+             today - timedelta(days=2), '16:00', 'Hút mỡ bụng',
+             25000000, 8000000, 17000000, 'CTV102', '', 'Đã đến làm'),
             
             # Future appointments (for testing duplicate check)
-            (today, 'Hoang Van J', '0901234567', 'Co so 2',
-             today + timedelta(days=30), '10:00', 'Tu van nang mui',
-             0, 0, 0, 'CTV001', 'Chua chot gia', 'Cho xac nhan'),
+            (today, 'Hoang Van J', '0901234567', 'Cơ sở 2',
+             today + timedelta(days=30), '10:00', 'Tư vấn nâng mũi',
+             0, 0, 0, 'CTV001', 'Chưa chốt giá', 'Chờ xác nhận'),
             
             # Cancelled appointment
-            (today - timedelta(days=40), 'Vu Thi K', '0912345670', 'Co so 1',
-             today - timedelta(days=35), '14:00', 'Cat mi',
-             5000000, 1000000, 4000000, 'CTV002', 'Khach huy', 'Huy lich'),
+            (today - timedelta(days=40), 'Vu Thi K', '0912345670', 'Cơ sở 1',
+             today - timedelta(days=35), '14:00', 'Cắt mí',
+             5000000, 1000000, 4000000, 'CTV002', 'Khách hủy', 'Hủy lịch'),
             
             # Very high revenue customer (for testing L3 commission)
-            (today - timedelta(days=18), 'Nguyen Thi L', '0923456780', 'Co so 1',
-             today - timedelta(days=12), '09:00', 'Combo: Nang mui + Don cam + Hut mo',
-             495202000, 100000000, 395202000, 'CTV007', 'Khach VIP Gold', 'Da den lam'),
+            (today - timedelta(days=18), 'Nguyen Thi L', '0923456780', 'Cơ sở 1',
+             today - timedelta(days=12), '09:00', 'Combo: Nâng mũi + Độn cằm + Hút mỡ',
+             495202000, 100000000, 395202000, 'CTV007', 'Khách VIP Gold', 'Đã đến làm'),
         ]
         
         print("\nInserting sample customer records...")

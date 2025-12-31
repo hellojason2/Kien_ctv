@@ -43,6 +43,9 @@
 #suspiciousIPsAlert .card-header {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 #suspiciousIPsAlert .card-header h3 {
@@ -52,6 +55,31 @@
     gap: 8px;
     margin: 0;
     font-size: 14px;
+}
+
+.suspicious-ip-close {
+    background: none;
+    border: none;
+    color: var(--accent-red);
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.suspicious-ip-close:hover {
+    opacity: 1;
+}
+
+.suspicious-ip-close:active {
+    opacity: 0.5;
 }
 
 #suspiciousIPsBody {

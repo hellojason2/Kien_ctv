@@ -115,7 +115,7 @@ from .db_pool import get_db_connection
 def login():
     """
     Admin login endpoint
-    Body: {"username": "admin", "password": "admin123"}
+    Body: {"username": "admin", "password": "admin123", "remember_me": true}
     Returns: {"token": "...", "admin": {...}}
     """
     data = request.get_json()
@@ -125,22 +125,26 @@ def login():
     
     username = data.get('username', '').strip()
     password = data.get('password', '')
+    remember_me = data.get('remember_me', False)
     
     if not username or not password:
         return jsonify({'status': 'error', 'message': 'Username and password required'}), 400
     
-    result = admin_login(username, password)
+    result = admin_login(username, password, remember_me=remember_me)
     
     if 'error' in result:
         return jsonify({'status': 'error', 'message': result['error']}), 401
     
-    # Set cookie with token
+    # Set cookie with token - longer expiry if remember me is checked
+    # Default: 24 hours (86400 seconds), Remember me: 30 days (2592000 seconds)
+    cookie_max_age = 2592000 if remember_me else 86400
+    
     response = make_response(jsonify({
         'status': 'success',
         'token': result['token'],
         'admin': result['admin']
     }))
-    response.set_cookie('session_token', result['token'], httponly=True, max_age=86400)
+    response.set_cookie('session_token', result['token'], httponly=True, max_age=cookie_max_age)
     
     return response
 
@@ -1050,7 +1054,7 @@ def get_clients_with_services():
                 'nguoi_chot': row['nguoi_chot'] or '',
                 'service_count': row['service_count'],
                 'overall_status': '',
-                'overall_deposit': 'Chua coc',
+                'overall_deposit': 'Chưa cọc',
                 'services': [],
                 '_order': len(client_keys)  # preserve order
             }
@@ -1096,7 +1100,7 @@ def get_clients_with_services():
             tien_coc = float(svc['tien_coc'] or 0)
             tong_tien = float(svc['tong_tien'] or 0)
             phai_dong = float(svc['phai_dong'] or 0)
-            deposit_status = 'Da coc' if tien_coc > 0 else 'Chua coc'
+            deposit_status = 'Đã cọc' if tien_coc > 0 else 'Chưa cọc'
             
             service = {
                 'id': svc['id'],
@@ -1786,7 +1790,7 @@ def export_clients_excel():
                 COUNT(*) as service_count,
                 MIN(ngay_nhap_don) as first_visit_date,
                 MAX(trang_thai) as overall_status,
-                CASE WHEN MAX(tien_coc) > 0 THEN 'Da coc' ELSE 'Chua coc' END as overall_deposit
+                CASE WHEN MAX(tien_coc) > 0 THEN 'Đã cọc' ELSE 'Chưa cọc' END as overall_deposit
             FROM khach_hang
             {base_where}
             GROUP BY sdt, ten_khach

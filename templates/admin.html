@@ -1546,6 +1546,14 @@
             margin-bottom: 16px;
             opacity: 0.5;
         }
+
+        .suspicious-ip-close:hover {
+            opacity: 1 !important;
+        }
+
+        .suspicious-ip-close:active {
+            opacity: 0.5 !important;
+        }
     </style>
 </head>
 <body>
@@ -1812,28 +1820,28 @@
                         </div>
                         <!-- Grand Total Summary -->
                         <div id="commissionGrandTotal" style="display:flex; gap:20px; margin-bottom:20px; padding:16px; background:var(--bg-tertiary); border-radius:12px; flex-wrap:wrap;">
-                            <div style="flex:1; min-width:150px;">
+                            <div style="flex:1; min-width:120px; max-width:200px;">
                                 <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong CTV</div>
-                                <div id="totalCtvCount" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                                <div id="totalCtvCount" style="font-size:18px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word;">0</div>
                             </div>
-                            <div style="flex:1; min-width:150px;">
+                            <div style="flex:1; min-width:120px; max-width:250px;">
                                 <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Dich Vu</div>
-                                <div id="grandTotalService" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                                <div id="grandTotalService" style="font-size:16px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
                             </div>
-                            <div style="flex:1; min-width:150px;">
+                            <div style="flex:1; min-width:120px; max-width:250px;">
                                 <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Hoa Hong</div>
-                                <div id="grandTotalCommission" style="font-size:24px; font-weight:700; color:var(--accent-green);">0</div>
+                                <div id="grandTotalCommission" style="font-size:16px; font-weight:700; color:var(--accent-green); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
                             </div>
                         </div>
                         <div class="table-container">
-                            <table>
+                            <table class="commissions-table">
                                 <thead>
                                     <tr>
-                                        <th>Ma CTV</th>
-                                        <th>Ten CTV</th>
-                                        <th>SDT</th>
-                                        <th>Tong Dich Vu</th>
-                                        <th>Tong Hoa Hong</th>
+                                        <th style="width:12%; min-width:100px;">Ma CTV</th>
+                                        <th style="width:25%; min-width:150px;">Ten CTV</th>
+                                        <th style="width:15%; min-width:120px;">SDT</th>
+                                        <th style="width:24%; min-width:180px; text-align:right;">Tong Dich Vu</th>
+                                        <th style="width:24%; min-width:180px; text-align:right;">Tong Hoa Hong</th>
                                     </tr>
                                 </thead>
                                 <tbody id="commissionsTableBody">
@@ -1970,11 +1978,12 @@
                 
                 <!-- Suspicious IPs Alert -->
                 <div id="suspiciousIPsAlert" class="card" style="margin-bottom: 20px; display: none; border: 1px solid var(--accent-red); background: rgba(239, 68, 68, 0.08);">
-                    <div class="card-header" style="padding: 12px 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                    <div class="card-header" style="padding: 12px 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="color: var(--accent-red); display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px;">
                             <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                             <span data-i18n="suspicious_ips_detected">Suspicious IPs Detected</span>
                         </h3>
+                        <button class="suspicious-ip-close" onclick="closeSuspiciousIPsAlert()" aria-label="Close alert" style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s ease;">&times;</button>
                     </div>
                     <div class="card-body" id="suspiciousIPsBody" style="padding: 12px 16px; max-height: 200px; overflow-y: auto;">
                     </div>
@@ -2662,11 +2671,11 @@
                 }
                 tbody.innerHTML = result.data.map(c => `
                     <tr>
-                        <td style="font-weight:600;">${c.ctv_code}</td>
-                        <td>${c.ctv_name || '-'}</td>
-                        <td>${c.ctv_phone || '-'}</td>
-                        <td>${formatCurrency(c.total_service_price)}</td>
-                        <td style="color:var(--accent-green); font-weight:600;">${formatCurrency(c.total_commission)}</td>
+                        <td style="font-weight:600; white-space:nowrap;">${c.ctv_code}</td>
+                        <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">${c.ctv_name || '-'}</td>
+                        <td style="white-space:nowrap;">${c.ctv_phone || '-'}</td>
+                        <td style="text-align:right; white-space:nowrap;">${formatCurrency(c.total_service_price)}</td>
+                        <td style="color:var(--accent-green); font-weight:600; text-align:right; white-space:nowrap;">${formatCurrency(c.total_commission)}</td>
                     </tr>
                 `).join('');
             }
@@ -2779,8 +2788,8 @@
 
         function renderClientCard(client) {
             const initials = getInitials(client.ten_khach);
-            const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+            const depositClass = client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') ? t('da_coc') : t('chua_coc');
             
             const servicesHTML = client.services.map((svc, idx) => renderServiceCard(svc, idx)).join('');
             
@@ -2825,8 +2834,8 @@
         }
 
         function renderServiceCard(service, index) {
-            const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
+            const depositClass = service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
+            const depositText = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') ? t('da_coc') : t('chua_coc');
             
             const datesHTML = `
                 ${service.ngay_nhap_don 
@@ -3145,6 +3154,13 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function closeSuspiciousIPsAlert() {
+            const alertDiv = document.getElementById('suspiciousIPsAlert');
+            if (alertDiv) {
+                alertDiv.style.display = 'none';
+            }
         }
 
         async function toggleLogGroup(groupId) {

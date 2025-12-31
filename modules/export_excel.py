@@ -226,66 +226,66 @@ def format_currency_vnd(value):
 # ══════════════════════════════════════════════════════════════════════════════
 
 CTV_EXPORT_COLUMNS = [
-    {'key': 'ma_ctv', 'header': 'Ma CTV', 'width': 12},
-    {'key': 'ten', 'header': 'Ho Ten', 'width': 25},
-    {'key': 'sdt', 'header': 'SDT', 'width': 15},
+    {'key': 'ma_ctv', 'header': 'Mã CTV', 'width': 12},
+    {'key': 'ten', 'header': 'Họ Tên', 'width': 25},
+    {'key': 'sdt', 'header': 'SĐT', 'width': 15},
     {'key': 'email', 'header': 'Email', 'width': 30},
-    {'key': 'nguoi_gioi_thieu', 'header': 'Nguoi Gioi Thieu', 'width': 15},
-    {'key': 'nguoi_gioi_thieu_name', 'header': 'Ten NGT', 'width': 25},
-    {'key': 'cap_bac', 'header': 'Cap Bac', 'width': 12},
-    {'key': 'is_active', 'header': 'Trang Thai', 'width': 12},
-    {'key': 'created_at', 'header': 'Ngay Tao', 'width': 20},
+    {'key': 'nguoi_gioi_thieu', 'header': 'Người Giới Thiệu', 'width': 15},
+    {'key': 'nguoi_gioi_thieu_name', 'header': 'Tên NGT', 'width': 25},
+    {'key': 'cap_bac', 'header': 'Cấp Bậc', 'width': 12},
+    {'key': 'is_active', 'header': 'Trạng Thái', 'width': 12},
+    {'key': 'created_at', 'header': 'Ngày Tạo', 'width': 20},
 ]
 
 COMMISSION_EXPORT_COLUMNS = [
     {'key': 'id', 'header': 'ID', 'width': 8},
-    {'key': 'transaction_id', 'header': 'Ma GD', 'width': 10},
-    {'key': 'ctv_code', 'header': 'Ma CTV', 'width': 12},
-    {'key': 'ctv_name', 'header': 'Ten CTV', 'width': 25},
-    {'key': 'level', 'header': 'Cap', 'width': 6},
-    {'key': 'commission_rate', 'header': 'Ti Le', 'width': 10, 'format': 'percent'},
-    {'key': 'transaction_amount', 'header': 'Gia Tri GD', 'width': 15, 'format': 'currency'},
-    {'key': 'commission_amount', 'header': 'Hoa Hong', 'width': 15, 'format': 'currency'},
-    {'key': 'created_at', 'header': 'Ngay Tao', 'width': 20},
+    {'key': 'transaction_id', 'header': 'Mã GD', 'width': 10},
+    {'key': 'ctv_code', 'header': 'Mã CTV', 'width': 12},
+    {'key': 'ctv_name', 'header': 'Tên CTV', 'width': 25},
+    {'key': 'level', 'header': 'Cấp', 'width': 6},
+    {'key': 'commission_rate', 'header': 'Tỷ Lệ', 'width': 10, 'format': 'percent'},
+    {'key': 'transaction_amount', 'header': 'Giá Trị GD', 'width': 15, 'format': 'currency'},
+    {'key': 'commission_amount', 'header': 'Hoa Hồng', 'width': 15, 'format': 'currency'},
+    {'key': 'created_at', 'header': 'Ngày Tạo', 'width': 20},
 ]
 
 COMMISSION_SUMMARY_COLUMNS = [
-    {'key': 'ctv_code', 'header': 'Ma CTV', 'width': 12},
-    {'key': 'ctv_name', 'header': 'Ten CTV', 'width': 25},
-    {'key': 'ctv_phone', 'header': 'SDT', 'width': 15},
-    {'key': 'total_service_price', 'header': 'Tong Doanh Thu', 'width': 18, 'format': 'currency'},
-    {'key': 'total_commission', 'header': 'Tong Hoa Hong', 'width': 18, 'format': 'currency'},
+    {'key': 'ctv_code', 'header': 'Mã CTV', 'width': 12},
+    {'key': 'ctv_name', 'header': 'Tên CTV', 'width': 25},
+    {'key': 'ctv_phone', 'header': 'SĐT', 'width': 15},
+    {'key': 'total_service_price', 'header': 'Tổng Doanh Thu', 'width': 18, 'format': 'currency'},
+    {'key': 'total_commission', 'header': 'Tổng Hoa Hồng', 'width': 18, 'format': 'currency'},
 ]
 
 CLIENTS_EXPORT_COLUMNS = [
-    {'key': 'ten_khach', 'header': 'Ten Khach', 'width': 25},
-    {'key': 'sdt', 'header': 'SDT', 'width': 15},
-    {'key': 'co_so', 'header': 'Co So', 'width': 20},
-    {'key': 'nguoi_chot', 'header': 'Nguoi Chot', 'width': 12},
-    {'key': 'service_count', 'header': 'So DV', 'width': 10},
-    {'key': 'first_visit_date', 'header': 'Lan Dau', 'width': 12},
-    {'key': 'overall_status', 'header': 'Trang Thai', 'width': 15},
-    {'key': 'overall_deposit', 'header': 'Coc', 'width': 12},
+    {'key': 'ten_khach', 'header': 'Tên Khách', 'width': 25},
+    {'key': 'sdt', 'header': 'SĐT', 'width': 15},
+    {'key': 'co_so', 'header': 'Cơ Sở', 'width': 20},
+    {'key': 'nguoi_chot', 'header': 'Người Chốt', 'width': 12},
+    {'key': 'service_count', 'header': 'Số DV', 'width': 10},
+    {'key': 'first_visit_date', 'header': 'Lần Đầu', 'width': 12},
+    {'key': 'overall_status', 'header': 'Trạng Thái', 'width': 15},
+    {'key': 'overall_deposit', 'header': 'Cọc', 'width': 12},
 ]
 
 ACTIVITY_LOG_COLUMNS = [
     {'key': 'id', 'header': 'ID', 'width': 8},
-    {'key': 'timestamp', 'header': 'Thoi Gian', 'width': 20},
-    {'key': 'event_type', 'header': 'Loai Su Kien', 'width': 18},
-    {'key': 'user_type', 'header': 'Loai User', 'width': 12},
+    {'key': 'timestamp', 'header': 'Thời Gian', 'width': 20},
+    {'key': 'event_type', 'header': 'Loại Sự Kiện', 'width': 18},
+    {'key': 'user_type', 'header': 'Loại User', 'width': 12},
     {'key': 'user_id', 'header': 'User ID', 'width': 15},
     {'key': 'ip_address', 'header': 'IP', 'width': 15},
     {'key': 'endpoint', 'header': 'Endpoint', 'width': 30},
     {'key': 'method', 'header': 'Method', 'width': 8},
     {'key': 'status_code', 'header': 'Status', 'width': 8},
-    {'key': 'details', 'header': 'Chi Tiet', 'width': 40},
+    {'key': 'details', 'header': 'Chi Tiết', 'width': 40},
 ]
 
 COMMISSION_SETTINGS_COLUMNS = [
-    {'key': 'level', 'header': 'Cap', 'width': 8},
-    {'key': 'rate', 'header': 'Ti Le', 'width': 12, 'format': 'percent'},
-    {'key': 'description', 'header': 'Mo Ta', 'width': 40},
-    {'key': 'updated_at', 'header': 'Cap Nhat', 'width': 20},
-    {'key': 'updated_by', 'header': 'Nguoi Cap Nhat', 'width': 15},
+    {'key': 'level', 'header': 'Cấp', 'width': 8},
+    {'key': 'rate', 'header': 'Tỷ Lệ', 'width': 12, 'format': 'percent'},
+    {'key': 'description', 'header': 'Mô Tả', 'width': 40},
+    {'key': 'updated_at', 'header': 'Cập Nhật', 'width': 20},
+    {'key': 'updated_by', 'header': 'Người Cập Nhật', 'width': 15},
 ]
 

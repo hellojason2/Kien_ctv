@@ -1,7 +1,7 @@
 <!-- Commissions Page -->
 <div class="page-section" id="page-commissions">
     <div class="header">
-        <h2 data-i18n="commission_reports">Hoa Hong</h2>
+        <h2 data-i18n="commission_reports">Hoa Hồng</h2>
         <div class="header-actions">
             <button class="btn btn-secondary" onclick="exportCommissionsExcel()" data-i18n="export_excel">Export Excel</button>
         </div>
@@ -10,34 +10,34 @@
         <div class="card-body">
             <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end;">
                 <div class="form-group" style="flex:1; min-width:150px;">
-                    <label data-i18n="filter_month">Loc Theo Thang</label>
+                    <label data-i18n="filter_month">Lọc Theo Tháng</label>
                     <input type="month" id="commissionMonthFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
                 </div>
             </div>
             <!-- Grand Total Summary -->
             <div id="commissionGrandTotal" style="display:flex; gap:20px; margin-bottom:20px; padding:16px; background:var(--bg-tertiary); border-radius:12px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:150px;">
-                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong CTV</div>
-                    <div id="totalCtvCount" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                <div style="flex:1; min-width:120px; max-width:200px;">
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tổng CTV</div>
+                    <div id="totalCtvCount" style="font-size:18px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word;">0</div>
                 </div>
-                <div style="flex:1; min-width:150px;">
-                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Dich Vu</div>
-                    <div id="grandTotalService" style="font-size:24px; font-weight:700; color:var(--text-primary);">0</div>
+                <div style="flex:1; min-width:120px; max-width:250px;">
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tổng Dịch Vụ</div>
+                    <div id="grandTotalService" style="font-size:16px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
                 </div>
-                <div style="flex:1; min-width:150px;">
-                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Hoa Hong</div>
-                    <div id="grandTotalCommission" style="font-size:24px; font-weight:700; color:var(--accent-green);">0</div>
+                <div style="flex:1; min-width:120px; max-width:250px;">
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tổng Hoa Hồng</div>
+                    <div id="grandTotalCommission" style="font-size:16px; font-weight:700; color:var(--accent-green); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
                 </div>
             </div>
             <div class="table-container">
-                <table>
+                <table class="commissions-table">
                     <thead>
                         <tr>
-                            <th>Ma CTV</th>
-                            <th>Ten CTV</th>
-                            <th>SDT</th>
-                            <th>Tong Dich Vu</th>
-                            <th>Tong Hoa Hong</th>
+                            <th style="width:12%; min-width:100px;">Mã CTV</th>
+                            <th style="width:25%; min-width:150px;">Tên CTV</th>
+                            <th style="width:15%; min-width:120px;">SĐT</th>
+                            <th style="width:24%; min-width:180px; text-align:right;">Tổng Dịch Vụ</th>
+                            <th style="width:24%; min-width:180px; text-align:right;">Tổng Hoa Hồng</th>
                         </tr>
                     </thead>
                     <tbody id="commissionsTableBody">

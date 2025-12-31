@@ -22,9 +22,9 @@ async function loadStats() {
         if (s.top_earners.length > 0) {
             topEarnersEl.innerHTML = `
                 <div class="earner-header">
-                    <div class="header-name" data-i18n="ctv_name">CTV</div>
-                    <div class="header-revenue" data-i18n="total_revenue">Total Revenue</div>
-                    <div class="header-commission" data-i18n="total_commission">Total Commission</div>
+                    <div class="header-name" data-i18n="ctv_name">${t('ctv_name')}</div>
+                    <div class="header-revenue" data-i18n="total_revenue">${t('total_revenue')}</div>
+                    <div class="header-commission" data-i18n="total_commission">${t('total_commission')}</div>
                 </div>
                 ${s.top_earners.map(e => `
                 <div class="earner-row">
@@ -42,7 +42,7 @@ async function loadStats() {
                 applyTranslations();
             }
         } else {
-            topEarnersEl.innerHTML = '<div style="color:var(--text-secondary)">No earnings this month</div>';
+            topEarnersEl.innerHTML = `<div style="color:var(--text-secondary)">${t('no_earnings')}</div>`;
         }
     }
 }

@@ -110,15 +110,15 @@ def verify_password(password, stored_hash):
 # SESSION MANAGEMENT
 # ══════════════════════════════════════════════════════════════════════════════
 
-def create_session(user_type, user_id):
+def create_session(user_type, user_id, remember_me=False):
     """
     DOES: Create new session token and store in database
-    INPUTS: user_type ('admin' or 'ctv'), user_id (username or ma_ctv)
+    INPUTS: user_type ('admin' or 'ctv'), user_id (username or ma_ctv), remember_me (bool)
     OUTPUTS: Session token (64-char hex string) or None on failure
     
     FLOW:
     1. Generate random 64-char token
-    2. Calculate expiry time (24 hours from now)
+    2. Calculate expiry time (24 hours default, 30 days if remember_me)
     3. Store in sessions table
     4. Return token
     """
@@ -132,8 +132,9 @@ def create_session(user_type, user_id):
         # Generate unique session token
         token = secrets.token_hex(32)  # 64 characters
         
-        # Calculate expiry time
-        expires_at = datetime.now() + timedelta(hours=SESSION_EXPIRY_HOURS)
+        # Calculate expiry time - 30 days if remember me, otherwise 24 hours
+        expiry_hours = 720 if remember_me else SESSION_EXPIRY_HOURS  # 30 days = 720 hours
+        expires_at = datetime.now() + timedelta(hours=expiry_hours)
         
         # Delete any existing sessions for this user (single session per user)
         cursor.execute("""
@@ -500,10 +501,10 @@ def require_ctv(f):
 # LOGIN FUNCTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def admin_login(username, password):
+def admin_login(username, password, remember_me=False):
     """
     DOES: Authenticate admin and create session
-    INPUTS: username, password
+    INPUTS: username, password, remember_me (bool)
     OUTPUTS: {'token': str, 'admin': dict} or {'error': str}
     
     LOGGING: Logs login_success or login_failed events
@@ -538,8 +539,8 @@ def admin_login(username, password):
                 logger.log_login_failed(username, 'admin')
             return {'error': 'Invalid username or password'}
         
-        # Create session
-        token = create_session('admin', username)
+        # Create session with remember_me option
+        token = create_session('admin', username, remember_me=remember_me)
         if not token:
             return {'error': 'Failed to create session'}
         

@@ -24,16 +24,16 @@ async function loadCommissions() {
         document.getElementById('grandTotalCommission').textContent = formatCurrency(result.grand_total?.total_commission || 0);
         
         if (result.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Khong co hoa hong</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">${t('no_commissions')}</td></tr>`;
             return;
         }
         tbody.innerHTML = result.data.map(c => `
             <tr>
-                <td style="font-weight:600;">${c.ctv_code}</td>
-                <td>${c.ctv_name || '-'}</td>
-                <td>${c.ctv_phone || '-'}</td>
-                <td>${formatCurrency(c.total_service_price)}</td>
-                <td style="color:var(--accent-green); font-weight:600;">${formatCurrency(c.total_commission)}</td>
+                <td style="font-weight:600; white-space:nowrap;">${c.ctv_code}</td>
+                <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">${c.ctv_name || '-'}</td>
+                <td style="white-space:nowrap;">${c.ctv_phone || '-'}</td>
+                <td style="text-align:right; white-space:nowrap;">${formatCurrency(c.total_service_price)}</td>
+                <td style="color:var(--accent-green); font-weight:600; text-align:right; white-space:nowrap;">${formatCurrency(c.total_commission)}</td>
             </tr>
         `).join('');
     }

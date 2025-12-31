@@ -111,7 +111,7 @@ function renderHierarchyList(searchTerm) {
     );
     
     if (filtered.length === 0) {
-        list.innerHTML = '<div class="no-results">No CTVs found</div>';
+        list.innerHTML = `<div class="no-results">${t('no_ctv_found')}</div>`;
         return;
     }
     
@@ -345,12 +345,12 @@ function initTreeSearch() {
         });
         
         if (matchCount > 0) {
-            searchInfo.textContent = `Found ${matchCount} result(s)`;
+            searchInfo.textContent = `Tìm thấy ${matchCount} kết quả`;
             if (firstMatch) {
                 firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         } else {
-            searchInfo.textContent = 'No results found';
+            searchInfo.textContent = 'Không tìm thấy kết quả nào';
         }
     });
 }

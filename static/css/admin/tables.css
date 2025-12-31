@@ -71,6 +71,46 @@ tr:hover td {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   COMMISSIONS TABLE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.commissions-table {
+    table-layout: fixed;
+}
+
+.commissions-table th,
+.commissions-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.commissions-table th:first-child,
+.commissions-table td:first-child {
+    white-space: nowrap;
+}
+
+.commissions-table th:nth-child(2),
+.commissions-table td:nth-child(2) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.commissions-table th:nth-child(3),
+.commissions-table td:nth-child(3) {
+    white-space: nowrap;
+}
+
+.commissions-table th:nth-child(4),
+.commissions-table td:nth-child(4),
+.commissions-table th:nth-child(5),
+.commissions-table td:nth-child(5) {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -81,6 +121,9 @@ tr:hover td {
     }
     table {
         min-width: 600px;
+    }
+    .commissions-table {
+        min-width: 800px;
     }
     th, td {
         padding: 10px 12px;

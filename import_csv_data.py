@@ -157,7 +157,7 @@ def read_ctv_csv():
                     'sdt': normalize_phone(row.get('SDT', '')),
                     'email': row.get('Email', '').strip() or None,
                     'nguoi_gioi_thieu': row.get('Người giới thiệu', '').strip() or None,
-                    'cap_bac': row.get('Cấp bậc', '').strip() or 'Cong tac vien'
+                    'cap_bac': row.get('Cấp bậc', '').strip() or 'Cộng tác viên'
                 }
                 
                 if ctv['ma_ctv']:
@@ -315,7 +315,7 @@ def read_customer_csv():
                     'phai_dong': parse_currency(row.get('phải đóng', '')),
                     'nguoi_chot': row.get('Người chốt', '').strip() or None,
                     'ghi_chu': row.get('Ghi Chú', '').strip() or None,
-                    'trang_thai': row.get('Trạng Thái', '').strip() or 'Cho xac nhan',
+                    'trang_thai': row.get('Trạng Thái', '').strip() or 'Chờ xác nhận',
                     'line_num': line_num
                 }
                 
@@ -391,7 +391,7 @@ def create_missing_ctv(connection, missing_codes, dry_run=False):
         try:
             cursor.execute("""
                 INSERT INTO ctv (ma_ctv, ten, nguoi_gioi_thieu, cap_bac)
-                VALUES (%s, %s, NULL, 'Cong tac vien')
+                VALUES (%s, %s, NULL, 'Cộng tác viên')
             """, (code, f"CTV {code}"))
             
             CTV_CODE_MAP[code.lower()] = code

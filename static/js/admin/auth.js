@@ -45,18 +45,40 @@ async function checkAuth() {
  * Initialize login form handler
  */
 function initLoginForm() {
+    // Load saved credentials if remember me was checked
+    const savedUsername = localStorage.getItem('admin_remember_username');
+    const savedPassword = localStorage.getItem('admin_remember_password');
+    
+    if (savedUsername && savedPassword) {
+        document.getElementById('username').value = savedUsername;
+        document.getElementById('password').value = savedPassword;
+        const rememberMeCheck = document.getElementById('rememberMe');
+        if (rememberMeCheck) rememberMeCheck.checked = true;
+    }
+    
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
         
         const result = await api('/admin89/login', {
             method: 'POST',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password, remember_me: rememberMe })
         });
         
         if (result.status === 'success') {
             setAuthToken(result.token);
+            
+            // Save or remove credentials based on remember me checkbox
+            if (rememberMe) {
+                localStorage.setItem('admin_remember_username', username);
+                localStorage.setItem('admin_remember_password', password);
+            } else {
+                localStorage.removeItem('admin_remember_username');
+                localStorage.removeItem('admin_remember_password');
+            }
+            
             showDashboard();
         } else {
             document.getElementById('loginError').textContent = result.message || 'Login failed';

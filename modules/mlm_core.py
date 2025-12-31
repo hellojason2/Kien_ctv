@@ -497,7 +497,7 @@ def calculate_khach_hang_commission(ctv_code, from_date=None, to_date=None, conn
     OUTPUTS: Dict with commission breakdown by level
     
     KEY CONDITIONS:
-    - Only counts transactions where trang_thai = 'Da den lam'
+    - Only counts transactions where trang_thai IN ('Đã đến làm', 'Da den lam')
     - Filters by ngay_hen_lam date range
     - Uses rates from hoa_hong_config table
     """
@@ -566,7 +566,7 @@ def calculate_khach_hang_commission(ctv_code, from_date=None, to_date=None, conn
                     COUNT(*) as transaction_count
                 FROM khach_hang
                 WHERE nguoi_chot IN ({placeholders})
-                AND trang_thai = 'Da den lam'
+                AND trang_thai IN ('Đã đến làm', 'Da den lam')
             """
             params = list(level_ctv_list)
             
@@ -616,7 +616,7 @@ def check_phone_duplicate(phone, connection=None):
     OUTPUTS: Dict with is_duplicate flag and message
     
     DUPLICATE CONDITIONS (ANY = duplicate):
-    1. trang_thai IN ('Da den lam', 'Da coc')
+    1. trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
     2. ngay_hen_lam >= TODAY AND < TODAY + 180 days
     3. ngay_nhap_don >= TODAY - 60 days
     """
@@ -639,7 +639,7 @@ def check_phone_duplicate(phone, connection=None):
             FROM khach_hang
             WHERE sdt = %s
               AND (
-                trang_thai IN ('Da den lam', 'Da coc')
+                trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
                 OR (ngay_hen_lam >= CURDATE() 
                     AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
                 OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
@@ -655,7 +655,7 @@ def check_phone_duplicate(phone, connection=None):
         
         return {
             'is_duplicate': is_duplicate,
-            'message': 'Trung' if is_duplicate else 'Khong trung'
+            'message': 'Trùng' if is_duplicate else 'Không trùng'
         }
         
     except Error as e:

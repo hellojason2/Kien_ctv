@@ -437,7 +437,7 @@ def check_duplicate():
         cursor = connection.cursor()
         
         # Check for duplicates using the three conditions from specification
-        # Condition 1: trang_thai IN ('Da den lam', 'Da coc') AND within last 360 days
+        # Condition 1: trang_thai IN ('Đã đến làm', 'Đã cọc') AND within last 360 days
         # Condition 2: ngay_hen_lam >= TODAY AND < TODAY + 180 days
         # Condition 3: ngay_nhap_don >= TODAY - 60 days
         cursor.execute("""
@@ -446,7 +446,7 @@ def check_duplicate():
             WHERE sdt = %s
               AND (
                 -- Condition 1: Status is completed or deposited AND within last 360 days
-                (trang_thai IN ('Da den lam', 'Da coc')
+                (trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
                  AND ngay_hen_lam >= DATE_SUB(CURDATE(), INTERVAL 360 DAY))
                 
                 -- Condition 2: Future appointment within 180 days
@@ -468,13 +468,13 @@ def check_duplicate():
             return jsonify({
                 'status': 'success',
                 'is_duplicate': True,
-                'message': 'Trung - So dien thoai nay da co trong he thong'
+                'message': 'Trùng - Số điện thoại này đã có trong hệ thống'
             })
         else:
             return jsonify({
                 'status': 'success',
                 'is_duplicate': False,
-                'message': 'Khong trung - So dien thoai nay chua co trong he thong'
+                'message': 'Không trùng - Số điện thoại này chưa có trong hệ thống'
             })
         
     except Error as e:

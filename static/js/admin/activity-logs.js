@@ -142,7 +142,7 @@ async function loadGroupedLogs(page = 1) {
         
         updateLogsPagination(result.pagination);
     } else {
-        groupedBody.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--accent-red);">Error loading logs</div>';
+        groupedBody.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--accent-red);">${t('error_loading_logs') || 'Lỗi khi tải nhật ký'}</div>`;
     }
 }
 
@@ -178,6 +178,16 @@ function displaySuspiciousIPs(suspiciousIPs) {
             </div>
         </div>
     `).join('');
+}
+
+/**
+ * Close suspicious IPs alert
+ */
+function closeSuspiciousIPsAlert() {
+    const alertDiv = document.getElementById('suspiciousIPsAlert');
+    if (alertDiv) {
+        alertDiv.style.display = 'none';
+    }
 }
 
 /**
@@ -309,7 +319,7 @@ async function loadFlatLogs(page = 1) {
         
         updateLogsPagination(result.pagination);
     } else {
-        tbody.innerHTML = '<tr><td colspan="7" style="color: var(--accent-red);">Error loading logs</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" style="color: var(--accent-red);">${t('error_loading_logs') || 'Lỗi khi tải nhật ký'}</td></tr>`;
     }
 }
 

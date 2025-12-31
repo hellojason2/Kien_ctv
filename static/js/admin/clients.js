@@ -44,7 +44,7 @@ async function loadClientsWithServices(page = 1) {
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p>Error loading clients</p>
+                <p>${t('error_loading_clients') || 'Lỗi khi tải danh sách khách hàng'}</p>
             </div>
         `;
     }
@@ -108,7 +108,7 @@ function renderClientCards(clients) {
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
                 </svg>
-                <p>No clients found</p>
+                <p>${t('no_clients')}</p>
             </div>
         `;
         return;
