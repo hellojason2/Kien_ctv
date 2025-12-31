@@ -1,5 +1,69 @@
 # Release Notes - CTV Dashboard
 
+## [2025-12-30 21:00] - Enhanced Commission Report Date Range Filters
+- Added quick filter buttons for common date ranges: Today, Last 3 Days, This Week, This Month, Last 3 Months, This Year
+- Added custom date range picker allowing users to select specific start and end dates
+- Updated backend API to support both month filter (existing) and date_from/date_to parameters
+- Quick filters automatically calculate date ranges based on selected option
+- Custom date range validates that start date is before end date
+- Export to Excel functionality now respects all date filter types
+- Responsive design works on iPhone, iPad, and desktop devices
+- Quick filter buttons highlight when active
+- Default filter set to current month on page load
+- All filter labels translated in Vietnamese and English
+
+### Files Modified
+- `templates/admin/pages/commissions.html` - Added quick filter buttons and custom date range inputs
+- `static/js/admin/commissions.js` - Added filter logic for quick filters and custom date ranges
+- `static/js/admin/translations.js` - Added translation keys for all new filter labels
+- `modules/admin_routes.py` - Updated commission summary API to support date_from and date_to parameters
+- `static/css/admin/forms.css` - Added responsive styling for date filter components
+
+## [2025-12-30 20:25] - Auto-Collapse Sidebar on Horizontal Scroll
+- Added automatic sidebar collapse when page is scrolled horizontally to the right
+- Sidebar smoothly slides out of view to prevent overlap with search bar and content
+- Sidebar automatically expands back when scrolled to the left edge
+- Monitors both window scroll and scrollable containers (tables, cards) for horizontal scrolling
+- Uses MutationObserver to detect dynamically added scrollable elements
+- Smooth CSS transitions for better user experience
+
+### Files Modified
+- `static/css/admin/layout.css` - Added collapsed state styles and transitions for sidebar
+- `static/js/admin/main.js` - Added horizontal scroll detection and sidebar collapse logic
+
+## [2025-12-30 20:15] - Fix CTV Search Not Finding Results
+- Fixed CTV search functionality that was showing "not found" even when CTVs existed
+- Improved search to normalize Vietnamese characters (remove accents) for better matching
+- Added automatic CTV list loading when navigating to CTV Management page
+- Enhanced search to handle whitespace, empty strings, and special characters properly
+- Search now works with partial matches in CTV code, name, email, and phone fields
+
+### Files Modified
+- `static/js/admin/ctv-management.js` - Added Vietnamese text normalization function and improved search logic
+- `static/js/admin/navigation.js` - Added loadCTVList() call when navigating to CTV management page
+
+## [2025-12-30 19:56] - Fix Monthly Revenue Calculation Logic
+- Fixed monthly revenue calculation to use distinct transaction amounts from commissions table
+- Previously calculated from services table which could cause discrepancies with commission calculations
+- Now both monthly commission and monthly revenue use the same data source (commissions table) for consistency
+- Revenue is calculated as sum of distinct transaction amounts to avoid counting transactions multiple times
+- Added fallback to services table if no commissions exist for the month
+
+### Files Modified
+- `modules/admin_routes.py` - Updated monthly revenue SQL query to use distinct transaction amounts from commissions table
+
+## [2025-12-30 19:50] - Remove Decimal Places from Currency Display
+- Updated all formatCurrency functions to remove decimal places from currency displays
+- Added maximumFractionDigits: 0 option to Intl.NumberFormat for all currency formatting functions
+- Affects monthly commission display and all other currency displays across admin and CTV portals
+- Currency values now display as whole numbers (e.g., "5.462.453.012d" instead of "5.462.453.012,5d")
+
+### Files Modified
+- `static/js/admin/utils.js` - Updated formatCurrency and formatClientCurrency functions
+- `static/js/ctv/utils.js` - Updated formatCurrency and formatCtvCurrency functions
+- `templates/admin.html` - Updated inline formatCurrency function
+- `templates/ctv_portal.html` - Updated inline formatCurrency function
+
 ## [2025-12-30 19:38] - Admin Login Remember Me Feature
 - Added "Remember Me" checkbox to admin login form (checked by default)
 - Implemented localStorage to save/load credentials when remember me is checked

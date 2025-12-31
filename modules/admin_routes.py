@@ -658,7 +658,9 @@ def list_commissions_summary():
     DOES: Aggregates all commissions by CTV showing total service price and total commission
     OUTPUTS: CTV code, CTV name, CTV phone, Total service price, Total commission
     
-    Query params: ?month=2025-12
+    Query params: 
+    - ?month=2025-12 (for month filter)
+    - ?date_from=2025-12-01&date_to=2025-12-31 (for custom date range)
     """
     connection = get_db_connection()
     if not connection:
@@ -668,6 +670,8 @@ def list_commissions_summary():
         cursor = connection.cursor(dictionary=True)
         
         month = request.args.get('month')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
         
         query = """
             SELECT 
@@ -685,6 +689,15 @@ def list_commissions_summary():
         if month:
             query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
             params.append(month)
+        elif date_from and date_to:
+            query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
+            params.extend([date_from, date_to])
+        elif date_from:
+            query += " AND DATE(c.created_at) >= %s"
+            params.append(date_from)
+        elif date_to:
+            query += " AND DATE(c.created_at) <= %s"
+            params.append(date_to)
         
         query += """
             GROUP BY c.ctv_code, ctv.ten, ctv.sdt
@@ -809,13 +822,27 @@ def get_stats():
         """)
         monthly_transactions = cursor.fetchone()['count']
         
-        # Total transaction value this month
+        # Total transaction value this month (from commissions table - same source as commission calculation)
+        # Use distinct transaction_id to avoid counting the same transaction multiple times
         cursor.execute("""
-            SELECT COALESCE(SUM(tong_tien), 0) as total
-            FROM services
-            WHERE DATE_FORMAT(date_entered, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+            SELECT COALESCE(SUM(transaction_amount), 0) as total
+            FROM (
+                SELECT DISTINCT transaction_id, transaction_amount
+                FROM commissions
+                WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+            ) as distinct_transactions;
         """)
-        monthly_revenue = float(cursor.fetchone()['total'])
+        result = cursor.fetchone()
+        monthly_revenue = float(result['total']) if result['total'] else 0.0
+        
+        # If no commissions exist, fall back to services table
+        if monthly_revenue == 0:
+            cursor.execute("""
+                SELECT COALESCE(SUM(tong_tien), 0) as total
+                FROM services
+                WHERE DATE_FORMAT(date_entered, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+            """)
+            monthly_revenue = float(cursor.fetchone()['total'])
         
         # CTV by level (cap_bac)
         cursor.execute("""
@@ -1684,7 +1711,9 @@ def export_commissions_summary_excel():
     """
     Export commission summary by CTV to Excel file
     
-    Query params: ?month=2025-12
+    Query params: 
+    - ?month=2025-12 (for month filter)
+    - ?date_from=2025-12-01&date_to=2025-12-31 (for custom date range)
     Returns: XLSX file download
     
     LOGGING: Logs data_export event
@@ -1697,6 +1726,8 @@ def export_commissions_summary_excel():
         cursor = connection.cursor(dictionary=True)
         
         month = request.args.get('month')
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
         
         query = """
             SELECT 
@@ -1714,6 +1745,15 @@ def export_commissions_summary_excel():
         if month:
             query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
             params.append(month)
+        elif date_from and date_to:
+            query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
+            params.extend([date_from, date_to])
+        elif date_from:
+            query += " AND DATE(c.created_at) >= %s"
+            params.append(date_from)
+        elif date_to:
+            query += " AND DATE(c.created_at) <= %s"
+            params.append(date_to)
         
         query += """
             GROUP BY c.ctv_code, ctv.ten, ctv.sdt

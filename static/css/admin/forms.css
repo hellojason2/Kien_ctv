@@ -214,6 +214,80 @@
 .commission-card.l4 .rate { color: var(--accent-cyan); }
 
 /* ═══════════════════════════════════════════════════════════════════
+   DATE FILTERS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.date-filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.quick-filter-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-filter-btn {
+    padding: 10px 18px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.quick-filter-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.quick-filter-btn.active {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    color: white;
+}
+
+.custom-date-range {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.date-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.date-input:focus {
+    border-color: var(--accent-cyan);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -221,11 +295,49 @@
     .commission-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+    
+    .quick-filter-buttons {
+        gap: 8px;
+    }
+    
+    .quick-filter-btn {
+        padding: 9px 16px;
+        font-size: 12px;
+    }
+    
+    .custom-date-range {
+        gap: 12px;
+    }
 }
 
 @media (max-width: 768px) {
     .commission-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-filter-buttons {
+        gap: 8px;
+    }
+    
+    .quick-filter-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+        flex: 1 1 calc(50% - 4px);
+        min-width: calc(50% - 4px);
+    }
+    
+    .custom-date-range {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .custom-date-range .form-group {
+        margin-bottom: 0;
+    }
+    
+    .custom-date-range .form-group:last-child {
+        margin-top: 4px;
     }
 }
 
@@ -247,6 +359,31 @@
     }
     .commission-card .rate {
         font-size: 24px;
+    }
+    
+    .date-filter-section {
+        margin-bottom: 16px;
+    }
+    
+    .quick-filter-buttons {
+        gap: 6px;
+    }
+    
+    .quick-filter-btn {
+        padding: 9px 12px;
+        font-size: 11px;
+        flex: 1 1 calc(50% - 3px);
+        min-width: calc(50% - 3px);
+    }
+    
+    .filter-label {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    
+    .date-input {
+        padding: 10px 12px;
+        font-size: 14px;
     }
 }
 
