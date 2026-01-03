@@ -26,6 +26,7 @@ function switchToTableView() {
     document.getElementById('tableViewSection').style.display = 'block';
     document.getElementById('cardViewBtn').classList.remove('active');
     document.getElementById('tableViewBtn').classList.add('active');
+    loadCtvClientsWithServices();
 }
 
 // Load clients with services
@@ -36,21 +37,49 @@ async function loadCtvClientsWithServices() {
         url += `?search=${encodeURIComponent(search)}`;
     }
     
-    const result = await api(url);
-    const grid = document.getElementById('ctvClientsGrid');
-    
-    if (result.status === 'success') {
-        ctvClients = result.clients;
-        renderCtvClientCards(result.clients);
-    } else {
-        grid.innerHTML = `
+    try {
+        const result = await api(url);
+        
+        if (result.status === 'success') {
+            ctvClients = result.clients;
+            if (currentView === 'card') {
+                renderCtvClientCards(result.clients);
+            } else {
+                renderCtvClientTable(result.clients);
+            }
+        } else {
+            // Render error to the correct container based on current view
+            const errorHTML = `
+                <div class="no-clients-message">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p>${result.message || t('error_loading_data') || 'Loi khi tai du lieu'}</p>
+                </div>
+            `;
+            
+            if (currentView === 'card') {
+                document.getElementById('ctvClientsGrid').innerHTML = errorHTML;
+            } else {
+                document.getElementById('ctvClientsTable').innerHTML = errorHTML;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading clients:', error);
+        const errorHTML = `
             <div class="no-clients-message">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p>Lỗi khi tải dữ liệu</p>
+                <p>${t('error_loading_data') || 'Loi khi tai du lieu'}</p>
             </div>
         `;
+        
+        if (currentView === 'card') {
+            document.getElementById('ctvClientsGrid').innerHTML = errorHTML;
+        } else {
+            document.getElementById('ctvClientsTable').innerHTML = errorHTML;
+        }
     }
 }
 
@@ -174,6 +203,69 @@ function renderCtvServiceCard(service, index) {
             ${datesHTML}
         </div>
     `;
+}
+
+// Render client table
+function renderCtvClientTable(clients) {
+    const tableContainer = document.getElementById('ctvClientsTable');
+    
+    if (!clients || clients.length === 0) {
+        tableContainer.innerHTML = `
+            <div class="no-clients-message">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <p>${t('no_customers')}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Calculate total amount per client from services
+    const getClientTotal = (client) => {
+        if (!client.services || client.services.length === 0) return 0;
+        return client.services.reduce((sum, svc) => sum + (svc.tong_tien || 0), 0);
+    };
+    
+    const tableHTML = `
+        <div class="client-table-wrapper" style="overflow-x: auto;">
+            <table class="client-table" style="width: 100%; border-collapse: collapse; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; min-width: 600px;">
+                <thead>
+                    <tr style="background: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('ten_khach')}</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('sdt')}</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('co_so')}</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('service_count')}</th>
+                        <th style="padding: 12px; text-align: right; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('tong_tien')}</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">${t('trang_thai_coc')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${clients.map(client => {
+                        const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
+                        const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+                        const totalAmount = getClientTotal(client);
+                        
+                        return `
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color); font-weight: 500;">${escapeHtmlCTV(client.ten_khach || '-')}</td>
+                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.sdt || '-')}</td>
+                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.co_so || '-')}</td>
+                                <td style="padding: 12px; text-align: center; color: var(--text-primary); border-right: 1px solid var(--border-color);">${client.service_count || 0}</td>
+                                <td style="padding: 12px; text-align: right; color: var(--accent-color); border-right: 1px solid var(--border-color); font-weight: 500;">${formatCtvCurrency(totalAmount)}</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span class="table-status-badge ${depositClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${depositText}</span>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    tableContainer.innerHTML = tableHTML;
 }
 
 // Initialize client search

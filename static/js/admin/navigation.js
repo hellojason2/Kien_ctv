@@ -17,6 +17,14 @@ function navigateTo(page) {
     document.getElementById(`page-${page}`).classList.add('active');
     
     // Load page-specific data
+    if (page === 'overview') {
+        if (typeof initOverview === 'function') {
+            initOverview();
+        } else {
+            loadStats();
+        }
+    }
+    if (page === 'ctv') loadCTVList();
     if (page === 'commissions') loadCommissions();
     if (page === 'clients') loadClientsWithServices();
     if (page === 'activity-logs') {

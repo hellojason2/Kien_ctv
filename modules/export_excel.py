@@ -231,7 +231,7 @@ CTV_EXPORT_COLUMNS = [
     {'key': 'sdt', 'header': 'SĐT', 'width': 15},
     {'key': 'email', 'header': 'Email', 'width': 30},
     {'key': 'nguoi_gioi_thieu', 'header': 'Người Giới Thiệu', 'width': 15},
-    {'key': 'nguoi_gioi_thieu_name', 'header': 'Tên NGT', 'width': 25},
+    {'key': 'nguoi_gioi_thieu_code', 'header': 'Mã NGT', 'width': 15},
     {'key': 'cap_bac', 'header': 'Cấp Bậc', 'width': 12},
     {'key': 'is_active', 'header': 'Trạng Thái', 'width': 12},
     {'key': 'created_at', 'header': 'Ngày Tạo', 'width': 20},

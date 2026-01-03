@@ -1,16 +1,16 @@
 """
 Database Connection Pool Module
-Provides a singleton connection pool to reduce connection overhead.
+Provides a singleton connection pool for PostgreSQL to reduce connection overhead.
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MODULE STRUCTURE MAP
 # ══════════════════════════════════════════════════════════════════════════════
 #
 # FUNCTIONS:
-# - get_db_pool() -> MySQLConnectionPool
+# - get_db_pool() -> psycopg2.pool.ThreadedConnectionPool
 #     DOES: Returns singleton connection pool instance
 #
-# - get_db_connection() -> PooledMySQLConnection
+# - get_db_connection() -> connection
 #     DOES: Get a connection from the pool (MUST be returned with .close())
 #
 # - init_pool(app) -> None
@@ -28,23 +28,27 @@ Provides a singleton connection pool to reduce connection overhead.
 # ══════════════════════════════════════════════════════════════════════════════
 
 Created: December 30, 2025
+Updated: January 2, 2026 - Migrated to PostgreSQL
 """
 
-import mysql.connector
-from mysql.connector import pooling, Error
+import os
+import psycopg2
+from psycopg2 import pool, Error
+from psycopg2.extras import RealDictCursor
+from contextlib import contextmanager
 
-# Database configuration
+# Database configuration - PostgreSQL
 DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
+    'host': os.environ.get('DB_HOST', 'caboose.proxy.rlwy.net'),
+    'port': int(os.environ.get('DB_PORT', 34643)),
+    'user': os.environ.get('DB_USER', 'postgres'),
+    'password': os.environ.get('DB_PASSWORD', 'SEzzSwiBFYIHsnxJyEtorEBOadCZRUtl'),
+    'database': os.environ.get('DB_NAME', 'railway')
 }
 
 # Pool configuration
-POOL_NAME = "ctv_pool"
-POOL_SIZE = 10  # Number of connections to keep ready
+POOL_MIN_CONNECTIONS = 5   # Minimum connections to keep ready
+POOL_MAX_CONNECTIONS = 20  # Maximum connections allowed
 
 # Singleton pool instance
 _pool = None
@@ -53,22 +57,25 @@ _pool = None
 def get_db_pool():
     """
     DOES: Get or create the singleton connection pool
-    OUTPUTS: MySQLConnectionPool instance
+    OUTPUTS: ThreadedConnectionPool instance
     
-    The pool maintains POOL_SIZE connections that are reused,
-    eliminating the ~0.4s connection overhead per request.
+    The pool maintains connections that are reused,
+    eliminating the connection overhead per request.
     """
     global _pool
     
     if _pool is None:
         try:
-            _pool = pooling.MySQLConnectionPool(
-                pool_name=POOL_NAME,
-                pool_size=POOL_SIZE,
-                pool_reset_session=True,
-                **DB_CONFIG
+            _pool = pool.ThreadedConnectionPool(
+                POOL_MIN_CONNECTIONS,
+                POOL_MAX_CONNECTIONS,
+                host=DB_CONFIG['host'],
+                port=DB_CONFIG['port'],
+                user=DB_CONFIG['user'],
+                password=DB_CONFIG['password'],
+                database=DB_CONFIG['database']
             )
-            print(f"Database connection pool created: {POOL_NAME} (size={POOL_SIZE})")
+            print(f"PostgreSQL connection pool created (min={POOL_MIN_CONNECTIONS}, max={POOL_MAX_CONNECTIONS})")
         except Error as e:
             print(f"Error creating connection pool: {e}")
             return None
@@ -79,7 +86,7 @@ def get_db_pool():
 def get_db_connection():
     """
     DOES: Get a connection from the pool
-    OUTPUTS: PooledMySQLConnection or None
+    OUTPUTS: Connection or None
     
     IMPORTANT: Always call .close() on the connection when done.
     This returns it to the pool (doesn't actually close it).
@@ -93,29 +100,85 @@ def get_db_connection():
             finally:
                 conn.close()
     """
-    pool = get_db_pool()
-    if pool is None:
+    pool_instance = get_db_pool()
+    if pool_instance is None:
         # Fallback to direct connection if pool fails
         try:
-            connection = mysql.connector.connect(**DB_CONFIG)
-            if connection.is_connected():
-                return connection
+            connection = psycopg2.connect(
+                host=DB_CONFIG['host'],
+                port=DB_CONFIG['port'],
+                user=DB_CONFIG['user'],
+                password=DB_CONFIG['password'],
+                database=DB_CONFIG['database']
+            )
+            return connection
         except Error as e:
-            print(f"Error connecting to MySQL: {e}")
+            print(f"Error connecting to PostgreSQL: {e}")
             return None
     
     try:
-        return pool.get_connection()
+        return pool_instance.getconn()
     except Error as e:
         print(f"Error getting connection from pool: {e}")
         # Fallback to direct connection
         try:
-            connection = mysql.connector.connect(**DB_CONFIG)
-            if connection.is_connected():
-                return connection
+            connection = psycopg2.connect(
+                host=DB_CONFIG['host'],
+                port=DB_CONFIG['port'],
+                user=DB_CONFIG['user'],
+                password=DB_CONFIG['password'],
+                database=DB_CONFIG['database']
+            )
+            return connection
         except Error as e2:
             print(f"Fallback connection also failed: {e2}")
             return None
+
+
+def return_db_connection(connection):
+    """
+    DOES: Return a connection to the pool
+    INPUTS: Connection to return
+    
+    Note: You can also call connection.close() which does the same thing
+    when using pooled connections.
+    """
+    pool_instance = get_db_pool()
+    if pool_instance and connection:
+        try:
+            pool_instance.putconn(connection)
+        except Error:
+            pass
+
+
+@contextmanager
+def get_db_cursor(dictionary=True):
+    """
+    DOES: Context manager for getting a database cursor
+    INPUTS: dictionary - if True, returns rows as dictionaries
+    
+    Example:
+        with get_db_cursor() as cursor:
+            cursor.execute("SELECT * FROM ctv")
+            rows = cursor.fetchall()
+    """
+    connection = get_db_connection()
+    if not connection:
+        raise Exception("Failed to get database connection")
+    
+    try:
+        if dictionary:
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
+        else:
+            cursor = connection.cursor()
+        yield cursor
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        raise e
+    finally:
+        cursor.close()
+        return_db_connection(connection)
 
 
 def init_pool(app=None):
@@ -125,17 +188,17 @@ def init_pool(app=None):
     
     Pre-creates the pool so first request doesn't have delay.
     """
-    pool = get_db_pool()
-    if pool:
-        print(f"Connection pool initialized successfully")
+    pool_instance = get_db_pool()
+    if pool_instance:
+        print("Connection pool initialized successfully")
         # Test a connection
         try:
-            conn = pool.get_connection()
+            conn = pool_instance.getconn()
             cursor = conn.cursor()
             cursor.execute("SELECT 1")
             cursor.fetchone()
             cursor.close()
-            conn.close()
+            pool_instance.putconn(conn)
             print("Pool connection test: OK")
         except Error as e:
             print(f"Pool connection test failed: {e}")
@@ -143,6 +206,149 @@ def init_pool(app=None):
         print("WARNING: Connection pool initialization failed")
 
 
+def close_pool():
+    """
+    DOES: Close all connections in the pool
+    Call this on application shutdown
+    """
+    global _pool
+    if _pool:
+        try:
+            _pool.closeall()
+            print("Connection pool closed")
+        except Error as e:
+            print(f"Error closing pool: {e}")
+        _pool = None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POSTGRESQL-SPECIFIC UTILITIES
+# ══════════════════════════════════════════════════════════════════════════════
+
+def execute_query(query, params=None, fetch_one=False, fetch_all=True, dictionary=True):
+    """
+    DOES: Execute a query and return results
+    INPUTS: 
+        query - SQL query with %s placeholders
+        params - tuple or list of parameters
+        fetch_one - return single row
+        fetch_all - return all rows
+        dictionary - return rows as dictionaries
+    OUTPUTS: Query results or None on error
+    
+    Example:
+        rows = execute_query("SELECT * FROM ctv WHERE ma_ctv = %s", ('CTV001',))
+    """
+    connection = get_db_connection()
+    if not connection:
+        return None
+    
+    try:
+        if dictionary:
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
+        else:
+            cursor = connection.cursor()
+        
+        cursor.execute(query, params)
+        
+        if fetch_one:
+            result = cursor.fetchone()
+        elif fetch_all:
+            result = cursor.fetchall()
+        else:
+            result = None
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        return result
+        
+    except Error as e:
+        print(f"Query error: {e}")
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return None
+
+
+def execute_insert(query, params=None, return_id=True):
+    """
+    DOES: Execute an INSERT query and optionally return the inserted ID
+    INPUTS: 
+        query - INSERT query (should include RETURNING id if return_id is True)
+        params - tuple or list of parameters
+        return_id - whether to return the inserted row's ID
+    OUTPUTS: Inserted ID or True on success, None on error
+    
+    Example:
+        # Query should include RETURNING id for PostgreSQL
+        id = execute_insert(
+            "INSERT INTO ctv (ma_ctv, ten) VALUES (%s, %s) RETURNING id",
+            ('CTV001', 'Test')
+        )
+    """
+    connection = get_db_connection()
+    if not connection:
+        return None
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        
+        if return_id:
+            result = cursor.fetchone()
+            result_id = result[0] if result else None
+        else:
+            result_id = True
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        return result_id
+        
+    except Error as e:
+        print(f"Insert error: {e}")
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return None
+
+
+def execute_update(query, params=None):
+    """
+    DOES: Execute an UPDATE or DELETE query
+    INPUTS: 
+        query - UPDATE/DELETE query
+        params - tuple or list of parameters
+    OUTPUTS: Number of affected rows or None on error
+    
+    Example:
+        affected = execute_update("UPDATE ctv SET ten = %s WHERE ma_ctv = %s", ('New Name', 'CTV001'))
+    """
+    connection = get_db_connection()
+    if not connection:
+        return None
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        rowcount = cursor.rowcount
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        return rowcount
+        
+    except Error as e:
+        print(f"Update error: {e}")
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return None
+
+
 # Initialize pool on module import
 _pool = get_db_pool()
-

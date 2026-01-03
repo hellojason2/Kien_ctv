@@ -42,7 +42,7 @@ function renderCTVTable(data) {
             <td>${ctv.ten}</td>
             <td>${ctv.email || '-'}</td>
             <td>${ctv.sdt || '-'}</td>
-            <td>${ctv.nguoi_gioi_thieu_name || '-'}</td>
+            <td>${ctv.nguoi_gioi_thieu_code || '-'}</td>
             <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
             <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
             <td>
@@ -119,19 +119,48 @@ async function createCTV() {
 }
 
 /**
+ * Normalize Vietnamese text for better search matching
+ * Removes accents and converts to lowercase
+ * @param {string} str - String to normalize
+ * @returns {string} - Normalized string
+ */
+function normalizeVietnamese(str) {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .trim();
+}
+
+/**
  * Initialize CTV search handler
  */
 function initCTVSearch() {
     const searchInput = document.getElementById('ctvSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allCTV.filter(c => 
-                c.ma_ctv.toLowerCase().includes(term) ||
-                c.ten.toLowerCase().includes(term) ||
-                (c.email || '').toLowerCase().includes(term) ||
-                (c.sdt || '').includes(term)
-            );
+            const term = normalizeVietnamese(e.target.value);
+            
+            // If search is empty, show all CTVs
+            if (!term) {
+                renderCTVTable(allCTV);
+                return;
+            }
+            
+            // Filter CTVs - normalize all fields for comparison
+            const filtered = allCTV.filter(c => {
+                const code = normalizeVietnamese(c.ma_ctv || '');
+                const name = normalizeVietnamese(c.ten || '');
+                const email = normalizeVietnamese(c.email || '');
+                const phone = (c.sdt || '').toString().trim();
+                
+                return code.includes(term) ||
+                       name.includes(term) ||
+                       email.includes(term) ||
+                       phone.includes(term);
+            });
+            
             renderCTVTable(filtered);
         });
     }

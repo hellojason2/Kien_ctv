@@ -1,6 +1,7 @@
 """
 Authentication Module
 Handles password hashing, session management, and route protection.
+Updated for PostgreSQL.
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MODULE STRUCTURE MAP
@@ -40,6 +41,7 @@ Handles password hashing, session management, and route protection.
 # ══════════════════════════════════════════════════════════════════════════════
 
 Created: December 28, 2025
+Updated: January 2, 2026 - Migrated to PostgreSQL
 """
 
 import os
@@ -48,8 +50,8 @@ import secrets
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify, g
-import mysql.connector
-from mysql.connector import Error
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor
 
 # Import activity logger (lazy import to avoid circular dependency)
 _activity_logger = None
@@ -69,7 +71,7 @@ def _get_activity_logger():
 SESSION_EXPIRY_HOURS = 24
 
 # Use connection pool for better performance
-from .db_pool import get_db_connection
+from .db_pool import get_db_connection, return_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -115,12 +117,6 @@ def create_session(user_type, user_id, remember_me=False):
     DOES: Create new session token and store in database
     INPUTS: user_type ('admin' or 'ctv'), user_id (username or ma_ctv), remember_me (bool)
     OUTPUTS: Session token (64-char hex string) or None on failure
-    
-    FLOW:
-    1. Generate random 64-char token
-    2. Calculate expiry time (24 hours default, 30 days if remember_me)
-    3. Store in sessions table
-    4. Return token
     """
     connection = get_db_connection()
     if not connection:
@@ -130,33 +126,35 @@ def create_session(user_type, user_id, remember_me=False):
         cursor = connection.cursor()
         
         # Generate unique session token
-        token = secrets.token_hex(32)  # 64 characters
+        token = secrets.token_hex(32)
         
         # Calculate expiry time - 30 days if remember me, otherwise 24 hours
-        expiry_hours = 720 if remember_me else SESSION_EXPIRY_HOURS  # 30 days = 720 hours
+        expiry_hours = 720 if remember_me else SESSION_EXPIRY_HOURS
         expires_at = datetime.now() + timedelta(hours=expiry_hours)
         
         # Delete any existing sessions for this user (single session per user)
-        cursor.execute("""
-            DELETE FROM sessions WHERE user_type = %s AND user_id = %s;
-        """, (user_type, user_id))
+        cursor.execute(
+            "DELETE FROM sessions WHERE user_type = %s AND user_id = %s",
+            (user_type, user_id)
+        )
         
         # Create new session
         cursor.execute("""
             INSERT INTO sessions (id, user_type, user_id, expires_at)
-            VALUES (%s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s)
         """, (token, user_type, user_id, expires_at))
         
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return token
         
     except Error as e:
         print(f"Error creating session: {e}")
         if connection:
-            connection.close()
+            connection.rollback()
+            return_db_connection(connection)
         return None
 
 
@@ -165,12 +163,6 @@ def validate_session(token):
     DOES: Check if session token is valid and not expired
     INPUTS: token - session token from client
     OUTPUTS: Dict with user info or None if invalid
-    
-    Returns: {
-        'user_type': 'admin' | 'ctv',
-        'user_id': username or ma_ctv,
-        'expires_at': datetime
-    }
     """
     if not token:
         return None
@@ -180,26 +172,26 @@ def validate_session(token):
         return None
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Get session and check expiry
         cursor.execute("""
             SELECT user_type, user_id, expires_at 
             FROM sessions 
-            WHERE id = %s AND expires_at > NOW();
+            WHERE id = %s AND expires_at > CURRENT_TIMESTAMP
         """, (token,))
         
         session = cursor.fetchone()
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
-        return session
+        return dict(session) if session else None
         
     except Error as e:
         print(f"Error validating session: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return None
 
 
@@ -219,26 +211,25 @@ def destroy_session(token):
     try:
         cursor = connection.cursor()
         
-        cursor.execute("DELETE FROM sessions WHERE id = %s;", (token,))
+        cursor.execute("DELETE FROM sessions WHERE id = %s", (token,))
         deleted = cursor.rowcount > 0
         
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return deleted
         
     except Error as e:
         print(f"Error destroying session: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return False
 
 
 def cleanup_expired_sessions():
     """
     DOES: Remove all expired sessions from database
-    Called periodically to clean up old sessions
     """
     connection = get_db_connection()
     if not connection:
@@ -246,13 +237,13 @@ def cleanup_expired_sessions():
     
     try:
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM sessions WHERE expires_at < NOW();")
+        cursor.execute("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP")
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
     except Error:
         if connection:
-            connection.close()
+            return_db_connection(connection)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -263,13 +254,6 @@ def get_current_user():
     """
     DOES: Get current user from request Authorization header or cookie
     OUTPUTS: User info dict or None
-    
-    OPTIMIZATION: Only calls validate_session once with the first found token
-    
-    Checks (in order, stops at first found):
-    1. Authorization: Bearer <token> header
-    2. X-Session-Token header
-    3. session_token cookie
     """
     token = None
     
@@ -303,22 +287,24 @@ def get_admin_info(username):
         return None
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT id, username, name, created_at 
-            FROM admins WHERE username = %s;
+            FROM admins WHERE username = %s
         """, (username,))
         admin = cursor.fetchone()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
-        if admin and admin.get('created_at'):
-            admin['created_at'] = admin['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        if admin:
+            admin = dict(admin)
+            if admin.get('created_at'):
+                admin['created_at'] = admin['created_at'].strftime('%Y-%m-%d %H:%M:%S')
         
         return admin
     except Error:
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return None
 
 
@@ -332,18 +318,18 @@ def get_ctv_info(ma_ctv):
         return None
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT ma_ctv, ten, sdt, email, cap_bac, nguoi_gioi_thieu, is_active
-            FROM ctv WHERE ma_ctv = %s;
+            FROM ctv WHERE ma_ctv = %s
         """, (ma_ctv,))
         ctv = cursor.fetchone()
         cursor.close()
-        connection.close()
-        return ctv
+        return_db_connection(connection)
+        return dict(ctv) if ctv else None
     except Error:
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return None
 
 
@@ -355,11 +341,6 @@ def require_admin(f):
     """
     DOES: Decorator to protect admin-only routes
     USAGE: @require_admin before route function
-    
-    OPTIMIZATION: Combines session validation and admin info retrieval into one DB call
-    
-    Sets g.current_user with admin info if authenticated
-    Returns 401 if not authenticated or not admin
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -379,7 +360,7 @@ def require_admin(f):
                 'message': 'Authentication required'
             }), 401
         
-        # OPTIMIZED: Single query to validate session AND get admin info
+        # Combined query to validate session AND get admin info
         connection = get_db_connection()
         if not connection:
             return jsonify({
@@ -388,9 +369,8 @@ def require_admin(f):
             }), 500
         
         try:
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
             
-            # Combined query: validate session + get admin info in one roundtrip
             cursor.execute("""
                 SELECT 
                     s.user_type,
@@ -402,12 +382,12 @@ def require_admin(f):
                     a.created_at
                 FROM sessions s
                 LEFT JOIN admins a ON s.user_type = 'admin' AND s.user_id = a.username
-                WHERE s.id = %s AND s.expires_at > NOW()
+                WHERE s.id = %s AND s.expires_at > CURRENT_TIMESTAMP
             """, (token,))
             
             result = cursor.fetchone()
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             
             if not result:
                 return jsonify({
@@ -427,7 +407,6 @@ def require_admin(f):
                     'message': 'Admin account not found'
                 }), 401
             
-            # Build admin info from combined result
             admin_info = {
                 'id': result['admin_id'],
                 'username': result['username'],
@@ -442,7 +421,7 @@ def require_admin(f):
             
         except Exception as e:
             if connection:
-                connection.close()
+                return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f'Authentication error: {str(e)}'
@@ -455,9 +434,6 @@ def require_ctv(f):
     """
     DOES: Decorator to protect CTV-only routes
     USAGE: @require_ctv before route function
-    
-    Sets g.current_user with CTV info if authenticated
-    Returns 401 if not authenticated or not CTV
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -506,45 +482,39 @@ def admin_login(username, password, remember_me=False):
     DOES: Authenticate admin and create session
     INPUTS: username, password, remember_me (bool)
     OUTPUTS: {'token': str, 'admin': dict} or {'error': str}
-    
-    LOGGING: Logs login_success or login_failed events
     """
     connection = get_db_connection()
     if not connection:
         return {'error': 'Database connection failed'}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
             SELECT id, username, password_hash, name
-            FROM admins WHERE username = %s;
+            FROM admins WHERE username = %s
         """, (username,))
         admin = cursor.fetchone()
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         if not admin:
-            # Log failed login attempt
             logger = _get_activity_logger()
             if logger:
                 logger.log_login_failed(username, 'admin')
             return {'error': 'Invalid username or password'}
         
         if not verify_password(password, admin.get('password_hash', '')):
-            # Log failed login attempt
             logger = _get_activity_logger()
             if logger:
                 logger.log_login_failed(username, 'admin')
             return {'error': 'Invalid username or password'}
         
-        # Create session with remember_me option
         token = create_session('admin', username, remember_me=remember_me)
         if not token:
             return {'error': 'Failed to create session'}
         
-        # Log successful login
         logger = _get_activity_logger()
         if logger:
             logger.log_login_success('admin', username)
@@ -567,53 +537,46 @@ def ctv_login(ma_ctv, password):
     DOES: Authenticate CTV by ma_ctv (case-insensitive) and create session
     INPUTS: ma_ctv (CTV code, case-insensitive), password
     OUTPUTS: {'token': str, 'ctv': dict} or {'error': str}
-    
-    LOGGING: Logs login_success or login_failed events
     """
     connection = get_db_connection()
     if not connection:
         return {'error': 'Database connection failed'}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Case-insensitive lookup by ma_ctv
         cursor.execute("""
             SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
-            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s);
+            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)
         """, (ma_ctv,))
         ctv = cursor.fetchone()
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         if not ctv:
-            # Log failed login attempt
             logger = _get_activity_logger()
             if logger:
                 logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Invalid CTV code or password'}
         
         if not ctv.get('is_active', True):
-            # Log failed login attempt (deactivated account)
             logger = _get_activity_logger()
             if logger:
                 logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Account is deactivated'}
         
         if not verify_password(password, ctv.get('password_hash', '')):
-            # Log failed login attempt
             logger = _get_activity_logger()
             if logger:
                 logger.log_login_failed(ma_ctv, 'ctv')
             return {'error': 'Invalid CTV code or password'}
         
-        # Create session
         token = create_session('ctv', ctv['ma_ctv'])
         if not token:
             return {'error': 'Failed to create session'}
         
-        # Log successful login
         logger = _get_activity_logger()
         if logger:
             logger.log_login_success('ctv', ctv['ma_ctv'])
@@ -638,12 +601,7 @@ def change_ctv_password(ma_ctv, current_password, new_password):
     DOES: Change CTV password after verifying current password
     INPUTS: ma_ctv, current_password, new_password
     OUTPUTS: {'success': True} or {'error': str}
-    
-    Validation:
-    - Current password must be correct
-    - New password must be at least 6 characters
     """
-    # Validate new password length
     if not new_password or len(new_password) < 6:
         return {'error': 'New password must be at least 6 characters'}
     
@@ -652,40 +610,36 @@ def change_ctv_password(ma_ctv, current_password, new_password):
         return {'error': 'Database connection failed'}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Get current password hash (case-insensitive lookup)
         cursor.execute("""
             SELECT ma_ctv, password_hash
-            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s);
+            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)
         """, (ma_ctv,))
         ctv = cursor.fetchone()
         
         if not ctv:
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return {'error': 'CTV not found'}
         
-        # Verify current password
         if not verify_password(current_password, ctv.get('password_hash', '')):
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return {'error': 'Current password is incorrect'}
         
-        # Hash and update new password
         new_password_hash = hash_password(new_password)
         cursor.execute("""
-            UPDATE ctv SET password_hash = %s WHERE ma_ctv = %s;
+            UPDATE ctv SET password_hash = %s WHERE ma_ctv = %s
         """, (new_password_hash, ctv['ma_ctv']))
         
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return {'success': True}
         
     except Error as e:
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return {'error': f'Database error: {str(e)}'}
-

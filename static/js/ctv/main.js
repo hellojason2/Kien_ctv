@@ -21,9 +21,28 @@
 
 // Initialize language on page load
 function initLanguage() {
-    setLanguage(getCurrentLang());
+    const currentLang = getCurrentLang();
     
-    // Setup language switcher click handler
+    // Initialize active state for language options before setting language
+    // This ensures only one option is active at a time
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.dataset.lang === currentLang) {
+            opt.classList.add('active');
+        }
+    });
+    
+    // Also initialize mobile language options
+    document.querySelectorAll('.mobile-lang-popup .lang-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.dataset.lang === currentLang) {
+            opt.classList.add('active');
+        }
+    });
+    
+    setLanguage(currentLang);
+    
+    // Setup language switcher click handler (desktop)
     const langSwitcher = document.getElementById('langSwitcher');
     if (langSwitcher) {
         const langIcon = langSwitcher.querySelector('.sidebar-icon');
@@ -37,6 +56,26 @@ function initLanguage() {
     if (loginLangBtn) {
         loginLangBtn.addEventListener('click', toggleLoginLangPopup);
     }
+    
+    // Update mobile language label when language changes
+    const updateMobileLangLabel = () => {
+        const mobileLabel = document.getElementById('mobileCurrentLangLabel');
+        if (mobileLabel) {
+            const currentLang = getCurrentLang();
+            mobileLabel.textContent = currentLang ? currentLang.toUpperCase() : 'VI';
+        }
+    };
+    
+    // Update on language change
+    const originalSetLanguage = window.setLanguage;
+    if (originalSetLanguage) {
+        window.setLanguage = function(lang) {
+            originalSetLanguage(lang);
+            updateMobileLangLabel();
+        };
+    }
+    
+    updateMobileLangLabel();
 }
 
 // Close popups when clicking outside
@@ -63,6 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initNavigation();
     initPhoneCheck();
     initClientSearch();
+    
+    // Initialize dashboard date filter
+    if (typeof initDashboardDateFilter === 'function') {
+        initDashboardDateFilter();
+    }
     
     // Check authentication status
     checkAuth();

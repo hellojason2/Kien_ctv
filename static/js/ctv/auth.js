@@ -145,6 +145,9 @@ async function showPortal() {
     document.getElementById('portal').classList.add('active');
     await loadProfile();
     await loadRecentCommissions();
+    if (typeof loadLifetimeStats === 'function') {
+        await loadLifetimeStats();
+    }
 }
 
 // Check Auth

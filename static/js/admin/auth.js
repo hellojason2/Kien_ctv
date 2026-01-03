@@ -14,7 +14,12 @@ async function showDashboard() {
     // Hide language toggle when dashboard is active
     const langToggle = document.querySelector('.lang-toggle');
     if (langToggle) langToggle.style.display = 'none';
-    await loadStats();
+    // Initialize overview page if it exists
+    if (typeof initOverview === 'function') {
+        initOverview();
+    } else {
+        await loadStats();
+    }
     await loadCTVList();
     await loadCommissionSettings();
 }

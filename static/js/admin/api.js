@@ -20,8 +20,25 @@ async function api(endpoint, options = {}) {
         ...(authToken && { 'Authorization': `Bearer ${authToken}` })
     };
     
-    const response = await fetch(endpoint, { ...options, headers });
-    return response.json();
+    try {
+        const response = await fetch(endpoint, { ...options, headers });
+        
+        if (!response.ok) {
+            // Try to parse error response
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch {
+                errorData = { status: 'error', message: `HTTP ${response.status}: ${response.statusText}` };
+            }
+            return errorData;
+        }
+        
+        return await response.json();
+    } catch (error) {
+        // Network error or other exception
+        return { status: 'error', message: error.message || 'Network error' };
+    }
 }
 
 /**

@@ -3,8 +3,8 @@ import sys
 from datetime import datetime
 from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
-import mysql.connector
-from mysql.connector import Error
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor
 
 # Get the directory where this script is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -41,24 +41,17 @@ except ImportError as e:
     print(f"WARNING: Could not load modules: {e}")
     print("Admin and CTV portal features will be unavailable.")
 
-# Database configuration
+# Database configuration - PostgreSQL
 DB_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
-    'port': 45433,
-    'user': 'root',
-    'password': 'hMNdGtasqTqqLLocTYtzZtKxxEKaIhAg',
-    'database': 'railway'
+    'host': 'containers-us-west-XXX.railway.app',
+    'port': 5432,
+    'database': 'railway',
+    'user': 'postgres',
+    'password': 'your_password_here'
 }
 
-def get_db_connection():
-    """Create and return a database connection"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"Error connecting to MySQL: {e}")
-        return None
+# Use connection pool for better performance
+from modules.db_pool import get_db_connection, return_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -117,7 +110,7 @@ def get_parent(cursor, ctv_code):
     # Handle both dictionary and tuple cursor results
     if isinstance(result, dict):
         return result.get('nguoi_gioi_thieu')
-    return result[0] if result[0] else None
+    return result[0] if result and result[0] else None
 
 
 def calculate_level(cursor, ctv_code, ancestor_code):
@@ -204,12 +197,11 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
         return None
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Get root CTV info
         cursor.execute("SELECT ma_ctv, ten, sdt, email, cap_bac FROM ctv WHERE ma_ctv = %s;", (root_ctv_code,))
         root = cursor.fetchone()
-        
         if not root:
             return None
         
@@ -219,11 +211,13 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
                 return []
             
             cursor.execute("""
-                SELECT ma_ctv, ten, sdt, email, cap_bac 
-                FROM ctv 
+                SELECT ma_ctv, ten, sdt, email, cap_bac
+                FROM ctv
                 WHERE nguoi_gioi_thieu = %s;
             """, (parent_code,))
             children = cursor.fetchall()
+            if not children:
+                return []
             
             result = []
             for child in children:
@@ -295,7 +289,7 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None):
         return []
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Build ancestor chain
         ancestors = build_ancestor_chain(cursor, ctv_code)
@@ -497,16 +491,18 @@ def test_connection():
     if connection:
         try:
             cursor = connection.cursor()
-            cursor.execute("SELECT DATABASE();")
+            cursor.execute("SELECT current_database();")
             db_name = cursor.fetchone()
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'success',
                 'message': 'Database connected successfully',
                 'database': db_name[0]
             })
         except Error as e:
+            if connection:
+                return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f'Database error: {str(e)}'
@@ -526,15 +522,17 @@ def get_tables():
     
     try:
         cursor = connection.cursor()
-        cursor.execute("SHOW TABLES;")
+        cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
         tables = [table[0] for table in cursor.fetchall()]
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         return jsonify({
             'status': 'success',
             'tables': tables
         })
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({
             'status': 'error',
             'message': f'Error fetching tables: {str(e)}'
@@ -548,13 +546,20 @@ def get_data():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Check if customers table exists
-        cursor.execute("SHOW TABLES LIKE 'customers';")
-        table_exists = cursor.fetchone()
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'customers'
+            );
+        """)
+        table_exists = cursor.fetchone()[0]
         
         if not table_exists:
+            cursor.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'success',
                 'data': [],
@@ -566,7 +571,7 @@ def get_data():
         data = cursor.fetchall()
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -587,7 +592,7 @@ def get_customer(customer_id):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Fetch customer details
         cursor.execute("SELECT * FROM customers WHERE id = %s;", (customer_id,))
@@ -595,14 +600,14 @@ def get_customer(customer_id):
         
         if not customer:
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': 'Customer not found'
             }), 404
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -622,7 +627,7 @@ def get_customer_services(customer_id):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # First get the customer details
         cursor.execute("SELECT * FROM customers WHERE id = %s;", (customer_id,))
@@ -809,7 +814,7 @@ def get_ctv_levels(ctv_code):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Verify CTV exists
         cursor.execute("SELECT ma_ctv, ten FROM ctv WHERE ma_ctv = %s;", (ctv_code,))
@@ -817,7 +822,7 @@ def get_ctv_levels(ctv_code):
         
         if not root:
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f'CTV {ctv_code} not found'
@@ -845,7 +850,7 @@ def get_ctv_levels(ctv_code):
         levels.sort(key=lambda x: x['level'])
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -878,7 +883,7 @@ def get_ctv_commissions(ctv_code):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Verify CTV exists
         cursor.execute("SELECT ma_ctv, ten, cap_bac FROM ctv WHERE ma_ctv = %s;", (ctv_code,))
@@ -886,7 +891,7 @@ def get_ctv_commissions(ctv_code):
         
         if not ctv:
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f'CTV {ctv_code} not found'
@@ -961,7 +966,7 @@ def get_ctv_commissions(ctv_code):
             d['commission_amount'] = float(d['commission_amount'])
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -1029,7 +1034,7 @@ def create_service():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Verify customer exists
         cursor.execute("SELECT id FROM customers WHERE id = %s;", (data['customer_id'],))
@@ -1045,7 +1050,7 @@ def create_service():
         cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s;", (data['ctv_code'],))
         if not cursor.fetchone():
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f"CTV {data['ctv_code']} not found"
@@ -1079,7 +1084,7 @@ def create_service():
         )
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -1116,7 +1121,7 @@ def get_transaction_commissions(transaction_id):
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         # Get commission records with CTV names
         cursor.execute("""
@@ -1139,7 +1144,7 @@ def get_transaction_commissions(transaction_id):
         
         if not commissions:
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
             return jsonify({
                 'status': 'error',
                 'message': f'No commissions found for transaction {transaction_id}'
@@ -1156,7 +1161,7 @@ def get_transaction_commissions(transaction_id):
         total_commission = sum(c['commission_amount'] for c in commissions)
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -1186,7 +1191,7 @@ def get_all_ctv():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
             SELECT 
@@ -1195,7 +1200,7 @@ def get_all_ctv():
                 c.sdt,
                 c.email,
                 c.nguoi_gioi_thieu,
-                p.ten as nguoi_gioi_thieu_name,
+                c.nguoi_gioi_thieu as nguoi_gioi_thieu_code,
                 c.cap_bac,
                 c.created_at
             FROM ctv c
@@ -1211,7 +1216,7 @@ def get_all_ctv():
                 ctv['created_at'] = ctv['created_at'].strftime('%Y-%m-%d %H:%M:%S')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -1237,10 +1242,10 @@ if __name__ == '__main__':
     if connection:
         try:
             cursor = connection.cursor()
-            cursor.execute("SELECT DATABASE();")
+            cursor.execute("SELECT current_database();")
             db_name = cursor.fetchone()
             print(f"SUCCESS: Connected to database '{db_name[0]}'")
-            cursor.execute("SHOW TABLES;")
+            cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
             tables = cursor.fetchall()
             if tables:
                 print(f"Found {len(tables)} table(s):")
@@ -1249,9 +1254,11 @@ if __name__ == '__main__':
             else:
                 print("No tables found in database")
             cursor.close()
-            connection.close()
+            return_db_connection(connection)
         except Error as e:
             print(f"ERROR: {e}")
+            if connection:
+                return_db_connection(connection)
     else:
         print("ERROR: Failed to connect to database")
     

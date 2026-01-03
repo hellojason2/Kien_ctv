@@ -1,5 +1,75 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-02 10:55] - Fix Table View Button and Improve Error Handling in CTV Clients Page
+- Fixed Table button not working properly in CTV Portal Clients page
+- Fixed error handling in `loadCtvClientsWithServices()` to render errors to the correct container (card or table view)
+- Added try-catch wrapper around API calls to handle network errors gracefully
+- Updated table view to show more relevant customer data: Name, Phone, Location, Service Count, Total Amount, Deposit Status
+- Improved table rendering with better column headers and formatting
+- Added table-specific CSS styles including hover effects and status badges
+- The Table/Card toggle now properly switches between views and renders data to the correct container
+
+### Files Modified
+- `static/js/ctv/clients.js` - Fixed error handling and improved table view rendering
+- `static/css/ctv/clients.css` - Added table view styles and status badges
+
+### Bug Fix Details
+- Previous bug: When API returned an error, the error message was always rendered to `ctvClientsGrid` (card view) even when in table view
+- Fix: Now checks `currentView` variable and renders errors to the correct container (`ctvClientsGrid` for card view, `ctvClientsTable` for table view)
+
+## [2025-12-30 22:15] - Add Mobile Popup Menu with Language Toggle for CTV Portal
+- Added mobile popup menu for iPhone and small screen devices
+- Language selection now available in mobile menu popup
+- All menu items (Overview, Earnings, Network, Customers, Settings, Language, Logout) accessible via popup menu
+- Menu button (hamburger icon) appears in bottom navigation on mobile
+- Smooth slide-up animation for mobile menu
+- Language toggle integrated into mobile menu with expandable submenu
+- Responsive design works perfectly on iPhone, iPad, and desktop
+- Desktop sidebar remains unchanged, mobile uses bottom navigation with popup menu
+
+### Files Modified
+- `templates/ctv/components/sidebar.html` - Added mobile menu button and popup menu structure
+- `static/css/ctv/responsive.css` - Added mobile menu popup styles and animations
+- `static/css/ctv/layout.css` - Added desktop hiding for mobile menu elements
+- `static/js/ctv/navigation.js` - Added mobile menu toggle functions and navigation handlers
+- `static/js/ctv/main.js` - Updated language initialization to support mobile menu
+- `static/js/ctv/translations.js` - Updated setLanguage to update mobile language label
+
+## [2025-12-30 22:00] - Add Month and Day Filters to Admin Overview Page
+- Added month and day date filters to admin overview dashboard
+- Users can now filter statistics by selecting a specific month or day
+- Month filter defaults to current month on page load
+- Day filter automatically updates month filter when a day is selected
+- All statistics (commission, transactions, revenue, top earners) update based on selected date range
+- Responsive design works on iPhone, iPad, and desktop devices
+- All filter labels translated in Vietnamese and English
+
+### Files Modified
+- `templates/admin/pages/overview.html` - Added month and day filter inputs with apply button
+- `modules/admin_routes.py` - Updated get_stats endpoint to accept month and day query parameters
+- `static/js/admin/overview.js` - Added initOverview function and updated loadStats to handle date filters
+- `static/js/admin/navigation.js` - Added initOverview call when navigating to overview page
+- `static/js/admin/auth.js` - Updated showDashboard to call initOverview
+- `static/js/admin/translations.js` - Added translation keys for filter_by_date, select_month, select_day
+
+## [2025-12-30 21:30] - Update Referrer Column to Show CTV Code Instead of Name
+- Changed referrer column in clients table view to display CTV code instead of CTV name
+- Changed referrer column in admin CTV management table to display CTV code instead of CTV name
+- Added table view rendering with EMAIL, PHONE, REFERRER (CTV code), and LEVEL columns for CTV portal
+- Updated API endpoints to return referrer CTV code instead of referrer name
+- Table view now properly loads and displays data when switching from card view
+- Referrer now shows the CTV code instead of the CTV name in all views
+
+### Files Modified
+- `modules/ctv_routes.py` - Updated get_ctv_clients_with_services endpoint to include email, referrer_ctv_code, and level
+- `modules/admin_routes.py` - Updated list_ctv endpoint to return nguoi_gioi_thieu_code instead of nguoi_gioi_thieu_name
+- `static/js/ctv/clients.js` - Added renderCtvClientTable function and updated switchToTableView to load table data
+- `static/js/admin/ctv-management.js` - Updated renderCTVTable to display referrer CTV code instead of name
+- `templates/ctv_portal.html` - Added renderCtvClientTable function for inline table rendering
+- `templates/admin.html` - Updated CTV table to display referrer CTV code instead of name
+- `backend.py` - Updated CTV query to return referrer CTV code instead of name
+- `modules/export_excel.py` - Updated export to use referrer CTV code field instead of name field
+
 ## [2025-12-30 21:00] - Enhanced Commission Report Date Range Filters
 - Added quick filter buttons for common date ranges: Today, Last 3 Days, This Week, This Month, Last 3 Months, This Year
 - Added custom date range picker allowing users to select specific start and end dates

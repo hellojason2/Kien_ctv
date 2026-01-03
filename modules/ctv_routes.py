@@ -1,6 +1,7 @@
 """
 CTV Routes Module
 All API endpoints for the CTV Portal.
+Updated for PostgreSQL.
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MODULE STRUCTURE MAP
@@ -23,20 +24,17 @@ All API endpoints for the CTV Portal.
 # - GET /api/ctv/my-downline    -> Get all CTVs under me
 # - GET /api/ctv/my-hierarchy   -> Get my hierarchy tree
 #
-# KEY SECURITY:
-# All endpoints filter data to only show records within CTV's network
-# Uses get_all_descendants() to determine accessible CTV codes
-#
 # ══════════════════════════════════════════════════════════════════════════════
 
 Created: December 28, 2025
+Updated: January 2, 2026 - Migrated to PostgreSQL
 """
 
 import os
 import datetime
 from flask import Blueprint, jsonify, request, send_file, g, make_response, render_template
-import mysql.connector
-from mysql.connector import Error
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor
 
 from .auth import (
     require_ctv,
@@ -60,7 +58,7 @@ ctv_bp = Blueprint('ctv', __name__)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Use connection pool for better performance
-from .db_pool import get_db_connection
+from .db_pool import get_db_connection, return_db_connection
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -69,12 +67,7 @@ from .db_pool import get_db_connection
 
 @ctv_bp.route('/ctv/login', methods=['POST'])
 def login():
-    """
-    CTV login endpoint
-    Body: {"ma_ctv": "BsDieu", "password": "123456"}
-    Login is case-insensitive (can enter "BSDIEU" or "bsdieu")
-    Returns: {"token": "...", "ctv": {...}}
-    """
+    """CTV login endpoint"""
     data = request.get_json()
     
     if not data:
@@ -91,7 +84,6 @@ def login():
     if 'error' in result:
         return jsonify({'status': 'error', 'message': result['error']}), 401
     
-    # Set cookie with token
     response = make_response(jsonify({
         'status': 'success',
         'token': result['token'],
@@ -104,10 +96,7 @@ def login():
 
 @ctv_bp.route('/ctv/logout', methods=['POST'])
 def logout():
-    """
-    CTV logout endpoint
-    Destroys session and clears cookie
-    """
+    """CTV logout endpoint"""
     token = request.cookies.get('session_token')
     if not token:
         token = request.headers.get('X-Session-Token')
@@ -131,7 +120,6 @@ def portal():
     try:
         return render_template('ctv/base.html')
     except Exception as e:
-        # Fallback to old method if new templates don't exist yet
         template_path = os.path.join(BASE_DIR, 'templates', 'ctv_portal.html')
         if os.path.exists(template_path):
             return send_file(template_path)
@@ -150,11 +138,7 @@ def check_auth():
 @ctv_bp.route('/api/ctv/change-password', methods=['POST'])
 @require_ctv
 def change_password():
-    """
-    Change CTV password
-    Body: {"current_password": "123456", "new_password": "newpass123"}
-    Requires authentication
-    """
+    """Change CTV password"""
     data = request.get_json()
     
     if not data:
@@ -182,9 +166,7 @@ def change_password():
 @ctv_bp.route('/api/ctv/me', methods=['GET'])
 @require_ctv
 def get_profile():
-    """
-    Get logged-in CTV profile with network stats
-    """
+    """Get logged-in CTV profile with network stats"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -192,60 +174,116 @@ def get_profile():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        # Get network stats
         stats = get_network_stats(ctv['ma_ctv'], connection)
         
-        # Get referrer info
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         if ctv.get('nguoi_gioi_thieu'):
             cursor.execute("""
-                SELECT ma_ctv, ten FROM ctv WHERE ma_ctv = %s;
+                SELECT ma_ctv, ten FROM ctv WHERE ma_ctv = %s
             """, (ctv['nguoi_gioi_thieu'],))
             referrer = cursor.fetchone()
+            if referrer:
+                referrer = dict(referrer)
         else:
             referrer = None
         
-        # Get total earnings
+        # Get commission rates from config
+        cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+        rates_rows = cursor.fetchall()
+        commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
+        level0_rate = commission_rates.get(0, 0.25)  # Default 25% for self
+        
+        # Calculate total earnings from khach_hang (all time)
+        # Include both Vietnamese and non-Vietnamese status formats
         cursor.execute("""
-            SELECT COALESCE(SUM(commission_amount), 0) as total
-            FROM commissions WHERE ctv_code = %s;
+            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
         """, (ctv['ma_ctv'],))
-        total_earnings = float(cursor.fetchone()['total'])
+        kh_revenue = float(cursor.fetchone()['total_revenue'])
         
-        # Calculate date range for current month
-        today = datetime.date.today()
-        start_of_month = today.replace(day=1)
-        if today.month == 12:
-            start_of_next_month = today.replace(year=today.year + 1, month=1, day=1)
-        else:
-            start_of_next_month = today.replace(month=today.month + 1, day=1)
-
-        # Get this month's earnings (based on actual service date from khach_hang)
-        # Optimized to use date range index instead of DATE_FORMAT
+        # Also check services table for CTVs with services
         cursor.execute("""
-            SELECT COALESCE(SUM(c.commission_amount), 0) as total
-            FROM commissions c
-            LEFT JOIN khach_hang kh ON c.transaction_id = kh.id
-            WHERE c.ctv_code = %s 
-            AND COALESCE(kh.ngay_hen_lam, c.created_at) >= %s
-            AND COALESCE(kh.ngay_hen_lam, c.created_at) < %s;
-        """, (ctv['ma_ctv'], start_of_month, start_of_next_month))
-        monthly_earnings = float(cursor.fetchone()['total'])
+            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue
+            FROM services
+            WHERE ctv_code = %s
+        """, (ctv['ma_ctv'],))
+        svc_revenue = float(cursor.fetchone()['total_revenue'])
         
-        # Get services count this month (completed services by this CTV)
-        # Optimized to use index on (nguoi_chot, trang_thai, ngay_hen_lam)
+        total_revenue = kh_revenue + svc_revenue
+        total_earnings = total_revenue * level0_rate
+        
+        # Date filtering for period stats
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
+        
+        if from_date and to_date:
+            start_date = from_date
+            try:
+                end_date_obj = datetime.datetime.strptime(to_date, '%Y-%m-%d') + datetime.timedelta(days=1)
+                end_date = end_date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                end_date = to_date
+        else:
+            today = datetime.date.today()
+            start_date = today.replace(day=1)
+            if today.month == 12:
+                end_date = today.replace(year=today.year + 1, month=1, day=1)
+            else:
+                end_date = today.replace(month=today.month + 1, day=1)
+
+        # Calculate period earnings from khach_hang
+        # Include both Vietnamese and non-Vietnamese status formats
+        cursor.execute("""
+            SELECT COALESCE(SUM(tong_tien), 0) as period_revenue
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND ngay_hen_lam >= %s
+            AND ngay_hen_lam < %s
+        """, (ctv['ma_ctv'], start_date, end_date))
+        kh_period_revenue = float(cursor.fetchone()['period_revenue'])
+        
+        # Also check services table for period
+        cursor.execute("""
+            SELECT COALESCE(SUM(tong_tien), 0) as period_revenue
+            FROM services
+            WHERE ctv_code = %s
+            AND date_entered >= %s
+            AND date_entered < %s
+        """, (ctv['ma_ctv'], start_date, end_date))
+        svc_period_revenue = float(cursor.fetchone()['period_revenue'])
+        
+        period_revenue = kh_period_revenue + svc_period_revenue
+        monthly_earnings = period_revenue * level0_rate
+        
+        # Count services from khach_hang
+        # Include both Vietnamese and non-Vietnamese status formats
         cursor.execute("""
             SELECT COUNT(*) as count
             FROM khach_hang
-            WHERE nguoi_chot = %s 
-            AND trang_thai IN ('Đã đến làm', 'Da den lam')
+            WHERE nguoi_chot = %s
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
             AND ngay_hen_lam >= %s
-            AND ngay_hen_lam < %s;
-        """, (ctv['ma_ctv'], start_of_month, start_of_next_month))
-        monthly_services_count = int(cursor.fetchone()['count'])
+            AND ngay_hen_lam < %s
+        """, (ctv['ma_ctv'], start_date, end_date))
+        kh_count = int(cursor.fetchone()['count'])
+        
+        # Count services from services table
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM services
+            WHERE ctv_code = %s
+            AND date_entered >= %s
+            AND date_entered < %s
+        """, (ctv['ma_ctv'], start_date, end_date))
+        svc_count = int(cursor.fetchone()['count'])
+        
+        monthly_services_count = kh_count + svc_count
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -267,6 +305,8 @@ def get_profile():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
@@ -277,19 +317,7 @@ def get_profile():
 @ctv_bp.route('/api/ctv/my-commissions', methods=['GET'])
 @require_ctv
 def get_my_commissions():
-    """
-    Get own commission earnings with breakdown
-    Query params: 
-    - ?month=2025-12 (legacy)
-    - ?level=1
-    - ?from_date=2025-12-01&to_date=2025-12-31 (new date range filter)
-    
-    Returns commission records with:
-    - source_ctv_name: Name of the CTV who made the sale (nguoi_chot)
-    - source_ctv_code: Code of the CTV who made the sale
-    - customer_name: Name of the customer
-    - service_name: Name of the service
-    """
+    """Get own commission earnings with breakdown"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -297,14 +325,13 @@ def get_my_commissions():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         month = request.args.get('month')
         level = request.args.get('level')
         from_date = request.args.get('from_date')
         to_date = request.args.get('to_date')
         
-        # Build query with JOINs to get source CTV, customer, and service info
         query = """
             SELECT 
                 c.id,
@@ -326,22 +353,21 @@ def get_my_commissions():
         """
         params = [ctv['ma_ctv']]
         
-        # Date range filter (takes priority over month)
         if from_date and to_date:
             query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
             params.extend([from_date, to_date])
         elif month:
-            query += " AND DATE_FORMAT(c.created_at, '%Y-%m') = %s"
+            query += " AND TO_CHAR(c.created_at, 'YYYY-MM') = %s"
             params.append(month)
         
         if level is not None and level != '':
             query += " AND c.level = %s"
             params.append(int(level))
         
-        query += " ORDER BY c.created_at DESC LIMIT 100;"
+        query += " ORDER BY c.created_at DESC LIMIT 100"
         
         cursor.execute(query, params)
-        commissions = cursor.fetchall()
+        commissions = [dict(row) for row in cursor.fetchall()]
         
         for c in commissions:
             c['commission_rate'] = float(c['commission_rate'])
@@ -349,13 +375,11 @@ def get_my_commissions():
             c['commission_amount'] = float(c['commission_amount'])
             if c.get('created_at'):
                 c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
-            # Provide fallback values if JOINs returned NULL
             c['source_ctv_name'] = c.get('source_ctv_name') or c.get('source_ctv_code') or 'N/A'
             c['source_ctv_code'] = c.get('source_ctv_code') or 'N/A'
             c['customer_name'] = c.get('customer_name') or 'N/A'
             c['service_name'] = c.get('service_name') or 'N/A'
         
-        # Get summary by level with same date filters
         summary_query = """
             SELECT 
                 level,
@@ -366,18 +390,17 @@ def get_my_commissions():
         """
         summary_params = [ctv['ma_ctv']]
         
-        # Apply same date filters to summary
         if from_date and to_date:
             summary_query += " AND DATE(created_at) >= %s AND DATE(created_at) <= %s"
             summary_params.extend([from_date, to_date])
         elif month:
-            summary_query += " AND DATE_FORMAT(created_at, '%Y-%m') = %s"
+            summary_query += " AND TO_CHAR(created_at, 'YYYY-MM') = %s"
             summary_params.append(month)
         
-        summary_query += " GROUP BY level ORDER BY level;"
+        summary_query += " GROUP BY level ORDER BY level"
         
         cursor.execute(summary_query, summary_params)
-        summary = cursor.fetchall()
+        summary = [dict(row) for row in cursor.fetchall()]
         
         for s in summary:
             s['total'] = float(s['total'] or 0)
@@ -385,7 +408,7 @@ def get_my_commissions():
         total_commission = sum(s['total'] for s in summary)
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -397,6 +420,8 @@ def get_my_commissions():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
@@ -407,9 +432,7 @@ def get_my_commissions():
 @ctv_bp.route('/api/ctv/my-downline', methods=['GET'])
 @require_ctv
 def get_my_downline():
-    """
-    Get all CTVs directly under me (Level 1 only)
-    """
+    """Get all CTVs directly under me (Level 1 only)"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -417,7 +440,7 @@ def get_my_downline():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
             SELECT 
@@ -429,17 +452,17 @@ def get_my_downline():
                 created_at
             FROM ctv
             WHERE nguoi_gioi_thieu = %s AND (is_active = TRUE OR is_active IS NULL)
-            ORDER BY created_at DESC;
+            ORDER BY created_at DESC
         """, (ctv['ma_ctv'],))
         
-        downline = cursor.fetchall()
+        downline = [dict(row) for row in cursor.fetchall()]
         
         for d in downline:
             if d.get('created_at'):
                 d['created_at'] = d['created_at'].strftime('%Y-%m-%d %H:%M:%S')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -448,15 +471,15 @@ def get_my_downline():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @ctv_bp.route('/api/ctv/my-hierarchy', methods=['GET'])
 @require_ctv
 def get_my_hierarchy():
-    """
-    Get my hierarchy tree (all descendants)
-    """
+    """Get my hierarchy tree (all descendants)"""
     ctv = g.current_user
     
     tree = build_hierarchy_tree(ctv['ma_ctv'])
@@ -473,11 +496,7 @@ def get_my_hierarchy():
 @ctv_bp.route('/api/ctv/my-network/customers', methods=['GET'])
 @require_ctv
 def get_my_customers():
-    """
-    Get all customers in my network
-    
-    SECURITY: Only returns customers where nguoi_chot is in CTV's network
-    """
+    """Get all customers in my network"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -485,7 +504,6 @@ def get_my_customers():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        # Get all CTVs in my network
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
         
         if not my_network:
@@ -495,7 +513,7 @@ def get_my_customers():
                 'total': 0
             })
         
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         placeholders = ','.join(['%s'] * len(my_network))
         
@@ -512,17 +530,17 @@ def get_my_customers():
             JOIN services s ON c.id = s.customer_id
             WHERE s.nguoi_chot IN ({placeholders})
             ORDER BY s.date_entered DESC
-            LIMIT 100;
+            LIMIT 100
         """, list(my_network))
         
-        customers = cursor.fetchall()
+        customers = [dict(row) for row in cursor.fetchall()]
         
         for c in customers:
             if c.get('last_service_date'):
                 c['last_service_date'] = c['last_service_date'].strftime('%Y-%m-%d')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -531,15 +549,15 @@ def get_my_customers():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @ctv_bp.route('/api/ctv/my-stats', methods=['GET'])
 @require_ctv
 def get_my_stats():
-    """
-    Get detailed statistics for my network
-    """
+    """Get detailed statistics for my network"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -547,12 +565,10 @@ def get_my_stats():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Get network stats
         stats = get_network_stats(ctv['ma_ctv'], connection)
         
-        # Get commission breakdown by level (all time)
         cursor.execute("""
             SELECT 
                 level,
@@ -561,31 +577,30 @@ def get_my_stats():
             FROM commissions
             WHERE ctv_code = %s
             GROUP BY level
-            ORDER BY level;
+            ORDER BY level
         """, (ctv['ma_ctv'],))
-        commission_by_level = cursor.fetchall()
+        commission_by_level = [dict(row) for row in cursor.fetchall()]
         
         for c in commission_by_level:
             c['total'] = float(c['total'] or 0)
         
-        # Get monthly trend (last 6 months)
         cursor.execute("""
             SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as month,
+                TO_CHAR(created_at, 'YYYY-MM') as month,
                 SUM(commission_amount) as total
             FROM commissions
             WHERE ctv_code = %s
-            AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-            ORDER BY month;
+            AND created_at >= CURRENT_TIMESTAMP - INTERVAL '6 months'
+            GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+            ORDER BY month
         """, (ctv['ma_ctv'],))
-        monthly_trend = cursor.fetchall()
+        monthly_trend = [dict(row) for row in cursor.fetchall()]
         
         for m in monthly_trend:
             m['total'] = float(m['total'] or 0)
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -597,25 +612,19 @@ def get_my_stats():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# KHACH HANG (CUSTOMER) ENDPOINTS - Based on new khach_hang table
+# KHACH HANG (CUSTOMER) ENDPOINTS
 # ══════════════════════════════════════════════════════════════════════════════
 
-@ctv_bp.route('/api/ctv/customers', methods=['GET'])
+@ctv_bp.route('/api/ctv/lifetime-stats', methods=['GET'])
 @require_ctv
-def get_ctv_customers():
-    """
-    Get all customers where nguoi_chot = logged-in CTV
-    Uses the new khach_hang table
-    
-    Query params:
-    - status: Filter by trang_thai (Da den lam, Da coc, Huy lich, Cho xac nhan)
-    - from: Filter ngay_hen_lam >= from date (YYYY-MM-DD)
-    - to: Filter ngay_hen_lam <= to date (YYYY-MM-DD)
-    """
+def get_lifetime_stats():
+    """Get lifetime statistics for the CTV - all-time cumulative data"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -623,9 +632,113 @@ def get_ctv_customers():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Build query with optional filters
+        # Get commission rate for Level 0 (self)
+        cursor.execute("SELECT percent FROM hoa_hong_config WHERE level = 0")
+        rate_row = cursor.fetchone()
+        level0_rate = float(rate_row['percent']) / 100 if rate_row else 0.25
+        
+        # Total commissions earned (all time) - calculated from khach_hang
+        # Include both Vietnamese and non-Vietnamese status formats
+        cursor.execute("""
+            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue,
+                   COUNT(*) as total_transactions
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+        """, (ctv['ma_ctv'],))
+        commission_stats = cursor.fetchone()
+        
+        # Also check services table
+        cursor.execute("""
+            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue,
+                   COUNT(*) as total_transactions
+            FROM services
+            WHERE ctv_code = %s
+        """, (ctv['ma_ctv'],))
+        svc_stats = cursor.fetchone()
+        
+        total_revenue = float(commission_stats['total_revenue'] or 0) + float(svc_stats['total_revenue'] or 0)
+        total_transactions = int(commission_stats['total_transactions'] or 0) + int(svc_stats['total_transactions'] or 0)
+        total_commissions = total_revenue * level0_rate
+        
+        # Network size (all descendants)
+        from .mlm_core import get_all_descendants
+        my_network = get_all_descendants(ctv['ma_ctv'], connection)
+        network_size = len(my_network) if my_network else 0
+        
+        # Direct referrals (Level 1)
+        cursor.execute("""
+            SELECT COUNT(*) as direct_count
+            FROM ctv
+            WHERE nguoi_gioi_thieu = %s AND (is_active = TRUE OR is_active IS NULL)
+        """, (ctv['ma_ctv'],))
+        direct_result = cursor.fetchone()
+        direct_referrals = int(direct_result['direct_count']) if direct_result else 0
+        
+        # Total services completed (all time)
+        # Include both Vietnamese and non-Vietnamese status formats
+        cursor.execute("""
+            SELECT COUNT(*) as total_services,
+                   COALESCE(SUM(tong_tien), 0) as total_revenue
+            FROM khach_hang
+            WHERE nguoi_chot = %s
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+        """, (ctv['ma_ctv'],))
+        kh_service_stats = cursor.fetchone()
+        
+        # Also check services table
+        cursor.execute("""
+            SELECT COUNT(*) as total_services,
+                   COALESCE(SUM(tong_tien), 0) as total_revenue
+            FROM services
+            WHERE ctv_code = %s
+        """, (ctv['ma_ctv'],))
+        svc_service_stats = cursor.fetchone()
+        
+        total_services = int(kh_service_stats['total_services'] or 0) + int(svc_service_stats['total_services'] or 0)
+        service_revenue = float(kh_service_stats['total_revenue'] or 0) + float(svc_service_stats['total_revenue'] or 0)
+        
+        service_stats = {
+            'total_services': total_services,
+            'total_revenue': service_revenue
+        }
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'stats': {
+                'total_commissions': total_commissions,
+                'total_transactions': total_transactions,
+                'network_size': network_size,
+                'direct_referrals': direct_referrals,
+                'total_services': int(service_stats['total_services'] or 0),
+                'total_revenue': service_revenue
+            }
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@ctv_bp.route('/api/ctv/customers', methods=['GET'])
+@require_ctv
+def get_ctv_customers():
+    """Get all customers where nguoi_chot = logged-in CTV"""
+    ctv = g.current_user
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
         query = """
             SELECT 
                 id,
@@ -648,13 +761,11 @@ def get_ctv_customers():
         """
         params = [ctv['ma_ctv']]
         
-        # Filter by status
         status = request.args.get('status')
         if status:
             query += " AND trang_thai = %s"
             params.append(status)
         
-        # Filter by date range (on ngay_hen_lam)
         from_date = request.args.get('from')
         to_date = request.args.get('to')
         
@@ -666,12 +777,11 @@ def get_ctv_customers():
             query += " AND ngay_hen_lam <= %s"
             params.append(to_date)
         
-        query += " ORDER BY ngay_hen_lam DESC, id DESC LIMIT 100;"
+        query += " ORDER BY ngay_hen_lam DESC, id DESC LIMIT 100"
         
         cursor.execute(query, params)
-        customers = cursor.fetchall()
+        customers = [dict(row) for row in cursor.fetchall()]
         
-        # Convert dates and decimals for JSON
         for c in customers:
             if c.get('ngay_nhap_don'):
                 c['ngay_nhap_don'] = c['ngay_nhap_don'].strftime('%Y-%m-%d')
@@ -683,13 +793,12 @@ def get_ctv_customers():
             c['tien_coc'] = float(c['tien_coc'] or 0)
             c['phai_dong'] = float(c['phai_dong'] or 0)
         
-        # Get summary stats
         cursor.execute("""
             SELECT 
                 COUNT(*) as total_count,
-                SUM(CASE WHEN trang_thai IN ('Đã đến làm', 'Da den lam') THEN 1 ELSE 0 END) as completed_count,
-                SUM(CASE WHEN trang_thai IN ('Đã đến làm', 'Da den lam') THEN tong_tien ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN trang_thai IN ('Đã cọc', 'Da coc') THEN 1 ELSE 0 END) as pending_count
+                SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc') THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc') THEN tong_tien ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN trang_thai IN ('Da coc') THEN 1 ELSE 0 END) as pending_count
             FROM khach_hang
             WHERE nguoi_chot = %s
         """, (ctv['ma_ctv'],))
@@ -697,7 +806,7 @@ def get_ctv_customers():
         summary = cursor.fetchone()
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -711,20 +820,15 @@ def get_ctv_customers():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @ctv_bp.route('/api/ctv/earliest-date', methods=['GET'])
 @require_ctv
 def get_ctv_earliest_date():
-    """
-    Get the earliest customer date for the CTV and their network.
-    Returns the minimum ngay_hen_lam from khach_hang table.
-    This is used to set default start date in date filters.
-    
-    Returns:
-    - earliest_date: The first date when CTV received a customer (YYYY-MM-DD)
-    """
+    """Get the earliest customer date for the CTV and their network"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -732,15 +836,13 @@ def get_ctv_earliest_date():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Get all CTV codes in network (self + descendants)
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
         
         if not my_network:
             my_network = [ctv['ma_ctv']]
         
-        # Find the earliest ngay_hen_lam across the network
         placeholders = ','.join(['%s'] * len(my_network))
         query = f"""
             SELECT MIN(ngay_hen_lam) as earliest_date
@@ -749,7 +851,7 @@ def get_ctv_earliest_date():
             AND ngay_hen_lam IS NOT NULL
         """
         
-        cursor.execute(query, my_network)
+        cursor.execute(query, list(my_network))
         result = cursor.fetchone()
         
         earliest_date = None
@@ -757,7 +859,7 @@ def get_ctv_earliest_date():
             earliest_date = result['earliest_date'].strftime('%Y-%m-%d')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -765,49 +867,59 @@ def get_ctv_earliest_date():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @ctv_bp.route('/api/ctv/commission', methods=['GET'])
 @require_ctv
 def get_ctv_commission():
-    """
-    Get commission based on khach_hang table with date filter on ngay_hen_lam
-    Only counts transactions where trang_thai IN ('Đã đến làm', 'Da den lam')
-    
-    Query params:
-    - from: Start date (YYYY-MM-DD) for ngay_hen_lam
-    - to: End date (YYYY-MM-DD) for ngay_hen_lam
-    
-    Commission calculation:
-    - Level 0 (self): 25% of tong_tien where trang_thai IN ('Đã đến làm', 'Da den lam')
-    """
+    """Get commission based on khach_hang table with date filter on ngay_hen_lam"""
     ctv = g.current_user
-    
+
     connection = get_db_connection()
     if not connection:
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
-    
+
     try:
-        cursor = connection.cursor(dictionary=True)
-        
-        # Get date filters
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        # Support both old from/to and new month/day parameters
         from_date = request.args.get('from')
         to_date = request.args.get('to')
+        month = request.args.get('month')
+        day = request.args.get('day')
+
+        # If month/day provided, convert to from/to dates
+        if month and not from_date and not to_date:
+            if day:
+                # Specific day
+                from_date = day
+                to_date = day
+            else:
+                # Month range
+                try:
+                    year, month_num = map(int, month.split('-'))
+                    from_date = f"{year}-{month_num:02d}-01"
+                    if month_num == 12:
+                        to_date = f"{year+1}-01-01"
+                    else:
+                        to_date = f"{year}-{month_num+1:02d}-01"
+                except ValueError:
+                    return jsonify({'status': 'error', 'message': 'Invalid month format'}), 400
         
-        # Get commission rates from config
         cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
         rates_rows = cursor.fetchall()
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
         
-        # Level 0: Own revenue (nguoi_chot = me, trang_thai IN ('Đã đến làm', 'Da den lam'))
         level0_query = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Đã đến làm', 'Da den lam')
+            AND trang_thai IN ('Da den lam', 'Da coc')
         """
         level0_params = [ctv['ma_ctv']]
         
@@ -825,7 +937,6 @@ def get_ctv_commission():
         level0_count = int(level0['transaction_count'] or 0)
         level0_commission = level0_revenue * commission_rates.get(0, 0.25)
         
-        # Get all descendants for level 1-4 commissions
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
         my_network_excluding_self = [c for c in my_network if c != ctv['ma_ctv']]
         
@@ -838,20 +949,14 @@ def get_ctv_commission():
             'commission': level0_commission
         }]
         
-        # Calculate commissions for each level (1-4)
         if my_network_excluding_self:
             for level in range(1, 5):
-                # Get CTVs at this level
-                cursor_check = connection.cursor(dictionary=True)
                 level_ctv_list = []
                 
                 for descendant_code in my_network_excluding_self:
-                    # Calculate level of this descendant relative to me
                     desc_level = calculate_level_simple(ctv['ma_ctv'], descendant_code, connection)
                     if desc_level == level:
                         level_ctv_list.append(descendant_code)
-                
-                cursor_check.close()
                 
                 if level_ctv_list:
                     placeholders = ','.join(['%s'] * len(level_ctv_list))
@@ -861,7 +966,7 @@ def get_ctv_commission():
                             COUNT(*) as transaction_count
                         FROM khach_hang
                         WHERE nguoi_chot IN ({placeholders})
-                        AND trang_thai IN ('Đã đến làm', 'Da den lam')
+                        AND trang_thai IN ('Da den lam', 'Da coc')
                     """
                     level_params = list(level_ctv_list)
                     
@@ -888,12 +993,11 @@ def get_ctv_commission():
                         'commission': level_commission
                     })
         
-        # Calculate totals
         total_commission = sum(lc['commission'] for lc in level_commissions)
         total_transactions = sum(lc['transaction_count'] for lc in level_commissions)
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -909,16 +1013,15 @@ def get_ctv_commission():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 def calculate_level_simple(ancestor_code, descendant_code, connection):
-    """
-    Simple helper to calculate level between ancestor and descendant
-    Returns the level (1-4) or None if not in hierarchy
-    """
+    """Simple helper to calculate level between ancestor and descendant"""
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         current = descendant_code
         level = 0
@@ -926,6 +1029,7 @@ def calculate_level_simple(ancestor_code, descendant_code, connection):
         
         while current and level <= 4:
             if current in visited:
+                cursor.close()
                 return None
             visited.add(current)
             
@@ -953,11 +1057,7 @@ def calculate_level_simple(ancestor_code, descendant_code, connection):
 @ctv_bp.route('/api/ctv/check-phone', methods=['POST'])
 @require_ctv
 def check_phone():
-    """
-    CTV can check phone duplicate (same logic as public endpoint but requires auth)
-    
-    Body: { "phone": "0979832523" }
-    """
+    """CTV can check phone duplicate"""
     data = request.get_json()
     
     if not data or not data.get('phone'):
@@ -977,30 +1077,33 @@ def check_phone():
         cursor = connection.cursor()
         
         cursor.execute("""
-            SELECT COUNT(*) > 0 AS is_duplicate
-            FROM khach_hang
-            WHERE sdt = %s
-              AND (
-                trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
-                OR (ngay_hen_lam >= CURDATE() 
-                    AND ngay_hen_lam < DATE_ADD(CURDATE(), INTERVAL 180 DAY))
-                OR ngay_nhap_don >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
-              );
+            SELECT EXISTS(
+                SELECT 1 FROM khach_hang
+                WHERE sdt = %s
+                  AND (
+                    trang_thai IN ('Da den lam', 'Da coc')
+                    OR (ngay_hen_lam >= CURRENT_DATE 
+                        AND ngay_hen_lam < CURRENT_DATE + INTERVAL '180 days')
+                    OR ngay_nhap_don >= CURRENT_DATE - INTERVAL '60 days'
+                  )
+            ) AS is_duplicate
         """, (phone,))
         
         result = cursor.fetchone()
-        is_duplicate = bool(result[0]) if result else False
+        is_duplicate = result[0] if result else False
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
             'is_duplicate': is_duplicate,
-            'message': 'Trùng' if is_duplicate else 'Không trùng'
+            'message': 'Trung' if is_duplicate else 'Khong trung'
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
@@ -1011,16 +1114,7 @@ def check_phone():
 @ctv_bp.route('/api/ctv/clients-with-services', methods=['GET'])
 @require_ctv
 def get_ctv_clients_with_services():
-    """
-    Get clients with their services grouped - filtered by CTV
-    Only shows clients where nguoi_chot = logged-in CTV code
-    Groups khach_hang records by phone + name combination
-    Returns up to 3 services per client
-    
-    Query params:
-    - search: Search by name or phone
-    - limit: Max number of clients (default 50)
-    """
+    """Get clients with their services grouped - filtered by CTV"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -1028,13 +1122,11 @@ def get_ctv_clients_with_services():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         search = request.args.get('search', '').strip()
         limit = request.args.get('limit', 50, type=int)
         
-        # First, get unique clients (grouped by phone + name) for this CTV
-        # MIN(ngay_nhap_don) = first time visiting (earliest date they entered the system)
         client_query = """
             SELECT 
                 sdt,
@@ -1050,26 +1142,25 @@ def get_ctv_clients_with_services():
         params = [ctv['ma_ctv']]
         
         if search:
-            client_query += " AND (ten_khach LIKE %s OR sdt LIKE %s)"
+            client_query += " AND (ten_khach ILIKE %s OR sdt ILIKE %s)"
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
         client_query += f"""
             GROUP BY sdt, ten_khach, nguoi_chot
             ORDER BY MAX(ngay_nhap_don) DESC
-            LIMIT {limit};
+            LIMIT %s
         """
+        params.append(limit)
         
         cursor.execute(client_query, params)
-        clients_raw = cursor.fetchall()
+        clients_raw = [dict(row) for row in cursor.fetchall()]
         
-        # For each client, get their services (up to 3)
         clients = []
         for client_row in clients_raw:
             sdt = client_row['sdt']
             ten_khach = client_row['ten_khach']
             
-            # Get services for this client (only those belonging to this CTV)
             cursor.execute("""
                 SELECT 
                     id,
@@ -1084,23 +1175,18 @@ def get_ctv_clients_with_services():
                 FROM khach_hang
                 WHERE sdt = %s AND ten_khach = %s AND nguoi_chot = %s
                 ORDER BY ngay_nhap_don DESC
-                LIMIT 3;
+                LIMIT 3
             """, (sdt, ten_khach, ctv['ma_ctv']))
             
-            services_raw = cursor.fetchall()
+            services_raw = [dict(row) for row in cursor.fetchall()]
             
-            # Process services
             services = []
             for idx, svc in enumerate(services_raw):
                 tien_coc = float(svc['tien_coc'] or 0)
                 tong_tien = float(svc['tong_tien'] or 0)
                 phai_dong = float(svc['phai_dong'] or 0)
                 
-                # Determine deposit status based on tien_coc
-                if tien_coc > 0:
-                    deposit_status = 'Đã cọc'
-                else:
-                    deposit_status = 'Chưa cọc'
+                deposit_status = 'Da coc' if tien_coc > 0 else 'Chua coc'
                 
                 services.append({
                     'id': svc['id'],
@@ -1115,23 +1201,44 @@ def get_ctv_clients_with_services():
                     'deposit_status': deposit_status
                 })
             
-            # Determine overall client status (from most recent service)
             overall_status = services[0]['trang_thai'] if services else ''
-            overall_deposit = services[0]['deposit_status'] if services else 'Chưa cọc'
+            overall_deposit = services[0]['deposit_status'] if services else 'Chua coc'
             
-            # Format first_visit_date (earliest date they entered the system)
             first_visit = client_row['first_visit_date']
-            if first_visit:
-                first_visit_str = first_visit.strftime('%d/%m/%Y')
-            else:
-                first_visit_str = None
+            first_visit_str = first_visit.strftime('%d/%m/%Y') if first_visit else None
+            
+            referrer_ctv_code = None
+            client_level = None
+            
+            if client_row['nguoi_chot']:
+                cursor.execute("""
+                    SELECT nguoi_gioi_thieu, cap_bac FROM ctv WHERE ma_ctv = %s
+                """, (client_row['nguoi_chot'],))
+                ctv_info = cursor.fetchone()
+                if ctv_info:
+                    referrer_ctv_code = ctv_info.get('nguoi_gioi_thieu')
+                    client_level = ctv_info.get('cap_bac') or 'Cong tac vien'
+            
+            email = ''
+            try:
+                cursor.execute("""
+                    SELECT email FROM customers WHERE phone = %s LIMIT 1
+                """, (sdt,))
+                email_row = cursor.fetchone()
+                if email_row and email_row.get('email'):
+                    email = email_row['email']
+            except Error:
+                pass
             
             clients.append({
                 'ten_khach': ten_khach or '',
                 'sdt': sdt or '',
+                'email': email,
                 'co_so': client_row['co_so'] or '',
                 'first_visit_date': first_visit_str,
                 'nguoi_chot': client_row['nguoi_chot'] or '',
+                'referrer_ctv_code': referrer_ctv_code or '',
+                'level': client_level or 'Cong tac vien',
                 'service_count': client_row['service_count'],
                 'overall_status': overall_status,
                 'overall_deposit': overall_deposit,
@@ -1139,7 +1246,7 @@ def get_ctv_clients_with_services():
             })
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
@@ -1148,4 +1255,6 @@ def get_ctv_clients_with_services():
         })
         
     except Error as e:
+        if connection:
+            return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500

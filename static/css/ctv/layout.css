@@ -35,6 +35,18 @@
     left: 0;
     top: 0;
     bottom: 0;
+    overflow: visible;
+    z-index: 100;
+}
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-btn {
+    display: none;
+}
+
+/* Mobile menu popup - hidden on desktop */
+.mobile-menu-popup {
+    display: none;
 }
 
 .sidebar-icon {
@@ -167,6 +179,20 @@
     font-size: 20px;
     font-weight: 600;
     color: #1a1a1a;
+}
+
+.header-page-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #666666;
+    margin-left: 12px;
+    position: relative;
+}
+
+.header-page-title::before {
+    content: '/';
+    margin-right: 12px;
+    color: #cccccc;
 }
 
 .header-right {

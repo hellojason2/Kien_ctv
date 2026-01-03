@@ -7,7 +7,7 @@
 
 // Format currency for display
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + 'd';
 }
 
 // Get initials from name
@@ -31,7 +31,7 @@ function escapeHtmlCTV(str) {
 // Format currency for CTV display
 function formatCtvCurrency(amount) {
     if (!amount && amount !== 0) return '-';
-    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + 'd';
 }
 
 // Debounce function

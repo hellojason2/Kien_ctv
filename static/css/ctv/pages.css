@@ -43,34 +43,40 @@
 }
 
 .lang-popup {
-    position: absolute;
-    left: calc(100% + 12px);
-    bottom: 0;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    padding: 8px;
-    min-width: 140px;
+    position: absolute !important;
+    left: calc(100% + 12px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) translateX(-8px) !important;
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    padding: 8px 0 !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-8px);
     transition: all 0.2s ease;
-    z-index: 1000;
+    z-index: 1100 !important;
+    overflow: visible !important;
+    box-sizing: content-box !important;
 }
 
 .lang-popup::before {
     content: '';
     position: absolute;
     left: -6px;
-    bottom: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     border: 6px solid transparent;
     border-right-color: #ffffff;
+    z-index: 1101;
 }
 
 .sidebar-lang.active .lang-popup {
     opacity: 1;
     visibility: visible;
-    transform: translateX(0);
+    transform: translateY(-50%) translateX(0);
 }
 
 .lang-popup-title {
@@ -79,20 +85,27 @@
     color: #999;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 8px 12px 6px;
+    padding: 8px 16px 6px;
     margin-bottom: 4px;
+    white-space: nowrap;
 }
 
 .lang-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
     transition: all 0.15s;
-    font-size: 14px;
-    color: #333;
+    font-size: 14px !important;
+    color: #333 !important;
+    margin: 0 8px !important;
+    overflow: visible !important;
+    width: calc(100% - 16px) !important;
+    min-width: 280px !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
 }
 
 .lang-option:hover {
@@ -105,20 +118,52 @@
 }
 
 .lang-option .lang-flag {
-    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.lang-option[data-lang="vi"] .lang-flag {
+    background: linear-gradient(135deg, #da291c 0%, #ffcd00 100%);
+}
+
+.lang-option[data-lang="en"] .lang-flag {
+    background: linear-gradient(135deg, #002868 0%, #bf0a30 100%);
 }
 
 .lang-option .lang-name {
     font-weight: 500;
+    flex: none !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    min-width: 160px !important;
+    width: 160px !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    display: inline-block !important;
+    max-width: none !important;
+    text-overflow: clip !important;
 }
 
 .lang-option .lang-check {
     margin-left: auto;
     opacity: 0;
+    stroke: #666;
+    flex-shrink: 0;
 }
 
 .lang-option.active .lang-check {
     opacity: 1;
+    stroke: #ffffff;
 }
 
 /* Login Page Language Toggle */

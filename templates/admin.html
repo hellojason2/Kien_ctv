@@ -2095,7 +2095,7 @@
 
         // Format currency
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+            return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + 'd';
         }
 
         // Login
@@ -2233,7 +2233,7 @@
                     <td>${ctv.ten}</td>
                     <td>${ctv.email || '-'}</td>
                     <td>${ctv.sdt || '-'}</td>
-                    <td>${ctv.nguoi_gioi_thieu_name || '-'}</td>
+                    <td>${ctv.nguoi_gioi_thieu_code || '-'}</td>
                     <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
                     <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? 'Active' : 'Inactive'}</span></td>
                     <td>

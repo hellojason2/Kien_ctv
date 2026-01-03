@@ -26,25 +26,38 @@ async function loadClientsWithServices(page = 1) {
     params.append('per_page', 50);
     if (search) params.append('search', search);
     
-    const result = await api(`/api/admin/clients-with-services?${params}`);
-    
-    if (result.status === 'success') {
-        allClients = result.clients;
-        clientsTotalPages = result.pagination.total_pages || 1;
+    try {
+        const result = await api(`/api/admin/clients-with-services?${params}`);
         
-        // Update count display
-        document.getElementById('clientsCount').textContent = 
-            `${t('showing')} ${result.clients.length} ${t('of')} ${result.pagination.total} ${t('clients')}`;
-        
-        renderClientCards(result.clients);
-        updateClientsPagination(result.pagination);
-    } else {
+        if (result && result.status === 'success') {
+            allClients = result.clients;
+            clientsTotalPages = result.pagination.total_pages || 1;
+            
+            // Update count display
+            document.getElementById('clientsCount').textContent = 
+                `${t('showing')} ${result.clients.length} ${t('of')} ${result.pagination.total} ${t('clients')}`;
+            
+            renderClientCards(result.clients);
+            updateClientsPagination(result.pagination);
+        } else {
+            const errorMsg = result?.message || t('error_loading_clients') || 'Lỗi khi tải danh sách khách hàng';
+            grid.innerHTML = `
+                <div class="no-clients-message">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p>${errorMsg}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading clients:', error);
         grid.innerHTML = `
             <div class="no-clients-message">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p>${t('error_loading_clients') || 'Lỗi khi tải danh sách khách hàng'}</p>
+                <p>${error.message || t('error_loading_clients') || 'Lỗi khi tải danh sách khách hàng'}</p>
             </div>
         `;
     }

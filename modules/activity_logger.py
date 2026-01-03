@@ -1,6 +1,7 @@
 """
 Activity Logger Module
 Provides comprehensive activity logging for the CTV System.
+Updated for PostgreSQL.
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MODULE STRUCTURE MAP
@@ -36,21 +37,9 @@ Provides comprehensive activity logging for the CTV System.
 #     DOES: Query logs with filtering and pagination
 #
 # ══════════════════════════════════════════════════════════════════════════════
-#
-# EVENT TYPES:
-# - login_success: Successful login
-# - login_failed: Failed login attempt
-# - logout: User logout
-# - api_call: API endpoint accessed
-# - ctv_created: New CTV account created
-# - ctv_updated: CTV account modified
-# - ctv_deleted: CTV account deactivated
-# - commission_adjusted: Manual commission adjustment
-# - data_export: Data exported (CSV, etc.)
-# - settings_changed: System settings modified
-#
-# Created: December 29, 2025
-# ══════════════════════════════════════════════════════════════════════════════
+
+Created: December 29, 2025
+Updated: January 2, 2026 - Migrated to PostgreSQL
 """
 
 import os
@@ -58,11 +47,11 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, g
-import mysql.connector
-from mysql.connector import Error
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor, Json
 
 # Use connection pool for better performance
-from .db_pool import get_db_connection
+from .db_pool import get_db_connection, return_db_connection
 
 # Event types constants
 EVENT_LOGIN_SUCCESS = 'login_success'
@@ -85,46 +74,30 @@ EVENT_PAGE_VIEW = 'page_view'
 def get_client_ip(req=None):
     """
     DOES: Extract the real client IP address from request
-    Handles proxies, load balancers, and various header formats
-    
-    INPUTS: Flask request object (optional, uses global request if not provided)
-    OUTPUTS: IP address string
-    
-    Priority:
-    1. X-Forwarded-For header (first IP if multiple)
-    2. X-Real-IP header
-    3. CF-Connecting-IP (Cloudflare)
-    4. Remote address
     """
     if req is None:
         req = request
     
-    # Check X-Forwarded-For (may contain multiple IPs)
     forwarded_for = req.headers.get('X-Forwarded-For', '')
     if forwarded_for:
-        # Take the first IP (original client)
         ip = forwarded_for.split(',')[0].strip()
         if ip:
             return ip
     
-    # Check X-Real-IP
     real_ip = req.headers.get('X-Real-IP', '')
     if real_ip:
         return real_ip.strip()
     
-    # Check Cloudflare header
     cf_ip = req.headers.get('CF-Connecting-IP', '')
     if cf_ip:
         return cf_ip.strip()
     
-    # Fall back to remote address
     return req.remote_addr or 'unknown'
 
 
 def get_user_agent(req=None):
     """
     DOES: Extract user agent string from request
-    OUTPUTS: User agent string or 'unknown'
     """
     if req is None:
         req = request
@@ -138,26 +111,20 @@ def get_user_agent(req=None):
 import threading
 import queue
 
-# Global log queue for async logging
 _log_queue = queue.Queue()
 _log_thread = None
 _log_thread_stop = False
 
 
 def _log_worker():
-    """
-    DOES: Background worker that processes log entries from the queue
-    Runs in a separate thread to avoid blocking API responses
-    """
+    """Background worker that processes log entries from the queue"""
     global _log_thread_stop
     while not _log_thread_stop:
         try:
-            # Get log entry with timeout (allows checking stop flag)
             log_entry = _log_queue.get(timeout=1.0)
-            if log_entry is None:  # Shutdown signal
+            if log_entry is None:
                 break
             
-            # Process the log entry
             _sync_log_activity(**log_entry)
             _log_queue.task_done()
         except queue.Empty:
@@ -185,36 +152,36 @@ def _sync_log_activity(
     ip_address=None,
     user_agent=None
 ):
-    """
-    DOES: Synchronously insert an activity log record (called by worker thread)
-    """
+    """Synchronously insert an activity log record"""
     connection = get_db_connection()
     if not connection:
         return None
     
     try:
         cursor = connection.cursor()
-        details_json = json.dumps(details) if details else None
         
         cursor.execute("""
             INSERT INTO activity_logs 
             (event_type, user_type, user_id, ip_address, user_agent, 
              endpoint, method, status_code, details)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
         """, (
             event_type, user_type, user_id, ip_address, user_agent,
-            endpoint, method, status_code, details_json
+            endpoint, method, status_code, Json(details) if details else None
         ))
         
-        log_id = cursor.lastrowid
+        result = cursor.fetchone()
+        log_id = result[0] if result else None
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         return log_id
     except Exception as e:
         print(f"Error logging activity: {e}")
         if connection:
-            connection.close()
+            connection.rollback()
+            return_db_connection(connection)
         return None
 
 
@@ -233,41 +200,20 @@ def log_activity(
     ip_address=None,
     user_agent=None
 ):
-    """
-    DOES: Queue an activity log record for async insertion
-    
-    OPTIMIZATION: Non-blocking - queues the log entry and returns immediately
-    
-    INPUTS:
-    - event_type: Type of event (required)
-    - user_type: 'admin' or 'ctv' (optional)
-    - user_id: Username or ma_ctv (optional)
-    - endpoint: API endpoint or page URL (optional)
-    - method: HTTP method (optional)
-    - status_code: HTTP response code (optional)
-    - details: Dict with additional context (optional)
-    - ip_address: Client IP (auto-detected if not provided)
-    - user_agent: Browser info (auto-detected if not provided)
-    
-    OUTPUTS: True (queued successfully) or False
-    """
-    # Start background thread if needed
+    """Queue an activity log record for async insertion"""
     _start_log_thread()
     
-    # Auto-detect IP and user agent before queueing
     try:
         if ip_address is None:
             ip_address = get_client_ip()
         if user_agent is None:
             user_agent = get_user_agent()
     except RuntimeError:
-        # Outside request context
         if ip_address is None:
             ip_address = 'system'
         if user_agent is None:
             user_agent = 'system'
     
-    # Queue the log entry (non-blocking)
     try:
         _log_queue.put_nowait({
             'event_type': event_type,
@@ -282,7 +228,6 @@ def log_activity(
         })
         return True
     except queue.Full:
-        # Queue is full, log synchronously as fallback
         return _sync_log_activity(
             event_type, user_type, user_id, endpoint, method,
             status_code, details, ip_address, user_agent
@@ -294,10 +239,7 @@ def log_activity(
 # ══════════════════════════════════════════════════════════════════════════════
 
 def log_login_success(user_type, user_id):
-    """
-    DOES: Log a successful login event
-    CALLED BY: admin_login(), ctv_login() in auth.py
-    """
+    """Log a successful login event"""
     return log_activity(
         event_type=EVENT_LOGIN_SUCCESS,
         user_type=user_type,
@@ -310,12 +252,7 @@ def log_login_success(user_type, user_id):
 
 
 def log_login_failed(attempted_username, user_type='unknown'):
-    """
-    DOES: Log a failed login attempt
-    CALLED BY: admin_login(), ctv_login() in auth.py
-    
-    Security: Logs the attempted username for security monitoring
-    """
+    """Log a failed login attempt"""
     return log_activity(
         event_type=EVENT_LOGIN_FAILED,
         user_type=user_type,
@@ -328,10 +265,7 @@ def log_login_failed(attempted_username, user_type='unknown'):
 
 
 def log_logout(user_type, user_id):
-    """
-    DOES: Log a logout event
-    CALLED BY: logout endpoints in admin_routes.py, ctv_routes.py
-    """
+    """Log a logout event"""
     return log_activity(
         event_type=EVENT_LOGOUT,
         user_type=user_type,
@@ -344,10 +278,7 @@ def log_logout(user_type, user_id):
 
 
 def log_api_call(user_type, user_id, endpoint, method, status_code, details=None):
-    """
-    DOES: Log an API call
-    CALLED BY: Flask after_request hook
-    """
+    """Log an API call"""
     return log_activity(
         event_type=EVENT_API_CALL,
         user_type=user_type,
@@ -360,10 +291,7 @@ def log_api_call(user_type, user_id, endpoint, method, status_code, details=None
 
 
 def log_ctv_created(admin_username, ctv_code, ctv_name):
-    """
-    DOES: Log when a new CTV is created
-    CALLED BY: create_ctv() in admin_routes.py
-    """
+    """Log when a new CTV is created"""
     return log_activity(
         event_type=EVENT_CTV_CREATED,
         user_type='admin',
@@ -371,19 +299,12 @@ def log_ctv_created(admin_username, ctv_code, ctv_name):
         endpoint='/api/admin/ctv',
         method='POST',
         status_code=201,
-        details={
-            'action': 'CTV created',
-            'ctv_code': ctv_code,
-            'ctv_name': ctv_name
-        }
+        details={'action': 'CTV created', 'ctv_code': ctv_code, 'ctv_name': ctv_name}
     )
 
 
 def log_ctv_updated(admin_username, ctv_code, changes):
-    """
-    DOES: Log when a CTV is updated
-    CALLED BY: update_ctv() in admin_routes.py
-    """
+    """Log when a CTV is updated"""
     return log_activity(
         event_type=EVENT_CTV_UPDATED,
         user_type='admin',
@@ -391,19 +312,12 @@ def log_ctv_updated(admin_username, ctv_code, changes):
         endpoint=f'/api/admin/ctv/{ctv_code}',
         method='PUT',
         status_code=200,
-        details={
-            'action': 'CTV updated',
-            'ctv_code': ctv_code,
-            'changes': changes
-        }
+        details={'action': 'CTV updated', 'ctv_code': ctv_code, 'changes': changes}
     )
 
 
 def log_ctv_deleted(admin_username, ctv_code):
-    """
-    DOES: Log when a CTV is deactivated
-    CALLED BY: deactivate_ctv() in admin_routes.py
-    """
+    """Log when a CTV is deactivated"""
     return log_activity(
         event_type=EVENT_CTV_DELETED,
         user_type='admin',
@@ -411,18 +325,12 @@ def log_ctv_deleted(admin_username, ctv_code):
         endpoint=f'/api/admin/ctv/{ctv_code}',
         method='DELETE',
         status_code=200,
-        details={
-            'action': 'CTV deactivated',
-            'ctv_code': ctv_code
-        }
+        details={'action': 'CTV deactivated', 'ctv_code': ctv_code}
     )
 
 
 def log_commission_adjusted(admin_username, commission_id, old_amount, new_amount):
-    """
-    DOES: Log when a commission is manually adjusted
-    CALLED BY: adjust_commission() in admin_routes.py
-    """
+    """Log when a commission is manually adjusted"""
     return log_activity(
         event_type=EVENT_COMMISSION_ADJUSTED,
         user_type='admin',
@@ -430,20 +338,12 @@ def log_commission_adjusted(admin_username, commission_id, old_amount, new_amoun
         endpoint=f'/api/admin/commissions/{commission_id}',
         method='PUT',
         status_code=200,
-        details={
-            'action': 'Commission adjusted',
-            'commission_id': commission_id,
-            'old_amount': old_amount,
-            'new_amount': new_amount
-        }
+        details={'action': 'Commission adjusted', 'commission_id': commission_id, 'old_amount': old_amount, 'new_amount': new_amount}
     )
 
 
 def log_data_export(user_type, user_id, export_type, record_count):
-    """
-    DOES: Log when data is exported
-    CALLED BY: export endpoints
-    """
+    """Log when data is exported"""
     return log_activity(
         event_type=EVENT_DATA_EXPORT,
         user_type=user_type,
@@ -451,19 +351,12 @@ def log_data_export(user_type, user_id, export_type, record_count):
         endpoint='/api/admin/export',
         method='GET',
         status_code=200,
-        details={
-            'action': 'Data exported',
-            'export_type': export_type,
-            'record_count': record_count
-        }
+        details={'action': 'Data exported', 'export_type': export_type, 'record_count': record_count}
     )
 
 
 def log_settings_changed(admin_username, setting_name, old_value, new_value):
-    """
-    DOES: Log when system settings are changed
-    CALLED BY: update_settings() in admin_routes.py
-    """
+    """Log when system settings are changed"""
     return log_activity(
         event_type=EVENT_SETTINGS_CHANGED,
         user_type='admin',
@@ -471,12 +364,7 @@ def log_settings_changed(admin_username, setting_name, old_value, new_value):
         endpoint='/api/admin/settings',
         method='PUT',
         status_code=200,
-        details={
-            'action': 'Settings changed',
-            'setting': setting_name,
-            'old_value': old_value,
-            'new_value': new_value
-        }
+        details={'action': 'Settings changed', 'setting': setting_name, 'old_value': old_value, 'new_value': new_value}
     )
 
 
@@ -485,31 +373,21 @@ def log_settings_changed(admin_username, setting_name, old_value, new_value):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def setup_request_logging(app):
-    """
-    DOES: Register Flask before_request and after_request hooks for automatic logging
-    CALLED BY: backend.py during app initialization
-    
-    Note: Only logs admin API calls (/api/admin/*) to avoid excessive logging
-    """
+    """Register Flask request logging hooks"""
     
     @app.before_request
     def before_request_logging():
-        """Store request start time for duration calculation"""
         g.request_start_time = datetime.now()
     
     @app.after_request
     def after_request_logging(response):
-        """Log API calls after request completion"""
         try:
-            # Only log admin API calls
             if not request.path.startswith('/api/admin'):
                 return response
             
-            # Skip logging for activity logs endpoint to avoid infinite loop
             if '/activity-logs' in request.path:
                 return response
             
-            # Get user info from g (set by @require_admin decorator)
             user_type = getattr(g, 'user_type', None)
             user_id = None
             if hasattr(g, 'current_user'):
@@ -518,13 +396,11 @@ def setup_request_logging(app):
                 elif user_type == 'ctv':
                     user_id = g.current_user.get('ma_ctv')
             
-            # Calculate request duration
             duration_ms = None
             if hasattr(g, 'request_start_time'):
                 duration = datetime.now() - g.request_start_time
                 duration_ms = int(duration.total_seconds() * 1000)
             
-            # Log the API call
             log_api_call(
                 user_type=user_type,
                 user_id=user_id,
@@ -535,7 +411,6 @@ def setup_request_logging(app):
             )
             
         except Exception as e:
-            # Don't let logging errors affect the response
             print(f"Activity logging error: {e}")
         
         return response
@@ -558,30 +433,14 @@ def get_activity_logs(
     page=1,
     per_page=50
 ):
-    """
-    DOES: Query activity logs with filtering and pagination
-    
-    INPUTS:
-    - event_type: Filter by event type
-    - user_type: Filter by user type (admin/ctv)
-    - user_id: Filter by specific user
-    - ip_address: Filter by IP address
-    - date_from: Start date (datetime or string YYYY-MM-DD)
-    - date_to: End date (datetime or string YYYY-MM-DD)
-    - search: Search across user_id, endpoint, details
-    - page: Page number (1-indexed)
-    - per_page: Records per page
-    
-    OUTPUTS: Dict with logs, total count, and pagination info
-    """
+    """Query activity logs with filtering and pagination"""
     connection = get_db_connection()
     if not connection:
         return {'logs': [], 'total': 0, 'page': page, 'per_page': per_page}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Build query
         query = "SELECT * FROM activity_logs WHERE 1=1"
         count_query = "SELECT COUNT(*) as total FROM activity_logs WHERE 1=1"
         params = []
@@ -614,14 +473,13 @@ def get_activity_logs(
         if date_to:
             query += " AND timestamp <= %s"
             count_query += " AND timestamp <= %s"
-            # Add time to include the entire day
             if isinstance(date_to, str) and len(date_to) == 10:
                 date_to = date_to + ' 23:59:59'
             params.append(date_to)
         
         if search:
-            query += " AND (user_id LIKE %s OR endpoint LIKE %s OR ip_address LIKE %s)"
-            count_query += " AND (user_id LIKE %s OR endpoint LIKE %s OR ip_address LIKE %s)"
+            query += " AND (user_id ILIKE %s OR endpoint ILIKE %s OR ip_address ILIKE %s)"
+            count_query += " AND (user_id ILIKE %s OR endpoint ILIKE %s OR ip_address ILIKE %s)"
             search_term = f"%{search}%"
             params.extend([search_term, search_term, search_term])
         
@@ -629,7 +487,7 @@ def get_activity_logs(
         cursor.execute(count_query, params)
         total = cursor.fetchone()['total']
         
-        # Add ordering and pagination
+        # Add pagination
         query += " ORDER BY timestamp DESC LIMIT %s OFFSET %s"
         offset = (page - 1) * per_page
         params.extend([per_page, offset])
@@ -637,19 +495,14 @@ def get_activity_logs(
         cursor.execute(query, params)
         logs = cursor.fetchall()
         
-        # Convert datetime objects and parse JSON details
+        # Convert to list of dicts
+        logs = [dict(log) for log in logs]
         for log in logs:
             if log.get('timestamp'):
                 log['timestamp'] = log['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
-            if log.get('details'):
-                try:
-                    if isinstance(log['details'], str):
-                        log['details'] = json.loads(log['details'])
-                except (json.JSONDecodeError, TypeError):
-                    pass
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return {
             'logs': logs,
@@ -662,90 +515,78 @@ def get_activity_logs(
     except Error as e:
         print(f"Error retrieving activity logs: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return {'logs': [], 'total': 0, 'page': page, 'per_page': per_page}
 
 
 def get_activity_stats():
-    """
-    DOES: Get summary statistics for activity logs
-    
-    OUTPUTS: Dict with various statistics
-    """
+    """Get summary statistics for activity logs"""
     connection = get_db_connection()
     if not connection:
         return {}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Today's date
         today = datetime.now().strftime('%Y-%m-%d')
         
-        # Logins today
         cursor.execute("""
             SELECT COUNT(*) as count FROM activity_logs 
             WHERE event_type = 'login_success' 
-            AND DATE(timestamp) = %s;
+            AND DATE(timestamp) = %s
         """, (today,))
         logins_today = cursor.fetchone()['count']
         
-        # Failed logins today
         cursor.execute("""
             SELECT COUNT(*) as count FROM activity_logs 
             WHERE event_type = 'login_failed' 
-            AND DATE(timestamp) = %s;
+            AND DATE(timestamp) = %s
         """, (today,))
         failed_logins_today = cursor.fetchone()['count']
         
-        # Unique IPs today
         cursor.execute("""
             SELECT COUNT(DISTINCT ip_address) as count FROM activity_logs 
-            WHERE DATE(timestamp) = %s;
+            WHERE DATE(timestamp) = %s
         """, (today,))
         unique_ips_today = cursor.fetchone()['count']
         
-        # Total logs
-        cursor.execute("SELECT COUNT(*) as count FROM activity_logs;")
+        cursor.execute("SELECT COUNT(*) as count FROM activity_logs")
         total_logs = cursor.fetchone()['count']
         
-        # Events by type (last 7 days)
         cursor.execute("""
             SELECT event_type, COUNT(*) as count 
             FROM activity_logs 
-            WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL '7 days'
             GROUP BY event_type
-            ORDER BY count DESC;
+            ORDER BY count DESC
         """)
-        events_by_type = cursor.fetchall()
+        events_by_type = [dict(row) for row in cursor.fetchall()]
         
-        # Top IPs (last 7 days)
         cursor.execute("""
             SELECT ip_address, COUNT(*) as count 
             FROM activity_logs 
-            WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL '7 days'
             AND ip_address IS NOT NULL AND ip_address != ''
             GROUP BY ip_address
             ORDER BY count DESC
-            LIMIT 10;
+            LIMIT 10
         """)
-        top_ips = cursor.fetchall()
+        top_ips = [dict(row) for row in cursor.fetchall()]
         
-        # Recent failed logins
         cursor.execute("""
             SELECT user_id, ip_address, timestamp 
             FROM activity_logs 
             WHERE event_type = 'login_failed'
             ORDER BY timestamp DESC
-            LIMIT 10;
+            LIMIT 10
         """)
-        recent_failed = cursor.fetchall()
+        recent_failed = [dict(row) for row in cursor.fetchall()]
         for log in recent_failed:
             if log.get('timestamp'):
                 log['timestamp'] = log['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return {
             'logins_today': logins_today,
@@ -760,7 +601,7 @@ def get_activity_stats():
     except Error as e:
         print(f"Error getting activity stats: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return {}
 
 
@@ -769,13 +610,7 @@ def get_activity_stats():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def cleanup_old_logs(days=90):
-    """
-    DOES: Remove activity logs older than specified number of days
-    CALLED BY: Scheduled maintenance task
-    
-    INPUTS: days - number of days to retain logs (default 90)
-    OUTPUTS: Number of deleted records
-    """
+    """Remove activity logs older than specified number of days"""
     connection = get_db_connection()
     if not connection:
         return 0
@@ -783,18 +618,16 @@ def cleanup_old_logs(days=90):
     try:
         cursor = connection.cursor()
         
-        cutoff_date = datetime.now() - timedelta(days=days)
-        
         cursor.execute("""
             DELETE FROM activity_logs 
-            WHERE timestamp < %s;
-        """, (cutoff_date,))
+            WHERE timestamp < CURRENT_TIMESTAMP - INTERVAL '%s days'
+        """, (days,))
         
         deleted_count = cursor.rowcount
         
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         print(f"Cleaned up {deleted_count} activity logs older than {days} days")
         return deleted_count
@@ -802,42 +635,35 @@ def cleanup_old_logs(days=90):
     except Error as e:
         print(f"Error cleaning up logs: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return 0
 
 
 def get_suspicious_ips():
-    """
-    DOES: Find IPs that are logged into multiple different accounts
-    
-    OUTPUTS: Dict with IP addresses that have multiple user accounts
-    Format: { 'ip_address': [{'user_id': ..., 'user_type': ..., 'last_login': ...}, ...] }
-    """
+    """Find IPs that are logged into multiple different accounts"""
     connection = get_db_connection()
     if not connection:
         return {}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Find IPs with multiple accounts (last 7 days)
         cursor.execute("""
             SELECT ip_address, user_id, user_type, MAX(timestamp) as last_login
             FROM activity_logs 
             WHERE event_type IN ('login_success', 'api_call')
-            AND timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            AND timestamp >= CURRENT_TIMESTAMP - INTERVAL '7 days'
             AND ip_address IS NOT NULL 
             AND ip_address != '' 
             AND ip_address != 'unknown'
             AND ip_address != 'system'
             AND user_id IS NOT NULL
             GROUP BY ip_address, user_id, user_type
-            ORDER BY ip_address, last_login DESC;
+            ORDER BY ip_address, last_login DESC
         """)
         
         results = cursor.fetchall()
         
-        # Group by IP
         ip_users = {}
         for row in results:
             ip = row['ip_address']
@@ -849,18 +675,17 @@ def get_suspicious_ips():
                 'last_login': row['last_login'].strftime('%Y-%m-%d %H:%M:%S') if row['last_login'] else None
             })
         
-        # Filter to only IPs with multiple users
         suspicious = {ip: users for ip, users in ip_users.items() if len(users) > 1}
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         return suspicious
         
     except Error as e:
         print(f"Error getting suspicious IPs: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return {}
 
 
@@ -875,19 +700,14 @@ def get_activity_logs_grouped(
     page=1,
     per_page=50
 ):
-    """
-    DOES: Query activity logs grouped by user+IP combination
-    
-    OUTPUTS: Dict with grouped logs, suspicious IPs, and pagination info
-    """
+    """Query activity logs grouped by user+IP combination"""
     connection = get_db_connection()
     if not connection:
         return {'groups': [], 'suspicious_ips': {}, 'total': 0, 'page': page, 'per_page': per_page}
     
     try:
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Build base query for grouping
         query = """
             SELECT 
                 user_id, 
@@ -896,7 +716,7 @@ def get_activity_logs_grouped(
                 COUNT(*) as log_count,
                 MIN(timestamp) as first_activity,
                 MAX(timestamp) as last_activity,
-                GROUP_CONCAT(DISTINCT event_type) as event_types
+                STRING_AGG(DISTINCT event_type, ',') as event_types
             FROM activity_logs 
             WHERE 1=1
         """
@@ -940,24 +760,21 @@ def get_activity_logs_grouped(
             params.append(date_to)
         
         if search:
-            query += " AND (user_id LIKE %s OR endpoint LIKE %s OR ip_address LIKE %s)"
-            count_query += " AND (user_id LIKE %s OR endpoint LIKE %s OR ip_address LIKE %s)"
+            query += " AND (user_id ILIKE %s OR endpoint ILIKE %s OR ip_address ILIKE %s)"
+            count_query += " AND (user_id ILIKE %s OR endpoint ILIKE %s OR ip_address ILIKE %s)"
             search_term = f"%{search}%"
             params.extend([search_term, search_term, search_term])
         
-        # Get total count of groups
         cursor.execute(count_query, params)
         total = cursor.fetchone()['total']
         
-        # Add grouping and pagination
         query += " GROUP BY user_id, user_type, ip_address ORDER BY last_activity DESC LIMIT %s OFFSET %s"
         offset = (page - 1) * per_page
         params.extend([per_page, offset])
         
         cursor.execute(query, params)
-        groups = cursor.fetchall()
+        groups = [dict(row) for row in cursor.fetchall()]
         
-        # Convert datetime objects
         for group in groups:
             if group.get('first_activity'):
                 group['first_activity'] = group['first_activity'].strftime('%Y-%m-%d %H:%M:%S')
@@ -965,9 +782,8 @@ def get_activity_logs_grouped(
                 group['last_activity'] = group['last_activity'].strftime('%Y-%m-%d %H:%M:%S')
         
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
-        # Get suspicious IPs
         suspicious_ips = get_suspicious_ips()
         
         return {
@@ -982,18 +798,12 @@ def get_activity_logs_grouped(
     except Error as e:
         print(f"Error retrieving grouped activity logs: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return {'groups': [], 'suspicious_ips': {}, 'total': 0, 'page': page, 'per_page': per_page}
 
 
 def mask_old_ips(days=90):
-    """
-    DOES: Mask IP addresses in logs older than specified days for privacy
-    Replaces last octet with 'xxx' (e.g., 192.168.1.xxx)
-    
-    INPUTS: days - logs older than this will have IPs masked
-    OUTPUTS: Number of masked records
-    """
+    """Mask IP addresses in logs older than specified days for privacy"""
     connection = get_db_connection()
     if not connection:
         return 0
@@ -1001,25 +811,23 @@ def mask_old_ips(days=90):
     try:
         cursor = connection.cursor()
         
-        cutoff_date = datetime.now() - timedelta(days=days)
-        
-        # Mask IPv4 addresses
         cursor.execute("""
             UPDATE activity_logs 
             SET ip_address = CONCAT(
-                SUBSTRING_INDEX(ip_address, '.', 3), 
-                '.xxx'
+                (STRING_TO_ARRAY(ip_address, '.'))[1], '.',
+                (STRING_TO_ARRAY(ip_address, '.'))[2], '.',
+                (STRING_TO_ARRAY(ip_address, '.'))[3], '.xxx'
             )
-            WHERE timestamp < %s
-            AND ip_address LIKE '%.%.%.%'
-            AND ip_address NOT LIKE '%.xxx';
-        """, (cutoff_date,))
+            WHERE timestamp < CURRENT_TIMESTAMP - INTERVAL '%s days'
+            AND ip_address LIKE '%%.%%.%%.%%'
+            AND ip_address NOT LIKE '%%.xxx'
+        """, (days,))
         
         masked_count = cursor.rowcount
         
         connection.commit()
         cursor.close()
-        connection.close()
+        return_db_connection(connection)
         
         print(f"Masked {masked_count} IP addresses older than {days} days")
         return masked_count
@@ -1027,6 +835,5 @@ def mask_old_ips(days=90):
     except Error as e:
         print(f"Error masking IPs: {e}")
         if connection:
-            connection.close()
+            return_db_connection(connection)
         return 0
-

@@ -3,6 +3,27 @@
     <div class="header">
         <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
     </div>
+    
+    <!-- Date Filter Section -->
+    <div class="date-filter-section">
+        <label class="filter-label" data-i18n="filter_by_date">Filter By Date</label>
+        <div class="custom-date-range">
+            <div class="form-group" style="flex: 1; min-width: 150px;">
+                <label data-i18n="select_month">Select Month</label>
+                <input type="month" id="overviewMonthFilter" class="date-input" />
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 150px;">
+                <label data-i18n="select_day">Select Day (Optional)</label>
+                <input type="date" id="overviewDayFilter" class="date-input" />
+            </div>
+            <div class="form-group" style="flex: 0 0 auto; align-self: flex-end;">
+                <button class="btn-primary" onclick="applyOverviewFilters()" data-i18n="apply_filters" style="padding: 12px 24px; white-space: nowrap;">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div class="stats-grid" id="statsGrid">
         <div class="stat-card cyan">
             <div class="label" data-i18n="total_ctv">Total CTV</div>

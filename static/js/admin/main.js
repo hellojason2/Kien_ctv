@@ -27,6 +27,114 @@ function initPopupCloseHandlers() {
 }
 
 /**
+ * Initialize horizontal scroll detection for sidebar collapse
+ */
+function initSidebarScrollCollapse() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (!sidebar || !mainContent) return;
+    
+    let scrollTimeout = null;
+    const SCROLL_THRESHOLD = 10; // Minimum pixels scrolled to trigger collapse
+    
+    function collapseSidebar() {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('sidebar-collapsed');
+    }
+    
+    function expandSidebar() {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(() => {
+            sidebar.classList.remove('collapsed');
+            mainContent.classList.remove('sidebar-collapsed');
+        }, 200);
+    }
+    
+    function handleScroll(e) {
+        const target = e.target;
+        let scrollLeft = 0;
+        
+        // Get scrollLeft from the event target (could be window, document, or an element)
+        if (target === window || target === document || target === document.documentElement || target === document.body) {
+            scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+        } else {
+            scrollLeft = target.scrollLeft || 0;
+        }
+        
+        // Clear any existing timeout
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        
+        // If scrolling right (positive scrollLeft beyond threshold)
+        if (scrollLeft > SCROLL_THRESHOLD) {
+            collapseSidebar();
+        } else {
+            // When scrolled back to left, restore sidebar after a short delay
+            expandSidebar();
+        }
+    }
+    
+    // Listen to scroll events on window
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Use a MutationObserver to watch for dynamically added scrollable containers
+    const observer = new MutationObserver(() => {
+        // Find all potentially scrollable containers
+        const scrollableSelectors = [
+            '.table-container',
+            '.card-body',
+            'table',
+            '[style*="overflow-x"]',
+            '[style*="overflow: auto"]',
+            '[style*="overflow: scroll"]'
+        ];
+        
+        scrollableSelectors.forEach(selector => {
+            const elements = mainContent.querySelectorAll(selector);
+            elements.forEach(el => {
+                // Only add listener if not already added
+                if (!el.dataset.scrollListenerAdded) {
+                    el.addEventListener('scroll', handleScroll, { passive: true });
+                    el.dataset.scrollListenerAdded = 'true';
+                }
+            });
+        });
+    });
+    
+    // Start observing the main content area for changes
+    observer.observe(mainContent, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+    
+    // Initial check for existing scrollable elements
+    setTimeout(() => {
+        const scrollableSelectors = ['.table-container', '.card-body', 'table'];
+        scrollableSelectors.forEach(selector => {
+            const elements = mainContent.querySelectorAll(selector);
+            elements.forEach(el => {
+                el.addEventListener('scroll', handleScroll, { passive: true });
+                el.dataset.scrollListenerAdded = 'true';
+            });
+        });
+    }, 100);
+    
+    // Also check on resize in case viewport changes
+    window.addEventListener('resize', () => {
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || 0;
+        if (scrollLeft <= SCROLL_THRESHOLD) {
+            expandSidebar();
+        }
+    });
+}
+
+/**
  * Initialize all event handlers and check auth
  */
 function initializeApp() {
@@ -53,6 +161,9 @@ function initializeApp() {
     
     // Initialize commission filters
     initCommissionFilters();
+    
+    // Initialize sidebar scroll collapse
+    initSidebarScrollCollapse();
     
     // Check authentication
     checkAuth();

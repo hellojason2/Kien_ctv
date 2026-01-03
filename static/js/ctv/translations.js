@@ -10,6 +10,7 @@ const translations = {
         // Login
         login_subtitle: 'Đăng nhập để xem hoa hồng và mạng lưới',
         ctv_code: 'Tên đăng nhập',
+        ctv_code_placeholder: 'Nhập mã CTV',
         password: 'Mật khẩu',
         enter_password: 'Nhập mật khẩu',
         remember_me: 'Ghi nhớ đăng nhập',
@@ -21,13 +22,21 @@ const translations = {
         
         // Dashboard
         overview: 'Tổng Quan',
+        page_overview: 'Tổng Quan',
         earnings: 'Hoa Hồng',
+        page_earnings: 'Hoa Hồng',
         network: 'Mạng Lưới',
+        page_network: 'Mạng Lưới',
+        customers: 'Khách Hàng',
+        page_customers: 'Khách Hàng',
         search: 'Tìm Kiếm',
+        search_placeholder: 'Tìm kiếm khách hàng...',
         settings: 'Cài Đặt',
+        page_settings: 'Cài Đặt',
         logout: 'Đăng Xuất',
         language: 'Ngôn Ngữ',
         choose_language: 'Chọn Ngôn Ngữ',
+        menu: 'Menu',
         
         // Stats
         total_earnings: 'Tổng Thu Nhập',
@@ -38,6 +47,25 @@ const translations = {
         services_this_month: 'Dịch Vụ Tháng Này',
         recent_commissions: 'Hoa Hồng Gần Đây',
         
+        // Period Labels
+        earnings_period_today: 'Thu Nhập Hôm Nay',
+        earnings_period_3days: 'Thu Nhập 3 Ngày Qua',
+        earnings_period_week: 'Thu Nhập Tuần Này',
+        earnings_period_month: 'Thu Nhập Tháng Này',
+        earnings_period_lastmonth: 'Thu Nhập Tháng Trước',
+        earnings_period_3months: 'Thu Nhập 3 Tháng',
+        earnings_period_year: 'Thu Nhập Năm Nay',
+        earnings_period_custom: 'Thu Nhập Khoảng Thời Gian',
+        
+        services_period_today: 'Dịch Vụ Hôm Nay',
+        services_period_3days: 'Dịch Vụ 3 Ngày Qua',
+        services_period_week: 'Dịch Vụ Tuần Này',
+        services_period_month: 'Dịch Vụ Tháng Này',
+        services_period_lastmonth: 'Dịch Vụ Tháng Trước',
+        services_period_3months: 'Dịch Vụ 3 Tháng',
+        services_period_year: 'Dịch Vụ Năm Nay',
+        services_period_custom: 'Dịch Vụ Khoảng Thời Gian',
+        
         // Filters
         from_date: 'Từ ngày:',
         to_date: 'Đến ngày:',
@@ -47,6 +75,10 @@ const translations = {
         all_levels: 'Tất cả cấp',
         custom_range: 'Tùy chỉnh',
         today: 'Hôm nay',
+        three_days: '3 ngày qua',
+        week: 'Tuần này',
+        this_month: 'Tháng này',
+        last_month: 'Tháng trước',
         three_months: '3 tháng',
         this_year: 'Năm nay',
         select_filter_hint: 'Chọn ngày và nhấn Lọc để xem hoa hồng',
@@ -62,6 +94,7 @@ const translations = {
         amount: 'Số Tiền',
         from_ctv: 'Từ CTV',
         customer: 'Khách Hàng',
+        customers: 'Khách Hàng',
         service: 'Dịch Vụ',
         date: 'Ngày',
         transactions: 'Giao Dịch',
@@ -88,8 +121,11 @@ const translations = {
         // Settings / Change Password
         change_password: 'Đổi Mật Khẩu',
         current_password: 'Mật khẩu hiện tại',
+        current_password_placeholder: 'Nhập mật khẩu hiện tại',
         new_password: 'Mật khẩu mới',
+        new_password_placeholder: 'Nhập mật khẩu mới (ít nhất 6 ký tự)',
         confirm_password: 'Xác nhận mật khẩu mới',
+        confirm_password_placeholder: 'Nhập lại mật khẩu mới',
         change_password_btn: 'Đổi Mật Khẩu',
         password_changed: 'Đổi mật khẩu thành công!',
         password_mismatch: 'Mật khẩu mới không khớp',
@@ -128,12 +164,32 @@ const translations = {
         first_visit: 'Lần đầu',
         dich_vu: 'Dịch Vụ',
         services_title: 'Dịch Vụ',
-        unknown_service: 'Dịch vụ không xác định'
+        unknown_service: 'Dịch vụ không xác định',
+        view_cards: 'Thẻ',
+        view_table: 'Bảng',
+        my_customers: 'Khách Hàng Của Bạn',
+        error_loading_data: 'Lỗi khi tải dữ liệu',
+        // Table Headers
+        ten_khach: 'Tên Khách Hàng',
+        sdt: 'Số Điện Thoại',
+        trang_thai_coc: 'Trạng Thái Cọc',
+        service_count: 'Số Dịch Vụ',
+        
+        // Lifetime Statistics
+        lifetime_statistics: 'Thống Kê Toàn Bộ',
+        metric: 'Chỉ Số',
+        value: 'Giá Trị',
+        total_commissions_earned: 'Tổng Hoa Hồng Đã Nhận',
+        total_transactions: 'Tổng Số Giao Dịch',
+        total_network_members: 'Tổng Thành Viên Mạng Lưới',
+        total_services_completed: 'Tổng Dịch Vụ Hoàn Thành',
+        total_revenue_generated: 'Tổng Doanh Thu Tạo Ra'
     },
     en: {
         // Login
         login_subtitle: 'Login to view commissions and network',
         ctv_code: 'CTV Code',
+        ctv_code_placeholder: 'Enter CTV code',
         password: 'Password',
         enter_password: 'Enter password',
         remember_me: 'Remember me',
@@ -145,12 +201,21 @@ const translations = {
         
         // Dashboard
         overview: 'Overview',
+        page_overview: 'Overview',
         earnings: 'Earnings',
+        page_earnings: 'Earnings',
         network: 'Network',
+        page_network: 'Network',
+        customers: 'Customers',
+        page_customers: 'Customers',
+        search: 'Search',
+        search_placeholder: 'Search customers...',
         settings: 'Settings',
+        page_settings: 'Settings',
         logout: 'Logout',
         language: 'Language',
         choose_language: 'Choose Language',
+        menu: 'Menu',
         
         // Stats
         total_earnings: 'Total Earnings',
@@ -161,6 +226,25 @@ const translations = {
         services_this_month: 'Services This Month',
         recent_commissions: 'Recent Commissions',
         
+        // Period Labels
+        earnings_period_today: 'Earnings Today',
+        earnings_period_3days: 'Earnings Last 3 Days',
+        earnings_period_week: 'Earnings This Week',
+        earnings_period_month: 'Earnings This Month',
+        earnings_period_lastmonth: 'Earnings Last Month',
+        earnings_period_3months: 'Earnings Last 3 Months',
+        earnings_period_year: 'Earnings This Year',
+        earnings_period_custom: 'Earnings Period',
+        
+        services_period_today: 'Services Today',
+        services_period_3days: 'Services Last 3 Days',
+        services_period_week: 'Services This Week',
+        services_period_month: 'Services This Month',
+        services_period_lastmonth: 'Services Last Month',
+        services_period_3months: 'Services Last 3 Months',
+        services_period_year: 'Services This Year',
+        services_period_custom: 'Services Period',
+        
         // Filters
         from_date: 'From:',
         to_date: 'To:',
@@ -170,6 +254,10 @@ const translations = {
         all_levels: 'All Levels',
         custom_range: 'Custom',
         today: 'Today',
+        three_days: '3 Days',
+        week: 'This Week',
+        this_month: 'This Month',
+        last_month: 'Last Month',
         three_months: '3 Months',
         this_year: 'This Year',
         select_filter_hint: 'Select dates and click Filter to view commissions',
@@ -185,6 +273,7 @@ const translations = {
         amount: 'Amount',
         from_ctv: 'From CTV',
         customer: 'Customer',
+        customers: 'Customers',
         service: 'Service',
         date: 'Date',
         transactions: 'Transactions',
@@ -211,8 +300,11 @@ const translations = {
         // Settings / Change Password
         change_password: 'Change Password',
         current_password: 'Current Password',
+        current_password_placeholder: 'Enter current password',
         new_password: 'New Password',
+        new_password_placeholder: 'Enter new password (at least 6 characters)',
         confirm_password: 'Confirm New Password',
+        confirm_password_placeholder: 'Re-enter new password',
         change_password_btn: 'Change Password',
         password_changed: 'Password changed successfully!',
         password_mismatch: 'New passwords do not match',
@@ -251,7 +343,26 @@ const translations = {
         first_visit: 'First Visit',
         dich_vu: 'Services',
         services_title: 'Services',
-        unknown_service: 'Unknown Service'
+        unknown_service: 'Unknown Service',
+        view_cards: 'Cards',
+        view_table: 'Table',
+        my_customers: 'My Customers',
+        error_loading_data: 'Error loading data',
+        // Table Headers
+        ten_khach: 'Customer Name',
+        sdt: 'Phone Number',
+        trang_thai_coc: 'Deposit Status',
+        service_count: 'Services',
+        
+        // Lifetime Statistics
+        lifetime_statistics: 'Lifetime Statistics',
+        metric: 'Metric',
+        value: 'Value',
+        total_commissions_earned: 'Total Commissions Earned',
+        total_transactions: 'Total Transactions',
+        total_network_members: 'Total Network Members',
+        total_services_completed: 'Total Services Completed',
+        total_revenue_generated: 'Total Revenue Generated'
     }
 };
 
@@ -298,15 +409,24 @@ function setLanguage(lang) {
     localStorage.setItem('ctv_language', lang);
     applyTranslations();
     
-    // Update language options in popup
+    // Update language options in popup (both desktop and mobile)
     document.querySelectorAll('.lang-option').forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.lang === lang);
+        const isActive = opt.dataset.lang === lang;
+        if (isActive) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
     });
     
-    // Update current language labels (sidebar and login page)
+    // Update current language labels (sidebar, mobile menu, and login page)
     const langLabel = document.getElementById('currentLangLabel');
     if (langLabel) {
         langLabel.textContent = lang.toUpperCase();
+    }
+    const mobileLangLabel = document.getElementById('mobileCurrentLangLabel');
+    if (mobileLangLabel) {
+        mobileLangLabel.textContent = lang.toUpperCase();
     }
     const loginLangLabel = document.getElementById('loginLangLabel');
     if (loginLangLabel) {
@@ -317,15 +437,20 @@ function setLanguage(lang) {
     const loginToggle = document.getElementById('loginLangToggle');
     if (loginToggle) loginToggle.classList.remove('active');
     
-    // Re-render dynamic content based on active page
+    // Update page title in header
     const activePage = document.querySelector('.page-section.active');
+    if (activePage && typeof updatePageTitle === 'function') {
+        const pageId = activePage.id.replace('page-', '');
+        updatePageTitle(pageId);
+    }
+    
+    // Re-render dynamic content based on active page
     if (activePage) {
         const pageId = activePage.id;
         if (pageId === 'page-dashboard' && typeof loadRecentCommissions === 'function') {
             loadRecentCommissions();
-        } else if (pageId === 'page-earnings' && typeof filterCommissions === 'function') {
+        } else if (pageId === 'page-earnings' && typeof setEarningsDefaultDateFilter === 'function') {
             setEarningsDefaultDateFilter();
-            filterCommissions();
         } else if (pageId === 'page-network' && typeof loadNetwork === 'function') {
             loadNetwork();
         }
@@ -352,8 +477,12 @@ function toggleLoginLangPopup(e) {
 // Select language from popup
 function selectLanguage(lang) {
     setLanguage(lang);
-    // Close the popup
-    document.getElementById('langSwitcher').classList.remove('active');
+    // Close the popup (desktop)
+    const langSwitcher = document.getElementById('langSwitcher');
+    if (langSwitcher) langSwitcher.classList.remove('active');
+    // Close mobile language popup
+    const mobileLangMenu = document.querySelector('.mobile-menu-lang');
+    if (mobileLangMenu) mobileLangMenu.classList.remove('active');
 }
 
 // Get current language

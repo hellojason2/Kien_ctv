@@ -11,7 +11,7 @@
  * @returns {string} - Formatted currency string
  */
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + 'd';
 }
 
 /**
@@ -21,7 +21,7 @@ function formatCurrency(amount) {
  */
 function formatClientCurrency(amount) {
     if (!amount && amount !== 0) return '-';
-    return new Intl.NumberFormat('vi-VN').format(amount) + 'd';
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(amount) + 'd';
 }
 
 /**

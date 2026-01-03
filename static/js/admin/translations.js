@@ -80,6 +80,9 @@ const translations = {
         ctv_name: 'CTV',
         total_revenue: 'Doanh Thu',
         total_commission: 'Hoa Hồng',
+        filter_by_date: 'Lọc Theo Ngày',
+        select_month: 'Chọn Tháng',
+        select_day: 'Chọn Ngày (Tùy Chọn)',
         
         // CTV Management
         add_ctv: '+ Thêm CTV',
@@ -256,6 +259,9 @@ const translations = {
         ctv_name: 'CTV',
         total_revenue: 'Total Revenue',
         total_commission: 'Total Commission',
+        filter_by_date: 'Filter By Date',
+        select_month: 'Select Month',
+        select_day: 'Select Day (Optional)',
         
         // CTV Management
         add_ctv: '+ Add CTV',
