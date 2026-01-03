@@ -2,10 +2,10 @@
 <div class="page-section active" id="page-dashboard">
     <!-- Phone Check Card -->
     <div class="phone-check-card">
-        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title">Kiem Tra Trung Lap So Dien Thoai</h3>
+        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title"></h3>
         <div class="phone-check-row">
-            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder" placeholder="Nhap so dien thoai...">
-            <button class="btn-filter" onclick="checkPhonePortal()" data-i18n="check">Kiem Tra</button>
+            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder">
+            <button class="btn-filter" onclick="checkPhonePortal()" data-i18n="check"></button>
             <div class="result" id="dashPhoneResult" style="display:none;"></div>
         </div>
     </div>
@@ -15,27 +15,27 @@
         <div class="card-body" style="padding: 16px;">
             <div class="date-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                 <!-- Quick Filter Buttons -->
-                <button class="btn-filter-preset active" data-preset="today" onclick="applyDashboardPreset('today')" data-i18n="today">Today</button>
-                <button class="btn-filter-preset" data-preset="3days" onclick="applyDashboardPreset('3days')" data-i18n="three_days">3 Days</button>
-                <button class="btn-filter-preset" data-preset="week" onclick="applyDashboardPreset('week')" data-i18n="week">This Week</button>
-                <button class="btn-filter-preset" data-preset="month" onclick="applyDashboardPreset('month')" data-i18n="this_month">This Month</button>
-                <button class="btn-filter-preset" data-preset="lastmonth" onclick="applyDashboardPreset('lastmonth')" data-i18n="last_month">Last Month</button>
-                <button class="btn-filter-preset" data-preset="3months" onclick="applyDashboardPreset('3months')" data-i18n="three_months">3 Months</button>
-                <button class="btn-filter-preset" data-preset="year" onclick="applyDashboardPreset('year')" data-i18n="this_year">This Year</button>
-                <button class="btn-filter-preset" data-preset="custom" onclick="toggleCustomDateFilter()" data-i18n="custom_range">Custom</button>
+                <button class="btn-filter-preset active" data-preset="today" onclick="applyDashboardPreset('today')" data-i18n="today"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="3days" onclick="applyDashboardPreset('3days')" data-i18n="three_days"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="week" onclick="applyDashboardPreset('week')" data-i18n="week"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="month" onclick="applyDashboardPreset('month')" data-i18n="this_month"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="lastmonth" onclick="applyDashboardPreset('lastmonth')" data-i18n="last_month"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="3months" onclick="applyDashboardPreset('3months')" data-i18n="three_months"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="year" onclick="applyDashboardPreset('year')" data-i18n="this_year"><span class="data-indicator"></span></button>
+                <button class="btn-filter-preset" data-preset="custom" onclick="toggleCustomDateFilter()" data-i18n="custom_range"></button>
             </div>
             <!-- Custom Date Range (hidden by default) -->
             <div id="customDateFilter" class="custom-date-filter" style="display: none; margin-top: 12px;">
                 <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label data-i18n="from_date" style="font-size: 14px; color: #666;">From:</label>
+                        <label data-i18n="from_date" style="font-size: 14px; color: #666;"></label>
                         <input type="date" id="dashFromDate" class="date-input">
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label data-i18n="to_date" style="font-size: 14px; color: #666;">To:</label>
+                        <label data-i18n="to_date" style="font-size: 14px; color: #666;"></label>
                         <input type="date" id="dashToDate" class="date-input">
                     </div>
-                    <button class="btn-filter" onclick="applyCustomDateFilter()" data-i18n="filter">Filter</button>
+                    <button class="btn-filter" onclick="applyCustomDateFilter()" data-i18n="filter"></button>
                 </div>
             </div>
         </div>
@@ -43,30 +43,30 @@
 
     <div class="stats-grid">
         <div class="stat-card green">
-            <div class="label" data-i18n="total_earnings">Tong Thu Nhap</div>
+            <div class="label" data-i18n="total_earnings"></div>
             <div class="value" id="statTotalEarnings"><span class="skeleton-loader"></span></div>
         </div>
         <div class="stat-card blue">
-            <div class="label" data-i18n="this_month" id="periodEarningsLabel">Thu Nhap Thang Nay</div>
+            <div class="label" data-i18n="this_month" id="periodEarningsLabel"></div>
             <div class="value" id="statMonthlyEarnings"><span class="skeleton-loader"></span></div>
         </div>
         <div class="stat-card gold">
-            <div class="label" data-i18n="network_size">So Luong Mang Luoi</div>
+            <div class="label" data-i18n="network_size"></div>
             <div class="value" id="statNetworkSize"><span class="skeleton-loader"></span></div>
         </div>
         <div class="stat-card pink">
-            <div class="label" data-i18n="services_this_month" id="periodServicesLabel">Dich Vu Thang Nay</div>
+            <div class="label" data-i18n="services_this_month" id="periodServicesLabel"></div>
             <div class="value" id="statMonthlyServices"><span class="skeleton-loader"></span></div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h3 data-i18n="recent_commissions">Hoa Hong Gan Day</h3>
+            <h3 data-i18n="recent_commissions"></h3>
         </div>
         <div class="card-body">
             <div id="recentCommissions">
-                <div class="empty-state" data-i18n="loading">Dang tai...</div>
+                <div class="empty-state" data-i18n="loading"></div>
             </div>
         </div>
     </div>
@@ -74,40 +74,40 @@
     <!-- Lifetime Statistics Table -->
     <div class="card">
         <div class="card-header">
-            <h3 data-i18n="lifetime_statistics">Thong Ke Toan Bo</h3>
+            <h3 data-i18n="lifetime_statistics"></h3>
         </div>
         <div class="card-body">
             <div class="lifetime-stats-table">
                 <table class="stats-table">
                     <thead>
                         <tr>
-                            <th data-i18n="metric">Chi So</th>
-                            <th data-i18n="value">Gia Tri</th>
+                            <th data-i18n="metric"></th>
+                            <th data-i18n="value"></th>
                         </tr>
                     </thead>
                     <tbody id="lifetimeStatsBody">
                         <tr>
-                            <td data-i18n="total_commissions_earned">Tong Hoa Hong</td>
+                            <td data-i18n="total_commissions_earned"></td>
                             <td id="lifetimeTotalCommissions"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
                         </tr>
                         <tr>
-                            <td data-i18n="total_transactions">Tong Giao Dich</td>
+                            <td data-i18n="total_transactions"></td>
                             <td id="lifetimeTotalTransactions"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
                         </tr>
                         <tr>
-                            <td data-i18n="total_network_members">Tong Thanh Vien Mang Luoi</td>
+                            <td data-i18n="total_network_members"></td>
                             <td id="lifetimeNetworkSize"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
                         </tr>
                         <tr>
-                            <td data-i18n="direct_referrals">Gioi Thieu Truc Tiep</td>
+                            <td data-i18n="direct_referrals"></td>
                             <td id="lifetimeDirectReferrals"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
                         </tr>
                         <tr>
-                            <td data-i18n="total_services_completed">Tong Dich Vu Hoan Thanh</td>
+                            <td data-i18n="total_services_completed"></td>
                             <td id="lifetimeTotalServices"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
                         </tr>
                         <tr>
-                            <td data-i18n="total_revenue_generated">Tong Doanh Thu</td>
+                            <td data-i18n="total_revenue_generated"></td>
                             <td id="lifetimeTotalRevenue"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
                         </tr>
                     </tbody>

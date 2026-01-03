@@ -5,8 +5,8 @@
  * Created: December 30, 2025
  */
 
-// State
-let allCTV = [];
+// State - Global variable accessible across all admin modules
+window.allCTV = window.allCTV || [];
 
 /**
  * Load CTV list from API
@@ -18,8 +18,8 @@ async function loadCTVList() {
     
     const result = await api(`/api/admin/ctv?active_only=${activeOnly}`);
     if (result.status === 'success') {
-        allCTV = result.data;
-        renderCTVTable(allCTV);
+        window.allCTV = result.data;
+        renderCTVTable(window.allCTV);
         // For dropdowns, only use active CTVs for better UX
         const activeCTV = showInactive ? result.data.filter(c => c.is_active !== false) : result.data;
         populateCTVSelects(activeCTV);
@@ -58,7 +58,7 @@ function renderCTVTable(data) {
  */
 function populateCTVSelects(ctvList = null) {
     // Use provided list or fall back to allCTV (filtered to active only for dropdowns)
-    const listForDropdowns = ctvList || allCTV.filter(c => c.is_active !== false);
+    const listForDropdowns = ctvList || window.allCTV.filter(c => c.is_active !== false);
     const options = listForDropdowns.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
     
     // Populate regular dropdowns
@@ -84,8 +84,8 @@ function showCreateCTVModal() {
     // Re-apply translations to modal elements
     applyTranslations();
     // Re-populate referrer dropdown with translated option
-    if (allCTV.length > 0) {
-        const options = allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
+    if (window.allCTV.length > 0) {
+        const options = window.allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
         document.getElementById('newCtvReferrer').innerHTML = `<option value="">${t('none_root')}</option>` + options;
     }
 }
@@ -144,12 +144,12 @@ function initCTVSearch() {
             
             // If search is empty, show all CTVs
             if (!term) {
-                renderCTVTable(allCTV);
+                renderCTVTable(window.allCTV);
                 return;
             }
             
             // Filter CTVs - normalize all fields for comparison
-            const filtered = allCTV.filter(c => {
+            const filtered = window.allCTV.filter(c => {
                 const code = normalizeVietnamese(c.ma_ctv || '');
                 const name = normalizeVietnamese(c.ten || '');
                 const email = normalizeVietnamese(c.email || '');

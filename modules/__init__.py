@@ -28,6 +28,13 @@ from .mlm_core import (
     build_ancestor_chain,
     build_hierarchy_tree,
     calculate_commissions,
+    calculate_commission_for_khach_hang,
+    calculate_commission_for_service,
+    recalculate_commissions_for_record,
+    recalculate_all_commissions,
+    calculate_missing_commissions,
+    calculate_new_commissions_fast,
+    get_commission_cache_status,
     validate_ctv_data,
     get_all_descendants
 )
@@ -49,6 +56,13 @@ __all__ = [
     'build_ancestor_chain',
     'build_hierarchy_tree',
     'calculate_commissions',
+    'calculate_commission_for_khach_hang',
+    'calculate_commission_for_service',
+    'recalculate_commissions_for_record',
+    'recalculate_all_commissions',
+    'calculate_missing_commissions',
+    'calculate_new_commissions_fast',
+    'get_commission_cache_status',
     'validate_ctv_data',
     'get_all_descendants'
 ]

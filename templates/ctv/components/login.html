@@ -37,27 +37,27 @@
         </svg>
     </div>
     <h1>CTV Portal</h1>
-    <p class="subtitle" data-i18n="login_subtitle">Đăng nhập để xem hoa hồng và mạng lưới</p>
+    <p class="subtitle" data-i18n="login_subtitle"></p>
     
     <form id="loginForm">
         <div class="form-group">
-            <label data-i18n="ctv_code">Tên đăng nhập</label>
-            <input type="text" id="maCTV" data-i18n-placeholder="ctv_code_placeholder" placeholder="Enter CTV code" required>
+            <label data-i18n="ctv_code"></label>
+            <input type="text" id="maCTV" data-i18n-placeholder="ctv_code_placeholder" required>
         </div>
         <div class="form-group">
-            <label data-i18n="password">Mật khẩu</label>
-            <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Enter password" required>
+            <label data-i18n="password"></label>
+            <input type="password" id="password" data-i18n-placeholder="enter_password" required>
         </div>
         <div class="remember-me">
             <input type="checkbox" id="rememberMe">
-            <label for="rememberMe" data-i18n="remember_me">Ghi nhớ đăng nhập</label>
+            <label for="rememberMe" data-i18n="remember_me"></label>
         </div>
-        <button type="submit" class="btn btn-primary" id="loginBtn" data-i18n="login">Đăng Nhập</button>
+        <button type="submit" class="btn btn-primary" id="loginBtn" data-i18n="login"></button>
         <div class="error-msg" id="loginError"></div>
     </form>
 
     <div class="back-link">
-        <a href="/" data-i18n="back_home">Quay về trang chủ</a>
+        <a href="/" data-i18n="back_home"></a>
     </div>
 
     <!-- Success Animation -->
@@ -67,8 +67,8 @@
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
         </div>
-        <div class="success-text">Đăng nhập thành công!</div>
-        <div class="success-subtext">Đang chuyển hướng...</div>
+        <div class="success-text" data-i18n="login_success"></div>
+        <div class="success-subtext" data-i18n="login_redirecting"></div>
     </div>
 </div>
 

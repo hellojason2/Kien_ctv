@@ -108,6 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
         initDashboardDateFilter();
     }
     
+    // Initialize data indicators with current config
+    if (typeof updateAllIndicators === 'function') {
+        // Wait a bit for page to render, then update indicators
+        setTimeout(() => {
+            updateAllIndicators();
+        }, 200);
+    }
+    
     // Check authentication status
     checkAuth();
 });

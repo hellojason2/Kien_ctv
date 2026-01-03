@@ -20,8 +20,15 @@ async function api(endpoint, options = {}) {
         ...(authToken && { 'Authorization': `Bearer ${authToken}` })
     };
     
+    // Include credentials to send cookies (for session_token)
+    const fetchOptions = {
+        ...options,
+        headers,
+        credentials: 'include' // Important: sends cookies with request
+    };
+    
     try {
-        const response = await fetch(endpoint, { ...options, headers });
+        const response = await fetch(endpoint, fetchOptions);
         
         if (!response.ok) {
             // Try to parse error response
@@ -37,6 +44,7 @@ async function api(endpoint, options = {}) {
         return await response.json();
     } catch (error) {
         // Network error or other exception
+        console.error('API Error:', error);
         return { status: 'error', message: error.message || 'Network error' };
     }
 }

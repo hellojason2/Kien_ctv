@@ -48,7 +48,8 @@ from .mlm_core import (
     get_all_descendants,
     get_commission_rates,
     calculate_level,
-    get_network_stats
+    get_network_stats,
+    calculate_new_commissions_fast
 )
 
 # Create Blueprint
@@ -883,6 +884,9 @@ def get_ctv_commission():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
 
     try:
+        # FAST: Ensure commissions are up-to-date (only calculates new records)
+        calculate_new_commissions_fast(connection=connection)
+        
         cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         # Support both old from/to and new month/day parameters
@@ -913,28 +917,50 @@ def get_ctv_commission():
         rates_rows = cursor.fetchall()
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
         
-        level0_query = """
+        # Query khach_hang table (Level 0 - self)
+        level0_query_kh = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc')
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
         """
-        level0_params = [ctv['ma_ctv']]
+        level0_params_kh = [ctv['ma_ctv']]
         
         if from_date:
-            level0_query += " AND ngay_hen_lam >= %s"
-            level0_params.append(from_date)
+            level0_query_kh += " AND ngay_hen_lam >= %s"
+            level0_params_kh.append(from_date)
         if to_date:
-            level0_query += " AND ngay_hen_lam <= %s"
-            level0_params.append(to_date)
+            level0_query_kh += " AND ngay_hen_lam <= %s"
+            level0_params_kh.append(to_date)
         
-        cursor.execute(level0_query, level0_params)
-        level0 = cursor.fetchone()
+        cursor.execute(level0_query_kh, level0_params_kh)
+        level0_kh = cursor.fetchone()
         
-        level0_revenue = float(level0['total_revenue'] or 0)
-        level0_count = int(level0['transaction_count'] or 0)
+        # Query services table (Level 0 - self)
+        level0_query_svc = """
+            SELECT 
+                SUM(tong_tien) as total_revenue,
+                COUNT(*) as transaction_count
+            FROM services
+            WHERE ctv_code = %s
+        """
+        level0_params_svc = [ctv['ma_ctv']]
+        
+        if from_date:
+            level0_query_svc += " AND date_entered >= %s"
+            level0_params_svc.append(from_date)
+        if to_date:
+            level0_query_svc += " AND date_entered <= %s"
+            level0_params_svc.append(to_date)
+        
+        cursor.execute(level0_query_svc, level0_params_svc)
+        level0_svc = cursor.fetchone()
+        
+        # Combine results from both tables
+        level0_revenue = float(level0_kh['total_revenue'] or 0) + float(level0_svc['total_revenue'] or 0)
+        level0_count = int(level0_kh['transaction_count'] or 0) + int(level0_svc['transaction_count'] or 0)
         level0_commission = level0_revenue * commission_rates.get(0, 0.25)
         
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
@@ -960,28 +986,51 @@ def get_ctv_commission():
                 
                 if level_ctv_list:
                     placeholders = ','.join(['%s'] * len(level_ctv_list))
-                    level_query = f"""
+                    
+                    # Query khach_hang table
+                    level_query_kh = f"""
                         SELECT 
                             SUM(tong_tien) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM khach_hang
                         WHERE nguoi_chot IN ({placeholders})
-                        AND trang_thai IN ('Da den lam', 'Da coc')
+                        AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
                     """
-                    level_params = list(level_ctv_list)
+                    level_params_kh = list(level_ctv_list)
                     
                     if from_date:
-                        level_query += " AND ngay_hen_lam >= %s"
-                        level_params.append(from_date)
+                        level_query_kh += " AND ngay_hen_lam >= %s"
+                        level_params_kh.append(from_date)
                     if to_date:
-                        level_query += " AND ngay_hen_lam <= %s"
-                        level_params.append(to_date)
+                        level_query_kh += " AND ngay_hen_lam <= %s"
+                        level_params_kh.append(to_date)
                     
-                    cursor.execute(level_query, level_params)
-                    level_data = cursor.fetchone()
+                    cursor.execute(level_query_kh, level_params_kh)
+                    level_data_kh = cursor.fetchone()
                     
-                    level_revenue = float(level_data['total_revenue'] or 0)
-                    level_count = int(level_data['transaction_count'] or 0)
+                    # Query services table
+                    level_query_svc = f"""
+                        SELECT 
+                            SUM(tong_tien) as total_revenue,
+                            COUNT(*) as transaction_count
+                        FROM services
+                        WHERE ctv_code IN ({placeholders})
+                    """
+                    level_params_svc = list(level_ctv_list)
+                    
+                    if from_date:
+                        level_query_svc += " AND date_entered >= %s"
+                        level_params_svc.append(from_date)
+                    if to_date:
+                        level_query_svc += " AND date_entered <= %s"
+                        level_params_svc.append(to_date)
+                    
+                    cursor.execute(level_query_svc, level_params_svc)
+                    level_data_svc = cursor.fetchone()
+                    
+                    # Combine results from both tables
+                    level_revenue = float(level_data_kh['total_revenue'] or 0) + float(level_data_svc['total_revenue'] or 0)
+                    level_count = int(level_data_kh['transaction_count'] or 0) + int(level_data_svc['transaction_count'] or 0)
                     level_commission = level_revenue * commission_rates.get(level, 0)
                     
                     level_commissions.append({
@@ -1012,6 +1061,89 @@ def get_ctv_commission():
             }
         })
         
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@ctv_bp.route('/api/ctv/date-ranges-with-data', methods=['GET'])
+@require_ctv
+def get_date_ranges_with_data():
+    """Check which date range presets have data available"""
+    ctv = g.current_user
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        today = datetime.date.today()
+        ranges_with_data = {}
+
+        # Get network for this CTV
+        my_network = get_all_descendants(ctv['ma_ctv'], connection)
+        my_network_excluding_self = [c for c in my_network if c != ctv['ma_ctv']]
+        all_ctvs = [ctv['ma_ctv']] + my_network_excluding_self
+        placeholders = ','.join(['%s'] * len(all_ctvs))
+
+        # Define all date ranges (matching frontend logic)
+        # Week calculation: fromDate.setDate(today.getDate() - today.getDay())
+        # In JavaScript, getDay() returns 0 for Sunday, so we subtract today.weekday()+1 to get Sunday
+        # Python weekday() returns 0 for Monday, so we need to adjust
+        days_since_sunday = (today.weekday() + 1) % 7  # Convert to Sunday-based (0=Sunday)
+        week_start = today - datetime.timedelta(days=days_since_sunday)
+        
+        date_ranges = {
+            'today': (today, today),
+            '3days': (today - datetime.timedelta(days=3), today),
+            'week': (week_start, today),  # Start of week (Sunday)
+            'month': (today.replace(day=1), today),
+            'lastmonth': (
+                (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1),
+                today.replace(day=1) - datetime.timedelta(days=1)
+            ),
+            '3months': (today.replace(day=1) - datetime.timedelta(days=60), today),
+            'year': (today.replace(month=1, day=1), today)
+        }
+
+        # Check each date range for data
+        for preset, (from_date, to_date) in date_ranges.items():
+            # Check khach_hang table
+            query_kh = f"""
+                SELECT COUNT(*) as count
+                FROM khach_hang
+                WHERE nguoi_chot IN ({placeholders})
+                AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                AND ngay_hen_lam >= %s
+                AND ngay_hen_lam <= %s
+            """
+            cursor.execute(query_kh, all_ctvs + [from_date, to_date])
+            kh_count = cursor.fetchone()['count']
+
+            # Check services table
+            query_svc = f"""
+                SELECT COUNT(*) as count
+                FROM services
+                WHERE ctv_code IN ({placeholders})
+                AND date_entered >= %s
+                AND date_entered <= %s
+            """
+            cursor.execute(query_svc, all_ctvs + [from_date, to_date])
+            svc_count = cursor.fetchone()['count']
+
+            # Has data if either table has records
+            ranges_with_data[preset] = (kh_count > 0) or (svc_count > 0)
+
+        cursor.close()
+        return_db_connection(connection)
+
+        return jsonify({
+            'status': 'success',
+            'ranges_with_data': ranges_with_data
+        })
+
     except Error as e:
         if connection:
             return_db_connection(connection)

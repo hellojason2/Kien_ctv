@@ -206,6 +206,24 @@ CREATE INDEX idx_commissions_transaction ON commissions(transaction_id, level);
 CREATE INDEX idx_commissions_created ON commissions(created_at);
 
 -- ══════════════════════════════════════════════════════════════════════════════
+-- 9.1 COMMISSION_CACHE TABLE (for tracking last processed IDs)
+-- ══════════════════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS commission_cache (
+    id SERIAL PRIMARY KEY,
+    cache_key VARCHAR(50) UNIQUE NOT NULL,
+    last_kh_max_id INTEGER DEFAULT 0,
+    last_svc_max_id INTEGER DEFAULT 0,
+    total_kh_processed INTEGER DEFAULT 0,
+    total_svc_processed INTEGER DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default cache entry
+INSERT INTO commission_cache (cache_key, last_kh_max_id, last_svc_max_id) 
+VALUES ('global', 0, 0) 
+ON CONFLICT (cache_key) DO NOTHING;
+
+-- ══════════════════════════════════════════════════════════════════════════════
 -- 10. ACTIVITY_LOGS TABLE
 -- ══════════════════════════════════════════════════════════════════════════════
 CREATE TABLE activity_logs (

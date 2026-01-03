@@ -17,6 +17,7 @@ const translations = {
         login: 'Đăng Nhập',
         back_home: 'Quay về trang chủ',
         login_success: 'Đăng nhập thành công!',
+        login_redirecting: 'Đang chuyển hướng...',
         login_failed: 'Đăng nhập thất bại',
         logging_in: 'Đang đăng nhập...',
         
@@ -196,6 +197,7 @@ const translations = {
         login: 'Login',
         back_home: 'Back to Home',
         login_success: 'Login successful!',
+        login_redirecting: 'Redirecting...',
         login_failed: 'Login failed',
         logging_in: 'Logging in...',
         
@@ -379,7 +381,24 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (translations[currentLang][key]) {
-            el.textContent = translations[currentLang][key];
+            // Preserve data-indicator span if it exists
+            const indicator = el.querySelector('.data-indicator');
+            if (indicator) {
+                // Save the indicator element
+                const indicatorClone = indicator.cloneNode(true);
+                // Clear all content
+                el.innerHTML = '';
+                // Add translated text as text node
+                el.appendChild(document.createTextNode(translations[currentLang][key]));
+                // Restore the indicator
+                el.appendChild(indicatorClone);
+                // Update indicator with current config if function exists
+                if (typeof updateIndicatorElement === 'function') {
+                    updateIndicatorElement(indicatorClone);
+                }
+            } else {
+                el.textContent = translations[currentLang][key];
+            }
         }
     });
     

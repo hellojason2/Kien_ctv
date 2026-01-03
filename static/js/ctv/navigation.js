@@ -26,6 +26,11 @@ function navigateToPage(page) {
     // Update page title in header
     updatePageTitle(page);
     
+    // Re-apply translations to ensure all text is in the correct language
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
+    
     // Load page data
     if (page === 'dashboard') {
         if (typeof loadLifetimeStats === 'function') loadLifetimeStats();

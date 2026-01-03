@@ -21,6 +21,69 @@ function initEarnings() {
     applyEarningsPreset('month');
     // Load lifetime stats (static, never changes)
     loadEarningsLifetimeStats();
+    // Check which date ranges have data and show indicators
+    checkDateRangesWithData('earnings');
+}
+
+/**
+ * Check which date ranges have data and show red dot indicators
+ */
+async function checkDateRangesWithData(pageType = 'earnings') {
+    try {
+        // Wait a bit for the page to be fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const result = await api('/api/ctv/date-ranges-with-data');
+        
+        if (result.status === 'success' && result.ranges_with_data) {
+            const pageId = pageType === 'earnings' ? 'page-earnings' : 'page-dashboard';
+            const page = document.getElementById(pageId);
+            if (!page) return;
+            
+            // Update each button based on data availability
+            Object.keys(result.ranges_with_data).forEach(preset => {
+                const button = page.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+                if (button) {
+                    if (result.ranges_with_data[preset]) {
+                        button.classList.add('has-data');
+                        // Update indicator element if it exists
+                        const indicator = button.querySelector('.data-indicator');
+                        if (indicator && typeof updateIndicatorElement === 'function') {
+                            updateIndicatorElement(indicator);
+                        }
+                    } else {
+                        button.classList.remove('has-data');
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking date ranges with data:', error);
+    }
+}
+
+/**
+ * Show loading state on earnings summary card
+ */
+function showEarningsSummaryLoading() {
+    const summaryContainer = document.getElementById('earningsSummary');
+    if (summaryContainer) {
+        summaryContainer.innerHTML = `
+            <div style="padding: 20px;">
+                <div class="skeleton-loader" style="height: 20px; margin-bottom: 10px;"></div>
+                <div class="skeleton-loader" style="height: 20px; margin-bottom: 10px;"></div>
+                <div class="skeleton-loader" style="height: 20px; margin-bottom: 10px;"></div>
+                <div class="skeleton-loader" style="height: 20px;"></div>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Hide loading state on earnings summary card
+ */
+function hideEarningsSummaryLoading() {
+    // Loading is hidden when data is rendered
 }
 
 /**
@@ -95,6 +158,9 @@ function applyEarningsPreset(preset) {
     if (fromInput) fromInput.value = earningsDateFilter.fromDate;
     if (toInput) toInput.value = earningsDateFilter.toDate;
     
+    // Show loading animation
+    showEarningsSummaryLoading();
+    
     // Reload commissions with date filter
     loadAllCommissions(earningsDateFilter.fromDate, earningsDateFilter.toDate);
 }
@@ -137,6 +203,9 @@ function applyEarningsCustomDateFilter() {
     earningsDateFilter.preset = 'custom';
     earningsDateFilter.fromDate = fromDate;
     earningsDateFilter.toDate = toDate;
+    
+    // Show loading animation
+    showEarningsSummaryLoading();
     
     loadAllCommissions(fromDate, toDate);
 }
@@ -287,8 +356,9 @@ async function loadAllCommissions(fromDate = null, toDate = null) {
 
     if (params.toString()) url += '?' + params.toString();
     
-    const result = await api(url);
-    if (result.status === 'success') {
+    try {
+        const result = await api(url);
+        if (result.status === 'success') {
         const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
         
         // Summary table
@@ -327,6 +397,21 @@ async function loadAllCommissions(fromDate = null, toDate = null) {
                     </tbody>
                 </table>
             `;
+        }
+        // Hide loading animation
+        hideEarningsSummaryLoading();
+    } else {
+        // Show error state
+        const summaryContainer = document.getElementById('earningsSummary');
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
+        }
+    }
+    } catch (error) {
+        console.error('Error loading commissions:', error);
+        const summaryContainer = document.getElementById('earningsSummary');
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
         }
     }
 }

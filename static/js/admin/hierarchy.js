@@ -13,14 +13,26 @@ let highlightedIndex = -1;
 /**
  * Initialize hierarchy dropdown
  */
-function initHierarchyDropdown() {
+async function initHierarchyDropdown() {
     const dropdown = document.getElementById('hierarchyDropdown');
     const input = document.getElementById('hierarchySearch');
     const list = document.getElementById('hierarchyList');
     
     if (!dropdown || !input || !list) return;
     
-    // Render all items initially
+    // Load CTV list if not already loaded or if it's empty
+    if (!window.allCTV || window.allCTV.length === 0) {
+        try {
+            const result = await api('/api/admin/ctv?active_only=true');
+            if (result.status === 'success') {
+                window.allCTV = result.data;
+            }
+        } catch (error) {
+            console.error('Error loading CTV list for hierarchy:', error);
+        }
+    }
+    
+    // Render all items initially (this will use the loaded CTV list)
     renderHierarchyList('');
     
     // Input events
@@ -104,7 +116,7 @@ function renderHierarchyList(searchTerm) {
     const term = searchTerm.toLowerCase();
     
     // Only show active CTVs in hierarchy dropdown
-    const filtered = allCTV.filter(c => 
+    const filtered = (window.allCTV || []).filter(c => 
         c.is_active !== false &&
         (c.ma_ctv.toLowerCase().includes(term) ||
         c.ten.toLowerCase().includes(term))
@@ -126,13 +138,24 @@ function renderHierarchyList(searchTerm) {
     
     const selectedValue = document.getElementById('hierarchyRoot')?.value || '';
     
-    list.innerHTML = filtered.slice(0, 50).map(c => `
+    list.innerHTML = filtered.slice(0, 50).map(c => {
+        // Show level badge if CTV has levels below
+        // Check both max_depth_below property and ensure it's a number > 0
+        const maxDepth = c.max_depth_below !== undefined && c.max_depth_below !== null 
+            ? parseInt(c.max_depth_below) 
+            : 0;
+        const levelBadge = (maxDepth > 0) 
+            ? `<span class="level-count-badge">${maxDepth}</span>` 
+            : '';
+        
+        return `
         <div class="dropdown-item ${c.ma_ctv === selectedValue ? 'selected' : ''}" 
              data-value="${c.ma_ctv}" 
              onclick="selectHierarchyCTV('${c.ma_ctv}')">
-            <strong>${c.ma_ctv}</strong> - ${c.ten}
+            <span><strong>${c.ma_ctv}</strong> - ${c.ten}</span>${levelBadge}
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function updateHighlight(items) {
@@ -145,7 +168,7 @@ function updateHighlight(items) {
 }
 
 function selectHierarchyCTV(ctvCode) {
-    const ctv = allCTV.find(c => c.ma_ctv === ctvCode);
+    const ctv = (window.allCTV || []).find(c => c.ma_ctv === ctvCode);
     if (ctv) {
         document.getElementById('hierarchySearch').value = `${ctv.ma_ctv} - ${ctv.ten}`;
         document.getElementById('hierarchyRoot').value = ctvCode;
@@ -360,7 +383,7 @@ function initTreeSearch() {
  * @param {string} ctvCode - CTV code
  */
 function viewHierarchy(ctvCode) {
-    const ctv = allCTV.find(c => c.ma_ctv === ctvCode);
+    const ctv = (window.allCTV || []).find(c => c.ma_ctv === ctvCode);
     if (ctv) {
         document.getElementById('hierarchySearch').value = `${ctv.ma_ctv} - ${ctv.ten}`;
         document.getElementById('hierarchyRoot').value = ctvCode;

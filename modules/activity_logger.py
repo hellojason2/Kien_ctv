@@ -657,6 +657,7 @@ def get_suspicious_ips():
             AND ip_address != '' 
             AND ip_address != 'unknown'
             AND ip_address != 'system'
+            AND ip_address != '127.0.0.1'
             AND user_id IS NOT NULL
             GROUP BY ip_address, user_id, user_type
             ORDER BY ip_address, last_login DESC

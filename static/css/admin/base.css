@@ -43,6 +43,37 @@ body {
     color: var(--text-secondary);
 }
 
+/* Skeleton Loading Animation */
+@keyframes skeleton-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-loader {
+    display: inline-block;
+    height: 20px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 6px;
+}
+
+.skeleton-loader.small {
+    height: 16px;
+    width: 80px;
+}
+
+.skeleton-loader.medium {
+    height: 20px;
+    width: 120px;
+}
+
+.skeleton-loader.large {
+    height: 24px;
+    width: 180px;
+}
+
 /* Page Sections */
 .page-section {
     display: none;

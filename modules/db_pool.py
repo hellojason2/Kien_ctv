@@ -36,15 +36,35 @@ import psycopg2
 from psycopg2 import pool, Error
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
+from urllib.parse import urlparse
 
-# Database configuration - PostgreSQL
-DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'caboose.proxy.rlwy.net'),
-    'port': int(os.environ.get('DB_PORT', 34643)),
-    'user': os.environ.get('DB_USER', 'postgres'),
-    'password': os.environ.get('DB_PASSWORD', 'SEzzSwiBFYIHsnxJyEtorEBOadCZRUtl'),
-    'database': os.environ.get('DB_NAME', 'railway')
-}
+# Parse DATABASE_URL if provided (Railway format: postgresql://user:password@host:port/database)
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if DATABASE_URL:
+    # Parse the URL
+    parsed = urlparse(DATABASE_URL)
+    DB_CONFIG = {
+        'host': parsed.hostname,
+        'port': parsed.port or 5432,
+        'user': parsed.username,
+        'password': parsed.password,
+        'database': parsed.path.lstrip('/'),
+        # Railway requires SSL connections
+        'sslmode': 'require',
+        'connect_timeout': 10  # 10 second timeout
+    }
+else:
+    # Fallback to individual environment variables
+    DB_CONFIG = {
+        'host': os.environ.get('DB_HOST', 'caboose.proxy.rlwy.net'),
+        'port': int(os.environ.get('DB_PORT', 34643)),
+        'user': os.environ.get('DB_USER', 'postgres'),
+        'password': os.environ.get('DB_PASSWORD', 'SEzzSwiBFYIHsnxJyEtorEBOadCZRUtl'),
+        'database': os.environ.get('DB_NAME', 'railway'),
+        # Railway requires SSL connections
+        'sslmode': 'require',
+        'connect_timeout': 10  # 10 second timeout
+    }
 
 # Pool configuration
 POOL_MIN_CONNECTIONS = 5   # Minimum connections to keep ready
@@ -66,16 +86,24 @@ def get_db_pool():
     
     if _pool is None:
         try:
+            # Build connection parameters
+            conn_params = {
+                'host': DB_CONFIG['host'],
+                'port': DB_CONFIG['port'],
+                'user': DB_CONFIG['user'],
+                'password': DB_CONFIG['password'],
+                'database': DB_CONFIG['database'],
+                'sslmode': DB_CONFIG.get('sslmode', 'require'),
+                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
+            }
+            
             _pool = pool.ThreadedConnectionPool(
                 POOL_MIN_CONNECTIONS,
                 POOL_MAX_CONNECTIONS,
-                host=DB_CONFIG['host'],
-                port=DB_CONFIG['port'],
-                user=DB_CONFIG['user'],
-                password=DB_CONFIG['password'],
-                database=DB_CONFIG['database']
+                **conn_params
             )
             print(f"PostgreSQL connection pool created (min={POOL_MIN_CONNECTIONS}, max={POOL_MAX_CONNECTIONS})")
+            print(f"Connecting to: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}")
         except Error as e:
             print(f"Error creating connection pool: {e}")
             return None
@@ -104,13 +132,16 @@ def get_db_connection():
     if pool_instance is None:
         # Fallback to direct connection if pool fails
         try:
-            connection = psycopg2.connect(
-                host=DB_CONFIG['host'],
-                port=DB_CONFIG['port'],
-                user=DB_CONFIG['user'],
-                password=DB_CONFIG['password'],
-                database=DB_CONFIG['database']
-            )
+            conn_params = {
+                'host': DB_CONFIG['host'],
+                'port': DB_CONFIG['port'],
+                'user': DB_CONFIG['user'],
+                'password': DB_CONFIG['password'],
+                'database': DB_CONFIG['database'],
+                'sslmode': DB_CONFIG.get('sslmode', 'require'),
+                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
+            }
+            connection = psycopg2.connect(**conn_params)
             return connection
         except Error as e:
             print(f"Error connecting to PostgreSQL: {e}")
@@ -122,13 +153,16 @@ def get_db_connection():
         print(f"Error getting connection from pool: {e}")
         # Fallback to direct connection
         try:
-            connection = psycopg2.connect(
-                host=DB_CONFIG['host'],
-                port=DB_CONFIG['port'],
-                user=DB_CONFIG['user'],
-                password=DB_CONFIG['password'],
-                database=DB_CONFIG['database']
-            )
+            conn_params = {
+                'host': DB_CONFIG['host'],
+                'port': DB_CONFIG['port'],
+                'user': DB_CONFIG['user'],
+                'password': DB_CONFIG['password'],
+                'database': DB_CONFIG['database'],
+                'sslmode': DB_CONFIG.get('sslmode', 'require'),
+                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
+            }
+            connection = psycopg2.connect(**conn_params)
             return connection
         except Error as e2:
             print(f"Fallback connection also failed: {e2}")

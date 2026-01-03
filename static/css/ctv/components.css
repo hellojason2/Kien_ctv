@@ -344,6 +344,7 @@
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    position: relative;
 }
 
 .btn-filter-preset:hover {
@@ -355,6 +356,84 @@
     background: #1a1a1a;
     color: #ffffff;
     border-color: #1a1a1a;
+}
+
+/* Data indicator for date filters with data - supports dot, emoji, icon, custom */
+.btn-filter-preset .data-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    display: none;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+/* Emoji indicator styling */
+.btn-filter-preset .data-indicator.indicator-emoji {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    font-size: 16px;
+    display: inline-block;
+}
+
+/* Icon indicator styling */
+.btn-filter-preset .data-indicator.indicator-icon {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    display: inline-block;
+}
+
+/* Custom indicator styling */
+.btn-filter-preset .data-indicator.indicator-custom {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: auto;
+    height: auto;
+    display: inline-block;
+}
+
+/* Dot indicator styling (default) */
+.btn-filter-preset .data-indicator.indicator-dot {
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.btn-filter-preset.has-data .data-indicator {
+    display: block !important;
+}
+
+.btn-filter-preset.active .data-indicator.indicator-dot {
+    border-color: #1a1a1a;
+}
+
+/* Animation for emoji/icon indicators (optional - can be enabled) */
+.btn-filter-preset.has-data .data-indicator.indicator-emoji,
+.btn-filter-preset.has-data .data-indicator.indicator-icon {
+    animation: indicator-bounce 0.5s ease-in-out;
+}
+
+@keyframes indicator-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
 }
 
 .btn-filter {

@@ -448,6 +448,59 @@ def get_all_descendants(ctv_code, connection=None):
         return {ctv_code}
 
 
+def get_max_depth_below(ctv_code, connection=None):
+    """
+    DOES: Calculate the maximum depth/levels below a CTV
+    CALLED BY: list_ctv() endpoint to show level badges
+    INPUTS: ctv_code, optional connection
+    OUTPUTS: Integer representing max depth (0 if no children)
+    
+    Example: If CTV has children at levels 1, 2, 3, returns 3
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return 0
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Use recursive CTE to find max depth below this CTV
+        cursor.execute("""
+            WITH RECURSIVE descendants AS (
+                SELECT ma_ctv, 0 as level FROM ctv WHERE ma_ctv = %s
+                
+                UNION ALL
+                
+                SELECT c.ma_ctv, d.level + 1
+                FROM ctv c
+                INNER JOIN descendants d ON c.nguoi_gioi_thieu = d.ma_ctv
+                WHERE d.level < %s
+            )
+            SELECT MAX(level) as max_depth
+            FROM descendants
+            WHERE level > 0
+        """, (ctv_code, MAX_LEVEL))
+        
+        result = cursor.fetchone()
+        max_depth = result[0] if result and result[0] is not None else 0
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        return max_depth
+        
+    except Error as e:
+        print(f"Error getting max depth for CTV {ctv_code}: {e}")
+        if should_close and connection:
+            return_db_connection(connection)
+        return 0
+
+
 def get_network_stats(ctv_code, connection=None):
     """
     DOES: Get network statistics for a CTV
@@ -587,6 +640,591 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None):
         if should_close and connection:
             return_db_connection(connection)
         return []
+
+
+def calculate_commission_for_khach_hang(khach_hang_id, ctv_code, amount, connection=None):
+    """
+    DOES: Calculate and store commission records for a khach_hang transaction
+    CALLED BY: When khach_hang record is created/updated with nguoi_chot
+    INPUTS: khach_hang_id, ctv_code (who closed the deal), amount (tong_tien)
+    OUTPUTS: List of commission records created
+    
+    NOTE: Uses negative transaction_id to distinguish from services table
+    """
+    return calculate_commissions(-abs(khach_hang_id), ctv_code, amount, connection)
+
+
+def calculate_commission_for_service(service_id, ctv_code, amount, connection=None):
+    """
+    DOES: Calculate and store commission records for a service transaction
+    CALLED BY: When service record is created/updated with ctv_code/nguoi_chot
+    INPUTS: service_id, ctv_code (who closed the deal), amount (tong_tien)
+    OUTPUTS: List of commission records created
+    """
+    return calculate_commissions(service_id, ctv_code, amount, connection)
+
+
+def recalculate_commissions_for_record(record_id, source_type, connection=None):
+    """
+    DOES: Recalculate commissions for a single record (khach_hang or service)
+    CALLED BY: When record is updated (amount or CTV changed)
+    INPUTS: record_id, source_type ('khach_hang' or 'service'), connection
+    OUTPUTS: Number of commission records created/updated
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return 0
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Delete existing commissions for this record
+        if source_type == 'khach_hang':
+            transaction_id = -abs(record_id)
+            cursor.execute("SELECT tong_tien, nguoi_chot FROM khach_hang WHERE id = %s", (record_id,))
+        elif source_type == 'service':
+            transaction_id = record_id
+            cursor.execute("SELECT tong_tien, COALESCE(nguoi_chot, ctv_code) as ctv_code FROM services WHERE id = %s", (record_id,))
+        else:
+            return 0
+        
+        record = cursor.fetchone()
+        if not record:
+            return 0
+        
+        tong_tien = float(record.get('tong_tien') or 0)
+        ctv_code = record.get('ctv_code') or record.get('nguoi_chot')
+        
+        if tong_tien <= 0 or not ctv_code:
+            # Delete commissions if no valid data
+            cursor.execute("DELETE FROM commissions WHERE transaction_id = %s", (transaction_id,))
+            connection.commit()
+            return 0
+        
+        # Delete old commissions
+        cursor.execute("DELETE FROM commissions WHERE transaction_id = %s", (transaction_id,))
+        
+        # Recalculate and insert new commissions
+        calculate_commissions(transaction_id, ctv_code, tong_tien, connection)
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        return 1
+        
+    except Error as e:
+        print(f"Error recalculating commissions for {source_type} {record_id}: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return 0
+
+
+def recalculate_all_commissions(connection=None, batch_size=100):
+    """
+    DOES: Recalculate all commissions from khach_hang and services tables
+    CALLED BY: Admin endpoint to backfill commissions, or when needed
+    INPUTS: connection (optional), batch_size (for performance)
+    OUTPUTS: Dict with counts of records processed
+    
+    PERFORMANCE: Processes in batches to avoid memory issues
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'khach_hang': 0, 'services': 0, 'errors': 0}
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Clear all existing commissions
+        cursor.execute("DELETE FROM commissions")
+        connection.commit()
+        
+        stats = {'khach_hang': 0, 'services': 0, 'errors': 0}
+        
+        # Process khach_hang records
+        cursor.execute("""
+            SELECT id, tong_tien, nguoi_chot
+            FROM khach_hang
+            WHERE nguoi_chot IS NOT NULL 
+            AND nguoi_chot != ''
+            AND tong_tien > 0
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+        """)
+        kh_records = cursor.fetchall()
+        
+        for kh in kh_records:
+            try:
+                kh_id = kh['id']
+                tong_tien = float(kh['tong_tien'] or 0)
+                nguoi_chot = kh['nguoi_chot']
+                
+                if tong_tien > 0 and nguoi_chot:
+                    # Verify CTV exists
+                    cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (nguoi_chot,))
+                    if cursor.fetchone():
+                        calculate_commission_for_khach_hang(kh_id, nguoi_chot, tong_tien, connection)
+                        stats['khach_hang'] += 1
+            except Exception as e:
+                print(f"Error processing khach_hang {kh.get('id')}: {e}")
+                stats['errors'] += 1
+        
+        # Process services records
+        cursor.execute("""
+            SELECT id, tong_tien, COALESCE(nguoi_chot, ctv_code) as ctv_code
+            FROM services
+            WHERE (nguoi_chot IS NOT NULL OR ctv_code IS NOT NULL)
+            AND (nguoi_chot != '' OR ctv_code != '')
+            AND tong_tien > 0
+        """)
+        svc_records = cursor.fetchall()
+        
+        for svc in svc_records:
+            try:
+                svc_id = svc['id']
+                tong_tien = float(svc['tong_tien'] or 0)
+                ctv_code = svc['ctv_code']
+                
+                if tong_tien > 0 and ctv_code:
+                    # Verify CTV exists
+                    cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+                    if cursor.fetchone():
+                        calculate_commission_for_service(svc_id, ctv_code, tong_tien, connection)
+                        stats['services'] += 1
+            except Exception as e:
+                print(f"Error processing service {svc.get('id')}: {e}")
+                stats['errors'] += 1
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        # Invalidate commission cache
+        invalidate_commission_cache()
+        
+        return stats
+        
+    except Error as e:
+        print(f"Error recalculating all commissions: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return {'khach_hang': 0, 'services': 0, 'errors': 1}
+
+
+def calculate_missing_commissions(connection=None, date_from=None, date_to=None):
+    """
+    DOES: Calculate commissions only for transactions that don't have commissions yet
+    CALLED BY: Commission summary and stats endpoints for incremental updates
+    INPUTS: connection (optional), date_from, date_to (optional date filters)
+    OUTPUTS: Dict with counts of newly calculated commissions
+    
+    PERFORMANCE: Only calculates for missing records, not all transactions
+    
+    Logic:
+    - khach_hang uses negative transaction_id (-abs(id))
+    - services uses positive transaction_id (id)
+    - Compare existing transaction_ids in commissions table
+    - Calculate only for missing ones
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'khach_hang': 0, 'services': 0, 'errors': 0, 'total': 0}
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        stats = {'khach_hang': 0, 'services': 0, 'errors': 0, 'total': 0}
+        
+        # Build date filter for khach_hang
+        kh_date_filter = ""
+        kh_params = []
+        if date_from and date_to:
+            kh_date_filter = "AND DATE(ngay_hen_lam) >= %s AND DATE(ngay_hen_lam) <= %s"
+            kh_params = [date_from, date_to]
+        elif date_from:
+            kh_date_filter = "AND DATE(ngay_hen_lam) >= %s"
+            kh_params = [date_from]
+        elif date_to:
+            kh_date_filter = "AND DATE(ngay_hen_lam) <= %s"
+            kh_params = [date_to]
+        
+        # Build date filter for services
+        svc_date_filter = ""
+        svc_params = []
+        if date_from and date_to:
+            svc_date_filter = "AND DATE(date_entered) >= %s AND DATE(date_entered) <= %s"
+            svc_params = [date_from, date_to]
+        elif date_from:
+            svc_date_filter = "AND DATE(date_entered) >= %s"
+            svc_params = [date_from]
+        elif date_to:
+            svc_date_filter = "AND DATE(date_entered) <= %s"
+            svc_params = [date_to]
+        
+        # Get existing transaction_ids from commissions table
+        cursor.execute("SELECT DISTINCT transaction_id FROM commissions")
+        existing_transaction_ids = {row['transaction_id'] for row in cursor.fetchall()}
+        
+        # Get khach_hang records that should have commissions
+        kh_query = f"""
+            SELECT id, tong_tien, nguoi_chot
+            FROM khach_hang
+            WHERE nguoi_chot IS NOT NULL 
+            AND nguoi_chot != ''
+            AND tong_tien > 0
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            {kh_date_filter}
+        """
+        cursor.execute(kh_query, kh_params)
+        kh_records = cursor.fetchall()
+        
+        # Find and calculate missing khach_hang commissions
+        for kh in kh_records:
+            try:
+                kh_id = kh['id']
+                transaction_id = -abs(kh_id)  # Negative ID for khach_hang
+                
+                # Skip if commission already exists
+                if transaction_id in existing_transaction_ids:
+                    continue
+                
+                tong_tien = float(kh['tong_tien'] or 0)
+                nguoi_chot = kh['nguoi_chot']
+                
+                if tong_tien > 0 and nguoi_chot:
+                    # Verify CTV exists
+                    cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (nguoi_chot,))
+                    if cursor.fetchone():
+                        calculate_commission_for_khach_hang(kh_id, nguoi_chot, tong_tien, connection)
+                        stats['khach_hang'] += 1
+                        existing_transaction_ids.add(transaction_id)  # Mark as processed
+            except Exception as e:
+                print(f"Error calculating commission for khach_hang {kh.get('id')}: {e}")
+                stats['errors'] += 1
+        
+        # Get services records that should have commissions
+        svc_query = f"""
+            SELECT id, tong_tien, COALESCE(nguoi_chot, ctv_code) as ctv_code
+            FROM services
+            WHERE (nguoi_chot IS NOT NULL OR ctv_code IS NOT NULL)
+            AND (nguoi_chot != '' OR ctv_code != '')
+            AND tong_tien > 0
+            {svc_date_filter}
+        """
+        cursor.execute(svc_query, svc_params)
+        svc_records = cursor.fetchall()
+        
+        # Find and calculate missing services commissions
+        for svc in svc_records:
+            try:
+                svc_id = svc['id']
+                transaction_id = svc_id  # Positive ID for services
+                
+                # Skip if commission already exists
+                if transaction_id in existing_transaction_ids:
+                    continue
+                
+                tong_tien = float(svc['tong_tien'] or 0)
+                ctv_code = svc['ctv_code']
+                
+                if tong_tien > 0 and ctv_code:
+                    # Verify CTV exists
+                    cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+                    if cursor.fetchone():
+                        calculate_commission_for_service(svc_id, ctv_code, tong_tien, connection)
+                        stats['services'] += 1
+                        existing_transaction_ids.add(transaction_id)  # Mark as processed
+            except Exception as e:
+                print(f"Error calculating commission for service {svc.get('id')}: {e}")
+                stats['errors'] += 1
+        
+        stats['total'] = stats['khach_hang'] + stats['services']
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        # Invalidate commission cache if any new commissions were calculated
+        if stats['total'] > 0:
+            invalidate_commission_cache()
+        
+        return stats
+        
+    except Error as e:
+        print(f"Error calculating missing commissions: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return {'khach_hang': 0, 'services': 0, 'errors': 1, 'total': 0}
+
+
+def calculate_new_commissions_fast(connection=None):
+    """
+    DOES: Ultra-fast commission calculation using cached max IDs
+    CALLED BY: Commission endpoints for instant loads
+    INPUTS: connection (optional)
+    OUTPUTS: Dict with counts and cache status
+    
+    PERFORMANCE: O(n) where n = NEW records only (not all records)
+    
+    Logic:
+    1. Get last processed max IDs from commission_cache table
+    2. Get current max IDs from khach_hang and services tables
+    3. If no change, return immediately (FAST - no calculation needed)
+    4. If changed, only query records with id > last_max_id
+    5. Calculate commissions for those new records only
+    6. Update cache with new max IDs
+    
+    This is MUCH faster than comparing all transaction IDs.
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'khach_hang': 0, 'services': 0, 'errors': 0, 'total': 0, 'cache_hit': False}
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        stats = {'khach_hang': 0, 'services': 0, 'errors': 0, 'total': 0, 'cache_hit': False}
+        
+        # Ensure commission_cache table exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS commission_cache (
+                id SERIAL PRIMARY KEY,
+                cache_key VARCHAR(50) UNIQUE NOT NULL,
+                last_kh_max_id INTEGER DEFAULT 0,
+                last_svc_max_id INTEGER DEFAULT 0,
+                total_kh_processed INTEGER DEFAULT 0,
+                total_svc_processed INTEGER DEFAULT 0,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        connection.commit()
+        
+        # Get or create cache entry
+        cursor.execute("SELECT * FROM commission_cache WHERE cache_key = 'global'")
+        cache = cursor.fetchone()
+        
+        if not cache:
+            cursor.execute("""
+                INSERT INTO commission_cache (cache_key, last_kh_max_id, last_svc_max_id)
+                VALUES ('global', 0, 0)
+                RETURNING *
+            """)
+            connection.commit()
+            cache = cursor.fetchone()
+        
+        last_kh_max_id = cache['last_kh_max_id'] or 0
+        last_svc_max_id = cache['last_svc_max_id'] or 0
+        
+        # Get current max IDs from source tables (FAST - uses index)
+        cursor.execute("""
+            SELECT COALESCE(MAX(id), 0) as max_id 
+            FROM khach_hang 
+            WHERE nguoi_chot IS NOT NULL 
+            AND nguoi_chot != ''
+            AND tong_tien > 0
+            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+        """)
+        current_kh_max_id = cursor.fetchone()['max_id'] or 0
+        
+        cursor.execute("""
+            SELECT COALESCE(MAX(id), 0) as max_id 
+            FROM services 
+            WHERE (nguoi_chot IS NOT NULL OR ctv_code IS NOT NULL)
+            AND (nguoi_chot != '' OR ctv_code != '')
+            AND tong_tien > 0
+        """)
+        current_svc_max_id = cursor.fetchone()['max_id'] or 0
+        
+        # Check if cache is up to date (FAST PATH - no calculation needed)
+        if current_kh_max_id <= last_kh_max_id and current_svc_max_id <= last_svc_max_id:
+            stats['cache_hit'] = True
+            cursor.close()
+            if should_close:
+                return_db_connection(connection)
+            return stats
+        
+        # Cache miss - calculate only NEW records
+        new_kh_max_id = last_kh_max_id
+        new_svc_max_id = last_svc_max_id
+        
+        # Process new khach_hang records (only id > last_kh_max_id)
+        if current_kh_max_id > last_kh_max_id:
+            cursor.execute("""
+                SELECT id, tong_tien, nguoi_chot
+                FROM khach_hang
+                WHERE id > %s
+                AND nguoi_chot IS NOT NULL 
+                AND nguoi_chot != ''
+                AND tong_tien > 0
+                AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                ORDER BY id
+            """, (last_kh_max_id,))
+            new_kh_records = cursor.fetchall()
+            
+            for kh in new_kh_records:
+                try:
+                    kh_id = kh['id']
+                    tong_tien = float(kh['tong_tien'] or 0)
+                    nguoi_chot = kh['nguoi_chot']
+                    
+                    if tong_tien > 0 and nguoi_chot:
+                        # Verify CTV exists
+                        cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (nguoi_chot,))
+                        if cursor.fetchone():
+                            # Check if commission already exists (edge case)
+                            cursor.execute("SELECT 1 FROM commissions WHERE transaction_id = %s LIMIT 1", (-abs(kh_id),))
+                            if not cursor.fetchone():
+                                calculate_commission_for_khach_hang(kh_id, nguoi_chot, tong_tien, connection)
+                                stats['khach_hang'] += 1
+                    
+                    # Track max ID processed
+                    if kh_id > new_kh_max_id:
+                        new_kh_max_id = kh_id
+                        
+                except Exception as e:
+                    print(f"Error calculating commission for khach_hang {kh.get('id')}: {e}")
+                    stats['errors'] += 1
+        
+        # Process new services records (only id > last_svc_max_id)
+        if current_svc_max_id > last_svc_max_id:
+            cursor.execute("""
+                SELECT id, tong_tien, COALESCE(nguoi_chot, ctv_code) as ctv_code
+                FROM services
+                WHERE id > %s
+                AND (nguoi_chot IS NOT NULL OR ctv_code IS NOT NULL)
+                AND (nguoi_chot != '' OR ctv_code != '')
+                AND tong_tien > 0
+                ORDER BY id
+            """, (last_svc_max_id,))
+            new_svc_records = cursor.fetchall()
+            
+            for svc in new_svc_records:
+                try:
+                    svc_id = svc['id']
+                    tong_tien = float(svc['tong_tien'] or 0)
+                    ctv_code = svc['ctv_code']
+                    
+                    if tong_tien > 0 and ctv_code:
+                        # Verify CTV exists
+                        cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+                        if cursor.fetchone():
+                            # Check if commission already exists (edge case)
+                            cursor.execute("SELECT 1 FROM commissions WHERE transaction_id = %s LIMIT 1", (svc_id,))
+                            if not cursor.fetchone():
+                                calculate_commission_for_service(svc_id, ctv_code, tong_tien, connection)
+                                stats['services'] += 1
+                    
+                    # Track max ID processed
+                    if svc_id > new_svc_max_id:
+                        new_svc_max_id = svc_id
+                        
+                except Exception as e:
+                    print(f"Error calculating commission for service {svc.get('id')}: {e}")
+                    stats['errors'] += 1
+        
+        # Update cache with new max IDs
+        cursor.execute("""
+            UPDATE commission_cache 
+            SET last_kh_max_id = %s, 
+                last_svc_max_id = %s, 
+                total_kh_processed = total_kh_processed + %s,
+                total_svc_processed = total_svc_processed + %s,
+                last_updated = CURRENT_TIMESTAMP
+            WHERE cache_key = 'global'
+        """, (new_kh_max_id, new_svc_max_id, stats['khach_hang'], stats['services']))
+        connection.commit()
+        
+        stats['total'] = stats['khach_hang'] + stats['services']
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        # Invalidate commission cache if any new commissions were calculated
+        if stats['total'] > 0:
+            invalidate_commission_cache()
+        
+        return stats
+        
+    except Error as e:
+        print(f"Error in calculate_new_commissions_fast: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return {'khach_hang': 0, 'services': 0, 'errors': 1, 'total': 0, 'cache_hit': False}
+
+
+def get_commission_cache_status(connection=None):
+    """
+    DOES: Get cache status for debugging/monitoring
+    OUTPUTS: Cache info dict
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return None
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Get cache info
+        cursor.execute("SELECT * FROM commission_cache WHERE cache_key = 'global'")
+        cache = cursor.fetchone()
+        
+        # Get current counts
+        cursor.execute("SELECT COUNT(*) as count FROM khach_hang WHERE nguoi_chot IS NOT NULL AND tong_tien > 0")
+        kh_count = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM services WHERE ctv_code IS NOT NULL AND tong_tien > 0")
+        svc_count = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM commissions")
+        comm_count = cursor.fetchone()['count']
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        return {
+            'cache': dict(cache) if cache else None,
+            'current_counts': {
+                'khach_hang': kh_count,
+                'services': svc_count,
+                'commissions': comm_count
+            }
+        }
+        
+    except Error as e:
+        print(f"Error getting cache status: {e}")
+        if should_close and connection:
+            return_db_connection(connection)
+        return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

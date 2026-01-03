@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 # Get the directory where this script is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -37,6 +37,13 @@ try:
     setup_request_logging(app)
     
     print("Modules loaded: admin_routes, ctv_routes, activity_logger")
+    
+    # Debug: Print all admin routes
+    print("\n=== Registered Admin Routes ===")
+    for rule in app.url_map.iter_rules():
+        if 'admin89' in rule.rule:
+            print(f"  {rule.rule} -> {rule.endpoint} [{', '.join(rule.methods)}]")
+    print("===============================\n")
 except ImportError as e:
     print(f"WARNING: Could not load modules: {e}")
     print("Admin and CTV portal features will be unavailable.")

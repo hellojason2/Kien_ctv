@@ -1,5 +1,440 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-03 03:17] - Ultra-Fast Commission Calculation with Smart Caching
+- Implemented smart delta-based commission calculation for instant load times
+- Added commission_cache table to track last processed record IDs
+- New function `calculate_new_commissions_fast()` only processes NEW records since last calculation
+- Second and subsequent requests are instant (cache hit - no calculation needed)
+- Reduced commission load time from minutes to < 1 second
+
+### How It Works
+1. Cache stores `last_kh_max_id` and `last_svc_max_id` (last processed record IDs)
+2. On each request, compare current max IDs with cached max IDs
+3. If no new records (current max <= cached max) → return immediately (FAST)
+4. If new records exist → only query records with id > last_max_id
+5. Calculate commissions for those new records only
+6. Update cache with new max IDs
+
+### Performance Results
+- First run (backfill): Calculates all missing commissions
+- Second run: 0.6s (cache hit - no calculation)
+- Subsequent runs: Instant unless new data added
+
+### Files Modified
+- `modules/mlm_core.py` - Added `calculate_new_commissions_fast()` and `get_commission_cache_status()`
+- `modules/admin_routes.py` - Updated to use fast calculation
+- `modules/ctv_routes.py` - Updated to use fast calculation
+- `modules/__init__.py` - Exported new functions
+- `schema/postgresql_schema.sql` - Added commission_cache table
+
+### New Endpoints
+- `GET /api/admin/commission-cache/status` - View cache status for monitoring
+
+### Database Changes
+- Added `commission_cache` table with columns:
+  - `last_kh_max_id` - Last processed khach_hang ID
+  - `last_svc_max_id` - Last processed services ID
+  - `total_kh_processed` / `total_svc_processed` - Running totals
+  - `last_updated` - Timestamp of last calculation
+## [2026-01-03 02:50] - Optimize Commission Calculation with Incremental Updates
+- Replaced on-the-fly commission calculation with incremental approach for better performance
+- New function `calculate_missing_commissions()` detects transactions without commissions and calculates only those
+- Commission summary now uses stored commissions (fast indexed reads) + calculates only missing ones
+- Admin stats endpoint now uses incremental calculation instead of recalculating everything
+- Commissions are stored once, then reused - only new data triggers calculation
+- Significantly faster load times for commission reports with large datasets
+
+### Files Modified
+- `modules/mlm_core.py` - Added `calculate_missing_commissions(connection, date_from, date_to)` function
+- `modules/admin_routes.py` - Updated `list_commissions_summary()` to use incremental calculation
+- `modules/admin_routes.py` - Updated `get_stats()` to use incremental calculation
+- `modules/__init__.py` - Exported `calculate_missing_commissions` function
+
+### Performance Improvement Logic
+- Before: If commissions table empty → calculate ALL commissions on-the-fly (SLOW)
+- After: Always use stored commissions + calculate only MISSING ones (FAST)
+- Detection: Compare transaction IDs in commissions table vs khach_hang/services tables
+- khach_hang uses negative transaction_id (-id), services uses positive transaction_id (id)
+
+### New Function: calculate_missing_commissions()
+```python
+calculate_missing_commissions(connection=None, date_from=None, date_to=None)
+# Returns: {'khach_hang': count, 'services': count, 'total': count, 'errors': count}
+```
+
+### Benefits
+1. Fast reads: Always uses indexed commissions table
+2. Incremental: Only calculates missing commissions (O(n) where n = missing records)
+3. Automatic: Detects and fills gaps automatically on each request
+4. Backward compatible: Works even if commissions table is empty
+5. No manual backfill needed: Missing commissions calculated on-demand
+## [2026-01-03 02:10] - Optimize Commission Calculation with Pre-Calculated Storage
+- Changed commission calculation from on-the-fly to pre-calculated storage for performance
+- Commissions are now calculated and stored in commissions table when data is created/updated
+- Commission summary now reads from stored commissions table (fast) instead of calculating on-the-fly
+- Added recalculate_all_commissions() function to backfill commissions for existing data
+- Added admin endpoint POST /api/admin/commissions/recalculate to trigger recalculation
+- Falls back to on-the-fly calculation only if commissions table is empty (backward compatibility)
+- Significantly improved performance for commission summary queries
+
+### Files Modified
+- `modules/mlm_core.py` - Added calculate_commission_for_khach_hang(), calculate_commission_for_service(), recalculate_commissions_for_record(), recalculate_all_commissions()
+- `modules/admin_routes.py` - Updated commission summary to use stored commissions (fast reads)
+- `modules/admin_routes.py` - Added POST /api/admin/commissions/recalculate endpoint
+- `modules/__init__.py` - Exported new commission calculation functions
+
+### Performance Improvements
+- Commission summary queries are now fast (reads from indexed commissions table)
+- No more slow on-the-fly calculations for every request
+- Commissions calculated once when data is created/updated, then reused
+
+### New Functions
+- calculate_commission_for_khach_hang() - Calculate and store commissions for khach_hang record
+- calculate_commission_for_service() - Calculate and store commissions for service record
+- recalculate_commissions_for_record() - Recalculate commissions for a single record
+- recalculate_all_commissions() - Recalculate all commissions (backfill)
+
+### Usage
+- Call POST /api/admin/commissions/recalculate to backfill commissions for existing data
+- Commissions will be automatically calculated when new khach_hang/services are created (if hooked up)
+- Commission summary now uses stored data for fast queries
+## [2026-01-03 01:51] - Fix Commission Summary to Calculate Commissions On-The-Fly
+- Fixed commission summary to calculate commissions on-the-fly from revenue instead of only reading commissions table
+- Commission now calculated for each CTV based on their level in the hierarchy
+- Includes all CTVs who should receive commissions (L0-L4) even if they didn't close deals themselves
+- Calculates L0 commission: Revenue from deals they closed × 25%
+- Calculates L1-L4 commissions: Revenue from deals closed by their downline × respective rates
+- Fixed issue where commission showed 0 despite high revenue in commission reports
+
+### Files Modified
+- `modules/admin_routes.py` - Updated `list_commissions_summary()` to calculate commissions on-the-fly
+
+### Commission Calculation Logic
+- For each transaction (khach_hang or services) with tong_tien > 0
+- Build ancestor chain (upline) starting from the CTV who closed the deal
+- Calculate commission for each CTV in the chain:
+  - L0 (closer): tong_tien × 25%
+  - L1 (direct referrer): tong_tien × 5%
+  - L2 (referrer of L1): tong_tien × 2.5%
+  - L3 (referrer of L2): tong_tien × 1.25%
+  - L4 (referrer of L3): tong_tien × 0.625%
+- Sum all commissions for each CTV across all transactions
+- Include CTVs in summary even if they only receive commissions from downline (no direct deals)
+
+### Bug Fixes
+- Commission summary now shows correct commissions when commissions table is empty
+- CTVs who receive commissions from downline are now included in the report
+- Commission calculation matches the MLM hierarchy structure (John → Emily → Luke example)
+## [2026-01-03 01:45] - Fix Commission Calculation in Admin Stats
+- Fixed commission calculation to compute on-the-fly from khach_hang and services tables
+- Commission now calculated from tong_tien (total cost) multiplied by commission rate based on CTV level
+- If commissions table is empty, calculates commissions dynamically from actual service/client data
+- Links each CTV to clients/services via nguoi_chot/ctv_code fields
+- Calculates commission for entire CTV hierarchy (up to 4 levels) based on revenue
+- Fixed issue where monthly commission showed 0 despite high revenue
+
+### Files Modified
+- `modules/admin_routes.py` - Added on-the-fly commission calculation from khach_hang and services tables
+- `modules/admin_routes.py` - Imported build_ancestor_chain from mlm_core
+
+### Bug Fixes
+- Commission now correctly calculated from tong_tien field in khach_hang and services tables
+- Commission calculated for all CTV levels in hierarchy (0-4) based on their commission rates
+- Handles cases where commissions table is empty by calculating from source data
+- Properly links CTVs to services/clients via nguoi_chot and ctv_code fields
+
+### Commission Calculation Logic
+- For each khach_hang/service with tong_tien > 0 and nguoi_chot/ctv_code
+- Build ancestor chain (upline) for the CTV who closed the deal
+- Calculate commission for each level: tong_tien * commission_rate[level]
+- Sum all commissions across all transactions
+- Commission rates: Level 0 (25%), Level 1 (5%), Level 2 (2.5%), Level 3 (1.25%), Level 4 (0.625%)
+## [2026-01-03 01:40] - Fix Top Earners Error Loading Data
+- Fixed top_earners query to handle NULL values properly using COALESCE
+- Added error handling for top_earners query with try-catch block
+- Improved error messages to show actual error details
+- Added better null/undefined checks in JavaScript
+- Added console logging for debugging API responses
+- Fixed issue where top_earners could be undefined causing "Error loading data" message
+
+### Files Modified
+- `modules/admin_routes.py` - Added COALESCE to top_earners query, improved error handling
+- `static/js/admin/overview.js` - Added better null checks, improved error messages, added logging
+
+### Bug Fixes
+- Top earners section no longer shows "Error loading data" when there are no commissions
+- Properly handles empty top_earners array
+- Better error messages show actual error details for debugging
+## [2026-01-03 01:33] - Fix Admin Overview Stats Loading and Add Loading States
+- Fixed stats not loading when date range filters are selected (3 months, etc.)
+- Added loading states with skeleton loaders for all stat cards
+- Added loading indicator for top earners section
+- Filter buttons are disabled during loading to prevent duplicate requests
+- Fixed transaction count query to properly handle date ranges (from_date/to_date)
+- Added error handling with user-friendly error messages
+- Added console logging for debugging
+
+### Files Modified
+- `static/js/admin/overview.js` - Added showOverviewLoading() function, improved error handling, added loading states
+- `modules/admin_routes.py` - Fixed transaction count query to support date ranges
+
+### Bug Fixes
+- Stats now load correctly when selecting "3 Months" or any date range filter
+- Transaction count now properly filters by date range
+- Loading states prevent user confusion during data fetching
+
+### UX Improvements
+- Skeleton loaders show immediately when filters are clicked
+- Buttons disabled during loading prevent accidental duplicate requests
+- Clear error messages if data fails to load
+- Consistent loading experience matching commission filters
+## [2026-01-03 01:30] - Replace Admin Overview Date Filter with CTV-Style Filter Buttons
+- Replaced month/day input fields with CTV-style filter button cards
+- Added filter buttons: Today, 3 Days, This Week, This Month, Last Month, 3 Months, This Year, Custom
+- Added red dot indicators on filter buttons to show which periods have data
+- Filter buttons match CTV dashboard commission filter style exactly
+- Added date range support to admin stats API (from_date/to_date parameters)
+- Added date-ranges-with-data endpoint to check which periods have data
+
+### Files Modified
+- `templates/admin/pages/overview.html` - Replaced date inputs with filter button cards
+- `static/js/admin/overview.js` - Complete rewrite to handle preset filters and data indicators
+- `static/css/admin/components.css` - Added btn-filter-preset and data-indicator styles
+- `modules/admin_routes.py` - Updated get_stats() to support date ranges, added date-ranges-with-data endpoint
+
+### Features Added
+- Uniform filter style matching CTV dashboard commission filters
+- Red dot indicators showing which date ranges have data
+- Card-based filter buttons with hover and active states
+- Custom date range option with collapsible date inputs
+- Consistent UX across admin and CTV dashboards
+
+### API Changes
+- `/api/admin/stats` now accepts `from_date` and `to_date` parameters in addition to `month` and `day`
+- New endpoint `/api/admin/date-ranges-with-data` returns which preset periods have data
+## [2026-01-03 01:18] - Add Loading States to Commission Filters
+- Added skeleton loader animations when commission filters are clicked
+- Loading state shows immediately when any filter button is clicked
+- Skeleton loaders displayed in both table rows and summary cards during data loading
+- Filter buttons are disabled during loading to prevent multiple simultaneous requests
+- Improved UX to clearly indicate when new data is being fetched
+- Loading states match CTV dashboard pattern for consistency
+
+### Files Modified
+- `static/js/admin/commissions.js` - Added `showCommissionsLoading()` function with skeleton loaders
+- `static/css/admin/base.css` - Added skeleton loader CSS animations and styles
+- `static/css/admin/forms.css` - Added disabled button styles for loading states
+
+### Features Added
+- Skeleton loader animations in commission table (5 rows)
+- Skeleton loaders in summary cards (Total CTV, Total Revenue, Total Commission)
+- Button disable state during loading to prevent duplicate requests
+- Visual feedback that clearly shows data is being loaded
+- Consistent loading experience matching CTV dashboard UX
+
+### UX Improvements
+- Users can now clearly see when filters are processing
+- Prevents confusion about whether filters are working
+- Prevents accidental multiple clicks during loading
+- Smooth loading animations provide professional feel
+## [2026-01-03 01:13] - Add Level Count Badge to ROOT CTV Search Dropdown
+- Added level count badges next to CTV codes in the ROOT CTV selection dropdown
+- Badge shows the number of levels below each CTV (e.g., "3" if CTV has 3 levels below)
+- Badge only appears if CTV has at least one level below (no badge if no children)
+- Badge displays with cyan background and adjusts color on hover/highlight
+- Level count calculated using recursive CTE for efficient database queries
+
+### Files Modified
+- `modules/mlm_core.py` - Added `get_max_depth_below()` function to calculate maximum depth below a CTV
+- `modules/admin_routes.py` - Updated `list_ctv()` endpoint to include `max_depth_below` field for each CTV
+- `static/js/admin/hierarchy.js` - Updated `renderHierarchyList()` to display level count badges
+- `static/css/admin/forms.css` - Added styling for `.level-count-badge` with flexbox layout
+
+### Features Added
+- Level count badges showing hierarchy depth below each CTV
+- Badge only displays when CTV has children (levels > 0)
+- Responsive badge styling that adapts to hover and highlight states
+- Efficient database query using PostgreSQL recursive CTE
+
+## [2026-01-03 01:11] - Add Date Period to Total Revenue Label
+- Added dynamic date period display to "Tổng Dịch Vụ" (Total Revenue) label
+- Label now shows the selected filter period (e.g., "Total Revenue for This Week", "Total Revenue for This Month")
+- Supports all quick filters: Today, This Week, This Month, Last 3 Days, Last 3 Months, This Year
+- Label updates automatically when filter changes
+- Added translation keys for period-specific labels in both Vietnamese and English
+
+### Files Modified
+- `static/js/admin/commissions.js` - Added filter tracking and label update function
+- `static/js/admin/translations.js` - Added translation keys for period-specific revenue labels
+- `templates/admin/pages/commissions.html` - Added ID to revenue label for dynamic updates
+
+### Features Added
+- Dynamic "Tổng Dịch Vụ" label that reflects current date filter
+- Shows "Tổng Dịch Vụ Tuần Này" when "This Week" filter is selected
+- Shows "Tổng Dịch Vụ Tháng Này" when "This Month" filter is selected
+- Shows "Tổng Dịch Vụ Hôm Nay" when "Today" filter is selected
+- Falls back to "Tổng Dịch Vụ" for custom date ranges or other filters
+## [2026-01-02 19:00] - Exclude Localhost from Suspicious IP Detection
+- Excluded 127.0.0.1 (localhost) from suspicious IP detection
+- Localhost is now filtered out as it represents admin local access, not suspicious activity
+- Updated SQL query to exclude localhost IP from suspicious IP detection logic
+
+### Files Modified
+- `modules/activity_logger.py` - Added filter to exclude '127.0.0.1' from suspicious IP detection query
+
+### Changes
+- Suspicious IP detection now ignores localhost (127.0.0.1) since it's just admin accessing locally
+- This prevents false positives in the suspicious IPs alert on Activity Logs page
+
+
+## [2026-01-02 19:00] - Fix Commission Report to Show Services Even Without Commissions
+- Fixed commission report to query both `khach_hang` and `services` tables
+- Now shows CTVs who have services even if no commissions are calculated yet
+- Added service count badges showing "X dịch vụ" for each CTV
+- Added special badge "X dịch vụ, 0 HH" (orange) when services exist but commission is zero
+- Added grand total service count badge in summary section
+- Commission report now properly displays all CTVs with activity, not just those with commissions
+- Users can now see that the system is working even when commissions haven't been calculated
+
+### Files Modified
+- `modules/admin_routes.py` - Updated `list_commissions_summary()` to query `khach_hang` and `services` tables in addition to `commissions` table
+- `templates/admin/pages/commissions.html` - Added service count badge display area
+- `static/js/admin/commissions.js` - Added service count badges and improved display logic
+
+### Features Added
+- Service count badges (blue) showing number of services per CTV
+- Zero commission indicator (orange badge) when services exist but commission is 0
+- Grand total service count badge in summary section
+- Commission report now shows all CTVs with services, not just those with commissions
+
+## [2026-01-02 18:30] - Fix Admin Commission Report Page
+- Fixed commission report page not loading in admin dashboard
+- Updated API function to include credentials (cookies) for authentication
+- Fixed URL construction in commission loading function
+- Improved error handling and user feedback
+- Added loading state display
+- Fixed initialization to prevent duplicate filter application
+- Commission report now properly displays data or shows appropriate "no data" message
+
+### Files Modified
+- `static/js/admin/api.js` - Added `credentials: 'include'` to fetch options to send cookies
+- `static/js/admin/commissions.js` - Fixed URL construction, improved error handling, added loading states
+
+### Bug Fixes
+- Previous issue: Commission report page was not loading data
+- Root cause: API function wasn't sending cookies for session authentication
+- Fix: Added credentials to fetch requests and improved error handling
+
+## [2026-01-02 18:00] - Admin Dashboard Verification and Logic Alignment
+- Verified all admin dashboard endpoints and database connections
+- Updated admin stats endpoint to match CTV dashboard logic
+- Admin stats now queries both `khach_hang` and `services` tables (matching CTV dashboard)
+- Added support for Vietnamese status formats in admin queries
+- All admin dashboard pages tested and verified:
+  - Overview page: Stats endpoint working correctly
+  - CTV Management: List, create, update, delete functions verified
+  - Hierarchy page: Recursive CTE queries matching CTV dashboard
+  - Commissions page: Commission queries verified
+  - Clients page: Client grouping logic matches CTV dashboard
+  - Settings page: Commission settings CRUD verified
+  - Activity Logs: Logging and queries verified
+- Database connections verified for all endpoints
+- All logic matches between admin and CTV dashboards
+
+### Files Modified
+- `modules/admin_routes.py` - Updated `get_stats()` endpoint to query both `khach_hang` and `services` tables with Vietnamese status support
+
+### Verification Results
+- ✓ All 8 test categories passed
+- ✓ Database connections working correctly
+- ✓ Query logic matches CTV dashboard
+- ⚠ Minor warning: Commission rate rounding difference (0.00625 vs 0.0063) - non-critical
+
+## [2026-01-02 16:30] - Make Data Indicators Customizable for Holidays/Events
+- Made data availability indicators fully customizable
+- Can now use emojis (🎄, 🐉, 🎊), icons, or custom HTML instead of red dot
+- Added preset configurations for holidays: Christmas, Chinese New Year, New Year, Valentine's, Halloween
+- Easy switching via `setIndicatorPreset()` or `setCustomIndicator()` functions
+- Supports emoji, icon classes, custom HTML, or default red dot
+- Indicators automatically update when config changes
+- Added bounce animation for emoji/icon indicators
+
+### Files Added
+- `static/js/ctv/indicator_config.js` - Configuration system for indicators
+- `INDICATOR_CONFIG_README.md` - Complete guide for changing indicators
+
+### Files Modified
+- `templates/ctv/base.html` - Added indicator_config.js script
+- `static/css/ctv/components.css` - Added styles for emoji/icon/custom indicators
+- `static/js/ctv/commissions.js` - Updated to use config system
+- `static/js/ctv/profile.js` - Updated to use config system
+- `static/js/ctv/translations.js` - Updated to preserve and update indicators
+- `static/js/ctv/main.js` - Added indicator initialization
+
+### Usage Examples
+```javascript
+// Christmas
+setIndicatorPreset('christmas'); // Shows 🎄
+
+// Chinese New Year
+setIndicatorPreset('chineseNewYear'); // Shows 🐉
+
+// Custom emoji
+setCustomIndicator('emoji', '🎊', '18px');
+
+// Back to default red dot
+setIndicatorPreset('default');
+```
+
+## [2026-01-02 16:00] - Add Data Availability Indicators to Date Filter Buttons
+- Added red dot indicators on date filter buttons that have data available
+- Created new API endpoint `/api/ctv/date-ranges-with-data` to check which date ranges have data
+- Red dots appear on top-right corner of filter buttons (Today, 3 Days, Week, Month, Last Month, 3 Months, Year)
+- Indicators check both `khach_hang` and `services` tables for data availability
+- Applied to both Dashboard and Earnings pages
+- Users can now quickly see which date ranges have data before clicking
+
+### Files Modified
+- `modules/ctv_routes.py` - Added `get_date_ranges_with_data()` endpoint
+- `static/css/ctv/components.css` - Added `.data-indicator` styles for red dot (10px, red #ef4444, with shadow)
+- `templates/ctv/pages/dashboard.html` - Added `<span class="data-indicator"></span>` to filter buttons
+- `templates/ctv/pages/earnings.html` - Added `<span class="data-indicator"></span>` to filter buttons
+- `static/js/ctv/commissions.js` - Added `checkDateRangesWithData()` function with 100ms delay for page rendering
+- `static/js/ctv/profile.js` - Added `checkDashboardDateRangesWithData()` function with 100ms delay
+- `static/js/ctv/translations.js` - Fixed `applyTranslations()` to preserve `.data-indicator` spans when translating button text
+
+### Feature Details
+- Red dot (10px) appears on top-right corner of buttons with data
+- Positioned at top: -2px, right: -2px for optimal visibility
+- White border (2px) around dot for visibility on light backgrounds
+- Black border when button is active (dark background)
+- Box shadow for better visibility
+- Automatically checks data availability on page load
+- Works for all preset date ranges except "Custom"
+- Translation system now preserves indicator spans when language changes
+
+### Bug Fixes
+- Fixed translation function removing data-indicator spans when applying translations
+- Increased dot size from 8px to 10px for better visibility
+- Added `!important` flag to ensure dot displays when `has-data` class is present
+
+## [2026-01-02 15:30] - Fix Stats by Level Date Filter and Add Loading Animation
+- Fixed `/api/ctv/commission` endpoint to query both `khach_hang` and `services` tables for accurate revenue calculations
+- Updated status filter to handle Vietnamese characters ('Đã đến làm', 'Đã cọc', 'Chờ xác nhận') in addition to non-Vietnamese formats
+- Added loading animation (skeleton loader) to "Stats by Level" card when date filter is applied
+- Fixed date filtering logic to properly apply date ranges to both tables
+- Improved error handling in `loadAllCommissions()` function with try-catch blocks
+- Stats by Level card now correctly displays revenue, commission, and transaction counts for all levels (0-4) based on selected date range
+
+### Files Modified
+- `modules/ctv_routes.py` - Updated `get_ctv_commission()` to query both tables and handle Vietnamese status values
+- `static/js/ctv/commissions.js` - Added `showEarningsSummaryLoading()` and `hideEarningsSummaryLoading()` functions, integrated loading animation into filter functions
+
+### Bug Fix Details
+- Previous issue: Stats by Level card only queried `khach_hang` table, missing data from `services` table
+- Previous issue: Status filter didn't match Vietnamese characters, causing missing revenue data
+- Fix: Now queries both tables and combines results, handles all status format variations
+
 ## [2026-01-02 10:55] - Fix Table View Button and Improve Error Handling in CTV Clients Page
 - Fixed Table button not working properly in CTV Portal Clients page
 - Fixed error handling in `loadCtvClientsWithServices()` to render errors to the correct container (card or table view)

@@ -58,6 +58,42 @@ function updatePeriodLabels(preset) {
     }
 }
 
+/**
+ * Check which date ranges have data and show red dot indicators
+ */
+async function checkDashboardDateRangesWithData() {
+    try {
+        // Wait a bit for the page to be fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const result = await api('/api/ctv/date-ranges-with-data');
+        
+        if (result.status === 'success' && result.ranges_with_data) {
+            const dashboardPage = document.getElementById('page-dashboard');
+            if (!dashboardPage) return;
+            
+            // Update each button based on data availability
+            Object.keys(result.ranges_with_data).forEach(preset => {
+                const button = dashboardPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+                if (button) {
+                    if (result.ranges_with_data[preset]) {
+                        button.classList.add('has-data');
+                        // Update indicator element if it exists
+                        const indicator = button.querySelector('.data-indicator');
+                        if (indicator && typeof updateIndicatorElement === 'function') {
+                            updateIndicatorElement(indicator);
+                        }
+                    } else {
+                        button.classList.remove('has-data');
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking date ranges with data:', error);
+    }
+}
+
 // Load Profile with optional date filter
 async function loadProfile(fromDate = null, toDate = null) {
     let url = '/api/ctv/me';
@@ -210,6 +246,8 @@ function initDashboardDateFilter() {
     // Set default to current month
     updatePeriodLabels('month');
     applyDashboardPreset('month');
+    // Check which date ranges have data and show indicators
+    checkDashboardDateRangesWithData();
 }
 
 // Load Lifetime Statistics (all-time data)

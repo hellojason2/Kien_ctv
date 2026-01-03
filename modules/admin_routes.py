@@ -58,7 +58,13 @@ from .mlm_core import (
     build_hierarchy_tree,
     validate_ctv_data,
     get_commission_rates,
-    get_all_descendants
+    get_all_descendants,
+    get_max_depth_below,
+    build_ancestor_chain,
+    recalculate_all_commissions,
+    calculate_missing_commissions,
+    calculate_new_commissions_fast,
+    get_commission_cache_status
 )
 from .activity_logger import (
     get_activity_logs,
@@ -83,8 +89,9 @@ from .export_excel import (
     COMMISSION_SETTINGS_COLUMNS
 )
 
-# Create Blueprint
-admin_bp = Blueprint('admin', __name__)
+# Create Blueprint with template folder
+BASE_DIR_FOR_TEMPLATES = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+admin_bp = Blueprint('admin', __name__, template_folder=os.path.join(BASE_DIR_FOR_TEMPLATES, 'templates'))
 
 # Get base directory for templates
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -153,16 +160,54 @@ def logout():
     return response
 
 
+@admin_bp.route('/admin89/test', methods=['GET'])
+def test_route():
+    """Test route to verify blueprint is working"""
+    return jsonify({'status': 'success', 'message': 'Admin blueprint is working!'})
+
+
+@admin_bp.route('/admin89/simple', methods=['GET'])
+def simple_test():
+    """Simple HTML test route"""
+    return '<html><body><h1>Admin Route Works!</h1><p>If you see this, the route is working.</p></body></html>'
+
+
 @admin_bp.route('/admin89', methods=['GET'])
 def dashboard():
     """Serve admin dashboard HTML using Jinja2 template"""
     try:
+        # Try rendering the template
         return render_template('admin/base.html')
     except Exception as e:
+        # Fallback: try sending the file directly
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error rendering admin template: {e}")
+        print(f"Traceback: {error_details}")
+        
+        # Try fallback template file
         template_path = os.path.join(BASE_DIR, 'templates', 'admin.html')
         if os.path.exists(template_path):
-            return send_file(template_path)
-        return jsonify({'status': 'error', 'message': f'Admin dashboard not found: {str(e)}'}), 404
+            try:
+                return send_file(template_path)
+            except Exception as e2:
+                print(f"Error sending fallback file: {e2}")
+        
+        # Return HTML error page instead of JSON (browser expects HTML)
+        error_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Admin Dashboard Error</title></head>
+        <body>
+            <h1>Admin Dashboard Error</h1>
+            <p>Error: {str(e)}</p>
+            <p>Template path checked: {template_path}</p>
+            <p>Template exists: {os.path.exists(template_path) if template_path else 'N/A'}</p>
+            <pre>{error_details}</pre>
+        </body>
+        </html>
+        """
+        return error_html, 500
 
 
 @admin_bp.route('/admin89/check-auth', methods=['GET'])
@@ -222,9 +267,12 @@ def list_ctv():
         cursor.execute(query, params)
         ctv_list = [dict(row) for row in cursor.fetchall()]
         
+        # Add max depth below each CTV for level badges
         for ctv in ctv_list:
             if ctv.get('created_at'):
                 ctv['created_at'] = ctv['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            # Calculate max depth below this CTV
+            ctv['max_depth_below'] = get_max_depth_below(ctv['ma_ctv'], connection)
         
         cursor.close()
         return_db_connection(connection)
@@ -616,7 +664,7 @@ def list_commissions():
 @admin_bp.route('/api/admin/commissions/summary', methods=['GET'])
 @require_admin
 def list_commissions_summary():
-    """Get commission summary grouped by CTV"""
+    """Get commission summary grouped by CTV, including services even if no commissions"""
     connection = get_db_connection()
     if not connection:
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
@@ -628,43 +676,151 @@ def list_commissions_summary():
         date_from = request.args.get('date_from')
         date_to = request.args.get('date_to')
         
-        query = """
-            SELECT 
-                c.ctv_code,
-                ctv.ten as ctv_name,
-                ctv.sdt as ctv_phone,
-                SUM(c.transaction_amount) as total_service_price,
-                SUM(c.commission_amount) as total_commission
-            FROM commissions c
-            JOIN ctv ON c.ctv_code = ctv.ma_ctv
-            WHERE 1=1
-        """
-        params = []
+        # Build date conditions and parameters for different tables
+        comm_params = []
+        kh_params = []
+        svc_params = []
         
         if month:
-            query += " AND TO_CHAR(c.created_at, 'YYYY-MM') = %s"
-            params.append(month)
+            comm_where = "TO_CHAR(c.created_at, 'YYYY-MM') = %s"
+            comm_params.append(month)
+            kh_where = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s"
+            kh_params.append(month)
+            svc_where = "TO_CHAR(s.date_entered, 'YYYY-MM') = %s"
+            svc_params.append(month)
         elif date_from and date_to:
-            query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
-            params.extend([date_from, date_to])
+            comm_where = "DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
+            comm_params.extend([date_from, date_to])
+            kh_where = "DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s"
+            kh_params.extend([date_from, date_to])
+            svc_where = "DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s"
+            svc_params.extend([date_from, date_to])
         elif date_from:
-            query += " AND DATE(c.created_at) >= %s"
-            params.append(date_from)
+            comm_where = "DATE(c.created_at) >= %s"
+            comm_params.append(date_from)
+            kh_where = "DATE(kh.ngay_hen_lam) >= %s"
+            kh_params.append(date_from)
+            svc_where = "DATE(s.date_entered) >= %s"
+            svc_params.append(date_from)
         elif date_to:
-            query += " AND DATE(c.created_at) <= %s"
-            params.append(date_to)
+            comm_where = "DATE(c.created_at) <= %s"
+            comm_params.append(date_to)
+            kh_where = "DATE(kh.ngay_hen_lam) <= %s"
+            kh_params.append(date_to)
+            svc_where = "DATE(s.date_entered) <= %s"
+            svc_params.append(date_to)
+        else:
+            comm_where = "TO_CHAR(c.created_at, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            kh_where = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            svc_where = "TO_CHAR(s.date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
         
-        query += """
-            GROUP BY c.ctv_code, ctv.ten, ctv.sdt
-            ORDER BY total_commission DESC
+        # Get commissions data
+        comm_query = """
+            SELECT 
+                c.ctv_code,
+                SUM(c.transaction_amount) as total_service_price,
+                SUM(c.commission_amount) as total_commission,
+                COUNT(*) as commission_count
+            FROM commissions c
+            WHERE """ + comm_where + """
+            GROUP BY c.ctv_code
         """
+        cursor.execute(comm_query, comm_params)
+        commissions_data = {row['ctv_code']: row for row in cursor.fetchall()}
         
-        cursor.execute(query, params)
-        summary = [dict(row) for row in cursor.fetchall()]
+        # Get services from khach_hang table
+        kh_query = """
+            SELECT 
+                kh.nguoi_chot as ctv_code,
+                COUNT(*) as service_count,
+                SUM(kh.tong_tien) as total_revenue
+            FROM khach_hang kh
+            WHERE kh.nguoi_chot IS NOT NULL 
+            AND kh.nguoi_chot != ''
+            AND kh.trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND """ + kh_where + """
+            GROUP BY kh.nguoi_chot
+        """
+        cursor.execute(kh_query, kh_params)
+        kh_services = {row['ctv_code']: row for row in cursor.fetchall()}
         
-        for s in summary:
-            s['total_service_price'] = float(s['total_service_price'] or 0)
-            s['total_commission'] = float(s['total_commission'] or 0)
+        # Get services from services table
+        svc_query = """
+            SELECT 
+                s.ctv_code,
+                COUNT(*) as service_count,
+                SUM(s.tong_tien) as total_revenue
+            FROM services s
+            WHERE s.ctv_code IS NOT NULL 
+            AND s.ctv_code != ''
+            AND """ + svc_where + """
+            GROUP BY s.ctv_code
+        """
+        cursor.execute(svc_query, svc_params)
+        svc_services = {row['ctv_code']: row for row in cursor.fetchall()}
+        
+        # FAST: Calculate only new commissions using cached max IDs
+        # This only processes records added since last calculation (delta)
+        fast_stats = calculate_new_commissions_fast(connection=connection)
+        
+        # If any new commissions were calculated, refresh the commissions data
+        if fast_stats.get('total', 0) > 0:
+            cursor.execute(comm_query, comm_params)
+            commissions_data = {row['ctv_code']: row for row in cursor.fetchall()}
+        
+        # Combine all CTV codes
+        all_ctv_codes = set()
+        all_ctv_codes.update(commissions_data.keys())
+        all_ctv_codes.update(kh_services.keys())
+        all_ctv_codes.update(svc_services.keys())
+        
+        # Build summary (FAST - uses stored commissions)
+        summary = []
+        total_service_count = 0
+        total_service_revenue = 0
+        
+        for ctv_code in all_ctv_codes:
+            # Get CTV info
+            cursor.execute("SELECT ma_ctv, ten, sdt FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+            ctv_info = cursor.fetchone()
+            if not ctv_info:
+                continue
+            
+            # Get commission from stored table (FAST - always use stored data)
+            comm_data = commissions_data.get(ctv_code, {})
+            comm_total = float(comm_data.get('total_commission', 0) or 0)
+            comm_service_price = float(comm_data.get('total_service_price', 0) or 0)
+            
+            # Get revenue from services tables (for display)
+            kh_data = kh_services.get(ctv_code, {})
+            kh_count = int(kh_data.get('service_count', 0) or 0)
+            kh_revenue = float(kh_data.get('total_revenue', 0) or 0)
+            
+            svc_data = svc_services.get(ctv_code, {})
+            svc_count = int(svc_data.get('service_count', 0) or 0)
+            svc_revenue = float(svc_data.get('total_revenue', 0) or 0)
+            
+            total_services = kh_count + svc_count
+            total_revenue = kh_revenue + svc_revenue
+            
+            # Use stored transaction_amount sum, or revenue from services tables
+            service_price = comm_service_price if comm_service_price > 0 else total_revenue
+            
+            summary.append({
+                'ctv_code': ctv_code,
+                'ctv_name': ctv_info['ten'],
+                'ctv_phone': ctv_info['sdt'],
+                'total_service_price': service_price,
+                'total_commission': comm_total,
+                'service_count': total_services,
+                'has_services_no_commission': total_services > 0 and comm_total == 0
+            })
+            
+            total_service_count += total_services
+            total_service_revenue += service_price
+        
+        # Sort by commission descending, then by service count
+        summary.sort(key=lambda x: (x['total_commission'], x['service_count']), reverse=True)
         
         grand_total_commission = sum(s['total_commission'] for s in summary)
         grand_total_service = sum(s['total_service_price'] for s in summary)
@@ -677,7 +833,8 @@ def list_commissions_summary():
             'data': summary,
             'grand_total': {
                 'total_service_price': grand_total_service,
-                'total_commission': grand_total_commission
+                'total_commission': grand_total_commission,
+                'total_service_count': total_service_count
             },
             'total_ctv': len(summary)
         })
@@ -685,6 +842,21 @@ def list_commissions_summary():
     except Error as e:
         if connection:
             return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/commissions/recalculate', methods=['POST'])
+@require_admin
+def recalculate_commissions():
+    """Recalculate all commissions from khach_hang and services tables (admin only)"""
+    try:
+        stats = recalculate_all_commissions()
+        return jsonify({
+            'status': 'success',
+            'message': 'Commissions recalculated successfully',
+            'stats': stats
+        })
+    except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
@@ -739,13 +911,27 @@ def adjust_commission(commission_id):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# COMMISSION CACHE ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/api/admin/commission-cache/status', methods=['GET'])
+@require_admin
+def get_cache_status():
+    """Get commission cache status for debugging/monitoring"""
+    status = get_commission_cache_status()
+    if status:
+        return jsonify({'status': 'success', 'data': status})
+    return jsonify({'status': 'error', 'message': 'Could not get cache status'}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # STATISTICS ENDPOINT
 # ══════════════════════════════════════════════════════════════════════════════
 
 @admin_bp.route('/api/admin/stats', methods=['GET'])
 @require_admin
 def get_stats():
-    """Get dashboard statistics with optional month and day filters"""
+    """Get dashboard statistics with optional date filters (month, day, or from_date/to_date)"""
     connection = get_db_connection()
     if not connection:
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
@@ -753,6 +939,8 @@ def get_stats():
     try:
         month_filter = request.args.get('month', None)
         day_filter = request.args.get('day', None)
+        from_date = request.args.get('from_date', None)
+        to_date = request.args.get('to_date', None)
         
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
@@ -760,7 +948,10 @@ def get_stats():
         total_ctv = cursor.fetchone()['count']
         
         # Build date filter conditions for PostgreSQL
-        if day_filter:
+        if from_date and to_date:
+            date_condition = f"DATE(created_at) >= '{from_date}' AND DATE(created_at) <= '{to_date}'"
+            date_condition_services = f"DATE(date_entered) >= '{from_date}' AND DATE(date_entered) <= '{to_date}'"
+        elif day_filter:
             date_condition = f"DATE(created_at) = '{day_filter}'"
             date_condition_services = f"DATE(date_entered) = '{day_filter}'"
         elif month_filter:
@@ -770,6 +961,13 @@ def get_stats():
             date_condition = "TO_CHAR(created_at, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
             date_condition_services = "TO_CHAR(date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
         
+        # Calculate missing commissions incrementally (fast - only calculates new ones)
+        # This ensures data is always up-to-date without recalculating everything
+        # FAST: Calculate only new commissions using cached max IDs
+        # This only processes records added since last calculation (delta)
+        calculate_new_commissions_fast(connection=connection)
+        
+        # Get monthly commission from stored commissions table (FAST)
         cursor.execute(f"""
             SELECT COALESCE(SUM(commission_amount), 0) as total
             FROM commissions
@@ -777,17 +975,45 @@ def get_stats():
         """)
         monthly_commission = float(cursor.fetchone()['total'])
         
-        # Try to get transaction count from services table
+        # Get transaction count from both khach_hang and services tables (matching CTV dashboard logic)
+        # Include both Vietnamese and non-Vietnamese status formats
+        kh_transactions = 0
+        svc_transactions = 0
+        
+        try:
+            if from_date and to_date:
+                kh_date_condition = f"DATE(ngay_hen_lam) >= '{from_date}' AND DATE(ngay_hen_lam) <= '{to_date}'"
+            elif day_filter:
+                kh_date_condition = f"DATE(ngay_hen_lam) = '{day_filter}'"
+            elif month_filter:
+                kh_date_condition = f"TO_CHAR(ngay_hen_lam, 'YYYY-MM') = '{month_filter}'"
+            else:
+                kh_date_condition = "TO_CHAR(ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            
+            cursor.execute(f"""
+                SELECT COUNT(*) as count
+                FROM khach_hang
+                WHERE {kh_date_condition}
+                AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            """)
+            kh_transactions = cursor.fetchone()['count']
+        except Error:
+            pass
+        
         try:
             cursor.execute(f"""
                 SELECT COUNT(*) as count
                 FROM services
                 WHERE {date_condition_services}
             """)
-            monthly_transactions = cursor.fetchone()['count']
+            svc_transactions = cursor.fetchone()['count']
         except Error:
-            monthly_transactions = 0
+            pass
         
+        monthly_transactions = kh_transactions + svc_transactions
+        
+        # Calculate monthly revenue from both khach_hang and services tables (matching CTV dashboard logic)
+        # First try commissions table
         cursor.execute(f"""
             SELECT COALESCE(SUM(transaction_amount), 0) as total
             FROM (
@@ -799,16 +1025,42 @@ def get_stats():
         result = cursor.fetchone()
         monthly_revenue = float(result['total']) if result['total'] else 0.0
         
+        # If no revenue from commissions, check khach_hang and services tables
         if monthly_revenue == 0:
+            kh_revenue = 0
+            svc_revenue = 0
+            
+            try:
+                if from_date and to_date:
+                    kh_date_condition = f"DATE(ngay_hen_lam) >= '{from_date}' AND DATE(ngay_hen_lam) <= '{to_date}'"
+                elif day_filter:
+                    kh_date_condition = f"DATE(ngay_hen_lam) = '{day_filter}'"
+                elif month_filter:
+                    kh_date_condition = f"TO_CHAR(ngay_hen_lam, 'YYYY-MM') = '{month_filter}'"
+                else:
+                    kh_date_condition = "TO_CHAR(ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+                
+                cursor.execute(f"""
+                    SELECT COALESCE(SUM(tong_tien), 0) as total
+                    FROM khach_hang
+                    WHERE {kh_date_condition}
+                    AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                """)
+                kh_revenue = float(cursor.fetchone()['total'] or 0)
+            except Error:
+                pass
+            
             try:
                 cursor.execute(f"""
                     SELECT COALESCE(SUM(tong_tien), 0) as total
                     FROM services
                     WHERE {date_condition_services}
                 """)
-                monthly_revenue = float(cursor.fetchone()['total'])
+                svc_revenue = float(cursor.fetchone()['total'] or 0)
             except Error:
                 pass
+            
+            monthly_revenue = kh_revenue + svc_revenue
         
         cursor.execute("""
             SELECT cap_bac, COUNT(*) as count
@@ -818,23 +1070,41 @@ def get_stats():
         """)
         ctv_by_level = {row['cap_bac']: row['count'] for row in cursor.fetchall()}
         
-        cursor.execute(f"""
-            SELECT 
-                c.ctv_code,
-                ctv.ten,
-                SUM(c.transaction_amount) as total_revenue,
-                SUM(c.commission_amount) as total_commission
-            FROM commissions c
-            JOIN ctv ON c.ctv_code = ctv.ma_ctv
-            WHERE {date_condition}
-            GROUP BY c.ctv_code, ctv.ten
-            ORDER BY total_commission DESC
-            LIMIT 5
-        """)
-        top_earners = [dict(row) for row in cursor.fetchall()]
-        for t in top_earners:
-            t['total_revenue'] = float(t['total_revenue'])
-            t['total_commission'] = float(t['total_commission'])
+        # Get top earners - initialize as empty list
+        top_earners = []
+        try:
+            cursor.execute(f"""
+                SELECT 
+                    c.ctv_code,
+                    ctv.ten,
+                    COALESCE(SUM(c.transaction_amount), 0) as total_revenue,
+                    COALESCE(SUM(c.commission_amount), 0) as total_commission
+                FROM commissions c
+                JOIN ctv ON c.ctv_code = ctv.ma_ctv
+                WHERE {date_condition}
+                GROUP BY c.ctv_code, ctv.ten
+                HAVING COALESCE(SUM(c.commission_amount), 0) > 0
+                ORDER BY total_commission DESC
+                LIMIT 5
+            """)
+            top_earners_raw = cursor.fetchall()
+            top_earners = []
+            for row in top_earners_raw:
+                try:
+                    top_earners.append({
+                        'ctv_code': row['ctv_code'],
+                        'ten': row['ten'],
+                        'total_revenue': float(row['total_revenue'] or 0),
+                        'total_commission': float(row['total_commission'] or 0)
+                    })
+                except (ValueError, TypeError) as e:
+                    print(f"Error processing top earner row: {e}, row: {row}")
+                    continue
+        except Error as e:
+            print(f"Error fetching top earners: {e}")
+            import traceback
+            traceback.print_exc()
+            top_earners = []
         
         cursor.close()
         return_db_connection(connection)
@@ -851,6 +1121,88 @@ def get_stats():
             }
         })
         
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/date-ranges-with-data', methods=['GET'])
+@require_admin
+def get_date_ranges_with_data():
+    """Check which date range presets have data available"""
+    import datetime
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        today = datetime.date.today()
+        ranges_with_data = {}
+
+        # Define all date ranges (matching frontend logic)
+        days_since_sunday = (today.weekday() + 1) % 7  # Convert to Sunday-based (0=Sunday)
+        week_start = today - datetime.timedelta(days=days_since_sunday)
+        
+        date_ranges = {
+            'today': (today, today),
+            '3days': (today - datetime.timedelta(days=2), today),  # Last 3 days (including today)
+            'week': (week_start, today),  # Start of week (Sunday)
+            'month': (today.replace(day=1), today),
+            'lastmonth': (
+                (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1),
+                today.replace(day=1) - datetime.timedelta(days=1)
+            ),
+            '3months': (today.replace(day=1) - datetime.timedelta(days=60), today),
+            'year': (today.replace(month=1, day=1), today)
+        }
+
+        # Check each date range for data
+        for preset, (from_date, to_date) in date_ranges.items():
+            # Check khach_hang table
+            query_kh = """
+                SELECT COUNT(*) as count
+                FROM khach_hang
+                WHERE trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                AND ngay_hen_lam >= %s
+                AND ngay_hen_lam <= %s
+            """
+            cursor.execute(query_kh, [from_date, to_date])
+            kh_count = cursor.fetchone()['count']
+
+            # Check services table
+            query_svc = """
+                SELECT COUNT(*) as count
+                FROM services
+                WHERE date_entered >= %s
+                AND date_entered <= %s
+            """
+            cursor.execute(query_svc, [from_date, to_date])
+            svc_count = cursor.fetchone()['count']
+
+            # Check commissions table
+            query_comm = """
+                SELECT COUNT(*) as count
+                FROM commissions
+                WHERE DATE(created_at) >= %s
+                AND DATE(created_at) <= %s
+            """
+            cursor.execute(query_comm, [from_date, to_date])
+            comm_count = cursor.fetchone()['count']
+
+            # Has data if any table has records
+            ranges_with_data[preset] = (kh_count > 0) or (svc_count > 0) or (comm_count > 0)
+
+        cursor.close()
+        return_db_connection(connection)
+
+        return jsonify({
+            'status': 'success',
+            'ranges_with_data': ranges_with_data
+        })
+
     except Error as e:
         if connection:
             return_db_connection(connection)

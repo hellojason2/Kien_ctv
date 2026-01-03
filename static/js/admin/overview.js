@@ -3,76 +3,277 @@
  * Dashboard statistics and top earners
  * 
  * Created: December 30, 2025
- * Updated: December 30, 2025 - Added month and day filtering
+ * Updated: January 3, 2026 - Replaced with CTV-style filter buttons with red dot indicators
  */
+
+let overviewDateFilter = {
+    preset: 'month', // default to current month
+    fromDate: null,
+    toDate: null
+};
 
 /**
  * Initialize overview page
  */
 function initOverview() {
-    // Set default month to current month
-    const monthInput = document.getElementById('overviewMonthFilter');
-    const dayInput = document.getElementById('overviewDayFilter');
+    // Set default to current month
+    applyOverviewPreset('month');
     
-    if (monthInput) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        monthInput.value = `${year}-${month}`;
+    // Check which date ranges have data and show red dot indicators
+    checkOverviewDateRangesWithData();
+}
+
+/**
+ * Check which date ranges have data and show red dot indicators
+ */
+async function checkOverviewDateRangesWithData() {
+    try {
+        // Wait a bit for the page to be fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const result = await api('/api/admin/date-ranges-with-data');
+        
+        if (result.status === 'success' && result.ranges_with_data) {
+            const overviewPage = document.getElementById('page-overview');
+            if (!overviewPage) return;
+            
+            // Update each button based on data availability
+            Object.keys(result.ranges_with_data).forEach(preset => {
+                const button = overviewPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+                if (button) {
+                    if (result.ranges_with_data[preset]) {
+                        button.classList.add('has-data');
+                    } else {
+                        button.classList.remove('has-data');
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking date ranges with data:', error);
     }
+}
+
+/**
+ * Apply overview date preset
+ */
+function applyOverviewPreset(preset) {
+    const today = new Date();
+    let fromDate, toDate;
     
-    // Auto-update month when day is selected
-    if (dayInput) {
-        dayInput.addEventListener('change', function() {
-            if (this.value && monthInput) {
-                const selectedDate = new Date(this.value);
-                const year = selectedDate.getFullYear();
-                const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                monthInput.value = `${year}-${month}`;
+    // Update active button
+    const overviewPage = document.getElementById('page-overview');
+    if (overviewPage) {
+        overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.preset === preset) {
+                btn.classList.add('active');
             }
         });
     }
     
-    // Load initial stats
+    // Hide custom date filter if not custom
+    if (preset !== 'custom') {
+        const customFilter = document.getElementById('overviewCustomDateFilter');
+        if (customFilter) customFilter.style.display = 'none';
+    }
+    
+    switch(preset) {
+        case 'today':
+            fromDate = new Date(today);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case '3days':
+            fromDate = new Date(today);
+            fromDate.setDate(fromDate.getDate() - 2);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case 'week':
+            fromDate = new Date(today);
+            const dayOfWeek = fromDate.getDay();
+            fromDate.setDate(fromDate.getDate() - dayOfWeek);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case 'month':
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case 'lastmonth':
+            fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case '3months':
+            fromDate = new Date(today);
+            fromDate.setMonth(fromDate.getMonth() - 2);
+            fromDate.setDate(1);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case 'year':
+            fromDate = new Date(today.getFullYear(), 0, 1);
+            fromDate.setHours(0, 0, 0, 0);
+            toDate = new Date(today);
+            toDate.setHours(23, 59, 59, 999);
+            break;
+        case 'custom':
+            toggleOverviewCustomDateFilter();
+            return;
+        default:
+            return;
+    }
+    
+    overviewDateFilter.preset = preset;
+    overviewDateFilter.fromDate = fromDate.toISOString().split('T')[0];
+    overviewDateFilter.toDate = toDate.toISOString().split('T')[0];
+    
+    // Show loading state immediately
+    showOverviewLoading();
+    
     loadStats();
 }
 
 /**
- * Apply date filters and reload stats
+ * Toggle custom date filter visibility
  */
-function applyOverviewFilters() {
+function toggleOverviewCustomDateFilter() {
+    const customFilter = document.getElementById('overviewCustomDateFilter');
+    if (!customFilter) return;
+    
+    if (customFilter.style.display === 'none' || !customFilter.style.display) {
+        customFilter.style.display = 'block';
+        overviewDateFilter.preset = 'custom';
+    } else {
+        customFilter.style.display = 'none';
+    }
+}
+
+/**
+ * Apply custom date range filter
+ */
+function applyOverviewCustomDateFilter() {
+    const fromDateInput = document.getElementById('overviewFromDate');
+    const toDateInput = document.getElementById('overviewToDate');
+    
+    if (!fromDateInput || !toDateInput || !fromDateInput.value || !toDateInput.value) {
+        alert(t('please_select_both_dates') || 'Please select both start and end dates');
+        return;
+    }
+    
+    if (new Date(fromDateInput.value) > new Date(toDateInput.value)) {
+        alert(t('date_from_must_be_before_date_to') || 'Start date must be before end date');
+        return;
+    }
+    
+    overviewDateFilter.preset = 'custom';
+    overviewDateFilter.fromDate = fromDateInput.value;
+    overviewDateFilter.toDate = toDateInput.value;
+    
+    // Update active button
+    const overviewPage = document.getElementById('page-overview');
+    if (overviewPage) {
+        overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.preset === 'custom') {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    // Show loading state immediately
+    showOverviewLoading();
+    
     loadStats();
 }
 
 /**
- * Load dashboard statistics with optional month and day filters
+ * Show loading state with skeleton loaders
+ */
+function showOverviewLoading() {
+    const statCards = ['statTotalCTV', 'statMonthlyCommission', 'statMonthlyTx', 'statMonthlyRevenue'];
+    statCards.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = '<div class="skeleton-loader medium"></div>';
+        }
+    });
+    
+    const topEarnersEl = document.getElementById('topEarners');
+    if (topEarnersEl) {
+        topEarnersEl.innerHTML = '<div class="loading" data-i18n="loading">Loading...</div>';
+    }
+    
+    // Disable filter buttons during loading
+    document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+        btn.disabled = true;
+    });
+    const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
+    if (applyBtn) applyBtn.disabled = true;
+}
+
+/**
+ * Load dashboard statistics with date filter
  */
 async function loadStats() {
-    const monthInput = document.getElementById('overviewMonthFilter');
-    const dayInput = document.getElementById('overviewDayFilter');
+    // Show loading state immediately
+    showOverviewLoading();
     
     // Build query parameters
     const params = new URLSearchParams();
-    if (monthInput && monthInput.value) {
-        params.append('month', monthInput.value);
-    }
-    if (dayInput && dayInput.value) {
-        params.append('day', dayInput.value);
+    
+    if (overviewDateFilter.fromDate && overviewDateFilter.toDate) {
+        params.append('from_date', overviewDateFilter.fromDate);
+        params.append('to_date', overviewDateFilter.toDate);
+    } else if (overviewDateFilter.preset === 'month') {
+        // Default to current month if no dates set
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        params.append('month', `${year}-${month}`);
     }
     
-    const url = '/api/admin/stats' + (params.toString() ? '?' + params.toString() : '');
-    const result = await api(url);
-    
-    if (result.status === 'success') {
-        const s = result.stats;
-        document.getElementById('statTotalCTV').textContent = s.total_ctv;
-        document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission);
-        document.getElementById('statMonthlyTx').textContent = s.monthly_transactions;
-        document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue);
+    try {
+        const url = '/api/admin/stats' + (params.toString() ? '?' + params.toString() : '');
+        console.log('Loading stats with URL:', url);
+        console.log('Date filter:', overviewDateFilter);
         
-        // Top earners with revenue and commission columns
-        const topEarnersEl = document.getElementById('topEarners');
-        if (s.top_earners.length > 0) {
+        const result = await api(url);
+        console.log('Stats API result:', result);
+        console.log('Result status:', result?.status);
+        console.log('Result stats:', result?.stats);
+        
+        // Re-enable buttons after loading
+        document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+            btn.disabled = false;
+        });
+        const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
+        if (applyBtn) applyBtn.disabled = false;
+        
+        if (!result) {
+            throw new Error('No response from API');
+        }
+        
+        if (result.status === 'success' && result.stats) {
+            const s = result.stats;
+            document.getElementById('statTotalCTV').textContent = s.total_ctv || 0;
+            document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission || 0);
+            document.getElementById('statMonthlyTx').textContent = s.monthly_transactions || 0;
+            document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue || 0);
+        
+            // Top earners with revenue and commission columns
+            const topEarnersEl = document.getElementById('topEarners');
+            console.log('Top earners data:', s.top_earners);
+            if (s.top_earners && Array.isArray(s.top_earners) && s.top_earners.length > 0) {
             topEarnersEl.innerHTML = `
                 <div class="earner-header">
                     <div class="header-name" data-i18n="ctv_name">${t('ctv_name')}</div>
@@ -95,8 +296,41 @@ async function loadStats() {
                 applyTranslations();
             }
         } else {
-            topEarnersEl.innerHTML = `<div style="color:var(--text-secondary)">${t('no_earnings')}</div>`;
+            topEarnersEl.innerHTML = `<div style="color:var(--text-secondary)">${t('no_earnings') || 'No earnings found'}</div>`;
+        }
+        } else {
+            console.error('Stats API Error:', result);
+            const errorMsg = result?.message || result?.error || 'Unknown error';
+            console.error('Error details:', errorMsg);
+            // Show error state
+            const statCards = ['statTotalCTV', 'statMonthlyCommission', 'statMonthlyTx', 'statMonthlyRevenue'];
+            statCards.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '-';
+            });
+            const topEarnersEl = document.getElementById('topEarners');
+            if (topEarnersEl) {
+                topEarnersEl.innerHTML = `<div style="color:var(--accent-red); padding: 20px; text-align: center;">Error loading data: ${errorMsg}</div>`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+        // Re-enable buttons on error
+        document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+            btn.disabled = false;
+        });
+        const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
+        if (applyBtn) applyBtn.disabled = false;
+        
+        // Show error state
+        const statCards = ['statTotalCTV', 'statMonthlyCommission', 'statMonthlyTx', 'statMonthlyRevenue'];
+        statCards.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '-';
+        });
+        const topEarnersEl = document.getElementById('topEarners');
+        if (topEarnersEl) {
+            topEarnersEl.innerHTML = `<div style="color:var(--accent-red)">Error loading data: ${error.message}</div>`;
         }
     }
 }
-
