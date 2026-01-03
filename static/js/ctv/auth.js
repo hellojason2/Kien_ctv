@@ -144,7 +144,9 @@ async function showPortal() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('portal').classList.add('active');
     await loadProfile();
-    await loadRecentCommissions();
+    // Don't load recent commissions here - let initDashboardDateFilter handle it with date filter
+    // This prevents it from loading multiple times
+    // await loadRecentCommissions();
     if (typeof loadLifetimeStats === 'function') {
         await loadLifetimeStats();
     }

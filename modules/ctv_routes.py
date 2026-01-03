@@ -212,8 +212,16 @@ def get_profile():
         """, (ctv['ma_ctv'],))
         svc_revenue = float(cursor.fetchone()['total_revenue'])
         
-        total_revenue = kh_revenue + svc_revenue
-        total_earnings = total_revenue * level0_rate
+        # FAST: Ensure commissions are up-to-date (only calculates new records)
+        calculate_new_commissions_fast(connection=connection)
+        
+        # Get total earnings from commissions table (all time, Level 0 only)
+        cursor.execute("""
+            SELECT COALESCE(SUM(commission_amount), 0) as total_earnings
+            FROM commissions
+            WHERE ctv_code = %s AND level = 0
+        """, (ctv['ma_ctv'],))
+        total_earnings = float(cursor.fetchone()['total_earnings'])
         
         # Date filtering for period stats
         from_date = request.args.get('from_date')
@@ -234,8 +242,23 @@ def get_profile():
             else:
                 end_date = today.replace(month=today.month + 1, day=1)
 
-        # Calculate period earnings from khach_hang
-        # Include both Vietnamese and non-Vietnamese status formats
+        # Get period earnings from commissions table (Level 0 only)
+        # Join with source tables to filter by transaction date
+        cursor.execute("""
+            SELECT COALESCE(SUM(c.commission_amount), 0) as monthly_earnings
+            FROM commissions c
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services svc ON c.transaction_id = svc.id AND c.transaction_id > 0
+            WHERE c.ctv_code = %s 
+            AND c.level = 0
+            AND (
+                (kh.ngay_hen_lam >= %s AND kh.ngay_hen_lam < %s AND c.transaction_id < 0)
+                OR (svc.date_entered >= %s AND svc.date_entered < %s AND c.transaction_id > 0)
+            )
+        """, (ctv['ma_ctv'], start_date, end_date, start_date, end_date))
+        monthly_earnings = float(cursor.fetchone()['monthly_earnings'])
+        
+        # Calculate period revenue for services count (needed for monthly_services_count)
         cursor.execute("""
             SELECT COALESCE(SUM(tong_tien), 0) as period_revenue
             FROM khach_hang
@@ -257,7 +280,6 @@ def get_profile():
         svc_period_revenue = float(cursor.fetchone()['period_revenue'])
         
         period_revenue = kh_period_revenue + svc_period_revenue
-        monthly_earnings = period_revenue * level0_rate
         
         # Count services from khach_hang
         # Include both Vietnamese and non-Vietnamese status formats
@@ -301,7 +323,8 @@ def get_profile():
                 'network_by_level': stats['by_level'],
                 'total_earnings': total_earnings,
                 'monthly_earnings': monthly_earnings,
-                'monthly_services_count': monthly_services_count
+                'monthly_services_count': monthly_services_count,
+                'period_revenue': period_revenue  # Revenue for the selected date period
             }
         })
         
@@ -738,47 +761,52 @@ def get_ctv_customers():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
+        # FAST: Ensure commissions are up-to-date (only calculates new records)
+        calculate_new_commissions_fast(connection=connection)
+        
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         query = """
             SELECT 
-                id,
-                ngay_nhap_don,
-                ten_khach,
-                sdt,
-                co_so,
-                ngay_hen_lam,
-                gio,
-                dich_vu,
-                tong_tien,
-                tien_coc,
-                phai_dong,
-                nguoi_chot,
-                ghi_chu,
-                trang_thai,
-                created_at
-            FROM khach_hang
-            WHERE nguoi_chot = %s
+                kh.id,
+                kh.ngay_nhap_don,
+                kh.ten_khach,
+                kh.sdt,
+                kh.co_so,
+                kh.ngay_hen_lam,
+                kh.gio,
+                kh.dich_vu,
+                kh.tong_tien,
+                kh.tien_coc,
+                kh.phai_dong,
+                kh.nguoi_chot,
+                kh.ghi_chu,
+                kh.trang_thai,
+                kh.created_at,
+                COALESCE(c.commission_amount, 0) as commission_amount
+            FROM khach_hang kh
+            LEFT JOIN commissions c ON c.transaction_id = -ABS(kh.id) AND c.ctv_code = %s AND c.level = 0
+            WHERE kh.nguoi_chot = %s
         """
-        params = [ctv['ma_ctv']]
+        params = [ctv['ma_ctv'], ctv['ma_ctv']]
         
         status = request.args.get('status')
         if status:
-            query += " AND trang_thai = %s"
+            query += " AND kh.trang_thai = %s"
             params.append(status)
         
         from_date = request.args.get('from')
         to_date = request.args.get('to')
         
         if from_date:
-            query += " AND ngay_hen_lam >= %s"
+            query += " AND kh.ngay_hen_lam >= %s"
             params.append(from_date)
         
         if to_date:
-            query += " AND ngay_hen_lam <= %s"
+            query += " AND kh.ngay_hen_lam <= %s"
             params.append(to_date)
         
-        query += " ORDER BY ngay_hen_lam DESC, id DESC LIMIT 100"
+        query += " ORDER BY kh.ngay_hen_lam DESC, kh.id DESC LIMIT 100"
         
         cursor.execute(query, params)
         customers = [dict(row) for row in cursor.fetchall()]
@@ -793,6 +821,7 @@ def get_ctv_customers():
             c['tong_tien'] = float(c['tong_tien'] or 0)
             c['tien_coc'] = float(c['tien_coc'] or 0)
             c['phai_dong'] = float(c['phai_dong'] or 0)
+            c['commission_amount'] = float(c.get('commission_amount') or 0)
         
         cursor.execute("""
             SELECT 
@@ -1044,6 +1073,7 @@ def get_ctv_commission():
         
         total_commission = sum(lc['commission'] for lc in level_commissions)
         total_transactions = sum(lc['transaction_count'] for lc in level_commissions)
+        total_revenue = sum(lc['total_revenue'] for lc in level_commissions)
         
         cursor.close()
         return_db_connection(connection)
@@ -1057,7 +1087,8 @@ def get_ctv_commission():
             'by_level': level_commissions,
             'total': {
                 'commission': total_commission,
-                'transactions': total_transactions
+                'transactions': total_transactions,
+                'revenue': total_revenue
             }
         })
         

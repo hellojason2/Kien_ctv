@@ -24,25 +24,76 @@ function showStatsLoading() {
     });
 }
 
+// Update Recent Commissions title based on preset
+function updateRecentCommissionsTitle(preset) {
+    // Find the Recent Commissions header - it's the h3 inside the card-header
+    const recentCommissionsCard = document.querySelector('#page-dashboard .card:nth-of-type(2) .card-header h3') ||
+                                   document.querySelector('#page-dashboard .card-header h3[data-i18n="recent_commissions"]') ||
+                                   document.querySelector('#page-dashboard .card-header h3');
+    
+    if (recentCommissionsCard && preset) {
+        const periodLabels = {
+            'today': t('today'),
+            '3days': t('three_days'),
+            'week': t('week'),
+            'month': t('this_month'),
+            'lastmonth': t('last_month'),
+            '3months': t('three_months'),
+            'year': t('this_year'),
+            'custom': t('custom_range')
+        };
+        const periodLabel = periodLabels[preset] || t('this_month');
+        const baseTitle = t('recent_commissions');
+        // Remove data-i18n to prevent applyTranslations from overwriting
+        recentCommissionsCard.removeAttribute('data-i18n');
+        recentCommissionsCard.textContent = `${baseTitle} - ${periodLabel}`;
+    }
+}
+
 // Update period labels based on preset
 function updatePeriodLabels(preset) {
-    const periodEarningsLabel = document.getElementById('periodEarningsLabel');
-    const periodServicesLabel = document.getElementById('periodServicesLabel');
+    // Update Total Earnings label (shows revenue for the period)
+    // Use a selector that doesn't depend on data-i18n since we remove it
+    const statsGrid = document.querySelector('#page-dashboard .stats-grid');
+    const totalEarningsLabel = statsGrid ? statsGrid.querySelector('.stat-card.green .label') : 
+                                document.querySelector('#page-dashboard .stat-card.green .label') ||
+                                document.querySelector('.stat-card.green .label');
     
-    if (periodEarningsLabel) {
-        const earningsLabels = {
-            'today': t('earnings_period_today'),
-            '3days': t('earnings_period_3days'),
-            'week': t('earnings_period_week'),
-            'month': t('earnings_period_month'),
-            'lastmonth': t('earnings_period_lastmonth'),
-            '3months': t('earnings_period_3months'),
-            'year': t('earnings_period_year'),
-            'custom': t('earnings_period_custom')
+    if (totalEarningsLabel) {
+        const revenueLabels = {
+            'today': t('total_revenue_today'),
+            '3days': t('total_revenue_3days'),
+            'week': t('total_revenue_week'),
+            'month': t('total_revenue_month'),
+            'lastmonth': t('total_revenue_lastmonth'),
+            '3months': t('total_revenue_3months'),
+            'year': t('total_revenue_year'),
+            'custom': t('total_revenue_custom')
         };
-        periodEarningsLabel.textContent = earningsLabels[preset] || t('earnings_period_month');
+        const labelText = revenueLabels[preset] || t('total_revenue_month');
+        // Remove data-i18n to prevent applyTranslations from overwriting
+        totalEarningsLabel.removeAttribute('data-i18n');
+        totalEarningsLabel.textContent = labelText;
     }
     
+    // Update Commission label (shows commission for the period)
+    const periodEarningsLabel = document.getElementById('periodEarningsLabel');
+    if (periodEarningsLabel) {
+        const commissionLabels = {
+            'today': t('commission_period_today'),
+            '3days': t('commission_period_3days'),
+            'week': t('commission_period_week'),
+            'month': t('commission_period_month'),
+            'lastmonth': t('commission_period_lastmonth'),
+            '3months': t('commission_period_3months'),
+            'year': t('commission_period_year'),
+            'custom': t('commission_period_custom')
+        };
+        periodEarningsLabel.textContent = commissionLabels[preset] || t('commission_period_month');
+    }
+    
+    // Update Services label
+    const periodServicesLabel = document.getElementById('periodServicesLabel');
     if (periodServicesLabel) {
         const servicesLabels = {
             'today': t('services_period_today'),
@@ -56,6 +107,9 @@ function updatePeriodLabels(preset) {
         };
         periodServicesLabel.textContent = servicesLabels[preset] || t('services_period_month');
     }
+    
+    // Update Recent Commissions title
+    updateRecentCommissionsTitle(preset);
 }
 
 /**
@@ -112,7 +166,12 @@ async function loadProfile(fromDate = null, toDate = null) {
         levelBadge.className = 'user-badge ' + capBac;
         
         // Update stats
-        document.getElementById('statTotalEarnings').textContent = formatCurrency(result.stats.total_earnings);
+        // Total Earnings card should show period revenue (total transaction revenue) for the selected date filter
+        // The API always calculates period_revenue based on the date filter (or defaults to current month)
+        const totalEarningsValue = (result.stats.period_revenue !== undefined && result.stats.period_revenue !== null) 
+            ? result.stats.period_revenue 
+            : (result.stats.total_earnings || 0);
+        document.getElementById('statTotalEarnings').textContent = formatCurrency(totalEarningsValue);
         document.getElementById('statMonthlyEarnings').textContent = formatCurrency(result.stats.monthly_earnings);
         document.getElementById('statNetworkSize').textContent = result.stats.network_size;
         document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
@@ -124,12 +183,37 @@ function applyDashboardPreset(preset) {
     const today = new Date();
     let fromDate, toDate;
     
-    // Update active button
+    // Reset all buttons to default text first, then update active button
     document.querySelectorAll('.btn-filter-preset').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.preset === preset) {
-            btn.classList.add('active');
+        // Reset button text to translation only (remove date range)
+        const translationKey = btn.getAttribute('data-i18n');
+        if (translationKey) {
+            // Get translation - use translations object directly if t() not available
+            let translatedText = translationKey;
+            if (typeof t === 'function') {
+                translatedText = t(translationKey);
+            } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+                const currentLang = getCurrentLang();
+                if (translations[currentLang] && translations[currentLang][translationKey]) {
+                    translatedText = translations[currentLang][translationKey];
+                }
+            }
+            
+            // Only update if we got a valid translation (not the key itself)
+            if (translatedText && translatedText !== translationKey) {
+                // Save indicator before clearing
+                const existingIndicator = btn.querySelector('.data-indicator');
+                btn.innerHTML = '';
+                btn.appendChild(document.createTextNode(translatedText));
+                // Restore indicator if it existed
+                if (existingIndicator) {
+                    const indicatorClone = existingIndicator.cloneNode(true);
+                    btn.appendChild(indicatorClone);
+                }
+            }
         }
+        btn.removeAttribute('data-date-range');
     });
     
     // Hide custom date filter if not custom
@@ -185,7 +269,49 @@ function applyDashboardPreset(preset) {
     if (fromInput) fromInput.value = dashboardDateFilter.fromDate;
     if (toInput) toInput.value = dashboardDateFilter.toDate;
     
-    // Update period labels
+    // Update button text with date range for active button
+    const activeButton = document.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+    if (activeButton && typeof formatDateRangeForButton === 'function') {
+        activeButton.classList.add('active');
+        const dateRange = formatDateRangeForButton(fromDate, toDate);
+        const translationKey = activeButton.getAttribute('data-i18n');
+        
+        // Get translation - ensure we get the actual translated text, not the key
+        let translatedText = translationKey;
+        if (typeof t === 'function') {
+            translatedText = t(translationKey);
+        } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+            const currentLang = getCurrentLang();
+            if (translations[currentLang] && translations[currentLang][translationKey]) {
+                translatedText = translations[currentLang][translationKey];
+            }
+        }
+        
+        // Only proceed if we have a valid translation (not the key itself)
+        if (translatedText && translatedText !== translationKey) {
+            const indicator = activeButton.querySelector('.data-indicator');
+            
+            // Store date range in data attribute for translation preservation
+            activeButton.setAttribute('data-date-range', dateRange);
+            
+            // Update button text: show translation + date range
+            activeButton.innerHTML = '';
+            activeButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+            if (indicator) {
+                activeButton.appendChild(indicator.cloneNode(true));
+            }
+        }
+    }
+    
+    // Update period labels AFTER button updates
+    updatePeriodLabels(preset);
+    
+    // Apply translations (but our labels won't be overwritten since we removed data-i18n)
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
+    
+    // Update labels again after translations to ensure they're correct
     updatePeriodLabels(preset);
     
     // Show loading animation
@@ -225,6 +351,30 @@ function applyCustomDateFilter() {
     dashboardDateFilter.preset = 'custom';
     dashboardDateFilter.fromDate = fromDate;
     dashboardDateFilter.toDate = toDate;
+    
+    // Update button text with date range for custom button
+    const customButton = document.querySelector('.btn-filter-preset[data-preset="custom"]');
+    if (customButton && typeof formatDateRangeForButton === 'function') {
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+        const dateRange = formatDateRangeForButton(fromDateObj, toDateObj);
+        const translationKey = customButton.getAttribute('data-i18n');
+        const translatedText = typeof t === 'function' ? t(translationKey) : translationKey;
+        const indicator = customButton.querySelector('.data-indicator');
+        
+        // Update active state
+        document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        customButton.classList.add('active');
+        
+        // Update button text
+        customButton.innerHTML = '';
+        customButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+        if (indicator) {
+            customButton.appendChild(indicator.cloneNode(true));
+        }
+    }
     
     // Update period labels
     updatePeriodLabels('custom');

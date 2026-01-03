@@ -29,22 +29,28 @@
 
 const INDICATOR_CONFIG = {
     // Type: 'emoji' | 'icon' | 'custom' | 'dot'
-    indicatorType: 'dot', // Change to 'emoji' for holiday emojis
+    indicatorType: 'custom', // Using custom for red envelope SVG
     
     // Content based on type:
     // - 'emoji': Use emoji characters (e.g., '🎄', '🐉', '🎊')
     // - 'icon': Use icon class names (e.g., 'fa fa-star')
     // - 'custom': Use custom HTML (e.g., '<img src="...">')
     // - 'dot': Use default red dot (ignores indicatorContent)
-    indicatorContent: '🎄', // Example: Christmas tree, change to '🐉' for Chinese New Year
+    indicatorContent: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+        <path d="M20 6H4C2.9 6 2 6.9 2 8V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6Z" fill="#DC2626" stroke="#B91C1C" stroke-width="1.5"/>
+        <path d="M12 12L8 8H16L12 12Z" fill="#FEE2E2"/>
+        <path d="M4 8L12 12L20 8" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="7" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
+        <circle cx="17" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
+    </svg>`, // Red envelope SVG for Chinese New Year
     
     // Size settings (only applies to emoji/icon types)
-    indicatorSize: '16px', // Size for emoji/icon indicators
+    indicatorSize: '20px', // Size for emoji/icon indicators
     
     // Position offset (adjusts position from top-right corner)
     indicatorPosition: {
-        top: '-2px',
-        right: '-2px'
+        top: '-4px',
+        right: '-4px'
     },
     
     // Holiday presets (easy switching)
@@ -60,9 +66,15 @@ const INDICATOR_CONFIG = {
             size: '16px'
         },
         chineseNewYear: {
-            type: 'emoji',
-            content: '🐉',
-            size: '18px'
+            type: 'custom',
+            content: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                <path d="M20 6H4C2.9 6 2 6.9 2 8V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6Z" fill="#DC2626" stroke="#B91C1C" stroke-width="1.5"/>
+                <path d="M12 12L8 8H16L12 12Z" fill="#FEE2E2"/>
+                <path d="M4 8L12 12L20 8" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="7" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
+                <circle cx="17" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
+            </svg>`,
+            size: '20px'
         },
         newYear: {
             type: 'emoji',
@@ -166,7 +178,12 @@ function updateIndicatorElement(element) {
             element.innerHTML = config.indicatorContent;
             element.style.width = 'auto';
             element.style.height = 'auto';
+            element.style.display = 'flex';
+            element.style.alignItems = 'center';
+            element.style.justifyContent = 'center';
             element.classList.add('indicator-custom');
+            // Add cute animation for red envelope
+            element.style.animation = 'envelope-wiggle 2s ease-in-out infinite';
             break;
             
         case 'dot':
@@ -185,5 +202,10 @@ function updateIndicatorElement(element) {
     // Apply position
     element.style.top = config.indicatorPosition.top;
     element.style.right = config.indicatorPosition.right;
+    
+    // Ensure custom indicators are visible when has-data class is present
+    if (element.closest('.has-data')) {
+        element.style.display = 'flex';
+    }
 }
 

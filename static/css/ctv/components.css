@@ -404,7 +404,33 @@
     box-shadow: none;
     width: auto;
     height: auto;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Cute wiggle animation for red envelope */
+@keyframes envelope-wiggle {
+    0%, 100% { 
+        transform: rotate(0deg) translateY(0);
+    }
+    25% { 
+        transform: rotate(-5deg) translateY(-2px);
+    }
+    75% { 
+        transform: rotate(5deg) translateY(-2px);
+    }
+}
+
+.btn-filter-preset.has-data .data-indicator.indicator-custom {
+    animation: envelope-wiggle 2s ease-in-out infinite;
+}
+
+/* Hover effect for red envelope */
+.btn-filter-preset:hover .data-indicator.indicator-custom {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
 }
 
 /* Dot indicator styling (default) */

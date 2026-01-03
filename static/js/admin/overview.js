@@ -61,14 +61,44 @@ function applyOverviewPreset(preset) {
     const today = new Date();
     let fromDate, toDate;
     
-    // Update active button
+    // Ensure translations are applied first
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
+    
+    // Reset all buttons to default text first, then update active button
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
         overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.dataset.preset === preset) {
-                btn.classList.add('active');
+            // Reset button text to translation only (remove date range)
+            const translationKey = btn.getAttribute('data-i18n');
+            if (translationKey) {
+                // Get translation - use translations object directly if t() not available
+                let translatedText = translationKey;
+                if (typeof t === 'function') {
+                    translatedText = t(translationKey);
+                } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+                    const currentLang = getCurrentLang();
+                    if (translations[currentLang] && translations[currentLang][translationKey]) {
+                        translatedText = translations[currentLang][translationKey];
+                    }
+                }
+                
+                // Only update if we got a valid translation (not the key itself)
+                if (translatedText && translatedText !== translationKey) {
+                    // Save indicator before clearing
+                    const existingIndicator = btn.querySelector('.data-indicator');
+                    btn.innerHTML = '';
+                    btn.appendChild(document.createTextNode(translatedText));
+                    // Restore indicator if it existed
+                    if (existingIndicator) {
+                        const indicatorClone = existingIndicator.cloneNode(true);
+                        btn.appendChild(indicatorClone);
+                    }
+                }
             }
+            btn.removeAttribute('data-date-range');
         });
     }
     
@@ -137,6 +167,42 @@ function applyOverviewPreset(preset) {
     overviewDateFilter.fromDate = fromDate.toISOString().split('T')[0];
     overviewDateFilter.toDate = toDate.toISOString().split('T')[0];
     
+    // Update button text with date range for active button
+    if (overviewPage) {
+        const activeButton = overviewPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+        if (activeButton && typeof formatDateRangeForButton === 'function') {
+            activeButton.classList.add('active');
+            const dateRange = formatDateRangeForButton(fromDate, toDate);
+            const translationKey = activeButton.getAttribute('data-i18n');
+            
+            // Get translation - ensure we get the actual translated text, not the key
+            let translatedText = translationKey;
+            if (typeof t === 'function') {
+                translatedText = t(translationKey);
+            } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+                const currentLang = getCurrentLang();
+                if (translations[currentLang] && translations[currentLang][translationKey]) {
+                    translatedText = translations[currentLang][translationKey];
+                }
+            }
+            
+            // Only proceed if we have a valid translation (not the key itself)
+            if (translatedText && translatedText !== translationKey) {
+                const indicator = activeButton.querySelector('.data-indicator');
+                
+                // Store date range in data attribute for translation preservation
+                activeButton.setAttribute('data-date-range', dateRange);
+                
+                // Update button text: show translation + date range
+                activeButton.innerHTML = '';
+                activeButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+                if (indicator) {
+                    activeButton.appendChild(indicator.cloneNode(true));
+                }
+            }
+        }
+    }
+    
     // Show loading state immediately
     showOverviewLoading();
     
@@ -179,7 +245,7 @@ function applyOverviewCustomDateFilter() {
     overviewDateFilter.fromDate = fromDateInput.value;
     overviewDateFilter.toDate = toDateInput.value;
     
-    // Update active button
+    // Update active button and show date range
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
         overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
@@ -188,6 +254,24 @@ function applyOverviewCustomDateFilter() {
                 btn.classList.add('active');
             }
         });
+        
+        // Update button text with date range for custom button
+        const customButton = overviewPage.querySelector('.btn-filter-preset[data-preset="custom"]');
+        if (customButton && typeof formatDateRangeForButton === 'function') {
+            const fromDateObj = new Date(fromDateInput.value);
+            const toDateObj = new Date(toDateInput.value);
+            const dateRange = formatDateRangeForButton(fromDateObj, toDateObj);
+            const translationKey = customButton.getAttribute('data-i18n');
+            const translatedText = typeof t === 'function' ? t(translationKey) : translationKey;
+            const indicator = customButton.querySelector('.data-indicator');
+            
+            // Update button text
+            customButton.innerHTML = '';
+            customButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+            if (indicator) {
+                customButton.appendChild(indicator.cloneNode(true));
+            }
+        }
     }
     
     // Show loading state immediately

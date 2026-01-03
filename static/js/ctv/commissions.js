@@ -93,14 +93,44 @@ function applyEarningsPreset(preset) {
     const today = new Date();
     let fromDate, toDate;
     
-    // Update active button (only in earnings page)
+    // Ensure translations are applied first
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
+    
+    // Reset all buttons to default text first, then update active button
     const earningsPage = document.getElementById('page-earnings');
     if (earningsPage) {
         earningsPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.dataset.preset === preset) {
-                btn.classList.add('active');
+            // Reset button text to translation only (remove date range)
+            const translationKey = btn.getAttribute('data-i18n');
+            if (translationKey) {
+                // Get translation - use translations object directly if t() not available
+                let translatedText = translationKey;
+                if (typeof t === 'function') {
+                    translatedText = t(translationKey);
+                } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+                    const currentLang = getCurrentLang();
+                    if (translations[currentLang] && translations[currentLang][translationKey]) {
+                        translatedText = translations[currentLang][translationKey];
+                    }
+                }
+                
+                // Only update if we got a valid translation (not the key itself)
+                if (translatedText && translatedText !== translationKey) {
+                    // Save indicator before clearing
+                    const existingIndicator = btn.querySelector('.data-indicator');
+                    btn.innerHTML = '';
+                    btn.appendChild(document.createTextNode(translatedText));
+                    // Restore indicator if it existed
+                    if (existingIndicator) {
+                        const indicatorClone = existingIndicator.cloneNode(true);
+                        btn.appendChild(indicatorClone);
+                    }
+                }
             }
+            btn.removeAttribute('data-date-range');
         });
     }
     
@@ -158,6 +188,42 @@ function applyEarningsPreset(preset) {
     if (fromInput) fromInput.value = earningsDateFilter.fromDate;
     if (toInput) toInput.value = earningsDateFilter.toDate;
     
+    // Update button text with date range for active button
+    if (earningsPage) {
+        const activeButton = earningsPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+        if (activeButton && typeof formatDateRangeForButton === 'function') {
+            activeButton.classList.add('active');
+            const dateRange = formatDateRangeForButton(fromDate, toDate);
+            const translationKey = activeButton.getAttribute('data-i18n');
+            
+            // Get translation - ensure we get the actual translated text, not the key
+            let translatedText = translationKey;
+            if (typeof t === 'function') {
+                translatedText = t(translationKey);
+            } else if (typeof translations !== 'undefined' && typeof getCurrentLang === 'function') {
+                const currentLang = getCurrentLang();
+                if (translations[currentLang] && translations[currentLang][translationKey]) {
+                    translatedText = translations[currentLang][translationKey];
+                }
+            }
+            
+            // Only proceed if we have a valid translation (not the key itself)
+            if (translatedText && translatedText !== translationKey) {
+                const indicator = activeButton.querySelector('.data-indicator');
+                
+                // Store date range in data attribute for translation preservation
+                activeButton.setAttribute('data-date-range', dateRange);
+                
+                // Update button text: show translation + date range
+                activeButton.innerHTML = '';
+                activeButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+                if (indicator) {
+                    activeButton.appendChild(indicator.cloneNode(true));
+                }
+            }
+        }
+    }
+    
     // Show loading animation
     showEarningsSummaryLoading();
     
@@ -204,6 +270,33 @@ function applyEarningsCustomDateFilter() {
     earningsDateFilter.fromDate = fromDate;
     earningsDateFilter.toDate = toDate;
     
+    // Update button text with date range for custom button
+    const earningsPage = document.getElementById('page-earnings');
+    if (earningsPage) {
+        const customButton = earningsPage.querySelector('.btn-filter-preset[data-preset="custom"]');
+        if (customButton && typeof formatDateRangeForButton === 'function') {
+            const fromDateObj = new Date(fromDate);
+            const toDateObj = new Date(toDate);
+            const dateRange = formatDateRangeForButton(fromDateObj, toDateObj);
+            const translationKey = customButton.getAttribute('data-i18n');
+            const translatedText = typeof t === 'function' ? t(translationKey) : translationKey;
+            const indicator = customButton.querySelector('.data-indicator');
+            
+            // Update active state
+            earningsPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            customButton.classList.add('active');
+            
+            // Update button text
+            customButton.innerHTML = '';
+            customButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
+            if (indicator) {
+                customButton.appendChild(indicator.cloneNode(true));
+            }
+        }
+    }
+    
     // Show loading animation
     showEarningsSummaryLoading();
     
@@ -224,62 +317,146 @@ function setEarningsDefaultDateFilter() {
     applyEarningsPreset('month');
 }
 
-// Load Recent Commissions (Dashboard) with optional date filter
-// Uses /api/ctv/customers endpoint to get recent services from khach_hang table
-async function loadRecentCommissions(fromDate = null, toDate = null) {
-    let url = '/api/ctv/customers';
-    const params = new URLSearchParams();
-    
-    if (fromDate) params.append('from', fromDate);
-    if (toDate) params.append('to', toDate);
-    
-    if (params.toString()) url += '?' + params.toString();
-    
-    const result = await api(url);
-    if (result.status === 'success') {
-        const container = document.getElementById('recentCommissions');
-        
-        // Filter to only completed services (Da den lam, Da coc)
-        const completedServices = result.customers.filter(c =>
-            c.trang_thai === 'Da den lam' || c.trang_thai === 'Da coc'
-        );
-        
-        if (completedServices.length === 0) {
-            container.innerHTML = `<div class="empty-state">${t('no_commissions')}</div>`;
-            return;
-        }
-        
-        // Get commission rate for Level 0 (self) - default 25%
-        const selfRate = 0.25;
-        
-        container.innerHTML = completedServices.slice(0, 5).map(c => {
-            const commission = c.tong_tien * selfRate;
-            return `
-            <div class="commission-item">
-                <div class="left">
-                    <div class="level-dot" style="background:#22c55e"></div>
-                    <div>
-                        <div class="info">${c.dich_vu || t('service')}</div>
-                        <div class="date">${c.ngay_hen_lam || c.ngay_nhap_don || ''}</div>
-                    </div>
+/**
+ * Show loading state on recent commissions card
+ * Mimics the table structure with skeleton loaders
+ */
+function showRecentCommissionsLoading() {
+    const container = document.getElementById('recentCommissions');
+    if (container) {
+        container.innerHTML = `
+            <div style="padding: 20px;">
+                <!-- Table header skeleton -->
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e0e0e0;">
+                    <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
                 </div>
-                <div class="amount">+${formatCurrency(commission)}</div>
-                <div class="commission-tooltip">
-                    <div class="tooltip-row">
-                        <span class="tooltip-label">${t('customer')}:</span>
-                        <span class="tooltip-value">${c.ten_khach || 'N/A'}</span>
-                    </div>
-                    <div class="tooltip-row">
-                        <span class="tooltip-label">${t('revenue')}:</span>
-                        <span class="tooltip-value">${formatCurrency(c.tong_tien)}</span>
-                    </div>
-                    <div class="tooltip-row">
-                        <span class="tooltip-label">${t('rate')}:</span>
-                        <span class="tooltip-value">25%</span>
-                    </div>
+                <!-- Table rows skeleton (5 rows for levels 0-4) -->
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 12px; padding: 12px 0;">
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 12px; padding: 12px 0;">
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 12px; padding: 12px 0;">
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                </div>
+                <!-- Total row skeleton -->
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-top: 12px; padding: 12px 0; background: #f8f9fa; border-radius: 8px;">
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
                 </div>
             </div>
-        `}).join('');
+        `;
+    }
+}
+
+/**
+ * Hide loading state on recent commissions card
+ */
+function hideRecentCommissionsLoading() {
+    // Loading is hidden when data is rendered
+}
+
+// Load Recent Commissions (Dashboard) with optional date filter
+// Shows breakdown by commission level (Level 0, 1, 2, 3, 4) based on selected date filter
+// Uses /api/ctv/commission endpoint which returns breakdown by level
+async function loadRecentCommissions(fromDate = null, toDate = null) {
+    // Show loading animation immediately
+    showRecentCommissionsLoading();
+    
+    // Build URL with query params - use the commission endpoint that provides level breakdown
+    let url = '/api/ctv/commission';
+    const params = new URLSearchParams();
+
+    // Support both old format (month/day) and new format (fromDate/toDate)
+    // Check dashboardDateFilter from profile.js if available
+    if (fromDate && toDate) {
+        params.append('from', fromDate);
+        params.append('to', toDate);
+    } else if (typeof dashboardDateFilter !== 'undefined' && dashboardDateFilter && dashboardDateFilter.fromDate && dashboardDateFilter.toDate) {
+        params.append('from', dashboardDateFilter.fromDate);
+        params.append('to', dashboardDateFilter.toDate);
+    }
+
+    if (params.toString()) url += '?' + params.toString();
+    
+    try {
+        const result = await api(url);
+        const container = document.getElementById('recentCommissions');
+        
+        if (!container) return;
+        
+        if (result.status === 'success') {
+            const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
+            
+            if (!result.by_level || result.by_level.length === 0) {
+                container.innerHTML = `<div class="empty-state">${t('no_commissions_period')}</div>`;
+            } else {
+                // Display breakdown by level in a table format (same as earnings page)
+                container.innerHTML = `
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>${t('level')}</th>
+                                <th>${t('revenue')}</th>
+                                <th>${t('rate')}</th>
+                                <th>${t('count')}</th>
+                                <th>${t('total_commission')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${result.by_level.map(s => `
+                                <tr>
+                                    <td><span class="level-badge level-${s.level}">Level ${s.level}</span></td>
+                                    <td>${formatCurrency(s.total_revenue)}</td>
+                                    <td>${s.rate.toFixed(1)}%</td>
+                                    <td>${s.transaction_count}</td>
+                                    <td style="color:#22c55e;font-weight:600">${formatCurrency(s.commission)}</td>
+                                </tr>
+                            `).join('')}
+                            <tr style="font-weight:700;background:#f8f9fa;">
+                                <td>${t('all')}</td>
+                                <td>${formatCurrency(result.total.revenue || 0)}</td>
+                                <td></td>
+                                <td>${result.total.transactions || 0}</td>
+                                <td style="color:#22c55e">${formatCurrency(result.total.commission || 0)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+            }
+            // Hide loading animation
+            hideRecentCommissionsLoading();
+        } else {
+            container.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
+            hideRecentCommissionsLoading();
+        }
+    } catch (error) {
+        console.error('Error loading recent commissions:', error);
+        const container = document.getElementById('recentCommissions');
+        if (container) {
+            container.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
+        }
+        hideRecentCommissionsLoading();
     }
 }
 
@@ -389,7 +566,7 @@ async function loadAllCommissions(fromDate = null, toDate = null) {
                         `).join('')}
                         <tr style="font-weight:700;background:#f8f9fa;">
                             <td>${t('all')}</td>
-                            <td></td>
+                            <td>${formatCurrency(result.total.revenue || 0)}</td>
                             <td></td>
                             <td>${result.total.transactions}</td>
                             <td style="color:#22c55e">${formatCurrency(result.total.commission)}</td>

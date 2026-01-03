@@ -967,11 +967,30 @@ def get_stats():
         # This only processes records added since last calculation (delta)
         calculate_new_commissions_fast(connection=connection)
         
+        # Build date conditions for source tables (khach_hang and services)
+        # Commissions should be filtered by transaction date, not commission created_at
+        if from_date and to_date:
+            kh_date_condition = f"DATE(kh.ngay_hen_lam) >= '{from_date}' AND DATE(kh.ngay_hen_lam) <= '{to_date}'"
+            svc_date_condition = f"DATE(svc.date_entered) >= '{from_date}' AND DATE(svc.date_entered) <= '{to_date}'"
+        elif day_filter:
+            kh_date_condition = f"DATE(kh.ngay_hen_lam) = '{day_filter}'"
+            svc_date_condition = f"DATE(svc.date_entered) = '{day_filter}'"
+        elif month_filter:
+            kh_date_condition = f"TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = '{month_filter}'"
+            svc_date_condition = f"TO_CHAR(svc.date_entered, 'YYYY-MM') = '{month_filter}'"
+        else:
+            kh_date_condition = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            svc_date_condition = "TO_CHAR(svc.date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+        
         # Get monthly commission from stored commissions table (FAST)
+        # Join with source tables to filter by transaction date
         cursor.execute(f"""
-            SELECT COALESCE(SUM(commission_amount), 0) as total
-            FROM commissions
-            WHERE {date_condition}
+            SELECT COALESCE(SUM(c.commission_amount), 0) as total
+            FROM commissions c
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services svc ON c.transaction_id = svc.id AND c.transaction_id > 0
+            WHERE ({kh_date_condition} AND c.transaction_id < 0) 
+               OR ({svc_date_condition} AND c.transaction_id > 0)
         """)
         monthly_commission = float(cursor.fetchone()['total'])
         
@@ -1012,14 +1031,18 @@ def get_stats():
         
         monthly_transactions = kh_transactions + svc_transactions
         
-        # Calculate monthly revenue from both khach_hang and services tables (matching CTV dashboard logic)
-        # First try commissions table
+        # Calculate monthly revenue from commissions table
+        # Join with source tables to filter by transaction date
+        # Use DISTINCT transaction_id to avoid double-counting when multiple CTVs get commission from same transaction
         cursor.execute(f"""
             SELECT COALESCE(SUM(transaction_amount), 0) as total
             FROM (
-                SELECT DISTINCT transaction_id, transaction_amount
-                FROM commissions
-                WHERE {date_condition}
+                SELECT DISTINCT c.transaction_id, c.transaction_amount
+                FROM commissions c
+                LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+                LEFT JOIN services svc ON c.transaction_id = svc.id AND c.transaction_id > 0
+                WHERE ({kh_date_condition} AND c.transaction_id < 0) 
+                   OR ({svc_date_condition} AND c.transaction_id > 0)
             ) as distinct_transactions
         """)
         result = cursor.fetchone()
@@ -1071,8 +1094,23 @@ def get_stats():
         ctv_by_level = {row['cap_bac']: row['count'] for row in cursor.fetchall()}
         
         # Get top earners - initialize as empty list
+        # Need to join with source tables to filter by transaction date, not commission created_at
         top_earners = []
         try:
+            # Build date conditions for source tables
+            if from_date and to_date:
+                kh_date_condition = f"DATE(kh.ngay_hen_lam) >= '{from_date}' AND DATE(kh.ngay_hen_lam) <= '{to_date}'"
+                svc_date_condition = f"DATE(svc.date_entered) >= '{from_date}' AND DATE(svc.date_entered) <= '{to_date}'"
+            elif day_filter:
+                kh_date_condition = f"DATE(kh.ngay_hen_lam) = '{day_filter}'"
+                svc_date_condition = f"DATE(svc.date_entered) = '{day_filter}'"
+            elif month_filter:
+                kh_date_condition = f"TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = '{month_filter}'"
+                svc_date_condition = f"TO_CHAR(svc.date_entered, 'YYYY-MM') = '{month_filter}'"
+            else:
+                kh_date_condition = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+                svc_date_condition = "TO_CHAR(svc.date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            
             cursor.execute(f"""
                 SELECT 
                     c.ctv_code,
@@ -1081,7 +1119,10 @@ def get_stats():
                     COALESCE(SUM(c.commission_amount), 0) as total_commission
                 FROM commissions c
                 JOIN ctv ON c.ctv_code = ctv.ma_ctv
-                WHERE {date_condition}
+                LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+                LEFT JOIN services svc ON c.transaction_id = svc.id AND c.transaction_id > 0
+                WHERE ({kh_date_condition} AND c.transaction_id < 0) 
+                   OR ({svc_date_condition} AND c.transaction_id > 0)
                 GROUP BY c.ctv_code, ctv.ten
                 HAVING COALESCE(SUM(c.commission_amount), 0) > 0
                 ORDER BY total_commission DESC

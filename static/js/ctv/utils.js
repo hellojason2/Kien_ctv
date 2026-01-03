@@ -47,3 +47,28 @@ function debounceCTV(func, wait) {
     };
 }
 
+// Format date range for display in filter buttons (DD/MM/YY-DD/MM/YYYY)
+function formatDateRangeForButton(fromDate, toDate) {
+    if (!fromDate || !toDate) return '';
+    
+    const formatDate = (date) => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+    };
+    
+    const formatDateFull = (date) => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+    
+    const from = formatDate(fromDate);
+    const to = formatDateFull(toDate);
+    return `${from}-${to}`;
+}
+

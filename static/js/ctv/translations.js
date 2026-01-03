@@ -58,6 +58,26 @@ const translations = {
         earnings_period_year: 'Thu Nhập Năm Nay',
         earnings_period_custom: 'Thu Nhập Khoảng Thời Gian',
         
+        // Total Revenue Period Labels
+        total_revenue_today: 'Tổng Thu Nhập Hôm Nay',
+        total_revenue_3days: 'Tổng Thu Nhập 3 Ngày Qua',
+        total_revenue_week: 'Tổng Thu Nhập Tuần Này',
+        total_revenue_month: 'Tổng Thu Nhập Tháng Này',
+        total_revenue_lastmonth: 'Tổng Thu Nhập Tháng Trước',
+        total_revenue_3months: 'Tổng Thu Nhập 3 Tháng',
+        total_revenue_year: 'Tổng Thu Nhập Năm Nay',
+        total_revenue_custom: 'Tổng Thu Nhập Khoảng Thời Gian',
+        
+        // Commission Period Labels
+        commission_period_today: 'Hoa Hồng Hôm Nay',
+        commission_period_3days: 'Hoa Hồng 3 Ngày Qua',
+        commission_period_week: 'Hoa Hồng Tuần Này',
+        commission_period_month: 'Hoa Hồng Tháng Này',
+        commission_period_lastmonth: 'Hoa Hồng Tháng Trước',
+        commission_period_3months: 'Hoa Hồng 3 Tháng',
+        commission_period_year: 'Hoa Hồng Năm Nay',
+        commission_period_custom: 'Hoa Hồng Khoảng Thời Gian',
+        
         services_period_today: 'Dịch Vụ Hôm Nay',
         services_period_3days: 'Dịch Vụ 3 Ngày Qua',
         services_period_week: 'Dịch Vụ Tuần Này',
@@ -238,6 +258,26 @@ const translations = {
         earnings_period_year: 'Earnings This Year',
         earnings_period_custom: 'Earnings Period',
         
+        // Total Revenue Period Labels
+        total_revenue_today: 'Total Earnings Today',
+        total_revenue_3days: 'Total Earnings Last 3 Days',
+        total_revenue_week: 'Total Earnings This Week',
+        total_revenue_month: 'Total Earnings This Month',
+        total_revenue_lastmonth: 'Total Earnings Last Month',
+        total_revenue_3months: 'Total Earnings Last 3 Months',
+        total_revenue_year: 'Total Earnings This Year',
+        total_revenue_custom: 'Total Earnings Period',
+        
+        // Commission Period Labels
+        commission_period_today: 'Commission Today',
+        commission_period_3days: 'Commission Last 3 Days',
+        commission_period_week: 'Commission This Week',
+        commission_period_month: 'Commission This Month',
+        commission_period_lastmonth: 'Commission Last Month',
+        commission_period_3months: 'Commission Last 3 Months',
+        commission_period_year: 'Commission This Year',
+        commission_period_custom: 'Commission Period',
+        
         services_period_today: 'Services Today',
         services_period_3days: 'Services Last 3 Days',
         services_period_week: 'Services This Week',
@@ -381,6 +421,10 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (translations[currentLang][key]) {
+            // Check if this is an active date filter button with a date range
+            const isActiveFilterButton = el.classList.contains('btn-filter-preset') && el.classList.contains('active');
+            const dateRange = el.getAttribute('data-date-range');
+            
             // Preserve data-indicator span if it exists
             const indicator = el.querySelector('.data-indicator');
             if (indicator) {
@@ -388,8 +432,14 @@ function applyTranslations() {
                 const indicatorClone = indicator.cloneNode(true);
                 // Clear all content
                 el.innerHTML = '';
-                // Add translated text as text node
-                el.appendChild(document.createTextNode(translations[currentLang][key]));
+                
+                // Add translated text + date range if this is an active filter button
+                let textContent = translations[currentLang][key];
+                if (isActiveFilterButton && dateRange) {
+                    textContent = `${textContent} ${dateRange}`;
+                }
+                
+                el.appendChild(document.createTextNode(textContent));
                 // Restore the indicator
                 el.appendChild(indicatorClone);
                 // Update indicator with current config if function exists
@@ -397,7 +447,12 @@ function applyTranslations() {
                     updateIndicatorElement(indicatorClone);
                 }
             } else {
-                el.textContent = translations[currentLang][key];
+                // For non-button elements or buttons without indicators
+                let textContent = translations[currentLang][key];
+                if (isActiveFilterButton && dateRange) {
+                    textContent = `${textContent} ${dateRange}`;
+                }
+                el.textContent = textContent;
             }
         }
     });
@@ -464,10 +519,16 @@ function setLanguage(lang) {
     }
     
     // Re-render dynamic content based on active page
+    // NOTE: Don't reload recent commissions on dashboard when language changes
+    // It should only reload when date filter changes
     if (activePage) {
         const pageId = activePage.id;
-        if (pageId === 'page-dashboard' && typeof loadRecentCommissions === 'function') {
-            loadRecentCommissions();
+        if (pageId === 'page-dashboard') {
+            // Don't reload recent commissions - it's already loaded with date filter
+            // Just update the title if needed
+            if (typeof updateRecentCommissionsTitle === 'function') {
+                updateRecentCommissionsTitle();
+            }
         } else if (pageId === 'page-earnings' && typeof setEarningsDefaultDateFilter === 'function') {
             setEarningsDefaultDateFilter();
         } else if (pageId === 'page-network' && typeof loadNetwork === 'function') {
