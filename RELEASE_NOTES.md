@@ -1,5 +1,22 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-04 09:45] - Fixed Commission Calculation Bug on CTV Portal
+- Fixed bug where "Commission" card showed incorrect value (e.g., 45M commission on 20M revenue)
+- Root cause: `monthly_earnings` was reading from commissions table which had corrupt/duplicate data
+- Solution: Now calculates commission from source data (revenue × rate) same as Recent Commissions table
+
+### What Was Fixed
+- Changed `/api/ctv/me` endpoint to calculate commission from khach_hang + services tables
+- Commission is now correctly calculated as: (period revenue) × (level 0 rate)
+- This matches the calculation used by the `/api/ctv/commission` endpoint
+
+### Files Modified
+- `modules/ctv/profile.py` - Updated monthly_earnings calculation to use source data instead of commissions table
+
+### Result
+- Total Earnings: 20,000,000đ (revenue)
+- Commission: 5,000,000đ (25% of 20M) ✓ Correct!
+
 ## [2026-01-04 09:30] - Fixed Data Indicators Showing Incorrectly on CTV Portal
 - Fixed bug where red envelope indicators were showing on ALL date filter buttons regardless of data availability
 - CSS was not properly hiding indicators for emoji/icon/custom types - they were overriding the `display: none` rule
