@@ -1,5 +1,76 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-04 09:30] - Fixed Data Indicators Showing Incorrectly on CTV Portal
+- Fixed bug where red envelope indicators were showing on ALL date filter buttons regardless of data availability
+- CSS was not properly hiding indicators for emoji/icon/custom types - they were overriding the `display: none` rule
+- JavaScript was setting inline display styles that bypassed CSS controls
+
+### What Was Fixed
+- Indicators now only show when the button has the `has-data` class (set by API response)
+- Removed inline display style settings from `indicator_config.js`
+- Updated CSS specificity to properly control indicator visibility
+
+### Files Modified
+- `static/css/ctv/components.css` - Fixed indicator display rules for all types (emoji, icon, custom, dot)
+- `static/js/ctv/indicator_config.js` - Removed inline display style overrides
+
+### Behavior
+- Indicators only appear on date filter buttons when the API confirms data exists for that period
+- Empty periods (no customers or services) will NOT show indicators
+
+## [2026-01-04 04:00] - Database Schema Validation & Error Detection
+- Added automatic database schema validation on page load
+- Shows clear "Database Error" modal if connected to wrong database
+- 10-second timeout for database connection checks
+- Validates required tables: ctv, khach_hang, commissions, admins, sessions
+- Validates essential columns for each table
+
+### How It Works
+1. On page load, calls `/api/validate-schema` endpoint
+2. Checks all required tables exist in the database
+3. Verifies essential columns are present in each table
+4. If validation fails, shows error modal and blocks app usage
+5. User can click "Retry Connection" to reload
+
+### Files Added
+- `static/js/admin/db-validator.js` - Admin portal database validator
+- `static/js/ctv/db-validator.js` - CTV portal database validator
+- `modules/api/database.py` - Added `/api/validate-schema` endpoint
+
+### Files Modified
+- `templates/admin/base.html` - Added db-validator.js script
+- `templates/ctv/base.html` - Added db-validator.js script
+- `static/js/admin/main.js` - Call database validation before app init
+- `static/js/ctv/main.js` - Call database validation before app init
+
+### Error Modal Features
+- Clear error message explaining the issue
+- Details showing missing tables/columns
+- Hint to check database configuration
+- Retry button to reload the page
+- Blocks all interactions until resolved
+
+## [2026-01-03 05:00] - Major System Modularization & File Splitting
+- Refactored monolithic Python modules into clean, organized sub-packages
+- Split `modules/admin_routes.py` (2189 lines) into `modules/admin/` package
+- Split `modules/ctv_routes.py` (1423 lines) into `modules/ctv/` package
+- Split `modules/mlm_core.py` (1275 lines) into `modules/mlm/` package
+- Cleaned up `backend.py` (1280 lines → 135 lines) by moving core API routes to `modules/api/`
+- Created `STRUCTURE.md` to map the new modular architecture
+- Maintained backward compatibility via placeholder files
+
+### Performance & Maintainability
+- Smaller files (typically < 300 lines) are easier to read, test, and refactor
+- Reduced risk of merge conflicts
+- Faster IDE synchronization and linter performance
+- Clearer separation of concerns (Auth, CTV, Commissions, etc.)
+
+### New Structure
+- `modules/admin/` - Auth, CTV, Commissions, Stats, Admins, Clients, Logs, Export
+- `modules/ctv/` - Auth, Profile, Commissions, Network, Customers, Clients
+- `modules/mlm/` - Commissions, Hierarchy, Validation
+- `modules/api/` - Database, Customers, CTV, Commissions (Generic API)
+
 ## [2026-01-03 03:17] - Ultra-Fast Commission Calculation with Smart Caching
 - Implemented smart delta-based commission calculation for instant load times
 - Added commission_cache table to track last processed record IDs

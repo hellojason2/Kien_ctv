@@ -36,16 +36,24 @@ const INDICATOR_CONFIG = {
     // - 'icon': Use icon class names (e.g., 'fa fa-star')
     // - 'custom': Use custom HTML (e.g., '<img src="...">')
     // - 'dot': Use default red dot (ignores indicatorContent)
-    indicatorContent: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-        <path d="M20 6H4C2.9 6 2 6.9 2 8V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6Z" fill="#DC2626" stroke="#B91C1C" stroke-width="1.5"/>
-        <path d="M12 12L8 8H16L12 12Z" fill="#FEE2E2"/>
-        <path d="M4 8L12 12L20 8" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="7" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
-        <circle cx="17" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
-    </svg>`, // Red envelope SVG for Chinese New Year
+    indicatorContent: `<svg width="18" height="24" viewBox="0 0 18 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+        <!-- Main envelope body (elongated rectangle) -->
+        <rect x="2" y="4" width="14" height="18" rx="2" fill="#DC2626" stroke="#B91C1C" stroke-width="1.2"/>
+        <!-- Top flap (triangular) -->
+        <path d="M2 4L9 10L16 4" fill="#EF4444" stroke="#B91C1C" stroke-width="1.2" stroke-linejoin="round"/>
+        <!-- Flap fold line -->
+        <line x1="2" y1="4" x2="16" y2="4" stroke="#B91C1C" stroke-width="0.8" opacity="0.6"/>
+        <!-- Decorative gold elements (like traditional lì xì) -->
+        <circle cx="5" cy="10" r="0.8" fill="#FCD34D" opacity="0.9"/>
+        <circle cx="13" cy="10" r="0.8" fill="#FCD34D" opacity="0.9"/>
+        <!-- Gold Chinese Character "Fortune" (福) -->
+        <text x="9" y="16" fill="#FCD34D" font-size="6.5" font-family="serif" text-anchor="middle" font-weight="bold" style="text-shadow: 0 0.5px 0.5px rgba(0,0,0,0.3);">福</text>
+        <!-- Vertical decorative line (center) -->
+        <line x1="9" y1="18" x2="9" y2="20" stroke="#FCD34D" stroke-width="0.5" opacity="0.4"/>
+    </svg>`, // Elongated red envelope SVG with gold Chinese character for New Year
     
     // Size settings (only applies to emoji/icon types)
-    indicatorSize: '20px', // Size for emoji/icon indicators
+    indicatorSize: '24px', // Size for emoji/icon indicators (height for elongated envelope)
     
     // Position offset (adjusts position from top-right corner)
     indicatorPosition: {
@@ -67,14 +75,22 @@ const INDICATOR_CONFIG = {
         },
         chineseNewYear: {
             type: 'custom',
-            content: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-                <path d="M20 6H4C2.9 6 2 6.9 2 8V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6Z" fill="#DC2626" stroke="#B91C1C" stroke-width="1.5"/>
-                <path d="M12 12L8 8H16L12 12Z" fill="#FEE2E2"/>
-                <path d="M4 8L12 12L20 8" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>
-                <circle cx="7" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
-                <circle cx="17" cy="11" r="1" fill="#FEE2E2" opacity="0.8"/>
+            content: `<svg width="18" height="24" viewBox="0 0 18 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                <!-- Main envelope body (elongated rectangle) -->
+                <rect x="2" y="4" width="14" height="18" rx="2" fill="#DC2626" stroke="#B91C1C" stroke-width="1.2"/>
+                <!-- Top flap (triangular) -->
+                <path d="M2 4L9 10L16 4" fill="#EF4444" stroke="#B91C1C" stroke-width="1.2" stroke-linejoin="round"/>
+                <!-- Flap fold line -->
+                <line x1="2" y1="4" x2="16" y2="4" stroke="#B91C1C" stroke-width="0.8" opacity="0.6"/>
+                <!-- Decorative gold elements (like traditional lì xì) -->
+                <circle cx="5" cy="10" r="0.8" fill="#FCD34D" opacity="0.9"/>
+                <circle cx="13" cy="10" r="0.8" fill="#FCD34D" opacity="0.9"/>
+                <!-- Gold Chinese Character "Fortune" (福) -->
+                <text x="9" y="16" fill="#FCD34D" font-size="6.5" font-family="serif" text-anchor="middle" font-weight="bold" style="text-shadow: 0 0.5px 0.5px rgba(0,0,0,0.3);">福</text>
+                <!-- Vertical decorative line (center) -->
+                <line x1="9" y1="18" x2="9" y2="20" stroke="#FCD34D" stroke-width="0.5" opacity="0.4"/>
             </svg>`,
-            size: '20px'
+            size: '24px'
         },
         newYear: {
             type: 'emoji',
@@ -145,56 +161,33 @@ function updateAllIndicators() {
 function updateIndicatorElement(element) {
     const config = INDICATOR_CONFIG;
     
-    // Clear existing content
+    // Clear existing content and inline styles
     element.innerHTML = '';
     element.className = 'data-indicator';
+    element.removeAttribute('style'); // Clear any inline styles to let CSS control display
     
-    // Apply type-specific styling
+    // Apply type-specific styling (only non-display properties)
     switch(config.indicatorType) {
         case 'emoji':
             element.textContent = config.indicatorContent;
             element.style.fontSize = config.indicatorSize;
-            element.style.width = 'auto';
-            element.style.height = 'auto';
-            element.style.background = 'transparent';
-            element.style.border = 'none';
-            element.style.boxShadow = 'none';
-            element.style.lineHeight = '1';
             element.classList.add('indicator-emoji');
             break;
             
         case 'icon':
             element.innerHTML = `<i class="${config.indicatorContent}"></i>`;
             element.style.fontSize = config.indicatorSize;
-            element.style.width = 'auto';
-            element.style.height = 'auto';
-            element.style.background = 'transparent';
-            element.style.border = 'none';
-            element.style.boxShadow = 'none';
             element.classList.add('indicator-icon');
             break;
             
         case 'custom':
             element.innerHTML = config.indicatorContent;
-            element.style.width = 'auto';
-            element.style.height = 'auto';
-            element.style.display = 'flex';
-            element.style.alignItems = 'center';
-            element.style.justifyContent = 'center';
             element.classList.add('indicator-custom');
-            // Add cute animation for red envelope
-            element.style.animation = 'envelope-wiggle 2s ease-in-out infinite';
             break;
             
         case 'dot':
         default:
             // Use default red dot styling (handled by CSS)
-            element.style.width = '10px';
-            element.style.height = '10px';
-            element.style.background = '#ef4444';
-            element.style.border = '2px solid #ffffff';
-            element.style.borderRadius = '50%';
-            element.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)';
             element.classList.add('indicator-dot');
             break;
     }
@@ -202,10 +195,6 @@ function updateIndicatorElement(element) {
     // Apply position
     element.style.top = config.indicatorPosition.top;
     element.style.right = config.indicatorPosition.right;
-    
-    // Ensure custom indicators are visible when has-data class is present
-    if (element.closest('.has-data')) {
-        element.style.display = 'flex';
-    }
+    element.style.position = 'absolute'; // Ensure position is set
 }
 

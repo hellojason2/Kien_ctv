@@ -374,7 +374,7 @@
     pointer-events: none;
 }
 
-/* Emoji indicator styling */
+/* Emoji indicator styling - ONLY visible when parent has has-data class */
 .btn-filter-preset .data-indicator.indicator-emoji {
     background: transparent;
     border: none;
@@ -383,10 +383,10 @@
     height: auto;
     line-height: 1;
     font-size: 16px;
-    display: inline-block;
+    display: none; /* Hidden by default */
 }
 
-/* Icon indicator styling */
+/* Icon indicator styling - ONLY visible when parent has has-data class */
 .btn-filter-preset .data-indicator.indicator-icon {
     background: transparent;
     border: none;
@@ -394,17 +394,17 @@
     width: auto;
     height: auto;
     line-height: 1;
-    display: inline-block;
+    display: none; /* Hidden by default */
 }
 
-/* Custom indicator styling */
+/* Custom indicator styling - ONLY visible when parent has has-data class */
 .btn-filter-preset .data-indicator.indicator-custom {
     background: transparent;
     border: none;
     box-shadow: none;
     width: auto;
     height: auto;
-    display: flex;
+    display: none; /* Hidden by default */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -443,8 +443,20 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* Show indicators ONLY when button has data */
 .btn-filter-preset.has-data .data-indicator {
     display: block !important;
+}
+
+/* Custom/flex indicators need flex display when shown */
+.btn-filter-preset.has-data .data-indicator.indicator-custom {
+    display: flex !important;
+}
+
+/* Emoji/icon indicators need inline-block display when shown */
+.btn-filter-preset.has-data .data-indicator.indicator-emoji,
+.btn-filter-preset.has-data .data-indicator.indicator-icon {
+    display: inline-block !important;
 }
 
 .btn-filter-preset.active .data-indicator.indicator-dot {
