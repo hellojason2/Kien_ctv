@@ -383,7 +383,7 @@
     height: auto;
     line-height: 1;
     font-size: 16px;
-    display: none; /* Hidden by default */
+    display: none !important; /* Hidden by default - MUST be hidden until has-data class is added */
 }
 
 /* Icon indicator styling - ONLY visible when parent has has-data class */
@@ -394,7 +394,7 @@
     width: auto;
     height: auto;
     line-height: 1;
-    display: none; /* Hidden by default */
+    display: none !important; /* Hidden by default - MUST be hidden until has-data class is added */
 }
 
 /* Custom indicator styling - ONLY visible when parent has has-data class */
@@ -404,7 +404,7 @@
     box-shadow: none;
     width: auto;
     height: auto;
-    display: none; /* Hidden by default */
+    display: none !important; /* Hidden by default - MUST be hidden until has-data class is added */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -423,9 +423,7 @@
     }
 }
 
-.btn-filter-preset.has-data .data-indicator.indicator-custom {
-    animation: envelope-wiggle 2s ease-in-out infinite;
-}
+/* Animation rule moved to combined rule below */
 
 /* Hover effect for red envelope */
 .btn-filter-preset:hover .data-indicator.indicator-custom {
@@ -448,9 +446,10 @@
     display: block !important;
 }
 
-/* Custom/flex indicators need flex display when shown */
+/* Custom/flex indicators show with animation when button has data */
 .btn-filter-preset.has-data .data-indicator.indicator-custom {
     display: flex !important;
+    animation: envelope-wiggle 2s ease-in-out infinite;
 }
 
 /* Emoji/icon indicators need inline-block display when shown */
