@@ -1,5 +1,21 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-04 10:15] - Added Auto Cache Busting for Static Files
+- Added version-based cache busting to all CSS/JS files
+- When deploying updates, change `APP_VERSION` in `backend.py` and all browsers will fetch fresh files
+- No more manual browser refresh needed after deploys
+
+### How to Use
+When deploying, update the version in `backend.py`:
+```python
+APP_VERSION = "2026.01.05"  # Change this on each deploy
+```
+
+### Files Modified
+- `backend.py` - Added APP_VERSION constant and context processor
+- `templates/ctv/base.html` - Added `?v={{ version }}` to all static files
+- `templates/admin/base.html` - Added `?v={{ version }}` to all static files
+
 ## [2026-01-04 09:45] - Fixed Commission Calculation Bug on CTV Portal
 - Fixed bug where "Commission" card showed incorrect value (e.g., 45M commission on 20M revenue)
 - Root cause: `monthly_earnings` was reading from commissions table which had corrupt/duplicate data
