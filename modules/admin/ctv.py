@@ -1,0 +1,265 @@
+from flask import jsonify, request, g
+from psycopg2.extras import RealDictCursor
+from psycopg2 import Error
+from .blueprint import admin_bp
+from ..auth import require_admin, hash_password
+from ..db_pool import get_db_connection, return_db_connection
+from ..mlm_core import get_max_depth_below, build_hierarchy_tree
+from ..activity_logger import log_ctv_created, log_ctv_updated, log_ctv_deleted
+
+@admin_bp.route('/api/admin/ctv', methods=['GET'])
+@require_admin
+def list_ctv():
+    """List all CTVs with hierarchy info"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        search = request.args.get('search', '').strip()
+        active_only = request.args.get('active_only', 'false').lower() == 'true'
+        
+        query = """
+            SELECT 
+                c.ma_ctv,
+                c.ten,
+                c.sdt,
+                c.email,
+                c.nguoi_gioi_thieu,
+                c.nguoi_gioi_thieu as nguoi_gioi_thieu_code,
+                c.cap_bac,
+                c.is_active,
+                c.created_at
+            FROM ctv c
+            LEFT JOIN ctv p ON c.nguoi_gioi_thieu = p.ma_ctv
+            WHERE 1=1
+        """
+        params = []
+        
+        if search:
+            query += " AND (c.ma_ctv ILIKE %s OR c.ten ILIKE %s OR c.email ILIKE %s OR c.sdt ILIKE %s)"
+            search_term = f"%{search}%"
+            params.extend([search_term, search_term, search_term, search_term])
+        
+        if active_only:
+            query += " AND (c.is_active = TRUE OR c.is_active IS NULL)"
+        
+        query += " ORDER BY c.created_at DESC"
+        
+        cursor.execute(query, params)
+        ctv_list = [dict(row) for row in cursor.fetchall()]
+        
+        # Add max depth below each CTV for level badges
+        for ctv in ctv_list:
+            if ctv.get('created_at'):
+                ctv['created_at'] = ctv['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            # Calculate max depth below this CTV
+            ctv['max_depth_below'] = get_max_depth_below(ctv['ma_ctv'], connection)
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'data': ctv_list,
+            'total': len(ctv_list)
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/ctv', methods=['POST'])
+@require_admin
+def create_ctv():
+    """Create new CTV"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Request body required'}), 400
+    
+    required = ['ma_ctv', 'ten']
+    for field in required:
+        if not data.get(field):
+            return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (data['ma_ctv'],))
+        if cursor.fetchone():
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({'status': 'error', 'message': 'CTV code already exists'}), 400
+        
+        nguoi_gioi_thieu = data.get('nguoi_gioi_thieu')
+        if nguoi_gioi_thieu:
+            cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (nguoi_gioi_thieu,))
+            if not cursor.fetchone():
+                cursor.close()
+                return_db_connection(connection)
+                return jsonify({'status': 'error', 'message': 'Referrer CTV not found'}), 400
+        
+        default_password = hash_password('ctv123')
+        
+        cursor.execute("""
+            INSERT INTO ctv (ma_ctv, ten, sdt, email, nguoi_gioi_thieu, cap_bac, password_hash, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
+        """, (
+            data['ma_ctv'],
+            data['ten'],
+            data.get('sdt'),
+            data.get('email'),
+            nguoi_gioi_thieu,
+            data.get('cap_bac', 'Bronze'),
+            default_password
+        ))
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        admin_username = g.current_user.get('username', 'admin')
+        log_ctv_created(admin_username, data['ma_ctv'], data['ten'])
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'CTV created successfully',
+            'ma_ctv': data['ma_ctv'],
+            'default_password': 'ctv123'
+        }), 201
+        
+    except Error as e:
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/ctv/<ctv_code>', methods=['PUT'])
+@require_admin
+def update_ctv(ctv_code):
+    """Update CTV details"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Request body required'}), 400
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+        if not cursor.fetchone():
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({'status': 'error', 'message': 'CTV not found'}), 404
+        
+        updates = []
+        params = []
+        
+        allowed_fields = ['ten', 'sdt', 'email', 'cap_bac', 'nguoi_gioi_thieu', 'is_active']
+        for field in allowed_fields:
+            if field in data:
+                updates.append(f"{field} = %s")
+                params.append(data[field])
+        
+        if data.get('password'):
+            updates.append("password_hash = %s")
+            params.append(hash_password(data['password']))
+        
+        if not updates:
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({'status': 'error', 'message': 'No fields to update'}), 400
+        
+        params.append(ctv_code)
+        
+        cursor.execute(f"""
+            UPDATE ctv SET {', '.join(updates)} WHERE ma_ctv = %s
+        """, params)
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        admin_username = g.current_user.get('username', 'admin')
+        changes = {field: data[field] for field in allowed_fields if field in data}
+        if data.get('password'):
+            changes['password'] = '***changed***'
+        log_ctv_updated(admin_username, ctv_code, changes)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'CTV updated successfully'
+        })
+        
+    except Error as e:
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/ctv/<ctv_code>', methods=['DELETE'])
+@require_admin
+def deactivate_ctv(ctv_code):
+    """Deactivate CTV (soft delete)"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        
+        cursor.execute("UPDATE ctv SET is_active = FALSE WHERE ma_ctv = %s", (ctv_code,))
+        
+        if cursor.rowcount == 0:
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({'status': 'error', 'message': 'CTV not found'}), 404
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        admin_username = g.current_user.get('username', 'admin')
+        log_ctv_deleted(admin_username, ctv_code)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'CTV deactivated successfully'
+        })
+        
+    except Error as e:
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/hierarchy/<ctv_code>', methods=['GET'])
+@require_admin
+def get_hierarchy(ctv_code):
+    """Get full hierarchy tree for a CTV"""
+    tree = build_hierarchy_tree(ctv_code)
+    
+    if not tree:
+        return jsonify({'status': 'error', 'message': 'CTV not found'}), 404
+    
+    return jsonify({
+        'status': 'success',
+        'hierarchy': tree
+    })
+

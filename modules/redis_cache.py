@@ -72,8 +72,12 @@ TTL_CTV_INFO = 1800        # 30 minutes
 TTL_DUPLICATE_CHECK = 3600  # 1 hour
 TTL_COMMISSION_REPORT = 3600  # 1 hour
 
+import time
+
 # Singleton Redis client
 _redis_client = None
+_last_redis_attempt = 0
+_redis_backoff = 60  # 1 minute backoff on failure
 
 
 def get_redis_client():
@@ -81,19 +85,27 @@ def get_redis_client():
     DOES: Get or create the singleton Redis client
     OUTPUTS: Redis client instance or None if not available
     """
-    global _redis_client
+    global _redis_client, _last_redis_attempt
     
     if not REDIS_AVAILABLE:
         return None
     
+    current_time = time.time()
+    
     if _redis_client is None:
+        # Don't retry too often if it keeps failing
+        if current_time - _last_redis_attempt < _redis_backoff:
+            return None
+            
+        _last_redis_attempt = current_time
         try:
             _redis_client = redis.Redis(**REDIS_CONFIG)
             # Test connection
             _redis_client.ping()
             print("Redis connection established")
-        except (redis.ConnectionError, redis.TimeoutError) as e:
-            print(f"Redis connection failed: {e}")
+        except (redis.ConnectionError, redis.TimeoutError, redis.RedisError) as e:
+            # Only print error once per backoff period to avoid log spam
+            print(f"Redis connection failed: {e}. Retrying in {_redis_backoff}s...")
             _redis_client = None
     
     return _redis_client
