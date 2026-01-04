@@ -137,7 +137,16 @@ function initSidebarScrollCollapse() {
 /**
  * Initialize all event handlers and check auth
  */
-function initializeApp() {
+async function initializeApp() {
+    // Validate database schema first (10 second timeout)
+    if (typeof initDatabaseValidation === 'function') {
+        const dbValid = await initDatabaseValidation();
+        if (!dbValid) {
+            console.error('Database validation failed - app initialization halted');
+            return; // Stop initialization if database is invalid
+        }
+    }
+    
     // Initialize language
     initLanguage();
     

@@ -189,7 +189,10 @@ const translations = {
         view_cards: 'Thẻ',
         view_table: 'Bảng',
         my_customers: 'Khách Hàng Của Bạn',
+        vietnamese: 'Tiếng Việt',
+        english: 'English',
         error_loading_data: 'Lỗi khi tải dữ liệu',
+        
         // Table Headers
         ten_khach: 'Tên Khách Hàng',
         sdt: 'Số Điện Thoại',
@@ -389,7 +392,10 @@ const translations = {
         view_cards: 'Cards',
         view_table: 'Table',
         my_customers: 'My Customers',
+        vietnamese: 'Vietnamese',
+        english: 'English',
         error_loading_data: 'Error loading data',
+        
         // Table Headers
         ten_khach: 'Customer Name',
         sdt: 'Phone Number',

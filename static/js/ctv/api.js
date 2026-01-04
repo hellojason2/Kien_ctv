@@ -11,9 +11,11 @@ let currentUser = null;
 
 // API Helper
 async function api(endpoint, options = {}) {
+    // Always read the latest token from localStorage to ensure we have the current auth state
+    const token = localStorage.getItem('ctvToken');
     const headers = {
         'Content-Type': 'application/json',
-        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        ...(token && { 'Authorization': `Bearer ${token}` })
     };
     
     const response = await fetch(endpoint, { ...options, headers });

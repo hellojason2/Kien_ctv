@@ -189,7 +189,9 @@ const translations = {
         service: 'Dịch Vụ',
         services: 'Dịch Vụ',
         services_title: 'Dịch Vụ',
-        unknown_service: 'Dịch vụ không xác định'
+        unknown_service: 'Dịch vụ không xác định',
+        vietnamese: 'Tiếng Việt',
+        english: 'English'
     },
     en: {
         // Login
@@ -369,7 +371,9 @@ const translations = {
         service: 'Service',
         services: 'Services',
         services_title: 'Services',
-        unknown_service: 'Unknown Service'
+        unknown_service: 'Unknown Service',
+        vietnamese: 'Vietnamese',
+        english: 'English'
     }
 };
 

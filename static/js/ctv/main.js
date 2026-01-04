@@ -94,7 +94,16 @@ function initPopupClose() {
 }
 
 // Main initialization
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Validate database schema first (10 second timeout)
+    if (typeof initDatabaseValidation === 'function') {
+        const dbValid = await initDatabaseValidation();
+        if (!dbValid) {
+            console.error('Database validation failed - app initialization halted');
+            return; // Stop initialization if database is invalid
+        }
+    }
+    
     // Initialize all modules
     initLanguage();
     initPopupClose();
