@@ -3,6 +3,7 @@
  * Tree styles, level badges, hierarchy stats
  * 
  * Created: December 30, 2025
+ * Updated: January 5, 2026 - Light/Glassy Theme
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -10,8 +11,11 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 .hierarchy-page-wrapper {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
     padding: 20px;
     min-height: 400px;
 }
@@ -28,22 +32,28 @@
 }
 
 .hierarchy-stat-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-solid);
     padding: 12px 15px;
-    border-radius: 10px;
+    border-radius: 12px;
     text-align: center;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hierarchy-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .hierarchy-stat-card .stat-number {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #00d4ff;
+    color: var(--accent-primary);
 }
 
 .hierarchy-stat-card .stat-label {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-secondary);
     margin-top: 4px;
 }
 
@@ -55,40 +65,44 @@
     position: sticky;
     top: 10px;
     z-index: 100;
-    background: rgba(26, 26, 46, 0.95);
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border: 1px solid #333;
+    -webkit-backdrop-filter: blur(10px);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .hierarchy-search-box {
     width: 100%;
     padding: 10px 16px;
     font-size: 14px;
-    border: 2px solid #444;
-    border-radius: 8px;
-    background: #0f0f1a;
-    color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-solid);
+    color: var(--text-primary);
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
     font-family: inherit;
 }
 
 .hierarchy-search-box:focus {
-    border-color: #00d4ff;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 124, 35, 0.1);
 }
 
 .hierarchy-search-box::placeholder {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .search-result-info {
     margin-top: 8px;
     font-size: 0.85rem;
-    color: #00d4ff;
+    color: var(--accent-primary);
     min-height: 18px;
+    font-weight: 500;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -105,7 +119,7 @@
 .hierarchy-btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 13px;
     transition: all 0.3s;
@@ -114,18 +128,24 @@
 }
 
 .hierarchy-btn-expand {
-    background: #00d4ff;
-    color: #000;
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: var(--shadow-green);
 }
 
 .hierarchy-btn-collapse {
-    background: #ff6b6b;
-    color: #fff;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent-red);
+    border: 1px solid transparent;
+}
+
+.hierarchy-btn-collapse:hover {
+    background: var(--accent-red);
+    color: white;
 }
 
 .hierarchy-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -133,10 +153,10 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 .hierarchy-tree-container {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-solid);
     border-radius: 12px;
     padding: 15px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
 }
 
 .hierarchy-tree-container ul {
@@ -159,7 +179,7 @@
     position: absolute;
     left: -20px;
     top: 0;
-    border-left: 2px solid #444;
+    border-left: 2px solid var(--border-color);
     height: 100%;
 }
 
@@ -168,7 +188,7 @@
     position: absolute;
     left: -20px;
     top: 20px;
-    border-top: 2px solid #444;
+    border-top: 2px solid var(--border-color);
     width: 18px;
 }
 
@@ -189,24 +209,26 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3a 100%);
-    border-radius: 8px;
-    border: 1px solid #444;
+    padding: 10px 14px;
+    background: var(--bg-solid);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
     flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
 }
 
 .tree-node:hover {
-    border-color: #00d4ff;
+    border-color: var(--accent-primary);
     transform: translateX(5px);
+    box-shadow: var(--shadow-md);
 }
 
 .tree-node.highlighted {
-    background: linear-gradient(135deg, #004d40 0%, #00695c 100%);
-    border-color: #00ff88;
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border-color: var(--accent-green);
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.2);
 }
 
 .tree-node.has-children::before {
@@ -214,7 +236,7 @@
     display: inline-block;
     width: 0;
     height: 0;
-    border-left: 6px solid #00d4ff;
+    border-left: 6px solid var(--accent-primary);
     border-top: 4px solid transparent;
     border-bottom: 4px solid transparent;
     transition: transform 0.3s;
@@ -226,21 +248,22 @@
 
 .tree-node .node-name {
     font-weight: 600;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 13px;
 }
 
 .tree-node .node-code {
     font-size: 0.8rem;
-    color: #00d4ff;
-    background: rgba(0, 212, 255, 0.1);
+    color: var(--accent-primary);
+    background: rgba(74, 124, 35, 0.1);
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-weight: 500;
 }
 
 .tree-node .node-rank {
     font-size: 0.75rem;
-    color: #888;
+    color: var(--text-secondary);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -249,21 +272,21 @@
 
 .level-badge {
     font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
     font-weight: 600;
 }
 
-/* Level badges L0-L4 (matches database levels) */
-.level-badge.l0 { background: #ff6b6b; color: #fff; }
-.level-badge.l1 { background: #ffa502; color: #000; }
-.level-badge.l2 { background: #2ed573; color: #000; }
-.level-badge.l3 { background: #1e90ff; color: #fff; }
-.level-badge.l4 { background: #a55eea; color: #fff; }
+/* Level badges L0-L4 - Updated colors for light theme */
+.level-badge.l0 { background: #dcfce7; color: #166534; }
+.level-badge.l1 { background: #fef9c3; color: #854d0e; }
+.level-badge.l2 { background: #fee2e2; color: #991b1b; }
+.level-badge.l3 { background: #dbeafe; color: #1e40af; }
+.level-badge.l4 { background: #f3e8ff; color: #7c3aed; }
 
 .cutoff-badge {
     font-size: 0.65rem;
-    background: #ff4757;
+    background: var(--accent-red);
     color: #fff;
     padding: 2px 6px;
     border-radius: 4px;
@@ -305,7 +328,7 @@
 .hierarchy-spinner {
     width: 48px;
     height: 48px;
-    border: 4px solid var(--surface-elevated);
+    border: 4px solid var(--border-color);
     border-top: 4px solid var(--accent-primary);
     border-radius: 50%;
     animation: hierarchySpin 0.8s linear infinite;
@@ -323,9 +346,8 @@
 }
 
 .hierarchy-loading-subtext {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 12px;
-    opacity: 0.7;
     margin-top: 8px;
 }
 
@@ -351,7 +373,7 @@
 
 @media (max-width: 600px) {
     .tree-node {
-        padding: 6px 10px;
+        padding: 8px 12px;
         font-size: 0.85rem;
     }
     
@@ -373,4 +395,3 @@
         font-size: 12px;
     }
 }
-

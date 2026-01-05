@@ -3,6 +3,7 @@
  * Form Groups, Search Box, Searchable Dropdown, Commission Settings
  * 
  * Created: December 30, 2025
+ * Updated: January 5, 2026 - Light/Glassy Theme
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -20,36 +21,47 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 500;
 }
 
 .form-group input {
     width: 100%;
     padding: 14px 16px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus {
-    border-color: var(--accent-cyan);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 124, 35, 0.1);
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
 }
 
 .form-group select {
     width: 100%;
     padding: 14px 16px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.form-group select:focus {
+    border-color: var(--accent-primary);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -64,12 +76,23 @@
 .search-box input {
     width: 100%;
     padding: 12px 16px 12px 44px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 124, 35, 0.1);
+}
+
+.search-box input::placeholder {
+    color: var(--text-muted);
 }
 
 .search-box svg {
@@ -79,7 +102,7 @@
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -95,9 +118,9 @@
     width: 100%;
     padding: 12px;
     padding-right: 40px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
@@ -106,7 +129,12 @@
 
 .searchable-dropdown input:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 124, 35, 0.1);
+}
+
+.searchable-dropdown input::placeholder {
+    color: var(--text-muted);
 }
 
 .searchable-dropdown .dropdown-arrow {
@@ -130,12 +158,13 @@
     right: 0;
     max-height: 250px;
     overflow-y: auto;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
     border-top: none;
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 10px 10px;
     z-index: 1000;
     display: none;
+    box-shadow: var(--shadow-lg);
 }
 
 .searchable-dropdown.open .dropdown-list {
@@ -150,6 +179,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text-primary);
 }
 
 .searchable-dropdown .dropdown-item strong {
@@ -171,8 +201,8 @@
     min-width: 20px;
     height: 20px;
     padding: 0 6px;
-    background: var(--accent-cyan);
-    color: var(--bg-primary);
+    background: var(--accent-primary);
+    color: white;
     border-radius: 10px;
     font-size: 11px;
     font-weight: 600;
@@ -188,12 +218,12 @@
 
 .searchable-dropdown .dropdown-item:hover,
 .searchable-dropdown .dropdown-item.highlighted {
-    background: var(--primary);
+    background: var(--gradient-primary);
     color: white;
 }
 
 .searchable-dropdown .dropdown-item.selected {
-    background: rgba(79, 209, 197, 0.2);
+    background: rgba(74, 124, 35, 0.1);
 }
 
 .searchable-dropdown .no-results {
@@ -214,15 +244,23 @@
 
 .commission-card {
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 20px;
     text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.commission-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .commission-card .level {
     font-size: 12px;
     color: var(--text-secondary);
     margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .commission-card .rate {
@@ -234,14 +272,19 @@
 .commission-card input {
     width: 100%;
     padding: 8px;
-    background: var(--bg-secondary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 8px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
     text-align: center;
     margin-top: 8px;
+}
+
+.commission-card input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
 }
 
 .commission-card.l0 .rate { color: var(--accent-green); }
@@ -276,9 +319,9 @@
 
 .quick-filter-btn {
     padding: 10px 18px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 13px;
@@ -289,15 +332,16 @@
 }
 
 .quick-filter-btn:hover {
-    background: var(--bg-secondary);
-    border-color: var(--accent-cyan);
-    color: var(--accent-cyan);
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
 }
 
 .quick-filter-btn.active {
-    background: var(--accent-cyan);
-    border-color: var(--accent-cyan);
+    background: var(--gradient-primary);
+    border-color: var(--accent-primary);
     color: white;
+    box-shadow: var(--shadow-green);
 }
 
 .quick-filter-btn:disabled {
@@ -327,9 +371,9 @@
 .date-input {
     width: 100%;
     padding: 12px 16px;
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
@@ -338,7 +382,7 @@
 }
 
 .date-input:focus {
-    border-color: var(--accent-cyan);
+    border-color: var(--accent-primary);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -440,4 +484,3 @@
         font-size: 14px;
     }
 }
-

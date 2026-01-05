@@ -3,6 +3,7 @@
  * Log group styles, suspicious IP alerts
  * 
  * Created: December 30, 2025
+ * Updated: January 5, 2026 - Light/Glassy Theme
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -27,7 +28,7 @@
 }
 
 .log-group-content {
-    background: var(--bg-secondary);
+    background: var(--bg-tertiary);
     border-top: 1px solid var(--border-color);
 }
 
@@ -37,15 +38,17 @@
 
 #suspiciousIPsAlert {
     border: 1px solid var(--accent-red);
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(239, 68, 68, 0.06);
+    border-radius: 12px;
 }
 
 #suspiciousIPsAlert .card-header {
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.15);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 12px 12px 0 0;
 }
 
 #suspiciousIPsAlert .card-header h3 {
@@ -94,29 +97,30 @@
 
 .event-badge {
     display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
 }
 
-.event-badge-login { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.event-badge-failed { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.event-badge-logout { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-.event-badge-api { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
-.event-badge-ctv-create { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
-.event-badge-ctv-update { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-.event-badge-ctv-delete { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.event-badge-commission { background: rgba(234, 179, 8, 0.15); color: #eab308; }
-.event-badge-export { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
-.event-badge-settings { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.event-badge-login { background: rgba(22, 163, 74, 0.1); color: #15803d; }
+.event-badge-failed { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+.event-badge-logout { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+.event-badge-api { background: rgba(107, 114, 128, 0.1); color: #4b5563; }
+.event-badge-ctv-create { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+.event-badge-ctv-update { background: rgba(245, 158, 11, 0.1); color: #b45309; }
+.event-badge-ctv-delete { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+.event-badge-commission { background: rgba(234, 179, 8, 0.1); color: #a16207; }
+.event-badge-export { background: rgba(6, 182, 212, 0.1); color: #0891b2; }
+.event-badge-settings { background: rgba(236, 72, 153, 0.1); color: #be185d; }
 
 /* ═══════════════════════════════════════════════════════════════════
    STATUS BADGES
    ═══════════════════════════════════════════════════════════════════ */
 
 .status-code {
-    font-family: monospace;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 500;
 }
 
 .status-code-success { color: var(--accent-green); }
@@ -139,22 +143,58 @@
     gap: 8px;
 }
 
+/* Pagination Buttons */
+.pagination-btn {
+    padding: 8px 14px;
+    background: var(--bg-solid);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn.active {
+    background: var(--gradient-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    FILTERS
    ═══════════════════════════════════════════════════════════════════ */
 
 .form-input {
-    background: var(--bg-tertiary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
     padding: 10px 12px;
-    border-radius: 6px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-family: inherit;
     width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
     outline: none;
-    border-color: var(--accent-cyan);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 124, 35, 0.1);
 }
 
+.form-input::placeholder {
+    color: var(--text-muted);
+}

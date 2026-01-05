@@ -3,6 +3,7 @@
  * Client cards, service cards, client grid
  * 
  * Created: December 30, 2025
+ * Updated: January 5, 2026 - Light/Glassy Theme
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -19,20 +20,21 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 .client-card {
-    background: var(--bg-secondary);
+    background: var(--bg-solid);
     border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
 }
 
 .client-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-lg);
 }
 
 .client-card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     padding: 20px 24px;
     display: flex;
     align-items: center;
@@ -129,18 +131,18 @@
 }
 
 .client-status-badge.deposited {
-    background: rgba(16, 185, 129, 0.2);
-    color: #10b981;
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
 }
 
 .client-status-badge.pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    color: #b45309;
 }
 
 .client-status-badge.not-deposited {
-    background: rgba(161, 161, 170, 0.2);
-    color: #a1a1aa;
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -176,6 +178,12 @@
     border-radius: 12px;
     padding: 16px;
     position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .service-card-header {
@@ -186,8 +194,8 @@
 }
 
 .service-number {
-    background: var(--accent-cyan);
-    color: var(--bg-primary);
+    background: var(--gradient-primary);
+    color: white;
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -206,13 +214,13 @@
 }
 
 .service-deposit-status.deposited {
-    background: rgba(16, 185, 129, 0.2);
-    color: #10b981;
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
 }
 
 .service-deposit-status.not-deposited {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
 }
 
 .service-name {
@@ -251,7 +259,7 @@
 }
 
 .service-detail-value.deposit {
-    color: var(--accent-cyan);
+    color: var(--accent-primary);
 }
 
 .service-detail-value.remaining {
@@ -319,4 +327,3 @@
         min-width: 45%;
     }
 }
-
