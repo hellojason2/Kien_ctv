@@ -1,5 +1,13 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-05 03:20] - Added Commission Debug Page (TEMPORARY)
+- Created temporary debug page at `/admin/debug/commission-verify`
+- Split panel view: Left shows CTV hierarchy, Right shows raw database tables
+- **Bidirectional highlighting**: Click left to highlight in raw data, click right to scroll to hierarchy
+- Shows commission rates, all CTVs, all clients (grouped), and all commissions
+- Click any CTV node to see detailed breakdown with "Match?" verification
+- **DELETE THESE FILES WHEN DONE**: `modules/admin/debug.py`, `templates/admin/pages/debug-commission.html`, `static/js/admin/debug-commission.js`
+
 ## [2026-01-04 10:15] - Added Auto Cache Busting for Static Files
 - Added version-based cache busting to all CSS/JS files
 - When deploying updates, change `APP_VERSION` in `backend.py` and all browsers will fetch fresh files

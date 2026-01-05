@@ -1,0 +1,474 @@
+<!-- TEMPORARY DEBUG PAGE - DELETE WHEN DONE -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commission Debug - TEMPORARY</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Debug Page Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+
+        .debug-container {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .debug-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .debug-header h1 {
+            margin: 0 0 5px 0;
+            color: #ff6b6b;
+        }
+
+        .debug-warning {
+            color: #ff6b6b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .debug-stats {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .debug-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 150px);
+        }
+
+        .debug-panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 12px 15px;
+            background: #252525;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #4ecdc4;
+        }
+
+        .panel-hint {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Hierarchy Tree */
+        .tree-node-wrapper {
+            margin-bottom: 2px;
+        }
+
+        .tree-node {
+            margin-left: 0;
+            padding: 8px 12px;
+            background: #252525;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .tree-node:hover {
+            background: #333;
+        }
+
+        .tree-node.selected {
+            border-left-color: #4ecdc4;
+            background: #2a3a38;
+        }
+
+        .tree-node.highlighted {
+            background: #3a3a20 !important;
+            border-left-color: #ffd93d !important;
+            animation: pulse-highlight 1s ease-in-out 3;
+        }
+
+        @keyframes pulse-highlight {
+            0%, 100% { background: #3a3a20; }
+            50% { background: #4a4a30; }
+        }
+
+        .tree-node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tree-node-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .tree-node-code {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .tree-node-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .tree-node-stats span {
+            color: #888;
+        }
+
+        .tree-node-stats .revenue {
+            color: #4ecdc4;
+        }
+
+        .tree-node-stats .commission {
+            color: #ffd93d;
+        }
+
+        .tree-node-stats .clients {
+            color: #ff6b6b;
+        }
+
+        .tree-children {
+            margin-left: 15px;
+            border-left: 1px dashed #444;
+            padding-left: 10px;
+            margin-top: 5px;
+        }
+
+        .tree-toggle {
+            cursor: pointer;
+            color: #4ecdc4;
+            margin-right: 8px;
+            font-size: 12px;
+        }
+
+        /* Raw Data Tables */
+        .data-section {
+            margin-bottom: 25px;
+        }
+
+        .data-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #ffd93d;
+        }
+
+        .debug-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .debug-table th {
+            background: #252525;
+            color: #888;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .debug-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #2a2a2a;
+            color: #ccc;
+        }
+
+        .debug-table tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .debug-table tbody tr:hover {
+            background: #252525;
+        }
+
+        .debug-table tr.highlighted {
+            background: #3a3a20 !important;
+        }
+
+        .debug-table tr.group-start {
+            border-top: 2px solid #4ecdc4;
+        }
+
+        .debug-table .money {
+            text-align: right;
+            color: #4ecdc4;
+        }
+
+        .debug-table .level-0 { color: #4ecdc4; }
+        .debug-table .level-1 { color: #ffd93d; }
+        .debug-table .level-2 { color: #ff6b6b; }
+        .debug-table .level-3 { color: #a855f7; }
+        .debug-table .level-4 { color: #888; }
+
+        /* Modal */
+        .debug-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .debug-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: #252525;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #4ecdc4;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #ff6b6b;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h3 {
+            margin: 0 0 10px 0;
+            color: #ffd93d;
+            font-size: 14px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: #252525;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        .summary-card .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <a href="/admin89" class="back-link">&larr; Back to Admin</a>
+        
+        <div class="debug-header">
+            <h1>Commission Verification Debug</h1>
+            <p class="debug-warning">TEMPORARY - Delete when done verifying</p>
+            <div class="debug-stats" id="debug-stats">Loading...</div>
+        </div>
+        
+        <div class="debug-panels">
+            <!-- LEFT PANEL: Hierarchy Tree -->
+            <div class="debug-panel left-panel">
+                <div class="panel-header">
+                    <h2>CTV Hierarchy</h2>
+                    <span class="panel-hint">Click to highlight in raw data</span>
+                </div>
+                <div class="panel-content" id="hierarchy-tree"></div>
+            </div>
+            
+            <!-- RIGHT PANEL: Raw Database -->
+            <div class="debug-panel right-panel">
+                <div class="panel-header">
+                    <h2>Raw Database</h2>
+                    <span class="panel-hint">Click to find in hierarchy</span>
+                </div>
+                <div class="panel-content">
+                    <!-- Rates Table -->
+                    <div class="data-section">
+                        <h3>Commission Rates</h3>
+                        <table class="debug-table" id="rates-table">
+                            <thead>
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Rate</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- CTVs Table -->
+                    <div class="data-section">
+                        <h3>All CTVs</h3>
+                        <table class="debug-table" id="ctvs-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Referrer</th>
+                                    <th>Rank</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Clients Table -->
+                    <div class="data-section">
+                        <h3>All Clients (Grouped by CTV)</h3>
+                        <table class="debug-table" id="clients-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Revenue</th>
+                                    <th>Date</th>
+                                    <th>Service</th>
+                                    <th>CTV Code</th>
+                                    <th>CTV Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Commissions Table -->
+                    <div class="data-section">
+                        <h3>All Commissions</h3>
+                        <table class="debug-table" id="commissions-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>CTV Code</th>
+                                    <th>CTV Name</th>
+                                    <th>Level</th>
+                                    <th>Source</th>
+                                    <th>Source Amt</th>
+                                    <th>Commission</th>
+                                    <th>Closer CTV</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Modal -->
+        <div class="debug-modal" id="ctv-detail-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">CTV Details</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin/debug-commission.js') }}?v={{ version }}"></script>
+</body>
+</html>

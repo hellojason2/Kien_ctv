@@ -9,6 +9,7 @@ from . import admins
 from . import clients
 from . import logs
 from . import export
+from . import debug  # TEMPORARY - DELETE WHEN DONE
 
 # Export admin_bp for backend.py
 __all__ = ['admin_bp']
