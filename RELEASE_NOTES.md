@@ -1,5 +1,97 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-05 21:00] - Google Sheets Live Sync Worker
+Added background worker that syncs data from Google Sheets to PostgreSQL database in real-time.
+
+### Features
+- **Automatic Sync**: Polls Google Sheet every 30 seconds for new/updated rows
+- **3 Tabs Supported**:
+  - `Khach hang Tham my` -> `khach_hang` table
+  - `Khach hang Nha khoa` -> `khach_hang` table
+  - `Khach gioi thieu` -> `customers` + `services` tables
+- **Column A Status**: Processes rows where Column A = "update" or empty
+- **Feedback Loop**: Marks processed rows as "DONE" to prevent re-processing
+- **Upsert Logic**: Updates existing records by phone number, or inserts new ones
+- **CTV Auto-Creation**: Creates CTV accounts from referrer codes automatically
+
+### Files Created/Modified
+| File | Action |
+|------|--------|
+| `sync_sheets.py` | Created - Main sync worker |
+| `google_credentials.json` | Created - Service account credentials |
+| `requirements.txt` | Updated - Added gspread, google-auth |
+| `Procfile` | Updated - Added worker process |
+| `.gitignore` | Created - Ignore credentials and cache files |
+
+### How to Use
+1. Share your Google Sheet with: `sheets-api-access@gen-lang-client-0960167774.iam.gserviceaccount.com`
+2. Deploy to Railway (worker will start automatically)
+3. Add new rows with "update" in Column A, or leave empty
+4. Worker syncs data and marks rows as "DONE"
+
+### Railway Deployment
+The `Procfile` now includes:
+```
+web: python backend.py
+worker: python sync_sheets.py
+```
+
+---
+
+## [2026-01-05 15:45] - CTV Data Import
+Imported 45 CTV records from TSV file with proper hierarchy.
+
+### Data Imported
+| Rank | Count |
+|------|-------|
+| Cong Tac Vien | 27 |
+| Giam Doc Kinh Doanh | 8 |
+| Chuyen Vien Kinh Doanh | 6 |
+| Truong Phong Kinh Doanh | 4 |
+
+### Root CTVs (4 total)
+- 972020908 - Tran Trung Kien [Giam Doc Kinh Doanh]
+- 343287351 - Vu Tuan Linh [Chuyen Vien Kinh Doanh]
+- 988196528 - Than Hai Yen [Cong Tac Vien]
+- 963831092 - Ngo Phuong Hanh [Cong Tac Vien]
+
+### Hierarchy
+- Phone number used as `ma_ctv` (CTV code)
+- `nguoi_gioi_thieu` references referrer's phone number
+- Vietnamese rank names stored in `cap_bac`
+
+---
+
+## [2026-01-05 15:30] - Full Database Reset
+Complete database wipe and restoration to default state.
+
+### Actions Performed
+- Dropped all existing tables (CASCADE)
+- Recreated all 12 tables from `schema/postgresql_schema.sql`
+- Restored default Admin account (`admin` / `admin123`)
+- Restored default Commission configurations (Levels 0-4)
+- Cleared all CTV records
+- Cleared all Customer/Khach Hang records
+- Cleared all Commission records
+- Cleared all Activity logs
+- Redis cache cleared (if available)
+
+### Tables Restored
+| Table | Records |
+|-------|---------|
+| admins | 1 (default) |
+| hoa_hong_config | 5 (levels 0-4) |
+| commission_settings | 5 (levels 0-4) |
+| ctv | 0 |
+| customers | 0 |
+| khach_hang | 0 |
+| commissions | 0 |
+| services | 0 |
+| sessions | 0 |
+| activity_logs | 0 |
+
+---
+
 ## [2026-01-05 10:15] - Admin Panel Theme Redesign (White/Glassy)
 Complete visual overhaul of the admin panel from dark mode to a modern light theme.
 
