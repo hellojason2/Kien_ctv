@@ -237,7 +237,7 @@ function renderRatesTable() {
     }
     tbody.innerHTML = rawData.rates.map(r => `
         <tr>
-            <td class="level-${r.level}">Level ${r.level}</td>
+            <td><span class="level-badge level-${r.level}">Level ${r.level}</span></td>
             <td>${(r.rate * 100).toFixed(1)}%</td>
             <td>${r.description || '-'}</td>
         </tr>
@@ -313,12 +313,12 @@ function renderCommissionsTable() {
         
         return `
             <tr data-ctv="${c.ctv_code}" 
-                class="${isNewGroup ? 'group-start' : ''} level-${c.level}"
+                class="${isNewGroup ? 'group-start' : ''}"
                 onclick="scrollToHierarchy('${c.ctv_code}')">
                 <td>${c.id}</td>
                 <td>${c.ctv_code}</td>
                 <td>${c.ctv_name || '-'}</td>
-                <td class="level-${c.level}">L${c.level}</td>
+                <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
                 <td>${c.source_name || '-'}</td>
                 <td class="money">${formatMoney(c.source_amount)}</td>
                 <td class="money">${formatMoney(c.commission_amount)}</td>
@@ -381,19 +381,19 @@ async function showCTVDetail(ctvCode) {
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.commissions.map(c => {
+                            ${data.commissions.map(c => {
                             const rate = rawData.rates.find(r => r.level === c.level)?.rate || 0;
                             const expected = (c.source_amount || 0) * rate;
                             const actual = c.commission_amount || 0;
                             const match = Math.abs(expected - actual) < 1;
                             return `
-                                <tr class="level-${c.level}">
-                                    <td class="level-${c.level}">L${c.level}</td>
+                                <tr>
+                                    <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
                                     <td>${c.source_name || '-'}</td>
                                     <td class="money">${formatMoney(c.source_amount)}</td>
                                     <td class="money">${formatMoney(actual)}</td>
                                     <td class="money">${formatMoney(expected)}</td>
-                                    <td style="color: ${match ? '#4ecdc4' : '#ff6b6b'}">${match ? 'YES' : 'NO'}</td>
+                                    <td class="${match ? 'match-yes' : 'match-no'}">${match ? 'YES' : 'NO'}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -441,8 +441,8 @@ async function showCTVDetail(ctvCode) {
                         </thead>
                         <tbody>
                             ${data.downline.map(d => `
-                                <tr class="level-${d.level}">
-                                    <td class="level-${d.level}">L${d.level}</td>
+                                <tr>
+                                    <td><span class="level-badge level-${d.level}">L${d.level}</span></td>
                                     <td>${d.ma_ctv}</td>
                                     <td>${d.ten || '-'}</td>
                                     <td>${d.nguoi_gioi_thieu || '-'}</td>

@@ -10,7 +10,7 @@ from psycopg2.extras import RealDictCursor
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # App version for cache busting (update on each deploy)
-APP_VERSION = "2026.01.04.3"
+APP_VERSION = "2026.01.05"
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
