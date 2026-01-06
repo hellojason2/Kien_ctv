@@ -1,329 +1,655 @@
-/**
- * Admin Dashboard - Client Cards
- * Client cards, service cards, client grid
- * 
- * Created: December 30, 2025
- * Updated: January 5, 2026 - Light/Glassy Theme
+/* 
+ * Admin Dashboard - Clients Styles
+ * Matches the "Green Header" Design
  */
 
-/* ═══════════════════════════════════════════════════════════════════
-   CLIENTS GRID
-   ═══════════════════════════════════════════════════════════════════ */
-
-.clients-grid {
+/* Grid Layout */
+#clientsGrid {
     display: grid;
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   CLIENT CARD
-   ═══════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+    #clientsGrid {
+        grid-template-columns: 1fr;
+    }
+}
 
+/* Client Card */
 .client-card {
-    background: var(--bg-solid);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
 }
 
-.client-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
+/* Card Header - Green */
 .client-card-header {
-    background: var(--gradient-primary);
-    padding: 20px 24px;
+    background-color: #4a7c23;
+    color: white;
+    padding: 1.25rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 1rem;
 }
 
 .client-avatar {
-    width: 56px;
-    height: 56px;
-    background: rgba(255, 255, 255, 0.2);
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
-    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 1.125rem;
+    flex-shrink: 0;
 }
 
 .client-main-info {
     flex: 1;
-    margin-left: 16px;
+    min-width: 0;
 }
 
 .client-name {
-    font-size: 18px;
     font-weight: 700;
+    font-size: 1.125rem;
     color: white;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
 }
 
 .client-phone {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.85);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
 }
 
 .client-phone svg {
     width: 14px;
     height: 14px;
+    opacity: 0.8;
 }
 
 .service-count-badge {
     background: rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   CLIENT INFO ROW
-   ═══════════════════════════════════════════════════════════════════ */
-
+/* Info Row */
 .client-info-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px 24px;
-    background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
+    gap: 2rem;
+    padding: 1.25rem;
+    background: white;
+    border-bottom: 1px solid #f3f4f6;
     align-items: center;
 }
 
 .client-info-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0.25rem;
 }
 
 .client-info-label {
-    font-size: 11px;
-    color: var(--text-secondary);
+    font-size: 0.7rem;
+    color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
 }
 
 .client-info-value {
-    font-size: 13px;
-    color: var(--text-primary);
-    font-weight: 500;
-}
-
-.client-status-badge {
-    margin-left: auto;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
+    font-size: 0.9375rem;
+    color: #111827;
     font-weight: 600;
 }
 
-.client-status-badge.deposited {
-    background: rgba(22, 163, 74, 0.1);
-    color: #15803d;
+/* Status Badge in Info Row */
+.client-status-badge {
+    margin-left: auto;
+    padding: 0.375rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: #f3f4f6;
+    color: #374151;
 }
 
-.client-status-badge.pending {
-    background: rgba(245, 158, 11, 0.1);
-    color: #b45309;
-}
-
+/* User requested to remove "not-deposited" badge */
 .client-status-badge.not-deposited {
-    background: rgba(107, 114, 128, 0.1);
-    color: #4b5563;
+    display: none;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   SERVICES CONTAINER
-   ═══════════════════════════════════════════════════════════════════ */
-
+/* Services Section */
 .services-container {
-    padding: 20px 24px;
+    padding: 1.25rem;
+    background: white;
 }
 
 .services-title {
-    font-size: 13px;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 16px;
-    font-weight: 600;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
 }
 
 .services-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   SERVICE CARD
-   ═══════════════════════════════════════════════════════════════════ */
-
+/* Service Card */
 .service-card {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 16px;
-    position: relative;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.service-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .service-card-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    align-items: flex-start;
 }
 
 .service-number {
-    background: var(--gradient-primary);
-    color: white;
     width: 28px;
     height: 28px;
     border-radius: 50%;
+    background: #3f6226;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
 }
 
 .service-deposit-status {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
+    font-size: 0.75rem;
     font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
 }
 
 .service-deposit-status.deposited {
-    background: rgba(22, 163, 74, 0.1);
-    color: #15803d;
+    background: #dcfce7;
+    color: #166534;
 }
 
 .service-deposit-status.not-deposited {
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .service-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-    line-height: 1.4;
-    min-height: 40px;
+    font-weight: 700;
+    color: #111827;
+    font-size: 1rem;
+    margin-top: -0.25rem;
+    margin-left: 0.5rem;
+    flex: 1;
 }
 
 .service-details {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    padding-top: 0.5rem;
 }
 
 .service-detail-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .service-detail-label {
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: #6b7280;
 }
 
 .service-detail-value {
-    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
+    font-size: 0.9375rem;
 }
 
-.service-detail-value.amount {
-    color: var(--accent-green);
-}
-
-.service-detail-value.deposit {
-    color: var(--accent-primary);
-}
-
-.service-detail-value.remaining {
-    color: var(--accent-orange);
-}
+.service-detail-value.amount { color: #374151; }
+.service-detail-value.deposit { color: #166534; }
+.service-detail-value.remaining { color: #d97706; }
 
 .service-appointment {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text-secondary);
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f3f4f6;
 }
 
 .service-appointment svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
 }
 
 .service-appointment .date {
-    color: var(--accent-purple);
-    font-weight: 600;
+    color: #4b5563;
+    font-weight: 500;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   NO CLIENTS MESSAGE
-   ═══════════════════════════════════════════════════════════════════ */
-
-.no-clients-message {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
+/* Loading & Empty States */
+.loading, .no-clients-message {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    color: #9ca3af;
+    gap: 1rem;
 }
 
 .no-clients-message svg {
     width: 48px;
     height: 48px;
-    margin-bottom: 16px;
     opacity: 0.5;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════════════════════════ */
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: auto;
+}
 
-@media (max-width: 1024px) {
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
+/* Responsive */
+@media (max-width: 768px) {
+    .client-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .client-status-badge {
+        margin-left: 0;
     }
 }
 
-@media (max-width: 640px) {
-    .services-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .client-info-row {
-        gap: 12px;
-    }
-    
-    .client-info-item {
-        min-width: 45%;
-    }
+/* View Toggle & Controls */
+.client-controls {
+    gap: 1rem;
+}
+
+.view-toggle {
+    display: flex;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px; /* Match search box radius */
+    padding: 4px;
+    height: 46px; /* Match search box height */
+    box-sizing: border-box;
+    align-items: center;
+}
+
+.view-toggle .btn-icon {
+    padding: 0 12px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.view-toggle .btn-icon:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.view-toggle .btn-icon.active {
+    background: #f3f4f6;
+    color: #4a7c23; /* Green */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.view-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Table View */
+.clients-table-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.clients-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.clients-table th {
+    background: #f9fafb;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.clients-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: middle;
+}
+
+.clients-table tr:last-child td {
+    border-bottom: none;
+}
+
+.clients-table tr:hover {
+    background: #f9fafb;
+}
+
+/* Table Cell Styles */
+.cell-client {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cell-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #4a7c23;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.cell-name {
+    font-weight: 600;
+    color: #111827;
+}
+
+.cell-phone {
+    font-family: 'JetBrains Mono', monospace;
+    color: #6b7280;
+}
+
+.cell-services-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+/* Client Name Badge (Table View) */
+.client-name-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center text */
+    width: 200px; /* Fixed width */
+    height: 36px; /* Fixed height */
+    background: linear-gradient(135deg, #4a7c23, #65a30d); /* Green gradient */
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    padding: 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    box-shadow: 0 2px 4px rgba(74, 124, 35, 0.2);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.client-name-badge:active {
+    transform: scale(0.98);
+}
+
+/* Commission Report Modal Styles */
+.commission-modal-content {
+    max-width: 800px;
+    width: 90%;
+    background: #f9fafb;
+}
+
+.client-summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.summary-info h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #111827;
+}
+
+.summary-info p {
+    margin: 0.25rem 0 0;
+    color: #6b7280;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.summary-stats {
+    text-align: right;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4a7c23;
+    margin: 0.25rem 0;
+}
+
+.summary-sub {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Transaction Card */
+.transaction-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.transaction-header {
+    padding: 1rem 1.5rem;
+    background: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transaction-title {
+    font-weight: 600;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.transaction-meta {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    color: #111827;
+    font-size: 1.125rem;
+}
+
+/* Commission Flow Visualization */
+.commission-flow {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.flow-step {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.flow-step:last-child {
+    padding-bottom: 0;
+}
+
+/* Vertical Line */
+.flow-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 16px; /* Center of the icon (32px width) */
+    top: 32px;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    z-index: 1;
+    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #e5e7eb;
+}
+
+.step-icon.level-1 { background: #dcfce7; color: #166534; box-shadow: 0 0 0 1px #86efac; }
+.step-icon.level-2 { background: #dbeafe; color: #1e40af; box-shadow: 0 0 0 1px #93c5fd; }
+.step-icon.level-3 { background: #fce7f3; color: #9d174d; box-shadow: 0 0 0 1px #f9a8d4; }
+
+.step-content {
+    flex: 1;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.step-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.step-name {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.step-role {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.step-amount {
+    text-align: right;
+}
+
+.commission-value {
+    font-weight: 700;
+    color: #4a7c23;
+    font-size: 0.9375rem;
+}
+
+.commission-rate {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transaction-footer {
+    padding: 0.75rem 1.5rem;
+    background: #f0fdf4;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #166534;
+    font-weight: 600;
+    font-size: 0.875rem;
 }

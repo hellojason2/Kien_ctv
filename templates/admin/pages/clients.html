@@ -7,16 +7,44 @@
             <button class="btn btn-secondary" onclick="exportClientsExcel()" data-i18n="export_excel">Export Excel</button>
         </div>
     </div>
-    <!-- Search Bar -->
-    <div class="client-search-container">
-        <div class="search-box" style="max-width: 400px; margin-bottom: 20px;">
+    <!-- Search Bar & View Toggle -->
+    <div class="client-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="search-box" style="max-width: 400px; flex: 1;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input type="text" id="clientSearch" placeholder="Search by name or phone..." data-i18n-placeholder="client_search_placeholder">
         </div>
+        <div class="view-toggle">
+            <button class="btn-icon active" id="viewGridBtn" onclick="switchClientView('grid')" title="Grid View">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </button>
+            <button class="btn-icon" id="viewListBtn" onclick="switchClientView('list')" title="List View">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
     </div>
+
     <!-- Client Cards Container -->
     <div class="clients-grid" id="clientsGrid">
         <div class="loading" data-i18n="loading">Loading...</div>
+    </div>
+
+    <!-- Client Table Container -->
+    <div class="clients-table-container" id="clientsTableContainer" style="display: none;">
+        <table class="clients-table">
+            <thead>
+                <tr>
+                    <th data-i18n="client">Client</th>
+                    <th data-i18n="phone">Phone</th>
+                    <th data-i18n="facility">Facility</th>
+                    <th data-i18n="first_visit">First Visit</th>
+                    <th data-i18n="closer">Closer</th>
+                    <th data-i18n="services">Services</th>
+                </tr>
+            </thead>
+            <tbody id="clientsTableBody">
+                <!-- Rows will be populated by JS -->
+            </tbody>
+        </table>
     </div>
     <!-- Pagination -->
     <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
@@ -25,3 +53,31 @@
     </div>
 </div>
 
+
+<!-- Commission Report Modal -->
+<div id="commissionReportModal" class="modal" style="display: none;">
+    <div class="modal-content commission-modal-content">
+        <div class="modal-header">
+            <h3>Commission Report</h3>
+            <span class="close" onclick="closeCommissionReportModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="client-summary-card">
+                <div class="summary-info">
+                    <div class="summary-label">Client</div>
+                    <h4 id="reportClientName"></h4>
+                    <p id="reportClientPhone"></p>
+                </div>
+                <div class="summary-stats">
+                    <div class="summary-label">Total Commission Paid</div>
+                    <div class="summary-value" id="reportTotalCommission"></div>
+                    <div class="summary-sub" id="reportTotalRevenue"></div>
+                </div>
+            </div>
+            
+            <div id="reportTransactionsList">
+                <!-- Transactions will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>

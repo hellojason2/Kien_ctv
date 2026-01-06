@@ -192,3 +192,112 @@ def get_clients_with_services():
             return_db_connection(connection)
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
+
+@admin_bp.route('/api/admin/clients/commission-report', methods=['GET'])
+@require_admin
+def get_client_commission_report():
+    """Get commission breakdown for a specific client"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        sdt = request.args.get('sdt', '').strip()
+        ten_khach = request.args.get('ten_khach', '').strip()
+        
+        if not sdt:
+            return jsonify({'status': 'error', 'message': 'Phone number required'}), 400
+            
+        # 1. Get all transactions for this client
+        # From khach_hang
+        cursor.execute("""
+            SELECT id, 'khach_hang' as source, dich_vu, ngay_nhap_don, tong_tien, nguoi_chot
+            FROM khach_hang
+            WHERE sdt = %s AND ten_khach = %s
+        """, (sdt, ten_khach))
+        kh_transactions = [dict(row) for row in cursor.fetchall()]
+        
+        # From services (linked to customers table)
+        cursor.execute("""
+            SELECT s.id, 'service' as source, s.service_name as dich_vu, s.date_entered as ngay_nhap_don, s.amount as tong_tien, s.ctv_code as nguoi_chot
+            FROM services s
+            JOIN customers c ON s.customer_id = c.id
+            WHERE c.phone = %s AND c.name = %s
+        """, (sdt, ten_khach))
+        svc_transactions = [dict(row) for row in cursor.fetchall()]
+        
+        all_transactions = kh_transactions + svc_transactions
+        
+        # 2. For each transaction, get commissions
+        report_data = []
+        total_revenue = 0
+        total_commission_paid = 0
+        
+        for tx in all_transactions:
+            tx_id = tx['id']
+            source = tx['source']
+            amount = float(tx['tong_tien'] or 0)
+            
+            # Determine transaction_id used in commissions table
+            # khach_hang uses negative IDs, services uses positive IDs
+            comm_tx_id = -abs(tx_id) if source == 'khach_hang' else tx_id
+            
+            cursor.execute("""
+                SELECT 
+                    c.ctv_code,
+                    ctv.ten as ctv_name,
+                    c.level,
+                    c.commission_rate,
+                    c.commission_amount
+                FROM commissions c
+                LEFT JOIN ctv ON c.ctv_code = ctv.ma_ctv
+                WHERE c.transaction_id = %s
+                ORDER BY c.level
+            """, (comm_tx_id,))
+            
+            commissions = [dict(row) for row in cursor.fetchall()]
+            
+            tx_commission_total = 0
+            for c in commissions:
+                c['commission_rate'] = float(c['commission_rate'])
+                c['commission_amount'] = float(c['commission_amount'])
+                tx_commission_total += c['commission_amount']
+            
+            if amount > 0:
+                total_revenue += amount
+                total_commission_paid += tx_commission_total
+                
+                date_str = tx['ngay_nhap_don'].strftime('%d/%m/%Y') if tx['ngay_nhap_don'] else 'N/A'
+                
+                report_data.append({
+                    'service_name': tx['dich_vu'],
+                    'date': date_str,
+                    'amount': amount,
+                    'closer': tx['nguoi_chot'],
+                    'commissions': commissions,
+                    'total_commission': tx_commission_total
+                })
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'client': {
+                'name': ten_khach,
+                'phone': sdt
+            },
+            'summary': {
+                'total_revenue': total_revenue,
+                'total_commission_paid': total_commission_paid,
+                'transaction_count': len(report_data)
+            },
+            'transactions': report_data
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': f'Database error: {str(e)}'}), 500

@@ -1,5 +1,62 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-06 03:45] - Large File Handling Tool
+Added a utility script to handle files exceeding the 50MB synchronization limit.
+
+### Features
+- **File Chunker**: `file_chunker.py` allows splitting large files into 45MB chunks and reassembling them.
+- **Usage**:
+  - Split: `python3 file_chunker.py split <file>`
+  - Join: `python3 file_chunker.py join <file>`
+
+## [2026-01-06 02:35] - Bulk Password Reset
+Reset all CTV passwords to `ctv123` as requested.
+
+### Actions Performed
+- Updated `password_hash` for all records in `ctv` table.
+- Verified update on a sample record.
+
+## [2026-01-06 02:55] - Client Management View Toggle
+Added a feature to switch between Grid (Card) view and List (Table) view on the Client Management page.
+
+### Features
+- **View Toggle**: Added buttons to switch between Grid and List views.
+- **Table View**: Implemented a detailed table view showing Client, Phone, Facility, First Visit, Closer, and Services.
+- **Persistence**: The selected view preference is saved in the browser (localStorage).
+- **Design**: Table view matches the "Green Header/Glassy" theme with clean typography.
+- **Refinement**: Client names are now displayed in a unified green gradient badge with fixed dimensions for perfect alignment.
+- **UI Polish**: Aligned the view toggle buttons with the search bar for a consistent layout.
+
+## [2026-01-06 03:15] - Google Sheets Sync Optimization
+Improved the sync worker to handle blank rows more intelligently.
+
+### Improvements
+- **Auto-Cleanup**: Rows marked as "update" but containing no data (blank rows) are now automatically deleted from the Google Sheet.
+- **Efficiency**: Prevents processing of empty records and keeps the sheet clean.
+
+## [2026-01-06 03:25] - Client Commission Report
+Added a detailed commission report feature to the Client Management page.
+
+### Features
+- **Interactive Report**: Clicking a client's name (in Grid or Table view) opens a detailed Commission Report modal.
+- **Breakdown**: Shows total revenue and total commission paid for that client.
+- **Transaction Details**: Lists every transaction/service with a breakdown of commissions paid to the hierarchy (Level 0, Level 1, etc.).
+- **Visualization**: Clearly shows who earned what from each service, including rates and amounts.
+
+---
+
+## [2026-01-06 02:45] - Fix Client Management Page Styling
+Restored and updated CSS for the Client Management page to match the preferred design.
+
+### Fixes
+- Recreated `static/css/admin/clients.css` which was found to be empty.
+- Updated styling to match the "Green Header" design:
+  - Dark green card headers with white text.
+  - Clean white background for info rows.
+  - Hidden "Not Deposited" status badge in the client info row as requested.
+
+---
+
 ## [2026-01-06 01:40] - Commission Settings UI Improvements
 Improved the "Commission Settings" page for better user experience.
 

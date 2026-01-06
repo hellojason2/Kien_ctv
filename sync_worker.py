@@ -457,6 +457,7 @@ def process_tham_my_nha_khoa(spreadsheet, conn, tab_type):
     processed = 0
     errors = 0
     rows_to_update = []
+    rows_to_delete = []
     
     for row_idx, row in enumerate(all_values[1:], start=2):  # Row 2 onwards (1-indexed in Sheets)
         if len(row) == 0:
@@ -465,6 +466,19 @@ def process_tham_my_nha_khoa(spreadsheet, conn, tab_type):
         # Check Column A (Update status)
         status = str(row[0]).strip().lower() if row else ''
         
+        # Check if row is blank (except for status column)
+        is_blank = True
+        if len(row) > 1:
+            for cell in row[1:]:
+                if str(cell).strip():
+                    is_blank = False
+                    break
+        
+        # If blank and marked for update, schedule for deletion
+        if is_blank and status == 'update':
+            rows_to_delete.append(row_idx)
+            continue
+
         # Process if status is 'update' or empty (default behavior)
         if status == 'update' or status == '':
             # Build row data dict
@@ -517,6 +531,16 @@ def process_tham_my_nha_khoa(spreadsheet, conn, tab_type):
             logger.info(f"  Marked {len(rows_to_update)} rows as DONE")
         except Exception as e:
             logger.error(f"  Error updating sheet status: {e}")
+
+    # Delete blank rows (reverse order to maintain indices)
+    if rows_to_delete:
+        try:
+            for row_idx in sorted(rows_to_delete, reverse=True):
+                worksheet.delete_rows(row_idx)
+                logger.info(f"    Deleted blank row {row_idx}")
+            logger.info(f"  Deleted {len(rows_to_delete)} blank rows")
+        except Exception as e:
+            logger.error(f"  Error deleting rows: {e}")
     
     return processed, errors
 
@@ -553,12 +577,26 @@ def process_gioi_thieu(spreadsheet, conn):
     processed = 0
     errors = 0
     rows_to_update = []
+    rows_to_delete = []
     
     for row_idx, row in enumerate(all_values[1:], start=2):
         if len(row) == 0:
             continue
         
         status = str(row[0]).strip().lower() if row else ''
+        
+        # Check if row is blank (except for status column)
+        is_blank = True
+        if len(row) > 1:
+            for cell in row[1:]:
+                if str(cell).strip():
+                    is_blank = False
+                    break
+        
+        # If blank and marked for update, schedule for deletion
+        if is_blank and status == 'update':
+            rows_to_delete.append(row_idx)
+            continue
         
         if status == 'update' or status == '':
             row_data = {}
@@ -608,6 +646,16 @@ def process_gioi_thieu(spreadsheet, conn):
             logger.info(f"  Marked {len(rows_to_update)} rows as DONE")
         except Exception as e:
             logger.error(f"  Error updating sheet status: {e}")
+
+    # Delete blank rows (reverse order to maintain indices)
+    if rows_to_delete:
+        try:
+            for row_idx in sorted(rows_to_delete, reverse=True):
+                worksheet.delete_rows(row_idx)
+                logger.info(f"    Deleted blank row {row_idx}")
+            logger.info(f"  Deleted {len(rows_to_delete)} blank rows")
+        except Exception as e:
+            logger.error(f"  Error deleting rows: {e}")
     
     return processed, errors
 
