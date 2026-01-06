@@ -19,6 +19,19 @@ async function loadCommissionSettings() {
                 <input type="number" step="0.0001" value="${s.rate}" data-level="${s.level}" placeholder="Rate">
             </div>
         `).join('');
+
+        // Disable save button initially
+        const saveBtn = document.querySelector('button[onclick="saveCommissionSettings()"]');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            
+            // Enable on change
+            container.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    saveBtn.disabled = false;
+                });
+            });
+        }
     }
 }
 
@@ -26,6 +39,9 @@ async function loadCommissionSettings() {
  * Save commission settings
  */
 async function saveCommissionSettings() {
+    const saveBtn = document.querySelector('button[onclick="saveCommissionSettings()"]');
+    if (saveBtn) saveBtn.disabled = true;
+
     const inputs = document.querySelectorAll('#commissionSettings input');
     const settings = Array.from(inputs).map(input => ({
         level: parseInt(input.dataset.level),
@@ -42,6 +58,7 @@ async function saveCommissionSettings() {
         loadCommissionSettings();
     } else {
         alert('Error: ' + result.message);
+        if (saveBtn) saveBtn.disabled = false;
     }
 }
 

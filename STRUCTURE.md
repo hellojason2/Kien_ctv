@@ -12,6 +12,7 @@
 #
 # MODULES:
 # - backend.py          : App entry, landing page routes, public API
+# - sync_worker.py      : Google Sheets live sync worker
 #
 # - modules/admin/      : Admin Dashboard logic (split into sub-modules)
 #   ├── auth.py         : Admin login/logout

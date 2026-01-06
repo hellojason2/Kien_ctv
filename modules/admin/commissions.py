@@ -5,10 +5,11 @@ from .blueprint import admin_bp
 from ..auth import require_admin
 from ..db_pool import get_db_connection, return_db_connection
 from ..mlm_core import (
-    recalculate_all_commissions, 
+    recalculate_all_commissions,
     calculate_new_commissions_fast,
     get_commission_cache_status
 )
+from ..redis_cache import invalidate_commission_cache
 from ..activity_logger import log_commission_adjusted
 
 @admin_bp.route('/api/admin/commission-settings', methods=['GET'])
@@ -84,11 +85,25 @@ def update_settings():
         
         connection.commit()
         cursor.close()
+        
+        # Invalidate cache to ensure new rates are used
+        invalidate_commission_cache()
+        
+        # Recalculate all commissions with new settings
+        stats = recalculate_all_commissions(connection)
+        
         return_db_connection(connection)
+        
+        if 'error' in stats:
+            return jsonify({
+                'status': 'warning',
+                'message': f'Commission settings updated but recalculation failed: {stats["error"]}'
+            })
         
         return jsonify({
             'status': 'success',
-            'message': 'Commission settings updated'
+            'message': 'Commission settings updated and commissions recalculated',
+            'recalculation_stats': stats
         })
         
     except Error as e:
@@ -283,11 +298,11 @@ def list_commissions_summary():
         svc_services = {row['ctv_code']: row for row in cursor.fetchall()}
         
         # FAST: Calculate only new commissions using cached max IDs
-        fast_stats = calculate_new_commissions_fast(connection=connection)
+        # fast_stats = calculate_new_commissions_fast(connection=connection)
         
-        if fast_stats.get('total', 0) > 0:
-            cursor.execute(comm_query, comm_params)
-            commissions_data = {row['ctv_code']: row for row in cursor.fetchall()}
+        # if fast_stats.get('total', 0) > 0:
+        #     cursor.execute(comm_query, comm_params)
+        #     commissions_data = {row['ctv_code']: row for row in cursor.fetchall()}
         
         all_ctv_codes = set()
         all_ctv_codes.update(commissions_data.keys())

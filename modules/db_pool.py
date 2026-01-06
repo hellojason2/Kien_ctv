@@ -51,7 +51,12 @@ if DATABASE_URL:
         'database': parsed.path.lstrip('/'),
         # Railway requires SSL connections
         'sslmode': 'require',
-        'connect_timeout': 10  # 10 second timeout
+        'connect_timeout': 15,  # Increased to 15 seconds
+        # TCP Keepalive settings to prevent timeouts
+        'keepalives': 1,
+        'keepalives_idle': 30,
+        'keepalives_interval': 10,
+        'keepalives_count': 5
     }
 else:
     # Fallback to individual environment variables
@@ -63,7 +68,12 @@ else:
         'database': os.environ.get('DB_NAME', 'railway'),
         # Railway requires SSL connections
         'sslmode': 'require',
-        'connect_timeout': 10  # 10 second timeout
+        'connect_timeout': 15,  # Increased to 15 seconds
+        # TCP Keepalive settings to prevent timeouts
+        'keepalives': 1,
+        'keepalives_idle': 30,
+        'keepalives_interval': 10,
+        'keepalives_count': 5
     }
 
 # Pool configuration
@@ -94,7 +104,11 @@ def get_db_pool():
                 'password': DB_CONFIG['password'],
                 'database': DB_CONFIG['database'],
                 'sslmode': DB_CONFIG.get('sslmode', 'require'),
-                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
+                'connect_timeout': DB_CONFIG.get('connect_timeout', 15),
+                'keepalives': DB_CONFIG.get('keepalives', 1),
+                'keepalives_idle': DB_CONFIG.get('keepalives_idle', 30),
+                'keepalives_interval': DB_CONFIG.get('keepalives_interval', 10),
+                'keepalives_count': DB_CONFIG.get('keepalives_count', 5)
             }
             
             _pool = pool.ThreadedConnectionPool(
@@ -129,30 +143,40 @@ def get_db_connection():
                 conn.close()
     """
     pool_instance = get_db_pool()
-    if pool_instance is None:
-        # Fallback to direct connection if pool fails
-        try:
-            conn_params = {
-                'host': DB_CONFIG['host'],
-                'port': DB_CONFIG['port'],
-                'user': DB_CONFIG['user'],
-                'password': DB_CONFIG['password'],
-                'database': DB_CONFIG['database'],
-                'sslmode': DB_CONFIG.get('sslmode', 'require'),
-                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
-            }
-            connection = psycopg2.connect(**conn_params)
-            return connection
-        except Error as e:
-            print(f"Error connecting to PostgreSQL: {e}")
-            return None
+    connection = None
     
-    try:
-        return pool_instance.getconn()
-    except Error as e:
-        print(f"Error getting connection from pool: {e}")
-        # Fallback to direct connection
+    # 1. Try to get from pool
+    if pool_instance:
         try:
+            connection = pool_instance.getconn()
+            
+            # Validate connection
+            if connection:
+                try:
+                    # Lightweight check
+                    if connection.closed:
+                        raise Error("Connection is closed")
+                    
+                    # Optional: Execute simple query to ensure it's really alive
+                    # This adds a small overhead but ensures reliability
+                    with connection.cursor() as cur:
+                        cur.execute('SELECT 1')
+                except (Error, Exception) as e:
+                    print(f"Pooled connection dead, discarding: {e}")
+                    try:
+                        # Discard bad connection from pool
+                        pool_instance.putconn(connection, close=True)
+                    except:
+                        pass
+                    connection = None
+        except Error as e:
+            print(f"Error getting connection from pool: {e}")
+            connection = None
+
+    # 2. Fallback: Create new direct connection if pool failed or returned dead connection
+    if connection is None:
+        try:
+            print("Creating fallback direct connection...")
             conn_params = {
                 'host': DB_CONFIG['host'],
                 'port': DB_CONFIG['port'],
@@ -160,29 +184,44 @@ def get_db_connection():
                 'password': DB_CONFIG['password'],
                 'database': DB_CONFIG['database'],
                 'sslmode': DB_CONFIG.get('sslmode', 'require'),
-                'connect_timeout': DB_CONFIG.get('connect_timeout', 10)
+                'connect_timeout': DB_CONFIG.get('connect_timeout', 15),
+                'keepalives': DB_CONFIG.get('keepalives', 1),
+                'keepalives_idle': DB_CONFIG.get('keepalives_idle', 30),
+                'keepalives_interval': DB_CONFIG.get('keepalives_interval', 10),
+                'keepalives_count': DB_CONFIG.get('keepalives_count', 5)
             }
             connection = psycopg2.connect(**conn_params)
-            return connection
-        except Error as e2:
-            print(f"Fallback connection also failed: {e2}")
+        except Error as e:
+            print(f"Error creating fallback connection: {e}")
             return None
+            
+    return connection
 
 
-def return_db_connection(connection):
+def return_db_connection(connection, close=False):
     """
     DOES: Return a connection to the pool
-    INPUTS: Connection to return
-    
-    Note: You can also call connection.close() which does the same thing
-    when using pooled connections.
+    INPUTS:
+        connection - Connection to return
+        close - If True, discard the connection (close it) instead of reusing it
     """
     pool_instance = get_db_pool()
-    if pool_instance and connection:
-        try:
-            pool_instance.putconn(connection)
-        except Error:
-            pass
+    if connection:
+        if pool_instance:
+            try:
+                pool_instance.putconn(connection, close=close)
+            except Exception:
+                # If pool is full, closed, or connection doesn't belong to pool
+                try:
+                    connection.close()
+                except:
+                    pass
+        else:
+            # No pool, just close it
+            try:
+                connection.close()
+            except:
+                pass
 
 
 @contextmanager

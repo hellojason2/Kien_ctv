@@ -347,6 +347,9 @@ async function showCTVDetail(ctvCode) {
         
         title.textContent = `${data.ctv.ten} (${data.ctv.ma_ctv})`;
         
+        // Store commissions for click handlers
+        window.currentCommissions = data.commissions;
+        
         body.innerHTML = `
             <div class="summary-grid">
                 <div class="summary-card">
@@ -368,7 +371,7 @@ async function showCTVDetail(ctvCode) {
             </div>
             
             <div class="modal-section">
-                <h3>Commission Breakdown</h3>
+                <h3>Commission Breakdown (Click for Client Info)</h3>
                 <table class="debug-table">
                     <thead>
                         <tr>
@@ -381,13 +384,13 @@ async function showCTVDetail(ctvCode) {
                         </tr>
                     </thead>
                     <tbody>
-                            ${data.commissions.map(c => {
+                            ${data.commissions.map((c, index) => {
                             const rate = rawData.rates.find(r => r.level === c.level)?.rate || 0;
                             const expected = (c.source_amount || 0) * rate;
                             const actual = c.commission_amount || 0;
                             const match = Math.abs(expected - actual) < 1;
                             return `
-                                <tr>
+                                <tr onclick="showClientInfo(${index})" style="cursor: pointer;" title="Click to view client details">
                                     <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
                                     <td>${c.source_name || '-'}</td>
                                     <td class="money">${formatMoney(c.source_amount)}</td>
@@ -462,6 +465,65 @@ async function showCTVDetail(ctvCode) {
 }
 
 /**
+ * Show Client Info Modal
+ */
+function showClientInfo(index) {
+    if (!window.currentCommissions || !window.currentCommissions[index]) return;
+    
+    const c = window.currentCommissions[index];
+    const modal = document.getElementById('client-info-modal');
+    const body = document.getElementById('client-modal-body');
+    
+    body.innerHTML = `
+        <div class="modal-section" style="margin-bottom: 0;">
+            <table class="debug-table">
+                <tr>
+                    <th style="width: 140px;">Client Name</th>
+                    <td><strong>${c.source_name || '-'}</strong></td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>${c.source_phone || '-'}</td>
+                </tr>
+                <tr>
+                    <th>Service</th>
+                    <td>${c.source_service || '-'}</td>
+                </tr>
+                <tr>
+                    <th>Revenue</th>
+                    <td class="money">${formatMoney(c.source_amount)}</td>
+                </tr>
+                <tr>
+                    <th>Transaction Date</th>
+                    <td>${c.transaction_date || '-'}</td>
+                </tr>
+                <tr>
+                    <th>Closer (Seller)</th>
+                    <td>
+                        <span style="font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">
+                            ${c.closer_code || '-'}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Commission Level</th>
+                    <td><span class="level-badge level-${c.level}">Level ${c.level}</span></td>
+                </tr>
+            </table>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+/**
+ * Close client modal
+ */
+function closeClientModal() {
+    document.getElementById('client-info-modal').classList.remove('show');
+}
+
+/**
  * Close modal
  */
 function closeModal() {
@@ -479,14 +541,20 @@ function formatMoney(amount) {
 // Close modal on escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeModal();
+        if (document.getElementById('client-info-modal').classList.contains('show')) {
+            closeClientModal();
+        } else {
+            closeModal();
+        }
     }
 });
 
 // Close modal on background click
 document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('debug-modal')) {
+    if (e.target.id === 'ctv-detail-modal') {
         closeModal();
     }
+    if (e.target.id === 'client-info-modal') {
+        closeClientModal();
+    }
 });
-

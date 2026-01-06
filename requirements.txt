@@ -13,3 +13,7 @@ python-dotenv>=1.0.0
 
 # Keep MySQL connector for migration script only
 mysql-connector-python==8.2.0
+
+# Google Sheets API
+gspread>=6.0.0
+google-auth>=2.25.0

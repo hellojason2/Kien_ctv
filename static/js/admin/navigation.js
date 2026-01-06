@@ -26,6 +26,7 @@ function navigateTo(page) {
     }
     if (page === 'ctv') loadCTVList();
     if (page === 'commissions') loadCommissions();
+    if (page === 'settings') loadCommissionSettings();
     if (page === 'clients') loadClientsWithServices();
     if (page === 'activity-logs') {
         loadActivityLogs(1);

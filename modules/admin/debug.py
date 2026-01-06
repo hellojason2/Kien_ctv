@@ -143,15 +143,32 @@ def get_ctv_detail(ctv_code):
                 c.created_at as calculated_at,
                 CASE 
                     WHEN c.transaction_id < 0 THEN kh.ten_khach
-                    ELSE 'Service'
+                    ELSE cust.name
                 END as source_name,
+                CASE 
+                    WHEN c.transaction_id < 0 THEN kh.sdt
+                    ELSE cust.phone
+                END as source_phone,
+                CASE 
+                    WHEN c.transaction_id < 0 THEN kh.dich_vu
+                    ELSE s.service_name
+                END as source_service,
                 CASE 
                     WHEN c.transaction_id < 0 THEN kh.tong_tien
                     ELSE s.tong_tien
-                END as source_amount
+                END as source_amount,
+                CASE 
+                    WHEN c.transaction_id < 0 THEN kh.nguoi_chot
+                    ELSE s.nguoi_chot
+                END as closer_code,
+                CASE 
+                    WHEN c.transaction_id < 0 THEN kh.ngay_hen_lam
+                    ELSE s.date_entered
+                END as transaction_date
             FROM commissions c
             LEFT JOIN khach_hang kh ON c.transaction_id = -kh.id
             LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
+            LEFT JOIN customers cust ON s.customer_id = cust.id
             WHERE c.ctv_code = %s
             ORDER BY c.level, c.created_at DESC
         """, (ctv_code,))

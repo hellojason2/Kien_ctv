@@ -1,5 +1,89 @@
 # Release Notes - CTV Dashboard
 
+## [2026-01-06 01:40] - Commission Settings UI Improvements
+Improved the "Commission Settings" page for better user experience.
+
+### Improvements
+- **Save Button Logic**: The "Save Changes" button is now disabled (grayed out) by default and only becomes active when you actually change a commission rate.
+- **Visual Feedback**: This prevents accidental clicks and clearly indicates when there are unsaved changes.
+- **Auto-Disable**: After saving, the button automatically disables again until further changes are made.
+
+### Files Modified
+- `static/js/admin/settings.js` - Added change detection logic.
+- `templates/admin/pages/settings.html` - Set initial button state to disabled.
+- `static/js/admin/navigation.js` - Ensured settings are loaded correctly on navigation.
+
+---
+
+## [2026-01-06 01:30] - Automatic Commission Recalculation on Settings Change
+Ensured that changing commission rates triggers a system-wide recalculation.
+
+### Improvements
+- **Auto-Recalculate**: When commission rates (L0-L4) are updated in the "Commission Settings" page, the system now automatically recalculates all historical commissions to reflect the new rates.
+- **Consistency**: Guarantees that the "Commission Report" always matches the currently active commission settings.
+
+### Files Modified
+- `modules/admin/commissions.py` - Added `recalculate_all_commissions` call to `update_settings` endpoint.
+
+---
+
+## [2026-01-06 01:20] - Commission Calculation Optimization
+Refactored commission calculation to be event-driven for better performance and reliability.
+
+### Improvements
+- **Event-Driven Calculation**: Commissions are now calculated immediately when data is synced from Google Sheets, rather than on every page load of the Admin Panel.
+- **Performance**: The "Commission Report" page now loads much faster as it queries pre-calculated data.
+- **Zero Commission Fix**: Ran a full recalculation to fix historical records that were missing commissions due to previous case-sensitivity issues.
+- **Reliability**: Added a safety net in the sync worker to ensure all new records are processed.
+
+### Files Modified
+- `modules/admin/commissions.py` - Removed read-time calculation trigger.
+- `sync_worker.py` - Added write-time calculation trigger.
+
+---
+
+## [2026-01-06 00:45] - Commission Calculation Fixes
+Fixed issues where commissions were not being generated for some transactions due to case sensitivity.
+
+### Improvements
+- **Case-Insensitive Matching**: Updated commission calculation logic to match CTV codes case-insensitively (e.g., "ctv001" matches "CTV001").
+- **Hierarchy Traversal**: Updated hierarchy lookups to be case-insensitive, ensuring the full upline is found regardless of input format.
+- **Reliability**: Ensures that revenue records from Google Sheets (which might have inconsistent casing) correctly trigger commissions.
+
+### Files Modified
+- `modules/mlm/commissions.py` - Updated JOIN conditions.
+- `modules/mlm/hierarchy.py` - Updated recursive queries.
+
+---
+
+## [2026-01-05 23:55] - Database Connection Retry Logic
+Implemented automatic retry mechanism for login operations to handle transient network failures.
+
+### Improvements
+- **Login Retry**: `admin_login` and `ctv_login` now automatically retry up to 3 times if a database connection error (timeout, closed, SSL) occurs.
+- **Connection Discard**: Failed connections are now explicitly discarded from the pool to prevent reuse of bad connections.
+- **Enhanced Stability**: This addresses "SSL SYSCALL error: Operation timed out" issues common in cloud environments.
+
+### Files Modified
+- `modules/auth.py` - Added retry loop and error handling.
+- `modules/db_pool.py` - Updated `return_db_connection` to support discarding connections.
+
+---
+
+## [2026-01-05 23:50] - Database Connection Stability Fixes
+Implemented robust connection handling to prevent timeouts and "closed connection" errors.
+
+### Improvements
+- **TCP Keepalive**: Enabled TCP keepalive settings to prevent firewalls from dropping idle connections.
+- **Connection Validation**: Added automatic validation (`SELECT 1`) when retrieving connections from the pool.
+- **Auto-Recovery**: If a pooled connection is dead, it is automatically discarded and replaced with a fresh connection.
+- **Timeout Increase**: Increased connection timeout from 10s to 15s.
+
+### Files Modified
+- `modules/db_pool.py` - Added keepalive params, validation logic, and fallback mechanism.
+
+---
+
 ## [2026-01-05 21:00] - Google Sheets Live Sync Worker
 Added background worker that syncs data from Google Sheets to PostgreSQL database in real-time.
 
@@ -17,7 +101,7 @@ Added background worker that syncs data from Google Sheets to PostgreSQL databas
 ### Files Created/Modified
 | File | Action |
 |------|--------|
-| `sync_sheets.py` | Created - Main sync worker |
+| `sync_worker.py` | Created - Main sync worker |
 | `google_credentials.json` | Created - Service account credentials |
 | `requirements.txt` | Updated - Added gspread, google-auth |
 | `Procfile` | Updated - Added worker process |
@@ -33,7 +117,7 @@ Added background worker that syncs data from Google Sheets to PostgreSQL databas
 The `Procfile` now includes:
 ```
 web: python backend.py
-worker: python sync_sheets.py
+worker: python sync_worker.py
 ```
 
 ---
@@ -165,8 +249,6 @@ APP_VERSION = "2026.01.05"  # Change this on each deploy
 - Changed `/api/ctv/me` endpoint to calculate commission from khach_hang + services tables
 - Commission is now correctly calculated as: (period revenue) × (level 0 rate)
 - This matches the calculation used by the `/api/ctv/commission` endpoint
-
-### Files Modified
 - `modules/ctv/profile.py` - Updated monthly_earnings calculation to use source data instead of commissions table
 
 ### Result

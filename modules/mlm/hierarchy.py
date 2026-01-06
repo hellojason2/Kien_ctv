@@ -13,7 +13,7 @@ def get_parent(cursor, ctv_code):
     """
     DOES: Get the immediate referrer (parent) of a CTV
     """
-    cursor.execute("SELECT nguoi_gioi_thieu FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+    cursor.execute("SELECT nguoi_gioi_thieu FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)", (ctv_code,))
     result = cursor.fetchone()
     if not result:
         return None
@@ -33,7 +33,7 @@ def calculate_level(cursor, ctv_code, ancestor_code):
             WITH RECURSIVE chain AS (
                 SELECT ma_ctv, nguoi_gioi_thieu, 0 as level
                 FROM ctv
-                WHERE ma_ctv = %s
+                WHERE LOWER(ma_ctv) = LOWER(%s)
                 
                 UNION ALL
                 
@@ -42,7 +42,7 @@ def calculate_level(cursor, ctv_code, ancestor_code):
                 INNER JOIN chain ON c.ma_ctv = chain.nguoi_gioi_thieu
                 WHERE chain.level < %s
             )
-            SELECT level FROM chain WHERE ma_ctv = %s
+            SELECT level FROM chain WHERE LOWER(ma_ctv) = LOWER(%s)
         """, (ctv_code, MAX_LEVEL + 1, ancestor_code))
         
         result = cursor.fetchone()
@@ -81,13 +81,13 @@ def build_ancestor_chain(cursor, ctv_code, max_levels=MAX_LEVEL):
             WITH RECURSIVE ancestors AS (
                 SELECT ma_ctv, nguoi_gioi_thieu, 0 as level
                 FROM ctv
-                WHERE ma_ctv = %s
+                WHERE LOWER(ma_ctv) = LOWER(%s)
                 
                 UNION ALL
                 
                 SELECT c.ma_ctv, c.nguoi_gioi_thieu, a.level + 1
                 FROM ctv c
-                INNER JOIN ancestors a ON c.ma_ctv = a.nguoi_gioi_thieu
+                INNER JOIN ancestors a ON LOWER(c.ma_ctv) = LOWER(a.nguoi_gioi_thieu)
                 WHERE a.level < %s AND a.nguoi_gioi_thieu IS NOT NULL
             )
             SELECT ma_ctv, level FROM ancestors ORDER BY level
@@ -104,10 +104,10 @@ def build_ancestor_chain(cursor, ctv_code, max_levels=MAX_LEVEL):
                     ancestors.append((row[0], row[1]))
             return ancestors
         
-        return [(ctv_code, 0)]
+        return []
         
     except Error:
-        ancestors = [(ctv_code, 0)]
+        ancestors = []
         current = ctv_code
         visited = set([ctv_code])
         

@@ -109,6 +109,9 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None, com
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
+        # Ensure idempotency by removing existing commissions for this transaction
+        cursor.execute("DELETE FROM commissions WHERE transaction_id = %s", (transaction_id,))
+        
         rates = get_commission_rates(connection)
         ancestors = build_ancestor_chain(cursor, ctv_code)
         
@@ -118,7 +121,7 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None, com
             commission_amount = float(amount) * rate
             
             cursor.execute("""
-                INSERT INTO commissions 
+                INSERT INTO commissions
                 (transaction_id, ctv_code, level, commission_rate, transaction_amount, commission_amount)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
@@ -357,25 +360,24 @@ def calculate_new_commissions_fast(connection=None):
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Check if system_config table exists
-        cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'system_config')")
-        if not cursor.fetchone()['exists']:
-            # If it doesn't exist, we can't do fast calculation easily without tracking
-            # For now, let's just return 0 or maybe do a simple check
-            cursor.close()
-            return {'total': 0, 'message': 'system_config table missing'}
-
-        # Get max processed IDs
-        cursor.execute("SELECT key, value FROM system_config WHERE key IN ('max_kh_id_comm', 'max_svc_id_comm')")
-        config = {row['key']: int(row['value']) for row in cursor.fetchall()}
-        max_kh_id = config.get('max_kh_id_comm', 0)
-        max_svc_id = config.get('max_svc_id_comm', 0)
+        # Use commission_cache table
+        cursor.execute("SELECT last_kh_max_id, last_svc_max_id FROM commission_cache WHERE cache_key = 'global'")
+        cache_row = cursor.fetchone()
         
-        # New khach_hang records - ONLY where nguoi_chot exists in ctv table
+        if not cache_row:
+            # Initialize if missing
+            cursor.execute("INSERT INTO commission_cache (cache_key, last_kh_max_id, last_svc_max_id) VALUES ('global', 0, 0) RETURNING last_kh_max_id, last_svc_max_id")
+            cache_row = cursor.fetchone()
+            connection.commit()
+            
+        max_kh_id = cache_row['last_kh_max_id']
+        max_svc_id = cache_row['last_svc_max_id']
+        
+        # New khach_hang records - ONLY where nguoi_chot exists in ctv table (case-insensitive)
         cursor.execute("""
-            SELECT kh.id, kh.tong_tien, kh.nguoi_chot
+            SELECT kh.id, kh.tong_tien, c.ma_ctv as nguoi_chot
             FROM khach_hang kh
-            JOIN ctv c ON kh.nguoi_chot = c.ma_ctv
+            JOIN ctv c ON LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
             WHERE kh.id > %s
             AND kh.tong_tien > 0
             AND kh.trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
@@ -393,11 +395,11 @@ def calculate_new_commissions_fast(connection=None):
             except Exception as e:
                 print(f"Error processing khach_hang {kh['id']}: {e}")
             
-        # New service records - ONLY where ctv_code exists in ctv table
+        # New service records - ONLY where ctv_code exists in ctv table (case-insensitive)
         cursor.execute("""
-            SELECT s.id, s.tong_tien, COALESCE(s.nguoi_chot, s.ctv_code) as ctv_code
+            SELECT s.id, s.tong_tien, c.ma_ctv as ctv_code
             FROM services s
-            JOIN ctv c ON COALESCE(s.nguoi_chot, s.ctv_code) = c.ma_ctv
+            JOIN ctv c ON LOWER(COALESCE(s.nguoi_chot, s.ctv_code)) = LOWER(c.ma_ctv)
             WHERE s.id > %s
             AND s.tong_tien > 0
             ORDER BY s.id ASC
@@ -413,11 +415,13 @@ def calculate_new_commissions_fast(connection=None):
             except Exception as e:
                 print(f"Error processing service {svc['id']}: {e}")
             
-        # Update system_config
-        if new_max_kh > max_kh_id:
-            cursor.execute("INSERT INTO system_config (key, value) VALUES ('max_kh_id_comm', %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", (str(new_max_kh),))
-        if new_max_svc > max_svc_id:
-            cursor.execute("INSERT INTO system_config (key, value) VALUES ('max_svc_id_comm', %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", (str(new_max_svc),))
+        # Update commission_cache
+        if new_max_kh > max_kh_id or new_max_svc > max_svc_id:
+            cursor.execute("""
+                UPDATE commission_cache
+                SET last_kh_max_id = %s, last_svc_max_id = %s, last_updated = CURRENT_TIMESTAMP
+                WHERE cache_key = 'global'
+            """, (new_max_kh, new_max_svc))
             
         connection.commit()
         invalidate_commission_cache()

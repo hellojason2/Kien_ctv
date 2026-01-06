@@ -483,53 +483,78 @@ def admin_login(username, password, remember_me=False):
     INPUTS: username, password, remember_me (bool)
     OUTPUTS: {'token': str, 'admin': dict} or {'error': str}
     """
-    connection = get_db_connection()
-    if not connection:
-        return {'error': 'Database connection failed'}
+    max_retries = 3
+    last_error = None
     
-    try:
-        cursor = connection.cursor(cursor_factory=RealDictCursor)
+    for attempt in range(max_retries):
+        connection = get_db_connection()
+        if not connection:
+            last_error = 'Database connection failed'
+            continue
         
-        cursor.execute("""
-            SELECT id, username, password_hash, name
-            FROM admins WHERE username = %s
-        """, (username,))
-        admin = cursor.fetchone()
-        
-        cursor.close()
-        return_db_connection(connection)
-        
-        if not admin:
+        try:
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
+            
+            cursor.execute("""
+                SELECT id, username, password_hash, name
+                FROM admins WHERE username = %s
+            """, (username,))
+            admin = cursor.fetchone()
+            
+            cursor.close()
+            return_db_connection(connection)
+            
+            if not admin:
+                logger = _get_activity_logger()
+                if logger:
+                    logger.log_login_failed(username, 'admin')
+                return {'error': 'Invalid username or password'}
+            
+            if not verify_password(password, admin.get('password_hash', '')):
+                logger = _get_activity_logger()
+                if logger:
+                    logger.log_login_failed(username, 'admin')
+                return {'error': 'Invalid username or password'}
+            
+            token = create_session('admin', username, remember_me=remember_me)
+            if not token:
+                return {'error': 'Failed to create session'}
+            
             logger = _get_activity_logger()
             if logger:
-                logger.log_login_failed(username, 'admin')
-            return {'error': 'Invalid username or password'}
-        
-        if not verify_password(password, admin.get('password_hash', '')):
-            logger = _get_activity_logger()
-            if logger:
-                logger.log_login_failed(username, 'admin')
-            return {'error': 'Invalid username or password'}
-        
-        token = create_session('admin', username, remember_me=remember_me)
-        if not token:
-            return {'error': 'Failed to create session'}
-        
-        logger = _get_activity_logger()
-        if logger:
-            logger.log_login_success('admin', username)
-        
-        return {
-            'token': token,
-            'admin': {
-                'id': admin['id'],
-                'username': admin['username'],
-                'name': admin['name']
+                logger.log_login_success('admin', username)
+            
+            return {
+                'token': token,
+                'admin': {
+                    'id': admin['id'],
+                    'username': admin['username'],
+                    'name': admin['name']
+                }
             }
-        }
-        
-    except Error as e:
-        return {'error': f'Database error: {str(e)}'}
+            
+        except Error as e:
+            error_str = str(e)
+            print(f"Admin login attempt {attempt+1} failed: {error_str}")
+            
+            # Discard the bad connection
+            if connection:
+                try:
+                    connection.rollback()
+                    return_db_connection(connection, close=True)
+                except:
+                    pass
+            
+            last_error = f'Database error: {error_str}'
+            
+            # Only retry on connection/network errors
+            if any(x in error_str for x in ["timed out", "closed", "connection", "SSL", "server closed"]):
+                continue
+            else:
+                # Logic error or other fatal error
+                break
+                
+    return {'error': last_error or 'Login failed'}
 
 
 def ctv_login(ma_ctv, password):
@@ -538,62 +563,87 @@ def ctv_login(ma_ctv, password):
     INPUTS: ma_ctv (CTV code, case-insensitive), password
     OUTPUTS: {'token': str, 'ctv': dict} or {'error': str}
     """
-    connection = get_db_connection()
-    if not connection:
-        return {'error': 'Database connection failed'}
+    max_retries = 3
+    last_error = None
     
-    try:
-        cursor = connection.cursor(cursor_factory=RealDictCursor)
+    for attempt in range(max_retries):
+        connection = get_db_connection()
+        if not connection:
+            last_error = 'Database connection failed'
+            continue
         
-        # Case-insensitive lookup by ma_ctv
-        cursor.execute("""
-            SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
-            FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)
-        """, (ma_ctv,))
-        ctv = cursor.fetchone()
-        
-        cursor.close()
-        return_db_connection(connection)
-        
-        if not ctv:
+        try:
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
+            
+            # Case-insensitive lookup by ma_ctv
+            cursor.execute("""
+                SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
+                FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)
+            """, (ma_ctv,))
+            ctv = cursor.fetchone()
+            
+            cursor.close()
+            return_db_connection(connection)
+            
+            if not ctv:
+                logger = _get_activity_logger()
+                if logger:
+                    logger.log_login_failed(ma_ctv, 'ctv')
+                return {'error': 'Invalid CTV code or password'}
+            
+            if not ctv.get('is_active', True):
+                logger = _get_activity_logger()
+                if logger:
+                    logger.log_login_failed(ma_ctv, 'ctv')
+                return {'error': 'Account is deactivated'}
+            
+            if not verify_password(password, ctv.get('password_hash', '')):
+                logger = _get_activity_logger()
+                if logger:
+                    logger.log_login_failed(ma_ctv, 'ctv')
+                return {'error': 'Invalid CTV code or password'}
+            
+            token = create_session('ctv', ctv['ma_ctv'])
+            if not token:
+                return {'error': 'Failed to create session'}
+            
             logger = _get_activity_logger()
             if logger:
-                logger.log_login_failed(ma_ctv, 'ctv')
-            return {'error': 'Invalid CTV code or password'}
-        
-        if not ctv.get('is_active', True):
-            logger = _get_activity_logger()
-            if logger:
-                logger.log_login_failed(ma_ctv, 'ctv')
-            return {'error': 'Account is deactivated'}
-        
-        if not verify_password(password, ctv.get('password_hash', '')):
-            logger = _get_activity_logger()
-            if logger:
-                logger.log_login_failed(ma_ctv, 'ctv')
-            return {'error': 'Invalid CTV code or password'}
-        
-        token = create_session('ctv', ctv['ma_ctv'])
-        if not token:
-            return {'error': 'Failed to create session'}
-        
-        logger = _get_activity_logger()
-        if logger:
-            logger.log_login_success('ctv', ctv['ma_ctv'])
-        
-        return {
-            'token': token,
-            'ctv': {
-                'ma_ctv': ctv['ma_ctv'],
-                'ten': ctv['ten'],
-                'email': ctv['email'],
-                'sdt': ctv['sdt'],
-                'cap_bac': ctv['cap_bac']
+                logger.log_login_success('ctv', ctv['ma_ctv'])
+            
+            return {
+                'token': token,
+                'ctv': {
+                    'ma_ctv': ctv['ma_ctv'],
+                    'ten': ctv['ten'],
+                    'email': ctv['email'],
+                    'sdt': ctv['sdt'],
+                    'cap_bac': ctv['cap_bac']
+                }
             }
-        }
-        
-    except Error as e:
-        return {'error': f'Database error: {str(e)}'}
+            
+        except Error as e:
+            error_str = str(e)
+            print(f"CTV login attempt {attempt+1} failed: {error_str}")
+            
+            # Discard the bad connection
+            if connection:
+                try:
+                    connection.rollback()
+                    return_db_connection(connection, close=True)
+                except:
+                    pass
+            
+            last_error = f'Database error: {error_str}'
+            
+            # Only retry on connection/network errors
+            if any(x in error_str for x in ["timed out", "closed", "connection", "SSL", "server closed"]):
+                continue
+            else:
+                # Logic error or other fatal error
+                break
+                
+    return {'error': last_error or 'Login failed'}
 
 
 def change_ctv_password(ma_ctv, current_password, new_password):
