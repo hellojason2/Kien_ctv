@@ -73,7 +73,7 @@ def get_my_hierarchy():
 @ctv_bp.route('/api/ctv/my-network/customers', methods=['GET'])
 @require_ctv
 def get_my_customers():
-    """Get all customers in my network"""
+    """Get all customers in my network (from both khach_hang and services)"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -94,27 +94,59 @@ def get_my_customers():
         
         placeholders = ','.join(['%s'] * len(my_network))
         
+        # UNION query combining both khach_hang and services tables
         cursor.execute(f"""
-            SELECT DISTINCT
-                c.id,
-                c.name,
-                c.phone,
-                c.email,
-                s.service_name as last_service,
-                s.date_entered as last_service_date,
-                s.nguoi_chot as served_by
-            FROM customers c
-            JOIN services s ON c.id = s.customer_id
-            WHERE s.nguoi_chot IN ({placeholders})
-            ORDER BY s.date_entered DESC
+            SELECT * FROM (
+                SELECT DISTINCT ON (phone, name)
+                    id,
+                    name,
+                    phone,
+                    email,
+                    last_service,
+                    last_service_date,
+                    served_by,
+                    source_type
+                FROM (
+                    SELECT 
+                        kh.id,
+                        kh.ten_khach as name,
+                        kh.sdt as phone,
+                        NULL as email,
+                        kh.dich_vu as last_service,
+                        kh.ngay_hen_lam as last_service_date,
+                        kh.nguoi_chot as served_by,
+                        'tham_my' as source_type
+                    FROM khach_hang kh
+                    WHERE kh.nguoi_chot IN ({placeholders})
+                    AND kh.sdt IS NOT NULL AND kh.sdt != ''
+                    
+                    UNION ALL
+                    
+                    SELECT 
+                        c.id,
+                        c.name,
+                        c.phone,
+                        c.email,
+                        s.service_name as last_service,
+                        s.date_entered as last_service_date,
+                        COALESCE(s.nguoi_chot, s.ctv_code) as served_by,
+                        'nha_khoa' as source_type
+                    FROM customers c
+                    JOIN services s ON c.id = s.customer_id
+                    WHERE COALESCE(s.nguoi_chot, s.ctv_code) IN ({placeholders})
+                    AND c.phone IS NOT NULL AND c.phone != ''
+                ) AS all_customers
+                ORDER BY phone, name, last_service_date DESC
+            ) AS unique_customers
+            ORDER BY last_service_date DESC
             LIMIT 100
-        """, list(my_network))
+        """, list(my_network) + list(my_network))
         
         customers = [dict(row) for row in cursor.fetchall()]
         
         for c in customers:
             if c.get('last_service_date'):
-                c['last_service_date'] = c['last_service_date'].strftime('%Y-%m-%d')
+                c['last_service_date'] = c['last_service_date'].strftime('%Y-%m-%d') if hasattr(c['last_service_date'], 'strftime') else str(c['last_service_date'])
         
         cursor.close()
         return_db_connection(connection)

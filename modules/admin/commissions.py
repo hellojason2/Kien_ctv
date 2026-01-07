@@ -130,7 +130,7 @@ def list_commissions():
         limit = request.args.get('limit', 100, type=int)
         
         query = """
-            SELECT 
+            SELECT
                 c.id,
                 c.transaction_id,
                 c.ctv_code,
@@ -139,9 +139,15 @@ def list_commissions():
                 c.commission_rate,
                 c.transaction_amount,
                 c.commission_amount,
-                c.created_at
+                c.created_at,
+                CASE
+                    WHEN c.transaction_id < 0 THEN kh.ngay_hen_lam
+                    ELSE s.date_entered
+                END as transaction_date
             FROM commissions c
             JOIN ctv ON c.ctv_code = ctv.ma_ctv
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
             WHERE 1=1
         """
         params = []
@@ -151,14 +157,23 @@ def list_commissions():
             params.append(ctv_code)
         
         if month:
-            query += " AND TO_CHAR(c.created_at, 'YYYY-MM') = %s"
-            params.append(month)
+            query += """ AND (
+                (c.transaction_id < 0 AND TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s)
+                OR
+                (c.transaction_id > 0 AND TO_CHAR(s.date_entered, 'YYYY-MM') = %s)
+            )"""
+            params.extend([month, month])
         
         if level is not None:
             query += " AND c.level = %s"
             params.append(int(level))
         
-        query += f" ORDER BY c.created_at DESC LIMIT %s"
+        query += f""" ORDER BY (
+            CASE
+                WHEN c.transaction_id < 0 THEN kh.ngay_hen_lam
+                ELSE s.date_entered
+            END
+        ) DESC LIMIT %s"""
         params.append(limit)
         
         cursor.execute(query, params)
@@ -220,46 +235,68 @@ def list_commissions_summary():
         svc_params = []
         
         if month:
-            comm_where = "TO_CHAR(c.created_at, 'YYYY-MM') = %s"
-            comm_params.append(month)
+            comm_where = """(
+                (c.transaction_id < 0 AND TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s)
+                OR
+                (c.transaction_id > 0 AND TO_CHAR(s.date_entered, 'YYYY-MM') = %s)
+            )"""
+            comm_params.extend([month, month])
             kh_where = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s"
             kh_params.append(month)
             svc_where = "TO_CHAR(s.date_entered, 'YYYY-MM') = %s"
             svc_params.append(month)
         elif date_from and date_to:
-            comm_where = "DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
-            comm_params.extend([date_from, date_to])
+            comm_where = """(
+                (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s)
+                OR
+                (c.transaction_id > 0 AND DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s)
+            )"""
+            comm_params.extend([date_from, date_to, date_from, date_to])
             kh_where = "DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s"
             kh_params.extend([date_from, date_to])
             svc_where = "DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s"
             svc_params.extend([date_from, date_to])
         elif date_from:
-            comm_where = "DATE(c.created_at) >= %s"
-            comm_params.append(date_from)
+            comm_where = """(
+                (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) >= %s)
+                OR
+                (c.transaction_id > 0 AND DATE(s.date_entered) >= %s)
+            )"""
+            comm_params.extend([date_from, date_from])
             kh_where = "DATE(kh.ngay_hen_lam) >= %s"
             kh_params.append(date_from)
             svc_where = "DATE(s.date_entered) >= %s"
             svc_params.append(date_from)
         elif date_to:
-            comm_where = "DATE(c.created_at) <= %s"
-            comm_params.append(date_to)
+            comm_where = """(
+                (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) <= %s)
+                OR
+                (c.transaction_id > 0 AND DATE(s.date_entered) <= %s)
+            )"""
+            comm_params.extend([date_to, date_to])
             kh_where = "DATE(kh.ngay_hen_lam) <= %s"
             kh_params.append(date_to)
             svc_where = "DATE(s.date_entered) <= %s"
             svc_params.append(date_to)
         else:
-            comm_where = "TO_CHAR(c.created_at, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
+            comm_where = """(
+                (c.transaction_id < 0 AND TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM'))
+                OR
+                (c.transaction_id > 0 AND TO_CHAR(s.date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM'))
+            )"""
             kh_where = "TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
             svc_where = "TO_CHAR(s.date_entered, 'YYYY-MM') = TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM')"
         
         # Get commissions data
         comm_query = """
-            SELECT 
+            SELECT
                 c.ctv_code,
                 SUM(c.transaction_amount) as total_service_price,
                 SUM(c.commission_amount) as total_commission,
                 COUNT(*) as commission_count
             FROM commissions c
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
             WHERE """ + comm_where + """
             GROUP BY c.ctv_code
         """
@@ -268,14 +305,14 @@ def list_commissions_summary():
         
         # Get services from khach_hang table
         kh_query = """
-            SELECT 
+            SELECT
                 kh.nguoi_chot as ctv_code,
                 COUNT(*) as service_count,
                 SUM(kh.tong_tien) as total_revenue
             FROM khach_hang kh
-            WHERE kh.nguoi_chot IS NOT NULL 
+            WHERE kh.nguoi_chot IS NOT NULL
             AND kh.nguoi_chot != ''
-            AND kh.trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
             AND """ + kh_where + """
             GROUP BY kh.nguoi_chot
         """

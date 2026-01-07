@@ -248,7 +248,7 @@ def recalculate_all_commissions(connection=None, batch_size=100):
             WHERE nguoi_chot IS NOT NULL 
             AND nguoi_chot != ''
             AND tong_tien > 0
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
         """)
         kh_records = cursor.fetchall()
         
@@ -309,7 +309,7 @@ def calculate_missing_commissions(connection=None):
             WHERE kh.nguoi_chot IS NOT NULL 
             AND kh.nguoi_chot != ''
             AND kh.tong_tien > 0
-            AND kh.trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
             AND c.id IS NULL
         """)
         kh_missing = cursor.fetchall()
@@ -380,7 +380,7 @@ def calculate_new_commissions_fast(connection=None):
             JOIN ctv c ON LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
             WHERE kh.id > %s
             AND kh.tong_tien > 0
-            AND kh.trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
             ORDER BY kh.id ASC
         """, (max_kh_id,))
         new_kh = cursor.fetchall()

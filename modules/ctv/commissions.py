@@ -24,7 +24,7 @@ def get_my_commissions():
         to_date = request.args.get('to_date')
         
         query = """
-            SELECT 
+            SELECT
                 c.id,
                 c.transaction_id,
                 c.level,
@@ -32,30 +32,61 @@ def get_my_commissions():
                 c.transaction_amount,
                 c.commission_amount,
                 c.created_at,
-                s.nguoi_chot as source_ctv_code,
-                s.service_name,
-                ctv_source.ten as source_ctv_name,
-                cust.name as customer_name
+                CASE
+                    WHEN c.transaction_id < 0 THEN kh.nguoi_chot
+                    ELSE s.nguoi_chot
+                END as source_ctv_code,
+                CASE
+                    WHEN c.transaction_id < 0 THEN kh.dich_vu
+                    ELSE s.service_name
+                END as service_name,
+                CASE
+                    WHEN c.transaction_id < 0 THEN ctv_kh.ten
+                    ELSE ctv_s.ten
+                END as source_ctv_name,
+                CASE
+                    WHEN c.transaction_id < 0 THEN kh.ten_khach
+                    ELSE cust.name
+                END as customer_name,
+                CASE
+                    WHEN c.transaction_id < 0 THEN kh.ngay_hen_lam
+                    ELSE s.date_entered
+                END as transaction_date
             FROM commissions c
-            LEFT JOIN services s ON c.transaction_id = s.id
-            LEFT JOIN ctv ctv_source ON s.nguoi_chot = ctv_source.ma_ctv
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
+            LEFT JOIN ctv ctv_kh ON kh.nguoi_chot = ctv_kh.ma_ctv
+            LEFT JOIN ctv ctv_s ON s.nguoi_chot = ctv_s.ma_ctv
             LEFT JOIN customers cust ON s.customer_id = cust.id
             WHERE c.ctv_code = %s
         """
         params = [ctv['ma_ctv']]
         
         if from_date and to_date:
-            query += " AND DATE(c.created_at) >= %s AND DATE(c.created_at) <= %s"
-            params.extend([from_date, to_date])
+            query += """ AND (
+                (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s)
+                OR
+                (c.transaction_id > 0 AND DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s)
+            )"""
+            params.extend([from_date, to_date, from_date, to_date])
         elif month:
-            query += " AND TO_CHAR(c.created_at, 'YYYY-MM') = %s"
-            params.append(month)
+            query += """ AND (
+                (c.transaction_id < 0 AND TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s)
+                OR
+                (c.transaction_id > 0 AND TO_CHAR(s.date_entered, 'YYYY-MM') = %s)
+            )"""
+            params.extend([month, month])
         
         if level is not None and level != '':
             query += " AND c.level = %s"
             params.append(int(level))
         
-        query += " ORDER BY c.created_at DESC LIMIT 100"
+        query += """ ORDER BY (
+            CASE
+                WHEN c.transaction_id < 0 THEN kh.ngay_hen_lam
+                ELSE s.date_entered
+            END
+        ) DESC LIMIT 100"""
         
         cursor.execute(query, params)
         commissions = [dict(row) for row in cursor.fetchall()]
@@ -66,29 +97,41 @@ def get_my_commissions():
             c['commission_amount'] = float(c['commission_amount'])
             if c.get('created_at'):
                 c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            if c.get('transaction_date'):
+                c['transaction_date'] = str(c['transaction_date'])
             c['source_ctv_name'] = c.get('source_ctv_name') or c.get('source_ctv_code') or 'N/A'
             c['source_ctv_code'] = c.get('source_ctv_code') or 'N/A'
             c['customer_name'] = c.get('customer_name') or 'N/A'
             c['service_name'] = c.get('service_name') or 'N/A'
         
         summary_query = """
-            SELECT 
-                level,
+            SELECT
+                c.level,
                 COUNT(*) as count,
-                SUM(commission_amount) as total
-            FROM commissions
-            WHERE ctv_code = %s
+                SUM(c.commission_amount) as total
+            FROM commissions c
+            LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+            LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
+            WHERE c.ctv_code = %s
         """
         summary_params = [ctv['ma_ctv']]
         
         if from_date and to_date:
-            summary_query += " AND DATE(created_at) >= %s AND DATE(created_at) <= %s"
-            summary_params.extend([from_date, to_date])
+            summary_query += """ AND (
+                (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s)
+                OR
+                (c.transaction_id > 0 AND DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s)
+            )"""
+            summary_params.extend([from_date, to_date, from_date, to_date])
         elif month:
-            summary_query += " AND TO_CHAR(created_at, 'YYYY-MM') = %s"
-            summary_params.append(month)
+            summary_query += """ AND (
+                (c.transaction_id < 0 AND TO_CHAR(kh.ngay_hen_lam, 'YYYY-MM') = %s)
+                OR
+                (c.transaction_id > 0 AND TO_CHAR(s.date_entered, 'YYYY-MM') = %s)
+            )"""
+            summary_params.extend([month, month])
         
-        summary_query += " GROUP BY level ORDER BY level"
+        summary_query += " GROUP BY c.level ORDER BY c.level"
         
         cursor.execute(summary_query, summary_params)
         summary = [dict(row) for row in cursor.fetchall()]

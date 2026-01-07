@@ -8,7 +8,11 @@ from ..db_pool import get_db_connection, return_db_connection
 @ctv_bp.route('/api/ctv/clients-with-services', methods=['GET'])
 @require_ctv
 def get_ctv_clients_with_services():
-    """Get clients with their services grouped - filtered by CTV"""
+    """Get clients with their services grouped - filtered by CTV (closer)
+    
+    This includes both khach_hang (Beauty) and services (Dental) tables,
+    using nguoi_chot as the closer for both.
+    """
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -21,28 +25,48 @@ def get_ctv_clients_with_services():
         search = request.args.get('search', '').strip()
         limit = request.args.get('limit', 50, type=int)
         
+        # Get distinct clients from BOTH khach_hang and services where CTV is the closer
         client_query = """
             SELECT 
                 sdt,
                 ten_khach,
                 MIN(co_so) as co_so,
-                MIN(ngay_nhap_don) as first_visit_date,
-                nguoi_chot,
+                MIN(first_date) as first_visit_date,
                 COUNT(*) as service_count
-            FROM khach_hang
-            WHERE nguoi_chot = %s
-            AND sdt IS NOT NULL AND sdt != ''
+            FROM (
+                SELECT 
+                    sdt,
+                    ten_khach,
+                    co_so,
+                    ngay_nhap_don as first_date
+                FROM khach_hang
+                WHERE nguoi_chot = %s
+                AND sdt IS NOT NULL AND sdt != ''
+                
+                UNION ALL
+                
+                SELECT 
+                    c.phone as sdt,
+                    c.name as ten_khach,
+                    NULL as co_so,
+                    s.date_entered as first_date
+                FROM services s
+                JOIN customers c ON s.customer_id = c.id
+                WHERE COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                AND c.phone IS NOT NULL AND c.phone != ''
+            ) AS all_services
+            WHERE sdt IS NOT NULL AND sdt != ''
         """
-        params = [ctv['ma_ctv']]
+        params = [ctv['ma_ctv'], ctv['ma_ctv']]
         
         if search:
             client_query += " AND (ten_khach ILIKE %s OR sdt ILIKE %s)"
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
-        client_query += f"""
-            GROUP BY sdt, ten_khach, nguoi_chot
-            ORDER BY MAX(ngay_nhap_don) DESC
+        client_query += """
+            GROUP BY sdt, ten_khach
+            ORDER BY MAX(first_date) DESC
             LIMIT %s
         """
         params.append(limit)
@@ -55,6 +79,7 @@ def get_ctv_clients_with_services():
             sdt = client_row['sdt']
             ten_khach = client_row['ten_khach']
             
+            # Get services from BOTH tables for this client where CTV is the closer
             cursor.execute("""
                 SELECT 
                     id,
@@ -65,12 +90,43 @@ def get_ctv_clients_with_services():
                     ngay_hen_lam,
                     ngay_nhap_don,
                     trang_thai,
-                    nguoi_chot
-                FROM khach_hang
-                WHERE sdt = %s AND ten_khach = %s AND nguoi_chot = %s
+                    nguoi_chot,
+                    source_type
+                FROM (
+                    SELECT 
+                        id,
+                        dich_vu,
+                        tong_tien,
+                        tien_coc,
+                        phai_dong,
+                        ngay_hen_lam,
+                        ngay_nhap_don,
+                        trang_thai,
+                        nguoi_chot,
+                        'tham_my' as source_type
+                    FROM khach_hang
+                    WHERE sdt = %s AND nguoi_chot = %s
+                    
+                    UNION ALL
+                    
+                    SELECT 
+                        s.id,
+                        s.service_name as dich_vu,
+                        s.tong_tien,
+                        0 as tien_coc,
+                        s.tong_tien as phai_dong,
+                        s.date_scheduled as ngay_hen_lam,
+                        s.date_entered as ngay_nhap_don,
+                        s.status as trang_thai,
+                        COALESCE(s.nguoi_chot, s.ctv_code) as nguoi_chot,
+                        'nha_khoa' as source_type
+                    FROM services s
+                    JOIN customers c ON s.customer_id = c.id
+                    WHERE c.phone = %s AND COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                ) AS all_svc
                 ORDER BY ngay_nhap_don DESC
-                LIMIT 3
-            """, (sdt, ten_khach, ctv['ma_ctv']))
+                LIMIT 5
+            """, (sdt, ctv['ma_ctv'], sdt, ctv['ma_ctv']))
             
             services_raw = [dict(row) for row in cursor.fetchall()]
             
@@ -92,7 +148,8 @@ def get_ctv_clients_with_services():
                     'ngay_nhap_don': svc['ngay_nhap_don'].strftime('%d/%m/%Y') if svc['ngay_nhap_don'] else None,
                     'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
                     'trang_thai': svc['trang_thai'] or '',
-                    'deposit_status': deposit_status
+                    'deposit_status': deposit_status,
+                    'source_type': svc.get('source_type', 'tham_my')
                 })
             
             overall_status = services[0]['trang_thai'] if services else ''
@@ -104,14 +161,13 @@ def get_ctv_clients_with_services():
             referrer_ctv_code = None
             client_level = None
             
-            if client_row['nguoi_chot']:
-                cursor.execute("""
-                    SELECT nguoi_gioi_thieu, cap_bac FROM ctv WHERE ma_ctv = %s
-                """, (client_row['nguoi_chot'],))
-                ctv_info = cursor.fetchone()
-                if ctv_info:
-                    referrer_ctv_code = ctv_info.get('nguoi_gioi_thieu')
-                    client_level = ctv_info.get('cap_bac') or 'Cong tac vien'
+            cursor.execute("""
+                SELECT nguoi_gioi_thieu, cap_bac FROM ctv WHERE ma_ctv = %s
+            """, (ctv['ma_ctv'],))
+            ctv_info = cursor.fetchone()
+            if ctv_info:
+                referrer_ctv_code = ctv_info.get('nguoi_gioi_thieu')
+                client_level = ctv_info.get('cap_bac') or 'Cong tac vien'
             
             email = ''
             try:
@@ -130,7 +186,7 @@ def get_ctv_clients_with_services():
                 'email': email,
                 'co_so': client_row['co_so'] or '',
                 'first_visit_date': first_visit_str,
-                'nguoi_chot': client_row['nguoi_chot'] or '',
+                'nguoi_chot': ctv['ma_ctv'],
                 'referrer_ctv_code': referrer_ctv_code or '',
                 'level': client_level or 'Cong tac vien',
                 'service_count': client_row['service_count'],

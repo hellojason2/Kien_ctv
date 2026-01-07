@@ -85,7 +85,7 @@ def get_stats():
                 SELECT COUNT(*) as count
                 FROM khach_hang
                 WHERE {kh_date_cond}
-                AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
             """)
             kh_transactions = cursor.fetchone()['count']
         except Error:
@@ -136,7 +136,7 @@ def get_stats():
                     SELECT COALESCE(SUM(tong_tien), 0) as total
                     FROM khach_hang
                     WHERE {kh_date_cond}
-                    AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                    AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
                 """)
                 kh_revenue = float(cursor.fetchone()['total'] or 0)
             except Error:
@@ -260,7 +260,7 @@ def get_date_ranges_with_data():
             query_kh = """
                 SELECT COUNT(*) as count
                 FROM khach_hang
-                WHERE trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                WHERE (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
                 AND ngay_hen_lam >= %s
                 AND ngay_hen_lam <= %s
             """
@@ -278,11 +278,16 @@ def get_date_ranges_with_data():
 
             query_comm = """
                 SELECT COUNT(*) as count
-                FROM commissions
-                WHERE DATE(created_at) >= %s
-                AND DATE(created_at) <= %s
+                FROM commissions c
+                LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
+                LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
+                WHERE (
+                    (c.transaction_id < 0 AND DATE(kh.ngay_hen_lam) >= %s AND DATE(kh.ngay_hen_lam) <= %s)
+                    OR
+                    (c.transaction_id > 0 AND DATE(s.date_entered) >= %s AND DATE(s.date_entered) <= %s)
+                )
             """
-            cursor.execute(query_comm, [from_date, to_date])
+            cursor.execute(query_comm, [from_date, to_date, from_date, to_date])
             comm_count = cursor.fetchone()['count']
 
             ranges_with_data[preset] = (kh_count > 0) or (svc_count > 0) or (comm_count > 0)

@@ -373,7 +373,14 @@ function showRecentCommissionsLoading() {
  * Hide loading state on recent commissions card
  */
 function hideRecentCommissionsLoading() {
-    // Loading is hidden when data is rendered
+    // Check if the container still has the skeleton loader
+    const container = document.getElementById('recentCommissions');
+    if (container && container.querySelector('.skeleton-loader')) {
+        // If it still has skeleton loaders, it means data load failed or hasn't replaced content yet
+        // We should clear it to avoid stuck loading state, but only if we're sure
+        // For now, let's just log it
+        console.log('Hiding recent commissions loading state');
+    }
 }
 
 // Load Recent Commissions (Dashboard) with optional date filter

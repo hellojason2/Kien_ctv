@@ -33,11 +33,12 @@ def get_lifetime_stats():
         """, (ctv['ma_ctv'],))
         commission_stats = cursor.fetchone()
         
+        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
         cursor.execute("""
             SELECT COALESCE(SUM(tong_tien), 0) as total_revenue,
                    COUNT(*) as total_transactions
             FROM services
-            WHERE ctv_code = %s
+            WHERE COALESCE(nguoi_chot, ctv_code) = %s
         """, (ctv['ma_ctv'],))
         svc_stats = cursor.fetchone()
         
@@ -65,11 +66,12 @@ def get_lifetime_stats():
         """, (ctv['ma_ctv'],))
         kh_service_stats = cursor.fetchone()
         
+        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
         cursor.execute("""
             SELECT COUNT(*) as total_services,
                    COALESCE(SUM(tong_tien), 0) as total_revenue
             FROM services
-            WHERE ctv_code = %s
+            WHERE COALESCE(nguoi_chot, ctv_code) = %s
         """, (ctv['ma_ctv'],))
         svc_service_stats = cursor.fetchone()
         
@@ -102,7 +104,7 @@ def get_lifetime_stats():
 @ctv_bp.route('/api/ctv/customers', methods=['GET'])
 @require_ctv
 def get_ctv_customers():
-    """Get all customers where nguoi_chot = logged-in CTV"""
+    """Get all service transactions where CTV is the closer (from both khach_hang and services)"""
     ctv = g.current_user
     
     connection = get_db_connection()
@@ -110,76 +112,131 @@ def get_ctv_customers():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        # REMOVED calculate_new_commissions_fast(connection=connection)
-        
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        query = """
-            SELECT 
-                kh.id,
-                kh.ngay_nhap_don,
-                kh.ten_khach,
-                kh.sdt,
-                kh.co_so,
-                kh.ngay_hen_lam,
-                kh.gio,
-                kh.dich_vu,
-                kh.tong_tien,
-                kh.tien_coc,
-                kh.phai_dong,
-                kh.nguoi_chot,
-                kh.ghi_chu,
-                kh.trang_thai,
-                kh.created_at,
-                COALESCE(c.commission_amount, 0) as commission_amount
-            FROM khach_hang kh
-            LEFT JOIN commissions c ON c.transaction_id = -ABS(kh.id) AND c.ctv_code = %s AND c.level = 0
-            WHERE kh.nguoi_chot = %s
-        """
-        params = [ctv['ma_ctv'], ctv['ma_ctv']]
-        
         status = request.args.get('status')
-        if status:
-            query += " AND kh.trang_thai = %s"
-            params.append(status)
-        
         from_date = request.args.get('from')
         to_date = request.args.get('to')
         
+        # Build date filters
+        date_filter_kh = ""
+        date_filter_svc = ""
+        params_kh = [ctv['ma_ctv'], ctv['ma_ctv']]
+        params_svc = [ctv['ma_ctv']]
+        
+        if status:
+            date_filter_kh += " AND kh.trang_thai = %s"
+            params_kh.append(status)
+            # services table might not have the same status values
+        
         if from_date:
-            query += " AND kh.ngay_hen_lam >= %s"
-            params.append(from_date)
+            date_filter_kh += " AND kh.ngay_hen_lam >= %s"
+            date_filter_svc += " AND s.date_entered >= %s"
+            params_kh.append(from_date)
+            params_svc.append(from_date)
         
         if to_date:
-            query += " AND kh.ngay_hen_lam <= %s"
-            params.append(to_date)
+            date_filter_kh += " AND kh.ngay_hen_lam <= %s"
+            date_filter_svc += " AND s.date_entered <= %s"
+            params_kh.append(to_date)
+            params_svc.append(to_date)
         
-        query += " ORDER BY kh.ngay_hen_lam DESC, kh.id DESC LIMIT 100"
+        # UNION query combining both tables
+        query = f"""
+            SELECT * FROM (
+                SELECT 
+                    kh.id,
+                    kh.ngay_nhap_don,
+                    kh.ten_khach,
+                    kh.sdt,
+                    kh.co_so,
+                    kh.ngay_hen_lam,
+                    kh.gio,
+                    kh.dich_vu,
+                    kh.tong_tien,
+                    kh.tien_coc,
+                    kh.phai_dong,
+                    kh.nguoi_chot,
+                    kh.ghi_chu,
+                    kh.trang_thai,
+                    kh.created_at,
+                    COALESCE(c.commission_amount, 0) as commission_amount,
+                    'tham_my' as source_type
+                FROM khach_hang kh
+                LEFT JOIN commissions c ON c.transaction_id = -ABS(kh.id) AND c.ctv_code = %s AND c.level = 0
+                WHERE kh.nguoi_chot = %s
+                {date_filter_kh}
+                
+                UNION ALL
+                
+                SELECT 
+                    s.id,
+                    s.date_entered as ngay_nhap_don,
+                    cust.name as ten_khach,
+                    cust.phone as sdt,
+                    NULL as co_so,
+                    s.date_scheduled as ngay_hen_lam,
+                    NULL as gio,
+                    s.service_name as dich_vu,
+                    s.tong_tien,
+                    0 as tien_coc,
+                    s.tong_tien as phai_dong,
+                    COALESCE(s.nguoi_chot, s.ctv_code) as nguoi_chot,
+                    NULL as ghi_chu,
+                    s.status as trang_thai,
+                    s.created_at,
+                    COALESCE(c.commission_amount, 0) as commission_amount,
+                    'nha_khoa' as source_type
+                FROM services s
+                LEFT JOIN customers cust ON s.customer_id = cust.id
+                LEFT JOIN commissions c ON c.transaction_id = s.id AND c.ctv_code = COALESCE(s.nguoi_chot, s.ctv_code) AND c.level = 0
+                WHERE COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                {date_filter_svc}
+            ) AS all_transactions
+            ORDER BY ngay_hen_lam DESC, id DESC
+            LIMIT 100
+        """
         
-        cursor.execute(query, params)
+        cursor.execute(query, params_kh + params_svc)
         customers = [dict(row) for row in cursor.fetchall()]
         
         for c in customers:
             if c.get('ngay_nhap_don'):
-                c['ngay_nhap_don'] = c['ngay_nhap_don'].strftime('%Y-%m-%d')
+                c['ngay_nhap_don'] = c['ngay_nhap_don'].strftime('%Y-%m-%d') if hasattr(c['ngay_nhap_don'], 'strftime') else str(c['ngay_nhap_don'])
             if c.get('ngay_hen_lam'):
-                c['ngay_hen_lam'] = c['ngay_hen_lam'].strftime('%Y-%m-%d')
+                c['ngay_hen_lam'] = c['ngay_hen_lam'].strftime('%Y-%m-%d') if hasattr(c['ngay_hen_lam'], 'strftime') else str(c['ngay_hen_lam'])
             if c.get('created_at'):
-                c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+                c['created_at'] = c['created_at'].strftime('%Y-%m-%d %H:%M:%S') if hasattr(c['created_at'], 'strftime') else str(c['created_at'])
             c['tong_tien'] = float(c['tong_tien'] or 0)
             c['tien_coc'] = float(c['tien_coc'] or 0)
             c['phai_dong'] = float(c['phai_dong'] or 0)
             c['commission_amount'] = float(c.get('commission_amount') or 0)
         
+        # Summary from both tables
         cursor.execute("""
             SELECT 
-                COUNT(*) as total_count,
-                SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc') THEN 1 ELSE 0 END) as completed_count,
-                SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc') THEN tong_tien ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN trang_thai IN ('Da coc') THEN 1 ELSE 0 END) as pending_count
-            FROM khach_hang
-            WHERE nguoi_chot = %s
-        """, (ctv['ma_ctv'],))
+                COALESCE(kh.total_count, 0) + COALESCE(svc.total_count, 0) as total_count,
+                COALESCE(kh.completed_count, 0) + COALESCE(svc.completed_count, 0) as completed_count,
+                COALESCE(kh.total_revenue, 0) + COALESCE(svc.total_revenue, 0) as total_revenue,
+                COALESCE(kh.pending_count, 0) as pending_count
+            FROM (
+                SELECT 
+                    COUNT(*) as total_count,
+                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc') THEN 1 ELSE 0 END) as completed_count,
+                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc') THEN tong_tien ELSE 0 END) as total_revenue,
+                    SUM(CASE WHEN trang_thai IN ('Da coc', 'Đã cọc') THEN 1 ELSE 0 END) as pending_count
+                FROM khach_hang
+                WHERE nguoi_chot = %s
+            ) kh,
+            (
+                SELECT 
+                    COUNT(*) as total_count,
+                    COUNT(*) as completed_count,
+                    SUM(tong_tien) as total_revenue
+                FROM services
+                WHERE COALESCE(nguoi_chot, ctv_code) = %s
+            ) svc
+        """, (ctv['ma_ctv'], ctv['ma_ctv']))
         
         summary = cursor.fetchone()
         
@@ -313,12 +370,13 @@ def get_ctv_commission():
         cursor.execute(level0_query_kh, level0_params_kh)
         level0_kh = cursor.fetchone()
         
+        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
         level0_query_svc = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM services
-            WHERE ctv_code = %s
+            WHERE COALESCE(nguoi_chot, ctv_code) = %s
         """
         level0_params_svc = [ctv['ma_ctv']]
         
@@ -349,16 +407,34 @@ def get_ctv_commission():
         }]
         
         if my_network_excluding_self:
-            # Get common cursor for all level calculations
-            level_cursor = connection.cursor(cursor_factory=RealDictCursor)
+            # OPTIMIZED: Get descendants with levels in ONE query
+            cursor.execute("""
+                WITH RECURSIVE network AS (
+                    SELECT ma_ctv, 0 as level 
+                    FROM ctv 
+                    WHERE ma_ctv = %s
+                    
+                    UNION ALL
+                    
+                    SELECT c.ma_ctv, n.level + 1
+                    FROM ctv c
+                    JOIN network n ON c.nguoi_gioi_thieu = n.ma_ctv
+                    WHERE n.level < 4
+                )
+                SELECT ma_ctv, level FROM network WHERE level > 0
+            """, (ctv['ma_ctv'],))
+            
+            network_with_levels = cursor.fetchall()
+            
+            # Group by level
+            ctvs_by_level = {1: [], 2: [], 3: [], 4: []}
+            for row in network_with_levels:
+                lvl = row['level']
+                if lvl in ctvs_by_level:
+                    ctvs_by_level[lvl].append(row['ma_ctv'])
             
             for level in range(1, 5):
-                level_ctv_list = []
-                
-                for descendant_code in my_network_excluding_self:
-                    desc_level = calculate_level_simple_v2(ctv['ma_ctv'], descendant_code, level_cursor)
-                    if desc_level == level:
-                        level_ctv_list.append(descendant_code)
+                level_ctv_list = ctvs_by_level.get(level, [])
                 
                 if level_ctv_list:
                     placeholders = ','.join(['%s'] * len(level_ctv_list))
@@ -383,12 +459,13 @@ def get_ctv_commission():
                     cursor.execute(level_query_kh, level_params_kh)
                     level_data_kh = cursor.fetchone()
                     
+                    # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
                     level_query_svc = f"""
                         SELECT 
                             COALESCE(SUM(tong_tien), 0) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM services
-                        WHERE ctv_code IN ({placeholders})
+                        WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
                     """
                     level_params_svc = list(level_ctv_list)
                     
@@ -414,7 +491,6 @@ def get_ctv_commission():
                         'rate': commission_rates.get(level, 0) * 100,
                         'commission': level_commission
                     })
-            level_cursor.close()
         
         total_commission = sum(lc['commission'] for lc in level_commissions)
         total_transactions = sum(lc['transaction_count'] for lc in level_commissions)
@@ -493,10 +569,11 @@ def get_date_ranges_with_data():
             cursor.execute(query_kh, all_ctvs + [from_date, to_date])
             kh_count = cursor.fetchone()['count']
 
+            # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
             query_svc = f"""
                 SELECT COUNT(*) as count
                 FROM services
-                WHERE ctv_code IN ({placeholders})
+                WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
                 AND date_entered >= %s
                 AND date_entered <= %s
             """

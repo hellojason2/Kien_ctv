@@ -145,11 +145,186 @@ function selectCTV(ctvCode) {
     
     selectedCTV = ctvCode;
     
-    // Highlight in raw data (RIGHT SIDE)
-    highlightInRawData(ctvCode);
+    // Update Right Panel UI
+    document.getElementById('raw-database-view').style.display = 'none';
+    document.getElementById('selected-ctv-view').style.display = 'block';
+    document.getElementById('right-panel-actions').style.display = 'flex';
+    document.getElementById('right-panel-hint').style.display = 'none';
     
-    // Show detail modal
-    showCTVDetail(ctvCode);
+    // Clear date filters
+    document.getElementById('rp-start-date').value = '';
+    document.getElementById('rp-end-date').value = '';
+    
+    // Show detail in Right Panel
+    loadCTVRightPanel(ctvCode);
+}
+
+/**
+ * Switch back to Raw Database view
+ */
+function showRawDatabase() {
+    document.getElementById('raw-database-view').style.display = 'block';
+    document.getElementById('selected-ctv-view').style.display = 'none';
+    document.getElementById('right-panel-actions').style.display = 'none';
+    document.getElementById('right-panel-hint').style.display = 'inline';
+    document.getElementById('right-panel-title').textContent = 'Raw Database';
+    
+    // Clear selection in tree
+    document.querySelectorAll('.tree-node.selected').forEach(el => {
+        el.classList.remove('selected');
+    });
+    selectedCTV = null;
+}
+
+/**
+ * Filter Right Panel by Date Range
+ */
+function filterRightPanelDate() {
+    if (!selectedCTV) return;
+    const startDate = document.getElementById('rp-start-date').value;
+    const endDate = document.getElementById('rp-end-date').value;
+    loadCTVRightPanel(selectedCTV, startDate, endDate);
+}
+
+/**
+ * Load CTV Detail into Right Panel - Shows entire hierarchy breakdown
+ */
+async function loadCTVRightPanel(ctvCode, startDate = null, endDate = null) {
+    const container = document.getElementById('ctv-detail-content');
+    const title = document.getElementById('right-panel-title');
+    
+    container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading...</div>';
+    
+    try {
+        let url = `/api/admin/debug/ctv-detail/${ctvCode}`;
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.error) {
+            container.innerHTML = `<div style="color: red; padding: 20px;">Error: ${data.error}</div>`;
+            return;
+        }
+
+        title.textContent = `Network: ${data.ctv.ten}`;
+
+        // Build the hierarchical breakdown HTML
+        let breakdownHTML = '';
+        
+        if (data.breakdown && data.breakdown.length > 0) {
+            breakdownHTML = data.breakdown.map(group => {
+                const levelLabel = group.closer_level === 0 ? 'Personal (L0)' : `Level ${group.closer_level}`;
+                const levelColor = getLevelColor(group.closer_level);
+                
+                return `
+                    <div class="data-section" style="margin-bottom: 20px; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+                        <div style="background: ${levelColor.bg}; padding: 12px 16px; border-bottom: 1px solid ${levelColor.border};">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: ${levelColor.badge}; color: ${levelColor.text}; margin-right: 8px;">${levelLabel}</span>
+                                    <strong style="color: #1a1a1a;">${group.closer_name || group.closer_code}</strong>
+                                    <span style="color: #6b7280; font-size: 12px; margin-left: 8px;">(${group.closer_code})</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px; color: #6b7280;">${group.count} transactions</div>
+                                    <div style="font-weight: 600; color: #4a7c23;">${formatMoney(group.total_revenue)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <table class="debug-table" style="border: none; border-radius: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Service</th>
+                                    <th style="text-align: right;">Revenue</th>
+                                    <th>Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${group.transactions.map(t => `
+                                    <tr>
+                                        <td>${t.transaction_date || '-'}</td>
+                                        <td>${t.ho_ten || '-'}</td>
+                                        <td>${t.dich_vu || '-'}</td>
+                                        <td class="money">${formatMoney(t.tong_tien)}</td>
+                                        <td><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: ${t.source_type === 'nha_khoa' ? '#dbeafe' : '#dcfce7'}; color: ${t.source_type === 'nha_khoa' ? '#1e40af' : '#166534'};">${t.source_type === 'nha_khoa' ? 'Dental' : 'Beauty'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            breakdownHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No transactions found in this network</div>';
+        }
+
+        // Render full page
+        container.innerHTML = `
+            <div class="data-section" style="margin-bottom: 24px;">
+                <h3>Network Summary</h3>
+                <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="summary-card">
+                        <div class="value">${data.summary.total_transactions || 0}</div>
+                        <div class="label">Total Transactions</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${formatMoney(data.summary.total_revenue || 0)}</div>
+                        <div class="label">Total Revenue</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${formatMoney(data.summary.personal_revenue || 0)}</div>
+                        <div class="label">Personal Revenue</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${formatMoney(data.summary.network_revenue || 0)}</div>
+                        <div class="label">Network Revenue</div>
+                    </div>
+                </div>
+                <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 12px;">
+                    <div class="summary-card">
+                        <div class="value">${data.summary.network_size || 0}</div>
+                        <div class="label">Network Size (Downline CTVs)</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value" style="color: #ca8a04;">${formatMoney(data.summary.total_commission || 0)}</div>
+                        <div class="label">Commission Earned</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h3 style="margin-bottom: 16px;">Hierarchy Breakdown (By Closer)</h3>
+                ${breakdownHTML}
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading CTV detail:', error);
+        container.innerHTML = `<div style="color: red; padding: 20px;">Error: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Get colors for different hierarchy levels
+ */
+function getLevelColor(level) {
+    const colors = {
+        0: { bg: '#f0fdf4', border: '#bbf7d0', badge: '#dcfce7', text: '#166534' },
+        1: { bg: '#fefce8', border: '#fef08a', badge: '#fef9c3', text: '#854d0e' },
+        2: { bg: '#fef2f2', border: '#fecaca', badge: '#fee2e2', text: '#991b1b' },
+        3: { bg: '#f5f3ff', border: '#ddd6fe', badge: '#f3e8ff', text: '#7c3aed' },
+        4: { bg: '#f9fafb', border: '#e5e7eb', badge: '#f3f4f6', text: '#6b7280' }
+    };
+    return colors[level] || colors[4];
 }
 
 /**
@@ -329,11 +504,32 @@ function renderCommissionsTable() {
 }
 
 /**
+ * Filter CTV detail by date
+ */
+function filterCTVDetail() {
+    if (!selectedCTV) return;
+    
+    const startDate = document.getElementById('filter-start-date').value;
+    const endDate = document.getElementById('filter-end-date').value;
+    
+    showCTVDetail(selectedCTV, startDate, endDate);
+}
+
+/**
  * Show CTV detail modal
  */
-async function showCTVDetail(ctvCode) {
+async function showCTVDetail(ctvCode, startDate = null, endDate = null) {
     try {
-        const response = await fetch(`/api/admin/debug/ctv-detail/${ctvCode}`);
+        let url = `/api/admin/debug/ctv-detail/${ctvCode}`;
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.error) {
@@ -358,20 +554,26 @@ async function showCTVDetail(ctvCode) {
                 </div>
                 <div class="summary-card">
                     <div class="value">${formatMoney(data.summary.total_revenue)}</div>
-                    <div class="label">Revenue</div>
+                    <div class="label">Direct Revenue</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${formatMoney(data.summary.total_network_revenue)}</div>
+                    <div class="label">Network Revenue</div>
                 </div>
                 <div class="summary-card">
                     <div class="value">${formatMoney(data.summary.total_commission)}</div>
                     <div class="label">Commission</div>
                 </div>
-                <div class="summary-card">
-                    <div class="value">${data.summary.downline_count}</div>
-                    <div class="label">Downline</div>
-                </div>
             </div>
             
             <div class="modal-section">
-                <h3>Commission Breakdown (Click for Client Info)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3>Commission Breakdown</h3>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">
+                        <strong>Commission:</strong> Stored in DB (Historical) |
+                        <strong>Expected:</strong> Source Amount × Current Rate (Theoretical)
+                    </div>
+                </div>
                 <table class="debug-table">
                     <thead>
                         <tr>
@@ -388,14 +590,14 @@ async function showCTVDetail(ctvCode) {
                             const rate = rawData.rates.find(r => r.level === c.level)?.rate || 0;
                             const expected = (c.source_amount || 0) * rate;
                             const actual = c.commission_amount || 0;
-                            const match = Math.abs(expected - actual) < 1;
+                            const match = Math.abs(expected - actual) < 100; // Allow small rounding diff
                             return `
                                 <tr onclick="showClientInfo(${index})" style="cursor: pointer;" title="Click to view client details">
                                     <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
                                     <td>${c.source_name || '-'}</td>
                                     <td class="money">${formatMoney(c.source_amount)}</td>
                                     <td class="money">${formatMoney(actual)}</td>
-                                    <td class="money">${formatMoney(expected)}</td>
+                                    <td class="money" title="Rate: ${(rate * 100).toFixed(3)}%">${formatMoney(expected)}</td>
                                     <td class="${match ? 'match-yes' : 'match-no'}">${match ? 'YES' : 'NO'}</td>
                                 </tr>
                             `;

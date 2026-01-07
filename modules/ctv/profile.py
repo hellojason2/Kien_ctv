@@ -92,7 +92,7 @@ def get_profile():
             SELECT COALESCE(SUM(tong_tien), 0) as revenue
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
             AND ngay_hen_lam >= %s AND ngay_hen_lam < %s
         """, (ctv['ma_ctv'], start_date, end_date))
         kh_revenue = float(cursor.fetchone()['revenue'])
@@ -115,7 +115,7 @@ def get_profile():
             SELECT COALESCE(SUM(tong_tien), 0) as period_revenue
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
             AND ngay_hen_lam >= %s
             AND ngay_hen_lam < %s
         """, (ctv['ma_ctv'], start_date, end_date))
@@ -138,7 +138,7 @@ def get_profile():
             SELECT COUNT(*) as count
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
             AND ngay_hen_lam >= %s
             AND ngay_hen_lam < %s
         """, (ctv['ma_ctv'], start_date, end_date))
