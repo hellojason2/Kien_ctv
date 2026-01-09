@@ -1,12 +1,13 @@
 /**
  * CTV Portal - Page Specific Styles
  * Dashboard, Clients, Hierarchy, Commissions, Settings
+ * Modern Glassmorphism Design
  * 
- * Created: December 30, 2025
+ * Updated: January 2026
  */
 
 /* ═══════════════════════════════════════════════════════════════════
-   LANGUAGE TOGGLE
+   LANGUAGE TOGGLE - Modern Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .sidebar-lang {
@@ -20,22 +21,22 @@
 }
 
 .sidebar-lang .lang-current {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    color: #666;
+    color: var(--text-secondary);
     position: absolute;
     bottom: 4px;
     left: 50%;
     transform: translateX(-50%);
     pointer-events: none;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 1px 4px;
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2px 5px;
+    border-radius: 4px;
     line-height: 1;
 }
 
 .sidebar-lang.active .sidebar-icon {
-    background-color: #ebebeb;
+    background: rgba(79, 125, 243, 0.1);
 }
 
 .sidebar-lang .sidebar-icon svg {
@@ -47,9 +48,12 @@
     left: calc(100% + 12px) !important;
     top: 50% !important;
     transform: translateY(-50%) translateX(-8px) !important;
-    background: #ffffff !important;
-    border-radius: 12px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid var(--glass-border) !important;
     padding: 8px 0 !important;
     width: 320px !important;
     min-width: 320px !important;
@@ -69,7 +73,7 @@
     top: 50%;
     transform: translateY(-50%);
     border: 6px solid transparent;
-    border-right-color: #ffffff;
+    border-right-color: var(--glass-bg);
     z-index: 1101;
 }
 
@@ -81,8 +85,8 @@
 
 .lang-popup-title {
     font-size: 11px;
-    font-weight: 600;
-    color: #999;
+    font-weight: 700;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 8px 16px 6px;
@@ -95,11 +99,11 @@
     align-items: center !important;
     gap: 10px !important;
     padding: 10px 16px !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius-sm) !important;
     cursor: pointer !important;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
     font-size: 14px !important;
-    color: #333 !important;
+    color: var(--text-primary) !important;
     margin: 0 8px !important;
     overflow: visible !important;
     width: calc(100% - 16px) !important;
@@ -109,19 +113,19 @@
 }
 
 .lang-option:hover {
-    background: #f5f5f5;
+    background: rgba(79, 125, 243, 0.08);
 }
 
 .lang-option.active {
-    background: #1a1a1a;
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+    color: #ffffff !important;
 }
 
 .lang-option .lang-flag {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,6 +134,7 @@
     color: white;
     flex-shrink: 0;
     line-height: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .lang-option[data-lang="vi"] .lang-flag {
@@ -157,7 +162,7 @@
 .lang-option .lang-check {
     margin-left: auto;
     opacity: 0;
-    stroke: #666;
+    stroke: var(--text-secondary);
     flex-shrink: 0;
 }
 
@@ -178,31 +183,37 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    padding: 10px 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--glass-border);
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    color: #666;
-    transition: all 0.2s;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
 }
 
 .login-lang-btn:hover {
-    background: #f5f5f5;
-    color: #1a1a1a;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-blue);
 }
 
 .login-lang-popup {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--glass-border);
     padding: 8px;
-    min-width: 140px;
+    min-width: 160px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -216,7 +227,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   TABLE STYLES
+   TABLE STYLES - Modern Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .table-container {
@@ -230,29 +241,28 @@ table {
 
 th {
     text-align: left;
-    padding: 12px 16px;
+    padding: 8px 12px;
     font-size: 12px;
-    font-weight: 600;
-    color: #666666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #e0e0e0;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-    color: #1a1a1a;
+    padding: 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    vertical-align: middle;
 }
 
 tr:hover td {
-    background: #fafafa;
+    background: rgba(255, 255, 255, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   MODALS
+   MODALS - Modern Glass Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .modal-overlay {
@@ -261,7 +271,9 @@ tr:hover td {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -273,34 +285,57 @@ tr:hover td {
 }
 
 .modal {
-    background: #ffffff;
-    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .modal-header h3 {
     font-size: 18px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .modal-close {
     background: none;
     border: none;
-    color: #666666;
+    color: var(--text-muted);
     cursor: pointer;
     font-size: 24px;
+    transition: color 0.2s ease;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .modal-body {
@@ -309,42 +344,45 @@ tr:hover td {
 
 .modal-footer {
     padding: 20px 24px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   EMPTY STATE
+   EMPTY STATE - Modern Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
-    color: #666666;
+    padding: 60px 24px;
+    color: var(--text-secondary);
 }
 
 .empty-state svg {
     width: 64px;
     height: 64px;
     margin-bottom: 16px;
-    opacity: 0.5;
+    opacity: 0.4;
+    stroke: var(--text-muted);
 }
 
 .empty-state h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .empty-state p {
     font-size: 14px;
+    color: var(--text-secondary);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   PAGINATION
+   PAGINATION - Modern Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .pagination {
@@ -352,11 +390,12 @@ tr:hover td {
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .pagination-info {
-    color: #666666;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 

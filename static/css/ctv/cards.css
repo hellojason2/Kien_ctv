@@ -1,75 +1,111 @@
 /**
  * CTV Portal - Cards Styles
- * DOES: Styles for stat cards, commission cards, and card components
+ * Modern Glassmorphism Design
+ * 
+ * Updated: January 2026
  */
 
 /* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 20px;
     margin-bottom: 24px;
 }
 
-/* Stat Card */
+/* Stat Card - Reference Design */
 .stat-card {
-    background: #ffffff;
-    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
     padding: 20px 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
+    box-shadow: var(--glass-shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(31, 38, 135, 0.12);
+}
+
+/* Remove side accents to match reference clean look, or keep if preferred. Reference uses sparklines. */
 .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
+    display: none;
 }
-
-.stat-card.green::before { background: #22c55e; }
-.stat-card.blue::before { background: #3b82f6; }
-.stat-card.gold::before { background: #d97706; }
-.stat-card.pink::before { background: #ec4899; }
 
 .stat-card .label {
-    font-size: 13px;
-    color: #666666;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .stat-card .value {
-    font-size: 24px;
+    font-size: 32px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 8px;
 }
 
-/* Card Component */
+/* Trend indicator styles */
+.metric-trend {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.metric-trend span {
+    font-weight: 600;
+}
+
+.metric-trend .up {
+    color: var(--success);
+}
+
+.metric-trend .down {
+    color: var(--danger);
+}
+
+/* Card Component - Reference Design */
 .card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 0;
     margin-bottom: 24px;
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
 }
 
 .card-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent;
 }
 
 .card-header h3 {
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin: 0;
 }
 
 .card-body {
-    padding: 24px;
+    padding: 20px 24px;
 }
 
 /* Commission Item */
@@ -77,14 +113,23 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 0;
-    border-bottom: 1px solid #f0f0f0;
-    position: relative;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
     cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .commission-item:last-child {
     border-bottom: none;
+}
+
+.commission-item:hover {
+    background: rgba(255, 255, 255, 0.4);
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: -8px;
+    margin-right: -8px;
+    border-radius: 8px;
 }
 
 .commission-item .left {
@@ -97,44 +142,45 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    background: var(--primary-blue);
 }
 
 .commission-item .info {
     font-size: 14px;
-    font-weight: 500;
-    color: #1a1a1a;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 .commission-item .date {
     font-size: 12px;
-    color: #666666;
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
 .commission-item .amount {
-    font-size: 15px;
-    font-weight: 600;
-    color: #22c55e;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--success);
 }
 
-/* Commission Tooltip */
+/* Tooltip remains similar */
 .commission-tooltip {
     position: absolute;
     left: 50%;
     bottom: 100%;
     transform: translateX(-50%);
-    background: #1a1a1a;
+    background: var(--text-primary);
     color: #ffffff;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    min-width: 200px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    min-width: 220px;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     z-index: 10;
-    margin-bottom: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .commission-tooltip::after {
@@ -144,7 +190,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: #1a1a1a;
+    border-top-color: var(--text-primary);
 }
 
 .commission-item:hover .commission-tooltip {
@@ -152,55 +198,23 @@
     visibility: visible;
 }
 
-.tooltip-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.tooltip-row:last-child {
-    margin-bottom: 0;
-}
-
-.tooltip-label {
-    color: #888888;
-}
-
-.tooltip-value {
-    font-weight: 500;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #666666;
-    font-size: 14px;
-}
-
-/* Skeleton Loader */
-.skeleton-loader {
-    display: inline-block;
-    width: 80px;
-    height: 24px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s infinite;
-    border-radius: 4px;
-}
-
-@keyframes skeleton-shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
 /* Phone Check Card */
 .phone-check-card {
-    background: #ffffff;
-    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
     padding: 20px 24px;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--glass-shadow);
+}
+
+.phone-check-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
 }
 
 .phone-check-row {
@@ -214,30 +228,18 @@
     flex: 1;
     min-width: 200px;
     padding: 12px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
     font-size: 14px;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
 }
 
 .phone-check-row input:focus {
     outline: none;
-    border-color: #667eea;
-}
-
-.phone-check-row .result {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.phone-check-row .result.trung {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.phone-check-row .result.khong-trung {
-    background: #dcfce7;
-    color: #16a34a;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--primary-blue);
 }
 

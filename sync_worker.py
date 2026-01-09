@@ -174,33 +174,24 @@ def insert_khach_hang(conn, row_data, tab_type):
     return record_id
 
 def insert_gioi_thieu(conn, row_data):
+    """Insert Khách giới thiệu data into unified khach_hang table"""
     cur = conn.cursor()
     
-    phone = clean_phone(row_data.get('So dien thoai', ''))
-    name = str(row_data.get('Ten khach hang', '')).strip()[:100]
-    ctv_code = str(row_data.get('SDT nguoi gioi thieu', '')).strip() or None
-    service_name = str(row_data.get('Dich vu Quan tam', '')).strip()[:200]
-    date_entered = parse_date(row_data.get('Ngay nhap don', ''))
+    ngay_nhap = parse_date(row_data.get('Ngay nhap don', ''))
+    ten_khach = str(row_data.get('Ten khach hang', '')).strip()[:100]
+    sdt = clean_phone(row_data.get('So dien thoai', ''))
+    dich_vu = str(row_data.get('Dich vu Quan tam', '')).strip()[:500]
+    ghi_chu = str(row_data.get('Ghi chu', '')).strip()
+    khu_vuc = str(row_data.get('Khu vuc cua khach hang', '')).strip()[:50]
+    nguoi_chot = str(row_data.get('SDT nguoi gioi thieu', '')).strip()[:50] or None  # Referrer = Closer
     
-    if not phone:
+    if not sdt:
         cur.close()
-        return None, None
+        return None
     
-    # Check if customer exists
-    cur.execute("SELECT id FROM customers WHERE phone = %s", (phone,))
-    customer = cur.fetchone()
-    
-    if customer:
-        customer_id = customer[0]
-        if name:
-            cur.execute("UPDATE customers SET name = %s WHERE id = %s", (name, customer_id))
-    else:
-        cur.execute("INSERT INTO customers (name, phone) VALUES (%s, %s) RETURNING id", (name or 'Unknown', phone))
-        customer_id = cur.fetchone()[0]
-    
-    # Check if CTV exists
-    if ctv_code:
-        cur.execute("SELECT 1 FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+    # Check if CTV (closer/referrer) exists, create if not
+    if nguoi_chot:
+        cur.execute("SELECT 1 FROM ctv WHERE ma_ctv = %s", (nguoi_chot,))
         if not cur.fetchone():
             import hashlib
             import secrets
@@ -209,21 +200,23 @@ def insert_gioi_thieu(conn, row_data):
             hash_obj = hashlib.sha256((salt + password).encode())
             password_hash = f"{salt}:{hash_obj.hexdigest()}"
             cur.execute("INSERT INTO ctv (ma_ctv, ten, password_hash, is_active) VALUES (%s, %s, %s, TRUE)", 
-                        (ctv_code, ctv_code, password_hash))
-            logger.info(f"  Created new CTV: {ctv_code}")
+                        (nguoi_chot, nguoi_chot, password_hash))
+            logger.info(f"  Created new CTV: {nguoi_chot}")
     
-    # Insert service
+    # Insert into unified khach_hang table
     cur.execute("""
-        INSERT INTO services 
-        (customer_id, service_name, date_entered, ctv_code, status, source)
-        VALUES (%s, %s, %s, %s, 'Cho xu ly', 'gioi_thieu')
+        INSERT INTO khach_hang 
+        (ngay_nhap_don, ten_khach, sdt, dich_vu, ghi_chu, 
+         khu_vuc, nguoi_chot, source, trang_thai)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'gioi_thieu', 'Cho xac nhan')
         RETURNING id
-    """, (customer_id, service_name, date_entered, ctv_code))
-    service_id = cur.fetchone()[0]
+    """, (ngay_nhap, ten_khach, sdt, dich_vu, ghi_chu, 
+          khu_vuc, nguoi_chot))
+    record_id = cur.fetchone()[0]
     
     conn.commit()
     cur.close()
-    return customer_id, service_id
+    return record_id
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SYNC LOGIC
@@ -260,12 +253,9 @@ def sync_tab_by_count(spreadsheet, conn, tab_type):
     # Count rows in Sheet (excluding header)
     sheet_count = len(all_values) - 1
     
-    # Count rows in DB
+    # Count rows in DB (all sources now use unified khach_hang table)
     cur = conn.cursor()
-    if tab_type in ['tham_my', 'nha_khoa']:
-        cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (tab_type,))
-    else:
-        cur.execute("SELECT COUNT(*) FROM services WHERE source = 'gioi_thieu'")
+    cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (tab_type,))
     
     db_count = cur.fetchone()[0]
     cur.close()
@@ -309,10 +299,11 @@ def sync_tab_by_count(spreadsheet, conn, tab_type):
                     recalculate_commissions_for_record(record_id, 'khach_hang', conn)
                     processed += 1
             else:
-                cust_id, svc_id = insert_gioi_thieu(conn, row_data)
-                if svc_id:
-                    logger.info(f"    Row {row_idx}: Inserted (Service: {svc_id})")
-                    recalculate_commissions_for_record(svc_id, 'service', conn)
+                # gioi_thieu now uses unified khach_hang table
+                record_id = insert_gioi_thieu(conn, row_data)
+                if record_id:
+                    logger.info(f"    Row {row_idx}: Inserted (ID: {record_id})")
+                    recalculate_commissions_for_record(record_id, 'khach_hang', conn)
                     processed += 1
         except Exception as e:
             conn.rollback()

@@ -124,8 +124,9 @@ def check_duplicate():
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 4000))
     print("=" * 50)
-    print("Starting Flask server on http://localhost:4000")
+    print(f"Starting Flask server on http://localhost:{port}")
     print("=" * 50)
     print("\nTesting database connection...")
     
@@ -157,9 +158,7 @@ if __name__ == '__main__':
     
     print("\n" + "=" * 50)
     print("Server running. Access dashboard at:")
-    print("http://localhost:4000")
+    print(f"http://localhost:{port}")
     print("=" * 50 + "\n")
-    
-    port = int(os.environ.get('PORT', 4000))
     debug = os.environ.get('RAILWAY_ENVIRONMENT') is None
     app.run(host='0.0.0.0', port=port, debug=debug)

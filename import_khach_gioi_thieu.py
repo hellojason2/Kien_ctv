@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
 Import Khách Giới Thiệu (Referral Customers) TSV file
-- Each row = one service record
-- Customers deduplicated by phone number
-- CTV accounts created from referrer codes (Column G)
-- Services linked to customers and CTVs
+- Imports directly to khach_hang table (unified with Thẩm mỹ and Nha khoa)
+- CTV accounts created from referrer phone numbers (SDT người giới thiệu)
+- Sets source = 'gioi_thieu' to distinguish from other data sources
 """
 
 import csv
@@ -51,6 +50,7 @@ def clean_phone(phone):
 def main():
     print("=" * 60)
     print("Import Khách Giới Thiệu (Referral Customers)")
+    print("Importing to UNIFIED khach_hang table")
     print("=" * 60)
     
     # Read TSV file
@@ -66,8 +66,8 @@ def main():
             if ctv_code:
                 ctv_codes.add(ctv_code)
     
-    print(f"   Found {len(rows)} service records")
-    print(f"   Found {len(ctv_codes)} unique CTV codes (referrers)")
+    print(f"   Found {len(rows)} records to import")
+    print(f"   Found {len(ctv_codes)} unique CTV codes (referrer phone numbers)")
     
     # Connect to database
     print("\n2. Connecting to PostgreSQL...")
@@ -76,8 +76,8 @@ def main():
     print("   Connected!")
     
     try:
-        # Step 1: Create CTV accounts
-        print("\n3. Creating CTV accounts...")
+        # Step 1: Create CTV accounts from referrer phone numbers
+        print("\n3. Creating CTV accounts from referrer phones...")
         default_password = hash_password('ctv123')
         created_ctv = 0
         
@@ -94,98 +94,83 @@ def main():
         conn.commit()
         print(f"   ✓ Created {created_ctv} new CTV accounts")
         
-        # Step 2: Build customer lookup by phone (deduplicate)
-        print("\n4. Processing customers and services...")
+        # Step 2: Import records to khach_hang table
+        print("\n4. Importing records to khach_hang table...")
+        imported = 0
+        errors = 0
         
-        # First pass: collect unique customers by phone
-        customers_by_phone = {}  # phone -> {name, phone}
-        for row in rows:
-            phone = clean_phone(row.get('Số điện thoại', ''))
-            name = row.get('Tên khách hàng', '').strip()[:100]
-            
-            if phone and phone not in customers_by_phone:
-                customers_by_phone[phone] = {'name': name, 'phone': phone}
-        
-        print(f"   Found {len(customers_by_phone)} unique customers by phone")
-        
-        # Insert customers and build phone -> id mapping
-        phone_to_customer_id = {}
-        customers_created = 0
-        
-        for phone, cust in customers_by_phone.items():
-            # Check if customer already exists
-            cur.execute("SELECT id FROM customers WHERE phone = %s", (phone,))
-            result = cur.fetchone()
-            
-            if result:
-                phone_to_customer_id[phone] = result[0]
-            else:
+        for i, row in enumerate(rows):
+            try:
+                ngay_nhap = parse_date(row.get('Ngày nhập đơn', ''))
+                ten_khach = row.get('Tên khách hàng', '').strip()[:100]
+                sdt = clean_phone(row.get('Số điện thoại', ''))
+                dich_vu = row.get('Dịch vụ Quan tâm', '').strip()[:500]
+                ghi_chu = row.get('Ghi chú', '').strip()
+                khu_vuc = row.get('Khu vực của khách hàng', '').strip()[:50]
+                nguoi_chot = row.get('SDT người giới thiệu', '').strip()[:50] or None  # Referrer = Closer
+                
                 cur.execute("""
-                    INSERT INTO customers (name, phone)
-                    VALUES (%s, %s)
-                    RETURNING id
-                """, (cust['name'], cust['phone']))
-                customer_id = cur.fetchone()[0]
-                phone_to_customer_id[phone] = customer_id
-                customers_created += 1
+                    INSERT INTO khach_hang 
+                    (ngay_nhap_don, ten_khach, sdt, dich_vu, ghi_chu, 
+                     khu_vuc, nguoi_chot, source, trang_thai)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'gioi_thieu', 'Cho xac nhan')
+                """, (ngay_nhap, ten_khach, sdt, dich_vu, ghi_chu, 
+                      khu_vuc, nguoi_chot))
+                imported += 1
+                
+                # Progress indicator every 100 records
+                if (i + 1) % 100 == 0:
+                    print(f"   ... processed {i + 1} records")
+                    conn.commit()
+                
+            except Exception as e:
+                errors += 1
+                if errors <= 5:
+                    print(f"   ! Error on row {i+1}: {e}")
         
         conn.commit()
-        print(f"   ✓ Created {customers_created} new customers")
+        print(f"\n   ✓ Imported {imported} records to khach_hang!")
+        if errors > 0:
+            print(f"   ! {errors} errors occurred")
         
-        # Step 3: Create service records
-        print("\n5. Creating service records...")
-        services_created = 0
-        services_skipped = 0
-        
-        for row in rows:
-            phone = clean_phone(row.get('Số điện thoại', ''))
-            
-            if not phone or phone not in phone_to_customer_id:
-                services_skipped += 1
-                continue
-            
-            customer_id = phone_to_customer_id[phone]
-            ctv_code = row.get('SDT người giới thiệu', '').strip() or None
-            service_name = row.get('Dịch vụ Quan tâm', '').strip()[:200]
-            date_entered = parse_date(row.get('Ngày nhập đơn', ''))
-            
-            cur.execute("""
-                INSERT INTO services 
-                (customer_id, service_name, date_entered, ctv_code, status)
-                VALUES (%s, %s, %s, %s, 'Cho xu ly')
-            """, (customer_id, service_name, date_entered, ctv_code))
-            services_created += 1
-        
-        conn.commit()
-        print(f"   ✓ Created {services_created} service records")
-        if services_skipped > 0:
-            print(f"   ! Skipped {services_skipped} rows (no valid phone)")
-        
-        # Verify
-        print("\n6. Verification...")
+        # Verify import
+        print("\n5. Verification...")
         cur.execute("SELECT COUNT(*) FROM ctv")
         ctv_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM customers")
-        cust_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM services")
-        svc_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = 'gioi_thieu'")
+        gioi_thieu_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM khach_hang")
+        total_kh = cur.fetchone()[0]
         
         print(f"   - Total CTVs: {ctv_count}")
-        print(f"   - Total customers: {cust_count}")
-        print(f"   - Total services: {svc_count}")
+        print(f"   - Khách giới thiệu records: {gioi_thieu_count}")
+        print(f"   - Total khach_hang records: {total_kh}")
         
-        # Top CTVs by service count
-        print("\n7. Top 10 CTVs by service count:")
+        # Show breakdown by source
+        print("\n6. Breakdown by source:")
         cur.execute("""
-            SELECT ctv_code, COUNT(*) as cnt 
-            FROM services 
-            WHERE ctv_code IS NOT NULL 
-            GROUP BY ctv_code 
+            SELECT COALESCE(source, 'unknown') as src, COUNT(*) as cnt 
+            FROM khach_hang 
+            GROUP BY source 
+            ORDER BY cnt DESC
+        """)
+        for row in cur.fetchall():
+            print(f"   - {row[0]}: {row[1]} records")
+        
+        # Top referrers
+        print("\n7. Top 10 referrers by customer count:")
+        cur.execute("""
+            SELECT sdt_nguoi_gioi_thieu, COUNT(*) as cnt 
+            FROM khach_hang 
+            WHERE sdt_nguoi_gioi_thieu IS NOT NULL 
+            GROUP BY sdt_nguoi_gioi_thieu 
             ORDER BY cnt DESC 
             LIMIT 10
         """)
         for row in cur.fetchall():
-            print(f"   - {row[0]}: {row[1]} services")
+            print(f"   - {row[0]}: {row[1]} customers")
         
         print("\n" + "=" * 60)
         print("Import completed successfully!")
@@ -202,4 +187,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

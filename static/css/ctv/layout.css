@@ -1,8 +1,9 @@
 /**
  * CTV Portal - Layout
  * Sidebar, Header, Content Area
+ * Modern Glassmorphism Design
  * 
- * Created: December 30, 2025
+ * Updated: January 2026
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -19,24 +20,25 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR
+   SIDEBAR - Reference Design
    ═══════════════════════════════════════════════════════════════════ */
 
 .sidebar {
-    width: 80px;
-    background-color: #ffffff;
-    border-right: 1px solid #e0e0e0;
+    width: 250px;
+    background: var(--glass-bg);
+    border-right: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding-top: 40px;
-    gap: 20px;
     position: fixed;
-    left: 0;
     top: 0;
+    left: 0;
     bottom: 0;
-    overflow: visible;
-    z-index: 100;
+    z-index: 1000;
+    padding: 24px 16px;
+    transition: all 0.3s ease;
+    box-shadow: none;
 }
 
 /* Mobile menu button - hidden on desktop */
@@ -49,95 +51,112 @@
     display: none;
 }
 
-.sidebar-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    background-color: #f5f5f5;
+.sidebar-header {
+    padding: 0 0 40px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.sidebar-logo {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: none;
+}
+
+.sidebar-logo svg {
+    width: 100%;
+    height: 100%;
+    color: var(--text-primary);
+}
+
+.sidebar-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 12px;
+    margin-bottom: 4px;
+    margin-top: 16px;
+}
+
+.sidebar-icon {
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background-color 0.2s;
-    position: relative;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    box-shadow: none;
+    margin-bottom: 0;
+    justify-content: flex-start;
 }
 
 .sidebar-icon:hover {
-    background-color: #ebebeb;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-primary);
 }
 
 .sidebar-icon.active {
-    background-color: #1a1a1a;
+    background: white;
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .sidebar-icon svg {
-    width: 24px;
-    height: 24px;
-    stroke: #666666;
-    fill: none;
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
     stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    margin-right: 0;
+    stroke: currentColor;
 }
 
 .sidebar-icon.active svg {
-    stroke: #ffffff;
+    opacity: 1;
+    color: var(--text-primary);
+    stroke: currentColor;
 }
 
 .sidebar-logout {
     margin-top: auto;
-    margin-bottom: 30px;
+    margin-bottom: 0;
 }
 
 .sidebar-logout:hover {
-    background-color: #fee2e2;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
 }
 
 .sidebar-logout:hover svg {
-    stroke: #dc3545;
+    stroke: var(--danger);
+    color: var(--danger);
 }
 
-/* Sidebar Tooltip Styles */
-.sidebar-icon::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: calc(100% + 12px);
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #1a1a1a;
-    color: #ffffff;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    z-index: 1000;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-icon::before {
-    content: '';
-    position: absolute;
-    left: calc(100% + 4px);
-    top: 50%;
-    transform: translateY(-50%);
-    border: 6px solid transparent;
-    border-right-color: #1a1a1a;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-.sidebar-icon:hover::after,
-.sidebar-icon:hover::before {
-    opacity: 1;
-    visibility: visible;
+/* Sidebar Tooltip Styles - Disabled for this design as text is visible */
+.sidebar-icon::after, .sidebar-icon::before {
+    display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -146,64 +165,89 @@
 
 .main-wrapper {
     flex: 1;
-    margin-left: 80px;
+    margin-left: 250px;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    padding: 24px 32px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   HEADER
+   HEADER - Reference Design (Search Bar Style)
    ═══════════════════════════════════════════════════════════════════ */
 
 .header {
-    background-color: #ffffff;
-    padding: 20px 40px;
-    border-bottom: 1px solid #e0e0e0;
+    height: auto;
+    background: transparent;
+    border-bottom: none;
+    padding: 0 0 24px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 50;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex: 1;
 }
 
-.header-logo svg {
-    width: 48px;
-    height: 48px;
+/* Replaced header title with search bar for this design */
+.search-bar {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--glass-shadow);
+    width: 100%;
+    max-width: 400px;
 }
 
-.header-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a1a1a;
+.search-bar input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 100%;
+    font-family: inherit;
 }
 
-.header-page-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: #666666;
-    margin-left: 12px;
-    position: relative;
+.search-bar input::placeholder {
+    color: var(--text-muted);
 }
 
-.header-page-title::before {
-    content: '/';
-    margin-right: 12px;
-    color: #cccccc;
+.search-bar svg {
+    color: var(--text-muted);
+    width: 20px;
+    height: 20px;
+}
+
+.header-logo, .header-title, .header-page-title {
+    display: none; /* Hidden in this design */
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .user-name {
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -212,8 +256,11 @@
 
 .content {
     flex: 1;
-    padding: 40px;
-    overflow-y: auto;
+    padding: 0;
+    overflow-y: visible;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -222,9 +269,9 @@
 
 @media (max-width: 768px) {
     .sidebar {
-        width: 60px;
-        padding-top: 20px;
-        gap: 12px;
+        width: 64px;
+        padding-top: 16px;
+        gap: 6px;
     }
     
     .sidebar-icon {
@@ -233,11 +280,11 @@
     }
     
     .main-wrapper {
-        margin-left: 60px;
+        margin-left: 64px;
     }
     
     .header {
-        padding: 16px 20px;
+        padding: 14px 20px;
     }
     
     .content {
@@ -251,22 +298,27 @@
 
 @media (max-width: 480px) {
     .sidebar {
-        width: 50px;
+        width: 56px;
     }
     
     .sidebar-icon {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .sidebar-icon svg {
+        width: 20px;
+        height: 20px;
     }
     
     .main-wrapper {
-        margin-left: 50px;
+        margin-left: 56px;
     }
     
     .header {
         padding: 12px 16px;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
     
     .header-left {
@@ -277,6 +329,10 @@
     .header-right {
         width: 100%;
         justify-content: center;
+    }
+    
+    .header-title {
+        font-size: 16px;
     }
     
     .content {

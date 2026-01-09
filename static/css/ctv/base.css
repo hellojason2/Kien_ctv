@@ -1,9 +1,11 @@
 /**
  * CTV Portal - Base Styles
- * Reset, Typography, Body, Loading
+ * Modern Glassmorphism Design
  * 
- * Created: December 30, 2025
+ * Updated: January 2026
  */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 * {
     margin: 0;
@@ -11,18 +13,87 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Primary Colors */
+    --primary-blue: #3b82f6;
+    --primary-purple: #8b5cf6;
+    --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    
+    /* Accent Colors from Reference */
+    --accent-blue: #3b82f6;
+    --accent-green: #22c55e;
+    --accent-red: #ef4444;
+    --accent-orange: #f97316;
+    --accent-purple: #8b5cf6;
+    --accent-yellow: #eab308;
+    
+    /* Priority Colors */
+    --priority-low: #22c55e;
+    --priority-medium: #f97316;
+    
+    /* Background Gradients */
+    --bg-gradient-1: #e8f4fc;
+    --bg-gradient-2: #fce8e8;
+    --bg-gradient-3: #e8fcf4;
+    --bg-body: linear-gradient(135deg, #c7e9fb 0%, #e8d4f8 25%, #fbd4d4 50%, #fbe8c7 75%, #c7fbd4 100%);
+    
+    /* Glass Effect */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --glass-blur: blur(20px);
+    
+    /* Text Colors */
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    
+    /* Status Colors */
+    --success: #22c55e;
+    --success-light: #dcfce7;
+    --info: #3b82f6;
+    --info-light: #e8f4fc;
+    --warning: #f97316;
+    --warning-light: #ffedd5;
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+    --pink: #ec4899;
+    --pink-light: #fce7f3;
+    
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-    background-color: #e8e8e8;
-    color: #1a1a1a;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-body);
+    background-attachment: fixed;
+    color: var(--text-primary);
     min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background decorative shapes - Removed to match reference exact gradient */
+body::before, body::after {
+    display: none;
 }
 
 /* Loading State */
 .loading {
     text-align: center;
     padding: 40px;
-    color: #666666;
+    color: var(--text-secondary);
 }
 
 /* Page Sections */
@@ -32,6 +103,18 @@ body {
 
 .page-section.active {
     display: block;
+    animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Skeleton Loading Animation */
@@ -44,32 +127,47 @@ body {
     display: inline-block;
     height: 32px;
     width: 140px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0.4) 25%, 
+        rgba(255,255,255,0.6) 50%, 
+        rgba(255,255,255,0.4) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
 }
 
 .stat-card.green .skeleton-loader {
-    background: linear-gradient(90deg, rgba(34,197,94,0.15) 25%, rgba(34,197,94,0.25) 50%, rgba(34,197,94,0.15) 75%);
+    background: linear-gradient(90deg, 
+        var(--success-light) 25%, 
+        rgba(16, 185, 129, 0.2) 50%, 
+        var(--success-light) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 .stat-card.blue .skeleton-loader {
-    background: linear-gradient(90deg, rgba(59,130,246,0.15) 25%, rgba(59,130,246,0.25) 50%, rgba(59,130,246,0.15) 75%);
+    background: linear-gradient(90deg, 
+        var(--info-light) 25%, 
+        rgba(59, 130, 246, 0.2) 50%, 
+        var(--info-light) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 .stat-card.gold .skeleton-loader {
-    background: linear-gradient(90deg, rgba(217,119,6,0.15) 25%, rgba(217,119,6,0.25) 50%, rgba(217,119,6,0.15) 75%);
+    background: linear-gradient(90deg, 
+        var(--warning-light) 25%, 
+        rgba(245, 158, 11, 0.2) 50%, 
+        var(--warning-light) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 .stat-card.pink .skeleton-loader {
-    background: linear-gradient(90deg, rgba(236,72,153,0.15) 25%, rgba(236,72,153,0.25) 50%, rgba(236,72,153,0.15) 75%);
+    background: linear-gradient(90deg, 
+        var(--pink-light) 25%, 
+        rgba(236, 72, 153, 0.2) 50%, 
+        var(--pink-light) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
@@ -81,3 +179,21 @@ body {
     }
 }
 
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.5);
+}

@@ -132,9 +132,7 @@ body {
 .text-orange { color: var(--accent-orange); }
 .text-purple { color: var(--accent-purple); }
 .text-red { color: var(--accent-red); }
-.text-cyan { color: var(--accent-cyan); }
-
-.bg-glass {
+.text-cyan { color: var(--accent-cyan); }.bg-glass {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

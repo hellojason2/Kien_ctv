@@ -103,9 +103,11 @@ CREATE TABLE khach_hang (
     tong_tien DECIMAL(15,0) DEFAULT 0,
     tien_coc DECIMAL(15,0) DEFAULT 0,
     phai_dong DECIMAL(15,0) DEFAULT 0,
-    nguoi_chot VARCHAR(50),  -- Text field, links to ctv.ma_ctv when matching (no FK constraint)
+    nguoi_chot VARCHAR(50),  -- Closer/Referrer - links to ctv.ma_ctv (used by all tabs)
     ghi_chu TEXT,
     trang_thai VARCHAR(50) DEFAULT 'Cho xac nhan',
+    source VARCHAR(20),  -- Data source: 'tham_my', 'gioi_thieu', 'nha_khoa'
+    khu_vuc VARCHAR(50),  -- Customer region (for Khách giới thiệu)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

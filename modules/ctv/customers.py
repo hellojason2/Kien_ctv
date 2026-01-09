@@ -356,7 +356,7 @@ def get_ctv_commission():
                 COUNT(*) as transaction_count
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND trang_thai IN ('Da den lam', 'Đã đến làm')
         """
         level0_params_kh = [ctv['ma_ctv']]
         
@@ -445,7 +445,7 @@ def get_ctv_commission():
                             COUNT(*) as transaction_count
                         FROM khach_hang
                         WHERE nguoi_chot IN ({placeholders})
-                        AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                        AND trang_thai IN ('Da den lam', 'Đã đến làm')
                     """
                     level_params_kh = list(level_ctv_list)
                     
@@ -562,7 +562,7 @@ def get_date_ranges_with_data():
                 SELECT COUNT(*) as count
                 FROM khach_hang
                 WHERE nguoi_chot IN ({placeholders})
-                AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+                AND trang_thai IN ('Da den lam', 'Đã đến làm')
                 AND ngay_hen_lam >= %s
                 AND ngay_hen_lam <= %s
             """
