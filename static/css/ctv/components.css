@@ -69,24 +69,59 @@
 }
 
 .user-badge {
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+.user-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.user-badge.manager {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-badge.director {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-badge.leader {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .user-badge.gold { 
-    background: #ffedd5;
-    color: #ea580c;
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
 }
+
 .user-badge.silver { 
-    background: #e0f2fe;
-    color: #0369a1; 
+    background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
 }
+
 .user-badge.bronze { 
-    background: #fefce8;
-    color: #854d0e; 
+    background: linear-gradient(135deg, #fdba74 0%, #c2410c 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 /* Priority Badges from Reference */

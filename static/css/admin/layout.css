@@ -36,6 +36,8 @@
     transition: transform 0.3s ease;
     z-index: 1000;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
+    overflow-y: auto;
+    height: 100vh;
 }
 
 .sidebar.collapsed {

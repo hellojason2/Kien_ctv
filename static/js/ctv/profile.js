@@ -161,9 +161,28 @@ async function loadProfile(fromDate = null, toDate = null) {
         document.getElementById('userName').textContent = result.profile.ten;
         
         const levelBadge = document.getElementById('userLevel');
-        const capBac = (result.profile.cap_bac || 'Bronze').toLowerCase();
+        
+        // Helper to get role class based on keywords
+        const getRoleClass = (role) => {
+            if (!role) return 'bronze';
+            const lowerRole = role.toLowerCase();
+            
+            // High level roles
+            if (lowerRole.includes('giám đốc') || lowerRole.includes('director') || lowerRole.includes('ceo')) return 'director';
+            if (lowerRole.includes('trưởng phòng') || lowerRole.includes('manager') || lowerRole.includes('head')) return 'manager';
+            if (lowerRole.includes('trưởng nhóm') || lowerRole.includes('leader')) return 'leader';
+            
+            // Standard levels
+            if (lowerRole.includes('gold')) return 'gold';
+            if (lowerRole.includes('silver')) return 'silver';
+            if (lowerRole.includes('bronze')) return 'bronze';
+            
+            return 'bronze'; // Default
+        };
+        
+        const roleClass = getRoleClass(result.profile.cap_bac);
         levelBadge.textContent = result.profile.cap_bac || 'Bronze';
-        levelBadge.className = 'user-badge ' + capBac;
+        levelBadge.className = 'user-badge ' + roleClass;
         
         // Update stats
         // Total Earnings card should show period revenue (total transaction revenue) for the selected date filter

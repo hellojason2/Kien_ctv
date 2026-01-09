@@ -1205,49 +1205,104 @@
 
         /* Responsive - Mobile */
         @media (max-width: 768px) {
+            /* Sidebar becomes bottom navigation */
             .sidebar {
-                width: 60px;
-                padding: 16px 8px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                width: 100%;
+                height: 64px;
+                padding: 0;
+                border-right: none;
+                border-top: 1px solid rgba(0, 0, 0, 0.06);
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
             }
 
-            .sidebar-icon {
-                width: 42px;
-                height: 42px;
-            }
-
-            .sidebar-logo {
-                font-size: 12px;
-            }
-
-            .sidebar-nav a span {
+            .sidebar-header {
                 display: none;
             }
 
-            .sidebar-nav a {
-                padding: 12px 8px;
+            .sidebar-menu {
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                height: 100%;
+                padding: 0 8px;
+                gap: 0;
+            }
+
+            .nav-label {
+                display: none;
+            }
+
+            .sidebar-icon {
+                width: auto;
+                height: 48px;
+                padding: 8px;
+                flex-direction: column;
                 justify-content: center;
+                gap: 4px;
+                border-radius: 8px;
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
             }
 
+            .sidebar-icon svg {
+                width: 24px;
+                height: 24px;
+                margin: 0;
+            }
+
+            /* Hide text labels on mobile to save space, or keep them if they fit? 
+               Standard bottom nav usually has labels. Let's try to keep small labels. */
+            .sidebar-icon span {
+                font-size: 10px;
+                line-height: 1;
+                font-weight: 600;
+            }
+
+            .sidebar-logout {
+                display: none;
+            }
+
+            /* Main Wrapper */
             .main-wrapper {
-                margin-left: 60px;
+                margin-left: 0;
+                padding-bottom: 80px; /* Space for bottom nav */
             }
 
+            /* Header */
             .header {
                 padding: 16px;
                 flex-direction: column;
                 gap: 12px;
+                background: transparent;
             }
 
             .header h1 {
                 font-size: 20px;
             }
 
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            /* Content */
             .content {
                 padding: 16px;
             }
 
+            /* Stats Grid */
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr 1fr; /* 2 cols on mobile */
                 gap: 12px;
             }
 
@@ -1256,13 +1311,14 @@
             }
 
             .stat-card .value {
-                font-size: 22px;
+                font-size: 20px;
             }
 
             .stat-card .label {
                 font-size: 11px;
             }
 
+            /* Cards */
             .card {
                 margin-bottom: 16px;
             }
@@ -1272,12 +1328,22 @@
                 padding: 16px;
             }
 
+            /* Tables */
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                margin: 0 -16px; /* Bleed to edges */
+                padding: 0 16px;
             }
 
             table {
+                min-width: 100%;
+                /* Ensure tables don't get crushed */
+                display: table; 
+            }
+            
+            /* Add min-width to table to force scroll if needed */
+            .stats-table {
                 min-width: 500px;
             }
 
@@ -1296,80 +1362,26 @@
                 padding: 12px 16px;
                 font-size: 13px;
             }
+            
+            /* Language Toggle Mobile Adjustments */
+            .sidebar-lang {
+                display: none; /* Hide sidebar lang toggle on mobile bottom bar */
+            }
         }
 
         /* Responsive - Small Mobile */
         @media (max-width: 480px) {
-            .sidebar {
-                width: 50px;
-                padding: 12px 6px;
-            }
-
-            .sidebar-icon {
-                width: 36px;
-                height: 36px;
-            }
-
-            .sidebar-nav svg {
-                width: 18px;
-                height: 18px;
-            }
-
-            .main-wrapper {
-                margin-left: 50px;
-            }
-
-            .header {
-                padding: 12px;
-            }
-
-            .header h1 {
-                font-size: 18px;
-            }
-
-            .content {
-                padding: 12px;
-            }
-
             .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
+                grid-template-columns: 1fr; /* 1 col on small mobile */
             }
-
-            .stat-card .value {
-                font-size: 24px;
+            
+            .sidebar-icon span {
+                display: none; /* Hide labels on very small screens if needed */
             }
-
-            .card-header,
-            .card-body {
-                padding: 12px;
-            }
-
-            th, td {
-                padding: 8px 10px;
-                font-size: 12px;
-            }
-
-            /* Phone check responsive */
-            .phone-check-row {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .phone-check-row input {
-                width: 100%;
-            }
-
-            /* Modal responsive */
-            .modal {
-                max-width: 95%;
-                margin: 10px;
-            }
-
-            .modal-header,
-            .modal-body,
-            .modal-footer {
-                padding: 16px;
+            
+            .sidebar-icon svg {
+                width: 28px;
+                height: 28px;
             }
         }
 
@@ -2267,11 +2279,11 @@
         // Load All Commissions with date filtering
         async function loadAllCommissions(fromDate = null, toDate = null) {
             // Build URL with query params
-            let url = '/api/ctv/my-commissions';
+            let url = '/api/ctv/commission';
             const params = new URLSearchParams();
             
-            if (fromDate) params.append('from_date', fromDate);
-            if (toDate) params.append('to_date', toDate);
+            if (fromDate) params.append('from', fromDate);
+            if (toDate) params.append('to', toDate);
             
             if (params.toString()) url += '?' + params.toString();
             
@@ -2281,30 +2293,36 @@
                 
                 // Summary table
                 const summaryContainer = document.getElementById('earningsSummary');
-                if (result.summary.by_level.length === 0) {
+                if (!result.by_level || result.by_level.length === 0) {
                     summaryContainer.innerHTML = `<div class="empty-state">${t('no_commissions_period')}</div>`;
                 } else {
                     summaryContainer.innerHTML = `
-                        <table>
+                        <table class="stats-table">
                             <thead>
                                 <tr>
                                     <th>${t('level')}</th>
+                                    <th>${t('revenue')}</th>
+                                    <th>${t('rate')}</th>
                                     <th>${t('count')}</th>
                                     <th>${t('total_commission')}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${result.summary.by_level.map(s => `
+                                ${result.by_level.map(s => `
                                     <tr>
                                         <td><span class="level-badge level-${s.level}">Level ${s.level}</span></td>
-                                        <td>${s.count}</td>
-                                        <td style="color:#22c55e;font-weight:600">${formatCurrency(s.total)}</td>
+                                        <td style="color:#22c55e;font-weight:600">${formatCurrency(s.total_revenue)}</td>
+                                        <td>${s.rate.toFixed(1)}%</td>
+                                        <td>${s.transaction_count}</td>
+                                        <td style="color:#22c55e;font-weight:600">${formatCurrency(s.commission)}</td>
                                     </tr>
                                 `).join('')}
-                                <tr style="font-weight:700">
+                                <tr class="total-row">
                                     <td>${t('all')}</td>
+                                    <td style="color:#22c55e">${formatCurrency(result.total.revenue || 0)}</td>
                                     <td></td>
-                                    <td style="color:#22c55e">${formatCurrency(result.summary.total)}</td>
+                                    <td>${result.total.transactions || 0}</td>
+                                    <td style="color:#22c55e">${formatCurrency(result.total.commission || 0)}</td>
                                 </tr>
                             </tbody>
                         </table>
