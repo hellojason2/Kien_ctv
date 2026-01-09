@@ -173,7 +173,7 @@ async function loadCommissions() {
                     <td style="font-weight:600; white-space:nowrap;">${c.ctv_code || '-'}</td>
                     <td style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">${c.ctv_name || '-'}</td>
                     <td style="white-space:nowrap;">${c.ctv_phone || '-'}</td>
-                    <td style="text-align:right; white-space:nowrap;">
+                    <td style="text-align:right; white-space:nowrap; color:#22c55e; font-weight:600;">
                         ${formatCurrency(c.total_service_price || 0)}
                         ${serviceBadge}
                     </td>

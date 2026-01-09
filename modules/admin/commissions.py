@@ -82,6 +82,20 @@ def update_settings():
                 SET rate = %s, description = %s, updated_by = %s
                 WHERE level = %s
             """, (rate, description, admin_username, level))
+            
+            # Also update legacy table hoa_hong_config if it exists to keep them in sync
+            # Note: hoa_hong_config stores percentage (e.g. 25.0) not rate (0.25)
+            try:
+                percent = float(rate) * 100
+                cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
+                if cursor.fetchone()[0]:
+                    cursor.execute("""
+                        UPDATE hoa_hong_config 
+                        SET percent = %s, description = %s
+                        WHERE level = %s
+                    """, (percent, description, level))
+            except Exception as e:
+                print(f"Warning: Could not update legacy hoa_hong_config: {e}")
         
         connection.commit()
         cursor.close()

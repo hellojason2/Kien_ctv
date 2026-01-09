@@ -7,14 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Modular CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/forms.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tables.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/hierarchy.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/clients.css') }}?v={{ version }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/activity-logs.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/forms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/hierarchy.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/clients.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/activity-logs.css') }}">
 </head>
 <body>
     {% include 'admin/components/login.html' %}
@@ -38,20 +38,20 @@
     {% include 'admin/components/modals.html' %}
     
     <!-- Modular JavaScript Files -->
-    <script src="{{ url_for('static', filename='js/admin/api.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/db-validator.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/utils.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/translations.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/navigation.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/auth.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/overview.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/commissions.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/clients.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/settings.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}?v={{ version }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/main.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/db-validator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/overview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/commissions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/clients.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/main.js') }}"></script>
 </body>
 </html>

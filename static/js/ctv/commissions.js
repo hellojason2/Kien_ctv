@@ -434,15 +434,15 @@ async function loadRecentCommissions(fromDate = null, toDate = null) {
                             ${result.by_level.map(s => `
                                 <tr>
                                     <td><span class="level-badge level-${s.level}">Level ${s.level}</span></td>
-                                    <td>${formatCurrency(s.total_revenue)}</td>
+                                    <td style="color:#22c55e;font-weight:600">${formatCurrency(s.total_revenue)}</td>
                                     <td>${s.rate.toFixed(1)}%</td>
                                     <td>${s.transaction_count}</td>
                                     <td style="color:#22c55e;font-weight:600">${formatCurrency(s.commission)}</td>
                                 </tr>
                             `).join('')}
-                            <tr style="font-weight:700;background:#f8f9fa;">
+                            <tr class="total-row">
                                 <td>${t('all')}</td>
-                                <td>${formatCurrency(result.total.revenue || 0)}</td>
+                                <td style="color:#22c55e">${formatCurrency(result.total.revenue || 0)}</td>
                                 <td></td>
                                 <td>${result.total.transactions || 0}</td>
                                 <td style="color:#22c55e">${formatCurrency(result.total.commission || 0)}</td>
@@ -477,15 +477,12 @@ async function loadEarningsLifetimeStats() {
         
         if (!container) return;
         
-        // Calculate Level 0 rate from the data (total_commissions / total_revenue * 100)
-        // Or use default 25% if revenue is 0
-        let level0Rate = 25.0;
-        if (stats.total_revenue && stats.total_revenue > 0 && stats.total_commissions) {
-            level0Rate = (stats.total_commissions / stats.total_revenue) * 100;
-        }
+        // stats.level0 is now available from backend
+        const level0 = stats.level0 || { revenue: 0, commission: 0, transactions: 0 };
+        const level0Rate = stats.level0_rate || 25.0;
         
         container.innerHTML = `
-            <table>
+            <table class="stats-table">
                 <thead>
                     <tr>
                         <th>${t('level')}</th>
@@ -498,15 +495,15 @@ async function loadEarningsLifetimeStats() {
                 <tbody>
                     <tr>
                         <td><span class="level-badge level-0">Level 0</span></td>
-                        <td>${formatCurrency(stats.total_revenue || 0)}</td>
+                        <td style="color:#22c55e;font-weight:600">${formatCurrency(level0.revenue || 0)}</td>
                         <td>${level0Rate.toFixed(1)}%</td>
-                        <td>${stats.total_transactions || 0}</td>
-                        <td style="color:#22c55e;font-weight:600">${formatCurrency(stats.total_commissions || 0)}</td>
+                        <td>${level0.transactions || 0}</td>
+                        <td style="color:#22c55e;font-weight:600">${formatCurrency(level0.commission || 0)}</td>
                     </tr>
-                    <tr style="font-weight:700;background:#f8f9fa;">
+                    <tr class="total-row">
                         <td>${t('all')}</td>
-                        <td>${formatCurrency(stats.total_revenue || 0)}</td>
-                        <td>${level0Rate.toFixed(1)}%</td>
+                        <td style="color:#22c55e">${formatCurrency(stats.total_revenue || 0)}</td>
+                        <td></td>
                         <td>${stats.total_transactions || 0}</td>
                         <td style="color:#22c55e">${formatCurrency(stats.total_commissions || 0)}</td>
                     </tr>
@@ -571,9 +568,9 @@ async function loadAllCommissions(fromDate = null, toDate = null) {
                                 <td style="color:#22c55e;font-weight:600">${formatCurrency(s.commission)}</td>
                             </tr>
                         `).join('')}
-                        <tr style="font-weight:700;background:#f8f9fa;">
+                        <tr class="total-row">
                             <td>${t('all')}</td>
-                            <td>${formatCurrency(result.total.revenue || 0)}</td>
+                            <td style="color:#22c55e">${formatCurrency(result.total.revenue || 0)}</td>
                             <td></td>
                             <td>${result.total.transactions}</td>
                             <td style="color:#22c55e">${formatCurrency(result.total.commission)}</td>

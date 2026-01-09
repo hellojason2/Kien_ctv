@@ -41,7 +41,7 @@ async function showCommissionReport(phone, name) {
                             <span style="font-weight:500;">${escapeHtml(c.ctv_name || c.ctv_code)}</span>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:600; color:#4a7c23;">${formatClientCurrency(c.commission_amount)}</div>
+                            <div style="font-weight:600; color:#22c55e;">${formatClientCurrency(c.commission_amount)}</div>
                             <div style="font-size:11px; color:#6b7280;">${(c.commission_rate * 100).toFixed(2)}%</div>
                         </div>
                     </div>
@@ -54,12 +54,12 @@ async function showCommissionReport(phone, name) {
                                 <div style="font-weight:600; color:#111827;">${escapeHtml(tx.service_name)}</div>
                                 <div style="font-size:12px; color:#6b7280;">${tx.date} • Closer: ${escapeHtml(tx.closer || 'N/A')}</div>
                             </div>
-                            <div style="font-weight:700; color:#111827;">${formatClientCurrency(tx.amount)}</div>
+                            <div style="font-weight:700; color:#22c55e;">${formatClientCurrency(tx.amount)}</div>
                         </div>
                         <div style="padding:0;">
                             ${commissionsHTML || '<div style="padding:12px; color:#9ca3af; font-style:italic;">No commissions generated</div>'}
                         </div>
-                        <div style="padding:8px 12px; background:#f0fdf4; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:#166534;">
+                        <div style="padding:8px 12px; background:#f0fdf4; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:#22c55e;">
                             <span>Total Commission</span>
                             <span>${formatClientCurrency(tx.total_commission)}</span>
                         </div>

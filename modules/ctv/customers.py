@@ -20,32 +20,45 @@ def get_lifetime_stats():
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        cursor.execute("SELECT percent FROM hoa_hong_config WHERE level = 0")
-        rate_row = cursor.fetchone()
-        level0_rate = float(rate_row['percent']) / 100 if rate_row else 0.25
+        # Calculate lifetime stats by summing all commissions from network
+        # This mirrors the logic in get_ctv_commission but without date filters
         
-        cursor.execute("""
-            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue,
-                   COUNT(*) as total_transactions
+        cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+        rates_rows = cursor.fetchall()
+        commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
+        
+        # Level 0 (Personal Sales)
+        level0_query_kh = """
+            SELECT 
+                SUM(tong_tien) as total_revenue,
+                COUNT(*) as transaction_count
             FROM khach_hang
             WHERE nguoi_chot = %s
             AND trang_thai IN ('Da den lam', 'Đã đến làm')
-        """, (ctv['ma_ctv'],))
-        commission_stats = cursor.fetchone()
+        """
+        cursor.execute(level0_query_kh, (ctv['ma_ctv'],))
+        level0_kh = cursor.fetchone()
         
-        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
-        cursor.execute("""
-            SELECT COALESCE(SUM(tong_tien), 0) as total_revenue,
-                   COUNT(*) as total_transactions
+        level0_query_svc = """
+            SELECT 
+                SUM(tong_tien) as total_revenue,
+                COUNT(*) as transaction_count
             FROM services
             WHERE COALESCE(nguoi_chot, ctv_code) = %s
-        """, (ctv['ma_ctv'],))
-        svc_stats = cursor.fetchone()
+        """
+        cursor.execute(level0_query_svc, (ctv['ma_ctv'],))
+        level0_svc = cursor.fetchone()
         
-        total_revenue = float(commission_stats['total_revenue'] or 0) + float(svc_stats['total_revenue'] or 0)
-        total_transactions = int(commission_stats['total_transactions'] or 0) + int(svc_stats['total_transactions'] or 0)
-        total_commissions = total_revenue * level0_rate
+        level0_revenue = float(level0_kh['total_revenue'] or 0) + float(level0_svc['total_revenue'] or 0)
+        level0_count = int(level0_kh['transaction_count'] or 0) + int(level0_svc['transaction_count'] or 0)
+        level0_commission = level0_revenue * commission_rates.get(0, 0.25)
+        level0_rate = commission_rates.get(0, 0.25)
         
+        total_commissions = level0_commission
+        total_revenue = level0_revenue
+        total_transactions = level0_count
+        
+        # Network Stats
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
         network_size = len(my_network) if my_network else 0
         
@@ -57,26 +70,72 @@ def get_lifetime_stats():
         direct_result = cursor.fetchone()
         direct_referrals = int(direct_result['direct_count']) if direct_result else 0
         
-        cursor.execute("""
-            SELECT COUNT(*) as total_services,
-                   COALESCE(SUM(tong_tien), 0) as total_revenue
-            FROM khach_hang
-            WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Đã đến làm')
-        """, (ctv['ma_ctv'],))
-        kh_service_stats = cursor.fetchone()
+        # Calculate Downline Commissions
+        my_network_excluding_self = [c for c in my_network if c != ctv['ma_ctv']]
         
-        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
-        cursor.execute("""
-            SELECT COUNT(*) as total_services,
-                   COALESCE(SUM(tong_tien), 0) as total_revenue
-            FROM services
-            WHERE COALESCE(nguoi_chot, ctv_code) = %s
-        """, (ctv['ma_ctv'],))
-        svc_service_stats = cursor.fetchone()
+        if my_network_excluding_self:
+            # OPTIMIZED: Get descendants with levels in ONE query
+            cursor.execute("""
+                WITH RECURSIVE network AS (
+                    SELECT ma_ctv, 0 as level 
+                    FROM ctv 
+                    WHERE ma_ctv = %s
+                    
+                    UNION ALL
+                    
+                    SELECT c.ma_ctv, n.level + 1
+                    FROM ctv c
+                    JOIN network n ON c.nguoi_gioi_thieu = n.ma_ctv
+                    WHERE n.level < 4
+                )
+                SELECT ma_ctv, level FROM network WHERE level > 0
+            """, (ctv['ma_ctv'],))
+            
+            network_with_levels = cursor.fetchall()
+            
+            ctvs_by_level = {1: [], 2: [], 3: [], 4: []}
+            for row in network_with_levels:
+                lvl = row['level']
+                if lvl in ctvs_by_level:
+                    ctvs_by_level[lvl].append(row['ma_ctv'])
+            
+            for level in range(1, 5):
+                level_ctv_list = ctvs_by_level.get(level, [])
+                
+                if level_ctv_list:
+                    placeholders = ','.join(['%s'] * len(level_ctv_list))
+                    
+                    level_query_kh = f"""
+                        SELECT 
+                            COALESCE(SUM(tong_tien), 0) as total_revenue,
+                            COUNT(*) as transaction_count
+                        FROM khach_hang
+                        WHERE nguoi_chot IN ({placeholders})
+                        AND trang_thai IN ('Da den lam', 'Đã đến làm')
+                    """
+                    cursor.execute(level_query_kh, list(level_ctv_list))
+                    level_data_kh = cursor.fetchone()
+                    
+                    level_query_svc = f"""
+                        SELECT 
+                            COALESCE(SUM(tong_tien), 0) as total_revenue,
+                            COUNT(*) as transaction_count
+                        FROM services
+                        WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                    """
+                    cursor.execute(level_query_svc, list(level_ctv_list))
+                    level_data_svc = cursor.fetchone()
+                    
+                    level_revenue = float(level_data_kh['total_revenue'] or 0) + float(level_data_svc['total_revenue'] or 0)
+                    level_count = int(level_data_kh['transaction_count'] or 0) + int(level_data_svc['transaction_count'] or 0)
+                    level_commission = level_revenue * commission_rates.get(level, 0)
+                    
+                    total_commissions += level_commission
+                    total_revenue += level_revenue
+                    total_transactions += level_count
         
-        total_services = int(kh_service_stats['total_services'] or 0) + int(svc_service_stats['total_services'] or 0)
-        service_revenue = float(kh_service_stats['total_revenue'] or 0) + float(svc_service_stats['total_revenue'] or 0)
+        # Get total services count (completed) - same as total_transactions in this context
+        total_services = total_transactions
         
         cursor.close()
         return_db_connection(connection)
@@ -85,11 +144,17 @@ def get_lifetime_stats():
             'status': 'success',
             'stats': {
                 'total_commissions': total_commissions,
+                'total_revenue': total_revenue,
                 'total_transactions': total_transactions,
                 'network_size': network_size,
                 'direct_referrals': direct_referrals,
                 'total_services': total_services,
-                'total_revenue': service_revenue
+                'level0_rate': level0_rate * 100,  # Return percentage
+                'level0': {
+                    'commission': level0_commission,
+                    'revenue': level0_revenue,
+                    'transactions': level0_count
+                }
             }
         })
         

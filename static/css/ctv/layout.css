@@ -25,8 +25,8 @@
 
 .sidebar {
     width: 250px;
-    background: var(--glass-bg);
-    border-right: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.9);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
@@ -38,7 +38,7 @@
     z-index: 1000;
     padding: 24px 16px;
     transition: all 0.3s ease;
-    box-shadow: none;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
 }
 
 /* Mobile menu button - hidden on desktop */
@@ -114,18 +114,17 @@
 }
 
 .sidebar-icon:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.8);
     color: var(--primary-blue);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-icon.active {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: #ffffff;
     color: var(--primary-blue);
-    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .sidebar-icon svg {
@@ -163,6 +162,117 @@
 /* Sidebar Tooltip Styles - Disabled for this design as text is visible */
 .sidebar-icon::after, .sidebar-icon::before {
     display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE - Corrected
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Language Toggle in Sidebar */
+.sidebar-lang {
+    position: relative;
+    /* Ensure it has proper stacking context */
+    z-index: 500;
+}
+
+.sidebar-lang .sidebar-icon {
+    position: relative;
+    overflow: visible;
+}
+
+/* Default (Desktop Expanded) - Inline Badge */
+.sidebar-lang .lang-current {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: auto; /* Push to right */
+    line-height: 1.4;
+    /* Reset absolute positioning from previous styles */
+    position: static; 
+    transform: none;
+    bottom: auto;
+    left: auto;
+    pointer-events: auto;
+}
+
+.sidebar-lang.active .sidebar-icon {
+    background-color: #ebebeb;
+}
+
+.sidebar-lang .sidebar-icon svg {
+    margin-bottom: 0;
+}
+
+.lang-popup {
+    position: absolute;
+    left: 100%;
+    bottom: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 140px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+    z-index: 1100;
+}
+
+.lang-popup::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    bottom: 16px;
+    border: 6px solid transparent;
+    border-right-color: #ffffff;
+    left: auto; /* Reset left */
+}
+
+.sidebar-lang.active .lang-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lang-option:hover {
+    background-color: #f8fafc;
+}
+
+.lang-option.active {
+    background-color: #f1f5f9;
+}
+
+.lang-flag {
+    font-size: 10px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e8f0;
+    border-radius: 50%;
+    color: #64748b;
+}
+
+.lang-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -283,6 +393,11 @@
     .sidebar-icon {
         width: 44px;
         height: 44px;
+        justify-content: center;
+    }
+
+    .sidebar-icon span, .sidebar-icon .lang-current {
+        display: none;
     }
     
     .main-wrapper {
@@ -345,4 +460,3 @@
         padding: 16px;
     }
 }
-

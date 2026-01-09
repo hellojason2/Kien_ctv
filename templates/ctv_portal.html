@@ -2668,8 +2668,10 @@
 
         function renderCtvClientCard(client) {
             const initials = getCtvInitials(client.ten_khach);
-            const depositClass = client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') ? t('da_coc') : t('chua_coc');
+            // Only show deposit badge at client level if deposited
+            const depositBadgeHTML = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') 
+                ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` 
+                : '';
             
             const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
             
@@ -2697,7 +2699,7 @@
                             <span class="client-info-label">${t('first_visit')}</span>
                             <span class="client-info-value">${client.first_visit_date || '-'}</span>
                         </div>
-                        <span class="client-status-badge ${depositClass}">${depositText}</span>
+                        ${depositBadgeHTML}
                     </div>
                     <div class="services-container">
                         <div class="services-title">${t('services_title')} (${client.services.length})</div>
@@ -2710,8 +2712,10 @@
         }
 
         function renderCtvServiceCard(service, index) {
-            const depositClass = service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
-            const depositText = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') ? t('da_coc') : t('chua_coc');
+            // Only show deposit badge at service level if deposited
+            const depositBadgeHTML = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') 
+                ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>` 
+                : '';
             
             const datesHTML = `
                 ${service.ngay_nhap_don 
@@ -2744,7 +2748,7 @@
                 <div class="service-card">
                     <div class="service-card-header">
                         <div class="service-number">${service.service_number}</div>
-                        <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                        ${depositBadgeHTML}
                     </div>
                     <div class="service-name">${escapeHtmlCTV(service.dich_vu || t('unknown_service'))}</div>
                     <div class="service-details">
@@ -2782,27 +2786,47 @@
                 return;
             }
             
+            // Calculate total amount per client from services
+            const getClientTotal = (client) => {
+                if (!client.services || client.services.length === 0) return 0;
+                return client.services.reduce((sum, svc) => sum + (svc.tong_tien || 0), 0);
+            };
+            
             const tableHTML = `
-                <table style="width: 100%; border-collapse: collapse; background: var(--bg-secondary); border-radius: 8px; overflow: hidden;">
-                    <thead>
-                        <tr style="background: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
-                            <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">EMAIL</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">PHONE</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">REFERRER</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary);">LEVEL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${clients.map(client => `
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.email || '-')}</td>
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.sdt || '-')}</td>
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.referrer_ctv_code || '-')}</td>
-                                <td style="padding: 12px; color: var(--text-primary);">${escapeHtmlCTV(client.level || '-')}</td>
+                <div class="client-table-wrapper">
+                    <table class="client-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>${t('ten_khach')}</th>
+                                <th>${t('sdt')}</th>
+                                <th>${t('co_so')}</th>
+                                <th style="text-align: center;">${t('service_count')}</th>
+                                <th style="text-align: right;">${t('tong_tien')}</th>
+                                <th style="text-align: center;">${t('trang_thai_coc')}</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${clients.map(client => {
+                                // Only show deposit badge if deposited
+                                const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc') 
+                                    ? `<span class="table-status-badge deposited">${t('da_coc')}</span>`
+                                    : '';
+                                const totalAmount = getClientTotal(client);
+                                
+                                return `
+                                    <tr>
+                                        <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}</td>
+                                        <td class="col-phone">${escapeHtmlCTV(client.sdt || '-')}</td>
+                                        <td class="col-location">${escapeHtmlCTV(client.co_so || '-')}</td>
+                                        <td class="col-count" style="text-align: center;">${client.service_count || 0}</td>
+                                        <td class="col-amount" style="text-align: right;">${formatCtvCurrency(totalAmount)}</td>
+                                        <td class="col-status" style="text-align: center;">${depositBadgeHTML}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
             
             tableContainer.innerHTML = tableHTML;

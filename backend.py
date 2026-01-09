@@ -1,7 +1,7 @@
 import os
 import sys
 from datetime import datetime
-from flask import Flask, jsonify, send_file, request, render_template
+from flask import Flask, jsonify, send_file, request, render_template, url_for
 from flask_cors import CORS
 from psycopg2 import Error
 from psycopg2.extras import RealDictCursor
@@ -15,10 +15,26 @@ APP_VERSION = "2026.01.05.2"
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
-# Inject version into all templates for cache busting
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename', None)
+        if filename:
+            file_path = os.path.join(app.root_path, endpoint, filename)
+            # Try to locate the file in static folder
+            if app.static_folder:
+                 # static_folder can be absolute or relative
+                 if os.path.isabs(app.static_folder):
+                     file_path = os.path.join(app.static_folder, filename)
+                 else:
+                     file_path = os.path.join(app.root_path, app.static_folder, filename)
+            
+            if os.path.isfile(file_path):
+                values['v'] = int(os.stat(file_path).st_mtime)
+    return url_for(endpoint, **values)
+
 @app.context_processor
-def inject_version():
-    return {'version': APP_VERSION}
+def override_url_for():
+    return dict(url_for=dated_url_for, version=APP_VERSION)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # REGISTER MODULAR BLUEPRINTS
@@ -52,9 +68,7 @@ from modules.db_pool import get_db_connection, return_db_connection
 @app.route('/')
 def index():
     """Serve the dashboard HTML"""
-    dashboard_path = os.path.join(BASE_DIR, 'dashboard.html')
-    if os.path.exists(dashboard_path):
-        return send_file(dashboard_path)
+    # Now serving from templates to enable Jinja2 processing and cache busting
     return render_template('dashboard.html')
 
 @app.route('/api/check-duplicate', methods=['POST'])

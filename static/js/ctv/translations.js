@@ -197,6 +197,7 @@ const translations = {
         ten_khach: 'Tên Khách Hàng',
         sdt: 'Số Điện Thoại',
         trang_thai_coc: 'Trạng Thái Cọc',
+        status: 'Trạng Thái',
         service_count: 'Số Dịch Vụ',
         
         // Lifetime Statistics
@@ -400,6 +401,7 @@ const translations = {
         ten_khach: 'Customer Name',
         sdt: 'Phone Number',
         trang_thai_coc: 'Deposit Status',
+        status: 'Status',
         service_count: 'Services',
         
         // Lifetime Statistics

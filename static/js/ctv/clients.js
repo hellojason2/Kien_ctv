@@ -106,9 +106,39 @@ function renderCtvClientCards(clients) {
 // Render single client card
 function renderCtvClientCard(client) {
     const initials = getCtvInitials(client.ten_khach);
-    const depositBadgeHTML = client.overall_deposit === 'Da coc' ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` : '';
+    // Only show deposit badge at client level if deposited (handle both ASCII and Unicode)
+    const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc') 
+        ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` 
+        : '';
     
-    const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
+    // Convert services to table rows
+    const servicesRows = client.services.map((svc, idx) => {
+        const depositBadge = (svc.deposit_status === 'Da coc' || svc.deposit_status === 'Đã cọc') 
+            ? `<span class="mini-badge success">${t('da_coc')}</span>` 
+            : '';
+            
+        const dateDisplay = svc.ngay_hen_lam || svc.ngay_nhap_don || '-';
+        
+        return `
+            <tr>
+                <td>
+                    <div class="svc-index">${idx + 1}</div>
+                </td>
+                <td>
+                    <div class="svc-name">${escapeHtmlCTV(svc.dich_vu || t('unknown_service'))}</div>
+                    ${depositBadge}
+                </td>
+                <td>
+                    <div class="svc-date">${dateDisplay}</div>
+                    <div class="svc-status ${svc.trang_thai === 'Huy' ? 'cancel' : ''}">${escapeHtmlCTV(svc.trang_thai || '-')}</div>
+                </td>
+                <td class="text-right">
+                    <div class="svc-price">${formatCtvCurrency(svc.tong_tien)}</div>
+                    ${svc.phai_dong > 0 ? `<div class="svc-due">${t('phai_dong')}: ${formatCtvCurrency(svc.phai_dong)}</div>` : ''}
+                </td>
+            </tr>
+        `;
+    }).join('');
     
     return `
         <div class="client-card">
@@ -137,70 +167,28 @@ function renderCtvClientCard(client) {
                 ${depositBadgeHTML}
             </div>
             <div class="services-container">
-                <div class="services-title">${t('services_title')} (${client.services.length})</div>
-                <div class="services-grid">
-                    ${servicesHTML}
-                </div>
+                <table class="services-list-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px">#</th>
+                            <th>${t('dich_vu')}</th>
+                            <th>${t('status')} / ${t('date')}</th>
+                            <th class="text-right">${t('tong_tien')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${servicesRows}
+                    </tbody>
+                </table>
             </div>
         </div>
     `;
 }
 
-// Render single service card
+// Render single service card - REMOVED (replaced by table rows above)
+// Keeping function just in case of reference but it is unused by renderCtvClientCard now
 function renderCtvServiceCard(service, index) {
-    const depositBadgeHTML = service.deposit_status === 'Da coc' ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>` : '';
-    
-    const datesHTML = `
-        ${service.ngay_nhap_don 
-            ? `<div class="service-appointment">
-                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                       <line x1="16" y1="2" x2="16" y2="6"/>
-                       <line x1="8" y1="2" x2="8" y2="6"/>
-                       <line x1="3" y1="10" x2="21" y2="10"/>
-                   </svg>
-                   <span>${t('ngay_nhap_don')}</span>
-                   <span class="date">${service.ngay_nhap_don}</span>
-               </div>` 
-            : ''}
-        ${service.ngay_hen_lam 
-            ? `<div class="service-appointment">
-                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                       <line x1="16" y1="2" x2="16" y2="6"/>
-                       <line x1="8" y1="2" x2="8" y2="6"/>
-                       <line x1="3" y1="10" x2="21" y2="10"/>
-                   </svg>
-                   <span>${t('ngay_hen_lam')}</span>
-                   <span class="date">${service.ngay_hen_lam}</span>
-               </div>` 
-            : ''}
-    `;
-    
-    return `
-        <div class="service-card">
-            <div class="service-card-header">
-                <div class="service-number">${service.service_number}</div>
-                ${depositBadgeHTML}
-            </div>
-            <div class="service-name">${escapeHtmlCTV(service.dich_vu || t('unknown_service'))}</div>
-            <div class="service-details">
-                <div class="service-detail-row">
-                    <span class="service-detail-label">${t('tong_tien')}</span>
-                    <span class="service-detail-value amount">${formatCtvCurrency(service.tong_tien)}</span>
-                </div>
-                <div class="service-detail-row">
-                    <span class="service-detail-label">${t('tien_coc')}</span>
-                    <span class="service-detail-value deposit">${formatCtvCurrency(service.tien_coc)}</span>
-                </div>
-                <div class="service-detail-row">
-                    <span class="service-detail-label">${t('phai_dong')}</span>
-                    <span class="service-detail-value remaining">${formatCtvCurrency(service.phai_dong)}</span>
-                </div>
-            </div>
-            ${datesHTML}
-        </div>
-    `;
+    return ''; 
 }
 
 // Render client table
@@ -227,35 +215,29 @@ function renderCtvClientTable(clients) {
     };
     
     const tableHTML = `
-        <div class="client-table-wrapper" style="overflow-x: auto;">
-            <table class="client-table" style="width: 100%; border-collapse: collapse; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; min-width: 600px;">
+        <div class="client-table-wrapper">
+            <table class="client-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
-                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('ten_khach')}</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('sdt')}</th>
-                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('co_so')}</th>
-                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('service_count')}</th>
-                        <th style="padding: 12px; text-align: right; font-weight: 600; color: var(--text-primary); border-right: 1px solid var(--border-color);">${t('tong_tien')}</th>
-                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">${t('trang_thai_coc')}</th>
+                    <tr>
+                        <th>${t('ten_khach')}</th>
+                        <th>${t('sdt')}</th>
+                        <th>${t('co_so')}</th>
+                        <th style="text-align: center;">${t('service_count')}</th>
+                        <th style="text-align: right;">${t('tong_tien')}</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${clients.map(client => {
-                        const depositBadgeHTML = client.overall_deposit === 'Da coc' 
-                            ? `<span class="table-status-badge deposited" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${t('da_coc')}</span>`
-                            : '';
+                        // Show overall status if available
                         const totalAmount = getClientTotal(client);
                         
                         return `
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color); font-weight: 500;">${escapeHtmlCTV(client.ten_khach || '-')}</td>
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.sdt || '-')}</td>
-                                <td style="padding: 12px; color: var(--text-primary); border-right: 1px solid var(--border-color);">${escapeHtmlCTV(client.co_so || '-')}</td>
-                                <td style="padding: 12px; text-align: center; color: var(--text-primary); border-right: 1px solid var(--border-color);">${client.service_count || 0}</td>
-                                <td style="padding: 12px; text-align: right; color: var(--accent-color); border-right: 1px solid var(--border-color); font-weight: 500;">${formatCtvCurrency(totalAmount)}</td>
-                                <td style="padding: 12px; text-align: center;">
-                                    ${depositBadgeHTML}
-                                </td>
+                            <tr>
+                                <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}</td>
+                                <td class="col-phone">${escapeHtmlCTV(client.sdt || '-')}</td>
+                                <td class="col-location">${escapeHtmlCTV(client.co_so || '-')}</td>
+                                <td class="col-count" style="text-align: center;">${client.service_count || 0}</td>
+                                <td class="col-amount" style="text-align: right;">${formatCtvCurrency(totalAmount)}</td>
                             </tr>
                         `;
                     }).join('')}
