@@ -29,7 +29,7 @@ def get_lifetime_stats():
                    COUNT(*) as total_transactions
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND trang_thai IN ('Da den lam', 'Đã đến làm')
         """, (ctv['ma_ctv'],))
         commission_stats = cursor.fetchone()
         
@@ -62,7 +62,7 @@ def get_lifetime_stats():
                    COALESCE(SUM(tong_tien), 0) as total_revenue
             FROM khach_hang
             WHERE nguoi_chot = %s
-            AND trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc', 'Cho xac nhan', 'Chờ xác nhận')
+            AND trang_thai IN ('Da den lam', 'Đã đến làm')
         """, (ctv['ma_ctv'],))
         kh_service_stats = cursor.fetchone()
         
@@ -222,8 +222,8 @@ def get_ctv_customers():
             FROM (
                 SELECT 
                     COUNT(*) as total_count,
-                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc') THEN 1 ELSE 0 END) as completed_count,
-                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Da coc', 'Đã đến làm', 'Đã cọc') THEN tong_tien ELSE 0 END) as total_revenue,
+                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Đã đến làm') THEN 1 ELSE 0 END) as completed_count,
+                    SUM(CASE WHEN trang_thai IN ('Da den lam', 'Đã đến làm') THEN tong_tien ELSE 0 END) as total_revenue,
                     SUM(CASE WHEN trang_thai IN ('Da coc', 'Đã cọc') THEN 1 ELSE 0 END) as pending_count
                 FROM khach_hang
                 WHERE nguoi_chot = %s
@@ -643,6 +643,9 @@ def check_phone():
     if len(phone) < 9:
         return jsonify({'status': 'error', 'message': 'Invalid phone number'}), 400
     
+    # Extract last 9 digits for fuzzy matching (handles leading zero variations)
+    phone_suffix = phone[-9:]
+    
     connection = get_db_connection()
     if not connection:
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
@@ -650,10 +653,11 @@ def check_phone():
     try:
         cursor = connection.cursor()
         
+        # Use LIKE with suffix pattern to match phone numbers regardless of leading zeros
         cursor.execute("""
             SELECT EXISTS(
                 SELECT 1 FROM khach_hang
-                WHERE sdt = %s
+                WHERE sdt LIKE %s
                   AND (
                     trang_thai IN ('Da den lam', 'Da coc')
                     OR (ngay_hen_lam >= CURRENT_DATE 
@@ -661,7 +665,7 @@ def check_phone():
                     OR ngay_nhap_don >= CURRENT_DATE - INTERVAL '60 days'
                   )
             ) AS is_duplicate
-        """, (phone,))
+        """, ('%' + phone_suffix,))
         
         result = cursor.fetchone()
         is_duplicate = result[0] if result else False

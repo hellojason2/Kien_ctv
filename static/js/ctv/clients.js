@@ -106,8 +106,7 @@ function renderCtvClientCards(clients) {
 // Render single client card
 function renderCtvClientCard(client) {
     const initials = getCtvInitials(client.ten_khach);
-    const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
-    const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+    const depositBadgeHTML = client.overall_deposit === 'Da coc' ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` : '';
     
     const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
     
@@ -135,7 +134,7 @@ function renderCtvClientCard(client) {
                     <span class="client-info-label">${t('first_visit')}</span>
                     <span class="client-info-value">${client.first_visit_date || '-'}</span>
                 </div>
-                <span class="client-status-badge ${depositClass}">${depositText}</span>
+                ${depositBadgeHTML}
             </div>
             <div class="services-container">
                 <div class="services-title">${t('services_title')} (${client.services.length})</div>
@@ -149,8 +148,7 @@ function renderCtvClientCard(client) {
 
 // Render single service card
 function renderCtvServiceCard(service, index) {
-    const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
-    const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
+    const depositBadgeHTML = service.deposit_status === 'Da coc' ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>` : '';
     
     const datesHTML = `
         ${service.ngay_nhap_don 
@@ -183,7 +181,7 @@ function renderCtvServiceCard(service, index) {
         <div class="service-card">
             <div class="service-card-header">
                 <div class="service-number">${service.service_number}</div>
-                <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                ${depositBadgeHTML}
             </div>
             <div class="service-name">${escapeHtmlCTV(service.dich_vu || t('unknown_service'))}</div>
             <div class="service-details">
@@ -243,8 +241,9 @@ function renderCtvClientTable(clients) {
                 </thead>
                 <tbody>
                     ${clients.map(client => {
-                        const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
-                        const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
+                        const depositBadgeHTML = client.overall_deposit === 'Da coc' 
+                            ? `<span class="table-status-badge deposited" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${t('da_coc')}</span>`
+                            : '';
                         const totalAmount = getClientTotal(client);
                         
                         return `
@@ -255,7 +254,7 @@ function renderCtvClientTable(clients) {
                                 <td style="padding: 12px; text-align: center; color: var(--text-primary); border-right: 1px solid var(--border-color);">${client.service_count || 0}</td>
                                 <td style="padding: 12px; text-align: right; color: var(--accent-color); border-right: 1px solid var(--border-color); font-weight: 500;">${formatCtvCurrency(totalAmount)}</td>
                                 <td style="padding: 12px; text-align: center;">
-                                    <span class="table-status-badge ${depositClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px;">${depositText}</span>
+                                    ${depositBadgeHTML}
                                 </td>
                             </tr>
                         `;
