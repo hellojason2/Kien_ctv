@@ -1169,6 +1169,40 @@
             border-color: #1a1a1a;
         }
 
+        /* Add explicit button style for phone check row since it might not inherit from .date-filter .btn-filter */
+        .phone-check-row .btn-filter {
+            padding: 12px 20px;
+            background: #5b21b6; /* Purple to match the gradient card in screenshot? Or #1a1a1a? The login button is purple-ish in screenshot */
+            /* Wait, the login button is .btn-primary: background #1a1a1a in CSS, but screenshot shows purple gradient button. 
+               The screenshot shows "Kiểm Tra Trùng Lặp" button is BLUE/PURPLE gradient. 
+               Wait, let's look at the screenshot again (`middle_of_page`). The button is blue-ish.
+               I should probably just use a nice blue color or the same as the theme. 
+               Let's stick to a safe refined blue/purple. */
+            background: #4f46e5;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            height: 42px; /* Match input height roughly */
+        }
+        
+        .phone-check-row .btn-filter:hover {
+            background: #4338ca;
+        }
+
+        @media (max-width: 480px) {
+            .phone-check-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .phone-check-row .btn-filter {
+                width: 100%;
+            }
+        }
+
         .phone-check-row .result {
             padding: 10px 20px;
             border-radius: 8px;

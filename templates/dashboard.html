@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    
+
     <!-- CTV Portal Styles (for variables and base styles) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/components.css') }}">
-    
+
     <style>
         /* ═══════════════════════════════════════════════════════════════════
            LAYOUT PRESERVATION WITH NEW VIBE
            ═══════════════════════════════════════════════════════════════════ */
-        
+
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-body);
@@ -46,7 +47,8 @@
             width: 50px;
             height: 50px;
             border-radius: 12px;
-            background-color: transparent; /* Changed from #f5f5f5 */
+            background-color: transparent;
+            /* Changed from #f5f5f5 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -72,7 +74,8 @@
         .sidebar-icon svg {
             width: 24px;
             height: 24px;
-            stroke: currentColor; /* Use current color */
+            stroke: currentColor;
+            /* Use current color */
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
@@ -106,7 +109,7 @@
         /* ═══════════════════════════════════════════════════════════════════
            PHONE CHECK UI - Glass Card Style
            ═══════════════════════════════════════════════════════════════════ */
-        
+
         .phone-check {
             display: flex;
             flex-direction: column;
@@ -121,7 +124,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            
+
             /* Glass Card Styling */
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -130,7 +133,7 @@
             border-radius: 24px;
             box-shadow: var(--glass-shadow);
         }
-        
+
         .phone-check-row {
             display: flex;
             align-items: center;
@@ -296,7 +299,7 @@
             width: 36px;
             height: 36px;
             border: none;
-            background-color: rgba(0,0,0,0.05);
+            background-color: rgba(0, 0, 0, 0.05);
             border-radius: 10px;
             cursor: pointer;
             display: flex;
@@ -307,7 +310,7 @@
         }
 
         .close-btn:hover {
-            background-color: rgba(0,0,0,0.1);
+            background-color: rgba(0, 0, 0, 0.1);
             color: var(--text-primary);
         }
 
@@ -423,14 +426,43 @@
             .phone-check {
                 max-width: 90%;
             }
-            
+
             .sidebar-icon.ctv-login {
                 margin-top: 0;
                 margin-bottom: 0;
             }
         }
+
+        @media (max-width: 600px) {
+            .phone-check {
+                padding: 24px 20px !important;
+                max-width: 90% !important;
+            }
+
+            .phone-check-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 16px !important;
+            }
+
+            .phone-check-input,
+            .phone-check-btn {
+                width: 100% !important;
+                max-width: 100% !important;
+                text-align: center;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            .phone-check-btn {
+                padding: 14px 24px !important;
+                display: block !important;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Sidebar -->
@@ -448,14 +480,16 @@
                     <line x1="14" y1="12" x2="12" y2="17"></line>
                 </svg>
             </div>
-            
+
             <!-- Language Toggle -->
             <div class="sidebar-lang" id="langSwitcher">
                 <div class="sidebar-icon" onclick="toggleLangPopup(event)" data-i18n-tooltip="language">
                     <svg viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
                     </svg>
                     <span class="lang-current" id="currentLangLabel">VI</span>
                 </div>
@@ -471,9 +505,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- CTV Portal Button -->
-            <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'" data-i18n-tooltip="ctv_portal">
+            <div class="sidebar-icon ctv-login" onclick="window.location.href='/ctv/portal'"
+                data-i18n-tooltip="ctv_portal">
                 <svg viewBox="0 0 24 24">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>
@@ -487,13 +522,10 @@
             <!-- Phone Check Section (Centered) -->
             <div class="phone-check">
                 <div class="phone-check-row">
-                    <input type="tel" 
-                           id="phoneCheckInput" 
-                           class="phone-check-input" 
-                           data-i18n-placeholder="phone_placeholder"
-                           placeholder="Nhập SDT Cần Kiểm Tra"
-                           maxlength="15">
-                    <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()" data-i18n="check_btn">
+                    <input type="tel" id="phoneCheckInput" class="phone-check-input"
+                        data-i18n-placeholder="phone_placeholder" placeholder="Nhập SDT Cần Kiểm Tra" maxlength="15">
+                    <button id="phoneCheckBtn" class="phone-check-btn" onclick="checkPhoneDuplicate()"
+                        data-i18n="check_btn">
                         Kiểm Tra Trùng Lặp
                     </button>
                 </div>
@@ -510,7 +542,8 @@
         <div class="panel-header">
             <h2 id="panelTitle">Customer Details</h2>
             <button class="close-btn" onclick="closeCustomerPanel()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -524,11 +557,11 @@
     <script>
         let allCustomers = [];
         let currentLang = localStorage.getItem('dashboard_language') || 'vi';
-        
+
         // ═══════════════════════════════════════════════════════════════════
         // TRANSLATIONS
         // ═══════════════════════════════════════════════════════════════════
-        
+
         const translations = {
             vi: {
                 // Sidebar tooltips
@@ -539,7 +572,7 @@
                 ctv_portal: 'Cong CTV',
                 language: 'Ngon Ngu',
                 choose_language: 'Chon Ngon Ngu',
-                
+
                 // Phone check
                 phone_placeholder: 'Nhập SDT Cần Kiểm Tra',
                 check_btn: 'Kiểm Tra Trùng Lặp',
@@ -549,7 +582,7 @@
                 not_duplicate: 'KHONG TRUNG',
                 error: 'Loi',
                 connection_error: 'Loi ket noi',
-                
+
                 // Panel
                 customer_details: 'Thong Tin Khach Hang',
                 loading: 'Dang tai...',
@@ -573,7 +606,7 @@
                 ctv_portal: 'CTV Portal',
                 language: 'Language',
                 choose_language: 'Choose Language',
-                
+
                 // Phone check
                 phone_placeholder: 'Check Phone Number...',
                 check_btn: 'Check',
@@ -583,7 +616,7 @@
                 not_duplicate: 'NOT DUPLICATE',
                 error: 'Error',
                 connection_error: 'Connection Error',
-                
+
                 // Panel
                 customer_details: 'Customer Details',
                 loading: 'Loading...',
@@ -599,29 +632,29 @@
                 no_services: 'No services found'
             }
         };
-        
+
         function t(key) {
             return translations[currentLang][key] || translations['vi'][key] || key;
         }
-        
+
         // Toggle language popup
         function toggleLangPopup(event) {
             event.stopPropagation();
             const popup = document.getElementById('langPopup');
             popup.classList.toggle('active');
         }
-        
+
         // Select language from popup
         function selectLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('dashboard_language', lang);
             applyTranslations();
             updateLangUI();
-            
+
             // Close popup
             document.getElementById('langPopup').classList.remove('active');
         }
-        
+
         // Update language UI elements
         function updateLangUI() {
             // Update current label
@@ -629,18 +662,18 @@
             if (label) {
                 label.textContent = currentLang.toUpperCase();
             }
-            
+
             // Update active state on options
             document.querySelectorAll('.lang-option').forEach(opt => {
                 opt.classList.toggle('active', opt.dataset.lang === currentLang);
             });
         }
-        
+
         // Legacy function for compatibility
         function setLanguage(lang) {
             selectLanguage(lang);
         }
-        
+
         function applyTranslations() {
             // Update elements with data-i18n attribute
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -649,7 +682,7 @@
                     el.textContent = translations[currentLang][key];
                 }
             });
-            
+
             // Update placeholders
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
@@ -657,7 +690,7 @@
                     el.placeholder = translations[currentLang][key];
                 }
             });
-            
+
             // Update tooltips
             document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
                 const key = el.getAttribute('data-i18n-tooltip');
@@ -666,9 +699,9 @@
                 }
             });
         }
-        
+
         // Close popup when clicking outside
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const popup = document.getElementById('langPopup');
             const switcher = document.getElementById('langSwitcher');
             // Only close if popup is active and click was not inside switcher
@@ -676,39 +709,39 @@
                 popup.classList.remove('active');
             }
         });
-        
+
         // ═══════════════════════════════════════════════════════════════════
         // PHONE DUPLICATE CHECK (Public - No login required)
         // ═══════════════════════════════════════════════════════════════════
-        
+
         async function checkPhoneDuplicate() {
             const phoneInput = document.getElementById('phoneCheckInput');
             const btn = document.getElementById('phoneCheckBtn');
             const result = document.getElementById('phoneCheckResult');
-            
+
             const phone = phoneInput.value.trim();
-            
+
             if (!phone || phone.length < 9) {
                 result.className = 'phone-check-result error';
                 result.textContent = t('enter_phone');
                 result.style.display = 'block';
                 return;
             }
-            
+
             // Show loading state
             btn.disabled = true;
             btn.textContent = t('checking');
             result.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/api/check-duplicate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: phone })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.status === 'success') {
                     if (data.is_duplicate) {
                         result.className = 'phone-check-result duplicate';
@@ -721,7 +754,7 @@
                     result.className = 'phone-check-result error';
                     result.textContent = t('error');
                 }
-                
+
             } catch (error) {
                 console.error('Phone check error:', error);
                 result.className = 'phone-check-result error';
@@ -732,23 +765,23 @@
                 result.style.display = 'block';
             }
         }
-        
+
         // Handle Enter key in phone input
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Initialize language
             applyTranslations();
             updateLangUI();
-            
+
             const phoneInput = document.getElementById('phoneCheckInput');
             if (phoneInput) {
-                phoneInput.addEventListener('keypress', function(e) {
+                phoneInput.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') {
                         checkPhoneDuplicate();
                     }
                 });
-                
+
                 // Clear result and remove spaces when input changes
-                phoneInput.addEventListener('input', function() {
+                phoneInput.addEventListener('input', function () {
                     // Remove spaces, dashes, and other non-digit characters except at cursor
                     const cursorPos = this.selectionStart;
                     const oldLength = this.value.length;
@@ -757,33 +790,33 @@
                     // Adjust cursor position
                     const newCursorPos = cursorPos - (oldLength - newLength);
                     this.setSelectionRange(newCursorPos, newCursorPos);
-                    
+
                     document.getElementById('phoneCheckResult').style.display = 'none';
                 });
             }
         });
-        
+
         // ═══════════════════════════════════════════════════════════════════
         // CUSTOMER DATA FUNCTIONS
         // ═══════════════════════════════════════════════════════════════════
-        
+
         // Side Panel Functions
         async function openCustomerPanel(customerId) {
             const sidePanel = document.getElementById('sidePanel');
             const panelOverlay = document.getElementById('panelOverlay');
             const panelContent = document.getElementById('panelContent');
             const panelTitle = document.getElementById('panelTitle');
-            
+
             // Show panel with loading state
             panelContent.innerHTML = '<div class="panel-loading">Loading...</div>';
             sidePanel.classList.add('active');
             panelOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
-            
+
             try {
                 const response = await fetch(`/api/customer/${customerId}/services`);
                 const result = await response.json();
-                
+
                 if (result.status === 'success') {
                     panelTitle.textContent = result.customer.name;
                     renderCustomerDetails(result.customer, result.services);
@@ -795,10 +828,10 @@
                 panelContent.innerHTML = '<div class="panel-loading" style="color: #ff6b6b;">Error loading customer details</div>';
             }
         }
-        
+
         function renderCustomerDetails(customer, services) {
             const panelContent = document.getElementById('panelContent');
-            
+
             // Format status badge
             const getStatusClass = (status) => {
                 if (!status) return 'pending';
@@ -807,13 +840,13 @@
                 if (s.includes('huy') || s.includes('cancel')) return 'cancelled';
                 return 'pending';
             };
-            
+
             const formatDate = (dateStr) => {
                 if (!dateStr) return '-';
                 const date = new Date(dateStr);
                 return date.toLocaleDateString('vi-VN');
             };
-            
+
             let html = `
                 <div class="info-card">
                     <h3>${t('contact_info')}</h3>
@@ -830,7 +863,7 @@
                 <div class="services-section">
                     <h3>${t('services_history')} (${services.length})</h3>
             `;
-            
+
             if (services.length === 0) {
                 html += '<div class="no-services">No services found for this customer</div>';
             } else {
@@ -847,7 +880,7 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 services.forEach(service => {
                     html += `
                         <tr>
@@ -859,37 +892,37 @@
                         </tr>
                     `;
                 });
-                
+
                 html += `
                         </tbody>
                     </table>
                 `;
             }
-            
+
             html += '</div>';
             panelContent.innerHTML = html;
         }
-        
+
         function closeCustomerPanel() {
             const sidePanel = document.getElementById('sidePanel');
             const panelOverlay = document.getElementById('panelOverlay');
-            
+
             sidePanel.classList.remove('active');
             panelOverlay.classList.remove('active');
             document.body.style.overflow = '';
         }
-        
+
         // Search input handler and event listeners
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const panelOverlay = document.getElementById('panelOverlay');
-            
+
             // Close panel when clicking overlay
             if (panelOverlay) {
                 panelOverlay.addEventListener('click', closeCustomerPanel);
             }
-            
+
             // Close panel on Escape
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     closeCustomerPanel();
                 }
@@ -897,4 +930,5 @@
         });
     </script>
 </body>
+
 </html>
