@@ -295,15 +295,19 @@ def sync_tab_by_count(spreadsheet, conn, tab_type):
             if tab_type in ['tham_my', 'nha_khoa']:
                 record_id = insert_khach_hang(conn, row_data, tab_type)
                 if record_id:
-                    logger.info(f"    Row {row_idx}: Inserted (ID: {record_id})")
-                    recalculate_commissions_for_record(record_id, 'khach_hang', conn)
+                    # logger.info(f"    Row {row_idx}: Inserted (ID: {record_id})")
+                    if processed % 50 == 0:
+                        logger.info(f"    ... Inserted {processed} rows ...")
+                    # recalculate_commissions_for_record(record_id, 'khach_hang', conn) # Removed for speed
                     processed += 1
             else:
                 # gioi_thieu now uses unified khach_hang table
                 record_id = insert_gioi_thieu(conn, row_data)
                 if record_id:
-                    logger.info(f"    Row {row_idx}: Inserted (ID: {record_id})")
-                    recalculate_commissions_for_record(record_id, 'khach_hang', conn)
+                    # logger.info(f"    Row {row_idx}: Inserted (ID: {record_id})")
+                    if processed % 50 == 0:
+                        logger.info(f"    ... Inserted {processed} rows ...")
+                    # recalculate_commissions_for_record(record_id, 'khach_hang', conn) # Removed for speed
                     processed += 1
         except Exception as e:
             conn.rollback()
