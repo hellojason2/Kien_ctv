@@ -609,25 +609,30 @@ def get_date_ranges_with_data():
         days_since_sunday = (today.weekday() + 1) % 7
         week_start = today - datetime.timedelta(days=days_since_sunday)
         
+        # Calculate end of current month
+        next_month = today.replace(day=28) + datetime.timedelta(days=4)
+        last_day_of_month = next_month - datetime.timedelta(days=next_month.day)
+        
         date_ranges = {
             'today': (today, today),
             '3days': (today - datetime.timedelta(days=3), today),
             'week': (week_start, today),
-            'month': (today.replace(day=1), today),
+            'month': (today.replace(day=1), last_day_of_month), # Covers full month
             'lastmonth': (
                 (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1),
                 today.replace(day=1) - datetime.timedelta(days=1)
             ),
             '3months': (today.replace(day=1) - datetime.timedelta(days=60), today),
-            'year': (today.replace(month=1, day=1), today)
+            'year': (today.replace(month=1, day=1), today.replace(month=12, day=31))
         }
 
         for preset, (from_date, to_date) in date_ranges.items():
+            # Check for ANY records in date range (removed status filter)
+            # This ensures the dot appears if there is any data, even if pending/unconfirmed
             query_kh = f"""
                 SELECT COUNT(*) as count
                 FROM khach_hang
                 WHERE nguoi_chot IN ({placeholders})
-                AND trang_thai IN ('Da den lam', 'Đã đến làm')
                 AND ngay_hen_lam >= %s
                 AND ngay_hen_lam <= %s
             """
