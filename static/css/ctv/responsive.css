@@ -7,8 +7,61 @@
 
 /* Tablet Breakpoint (iPad) */
 @media (max-width: 1024px) and (min-width: 769px) {
+    /* Compact Sidebar for iPad */
+    .sidebar {
+        width: 80px;
+        padding: 24px 12px;
+        align-items: center;
+    }
+
+    .main-wrapper {
+        margin-left: 80px;
+        padding: 24px;
+        width: calc(100% - 80px);
+    }
+
+    /* Hide sidebar text labels */
+    .nav-label,
+    .sidebar-icon span,
+    .sidebar-icon .lang-current,
+    .sidebar-logo span {
+        display: none !important;
+    }
+
+    /* Center icons */
+    .sidebar-icon {
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        padding: 0;
+        margin-bottom: 8px;
+    }
+
+    .sidebar-icon svg {
+        width: 24px;
+        height: 24px;
+        margin: 0;
+    }
+
+    .sidebar-header {
+        justify-content: center;
+        padding-left: 0;
+        margin-bottom: 24px;
+    }
+    
+    .sidebar-logo {
+        margin: 0;
+    }
+
+    .sidebar-logout {
+        width: 56px;
+        justify-content: center;
+    }
+
+    /* Grid Adjustments */
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
     }
     
     .ctv-clients-grid {
@@ -21,21 +74,27 @@
     
     .tree-stats {
         flex-direction: column;
+        gap: 16px;
     }
     
     .tree-stat {
         flex: none;
         width: 100%;
     }
-    
+
+    /* Content adjustments */
+    .content {
+        padding: 0;
+    }
+
     /* Language popup adjustments for iPad */
     .lang-popup {
-        width: 220px !important;
-        min-width: 220px !important;
-        max-width: 220px !important;
-        left: 80px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
+        width: 200px !important;
+        min-width: 200px !important;
+        left: 70px !important;
+        top: auto !important;
+        bottom: 0 !important;
+        transform: none !important;
         z-index: 2000 !important;
     }
     

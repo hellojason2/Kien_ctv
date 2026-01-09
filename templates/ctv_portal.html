@@ -1237,8 +1237,42 @@
             }
         }
 
+        /* Mobile Menu Trigger Style */
+        .mobile-menu-trigger {
+            display: none; /* Hidden by default (desktop) */
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            margin-right: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .mobile-menu-trigger svg {
+            width: 24px;
+            height: 24px;
+            color: #1a1a1a; /* Dark color for visibility */
+        }
+
         /* Responsive - Mobile */
         @media (max-width: 768px) {
+            /* Show Mobile Menu Trigger */
+            .mobile-menu-trigger {
+                display: flex;
+            }
+            
+            /* Align header content */
+            .header-left {
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            
+            /* ... existing mobile styles ... */
             /* Sidebar becomes bottom navigation */
             .sidebar {
                 position: fixed;
@@ -1278,7 +1312,7 @@
             .sidebar-icon {
                 width: auto;
                 height: 48px;
-                padding: 8px;
+                padding: 8px 16px; /* Wider touch target */
                 flex-direction: column;
                 justify-content: center;
                 gap: 4px;
@@ -1292,6 +1326,14 @@
                 width: 24px;
                 height: 24px;
                 margin: 0;
+                /* Make icon color more prominent if needed */
+                opacity: 0.8; 
+            }
+            
+            /* Active state for bottom nav */
+            .sidebar-icon.active svg {
+                opacity: 1;
+                color: #667eea; /* Brand color */
             }
 
             /* Hide text labels on mobile to save space, or keep them if they fit? 
@@ -1300,6 +1342,12 @@
                 font-size: 10px;
                 line-height: 1;
                 font-weight: 600;
+                /* Make text slightly bolder */
+                color: var(--text-secondary);
+            }
+            
+            .sidebar-icon.active span {
+                color: #667eea;
             }
 
             .sidebar-logout {
