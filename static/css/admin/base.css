@@ -55,7 +55,7 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-    background-attachment: fixed;
+    background-attachment: fixed; min-width: fit-content;
     color: var(--text-primary);
     min-height: 100vh;
     line-height: 1.5;

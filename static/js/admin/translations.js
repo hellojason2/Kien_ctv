@@ -164,6 +164,10 @@ const translations = {
         none_root: 'Không (CTV Gốc)',
         cancel: 'Hủy',
         create_ctv: 'Tạo CTV',
+        change_password: 'Đổi Mật Khẩu',
+        new_password: 'Mật Khẩu Mới',
+        save: 'Lưu',
+        password_changed: 'Mật khẩu đã được thay đổi thành công',
         
         // Language
         language: 'Ngôn Ngữ',
@@ -342,6 +346,10 @@ const translations = {
         none_root: 'None (Root CTV)',
         cancel: 'Cancel',
         create_ctv: 'Create CTV',
+        change_password: 'Change Password',
+        new_password: 'New Password',
+        save: 'Save',
+        password_changed: 'Password changed successfully',
         
         // Language
         language: 'Language',

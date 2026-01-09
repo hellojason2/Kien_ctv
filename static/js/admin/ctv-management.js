@@ -46,10 +46,15 @@ function renderCTVTable(data) {
             <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
             <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
             <td>
-                <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="viewHierarchy('${ctv.ma_ctv}')">Tree</button>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="viewHierarchy('${ctv.ma_ctv}')">Tree</button>
+                    <button class="btn btn-primary" style="padding:6px 12px;font-size:12px" onclick="showChangePasswordModal('${ctv.ma_ctv}')">Password</button>
+                </div>
             </td>
         </tr>
     `).join('');
+    // Apply translations for new content
+    applyTranslations();
 }
 
 /**
@@ -67,13 +72,9 @@ function populateCTVSelects(ctvList = null) {
         commissionFilter.innerHTML = `<option value="">${t('all_ctvs')}</option>` + options;
     }
     
-    const referrerSelect = document.getElementById('newCtvReferrer');
-    if (referrerSelect) {
-        referrerSelect.innerHTML = `<option value="">${t('none_root')}</option>` + options;
-    }
-    
-    // Initialize searchable dropdown for hierarchy
+    // Initialize searchable dropdowns
     initHierarchyDropdown();
+    initReferrerDropdown();
 }
 
 /**
@@ -83,11 +84,12 @@ function showCreateCTVModal() {
     document.getElementById('createCTVModal').classList.add('active');
     // Re-apply translations to modal elements
     applyTranslations();
-    // Re-populate referrer dropdown with translated option
-    if (window.allCTV.length > 0) {
-        const options = window.allCTV.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
-        document.getElementById('newCtvReferrer').innerHTML = `<option value="">${t('none_root')}</option>` + options;
-    }
+    
+    // Reset referrer dropdown
+    const input = document.getElementById('referrerSearch');
+    const hiddenInput = document.getElementById('newCtvReferrer');
+    if (input) input.value = '';
+    if (hiddenInput) hiddenInput.value = '';
 }
 
 /**
@@ -100,7 +102,7 @@ async function createCTV() {
         email: document.getElementById('newCtvEmail').value,
         sdt: document.getElementById('newCtvPhone').value,
         nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
-        cap_bac: 'Bronze'
+        cap_bac: document.getElementById('newCtvLevel').value || 'Bronze'
     };
     
     const result = await api('/api/admin/ctv', {
@@ -112,6 +114,12 @@ async function createCTV() {
         alert(`CTV created! Default password: ${result.default_password}`);
         closeModal('createCTVModal');
         document.getElementById('createCTVForm').reset();
+        // Reset custom dropdowns
+        const input = document.getElementById('referrerSearch');
+        if (input) input.value = '';
+        const hiddenInput = document.getElementById('newCtvReferrer');
+        if (hiddenInput) hiddenInput.value = '';
+        
         loadCTVList();
     } else {
         alert('Error: ' + result.message);
@@ -126,7 +134,7 @@ async function createCTV() {
  */
 function normalizeVietnamese(str) {
     if (!str) return '';
-    return str
+    return str.toString()
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
@@ -166,3 +174,169 @@ function initCTVSearch() {
     }
 }
 
+/**
+ * Initialize searchable referrer dropdown
+ */
+function initReferrerDropdown() {
+    const dropdown = document.getElementById('referrerDropdown');
+    const input = document.getElementById('referrerSearch');
+    const list = document.getElementById('referrerList');
+    const hiddenInput = document.getElementById('newCtvReferrer');
+    
+    if (!dropdown || !input || !list) return;
+
+    // Show dropdown on focus
+    input.addEventListener('focus', () => {
+        dropdown.classList.add('open');
+        renderReferrerList(input.value);
+    });
+
+    // Filter on input
+    input.addEventListener('input', (e) => {
+        renderReferrerList(e.target.value);
+        dropdown.classList.add('open');
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+            // Restore text from value if exists, else clear
+            const selectedValue = hiddenInput.value;
+            if (selectedValue) {
+            const ctv = (window.allCTV || []).find(c => c.ma_ctv === selectedValue);
+            if (ctv) {
+                input.value = `${ctv.ten} (${ctv.ma_ctv})`;
+            }
+        } else {
+            input.value = '';
+        }
+    }
+});
+
+    // Toggle on arrow click
+    const arrow = dropdown.querySelector('.dropdown-arrow');
+    if (arrow) {
+        arrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (dropdown.classList.contains('open')) {
+                dropdown.classList.remove('open');
+            } else {
+                dropdown.classList.add('open');
+                input.focus();
+                renderReferrerList(input.value);
+            }
+        });
+    }
+}
+
+/**
+ * Render referrer list
+ */
+function renderReferrerList(searchTerm = '') {
+    const list = document.getElementById('referrerList');
+    if (!list) return;
+    
+    const term = normalizeVietnamese(searchTerm);
+    const hiddenInput = document.getElementById('newCtvReferrer');
+    const selectedValue = hiddenInput ? hiddenInput.value : '';
+
+    // Filter active CTVs
+    let filtered = (window.allCTV || []).filter(c => c.is_active !== false);
+    
+    if (term) {
+        filtered = filtered.filter(c => {
+            const code = normalizeVietnamese(c.ma_ctv || '');
+            const name = normalizeVietnamese(c.ten || '');
+            const phone = (c.sdt || '').toString();
+            return code.includes(term) || name.includes(term) || phone.includes(term);
+        });
+    }
+
+    // Always include "None (Root CTV)" option at top if search term is empty or matches "root"
+    let html = '';
+    // Translation fallback
+    const noneText = (typeof t === 'function' ? t('none_root') : null) || 'None (Root CTV)';
+    const noResultsText = (typeof t === 'function' ? t('no_ctv_found') : null) || 'No CTV found';
+
+    if (!term || normalizeVietnamese(noneText).includes(term) || 'root'.includes(term)) {
+        html += `
+        <div class="dropdown-item ${selectedValue === '' ? 'selected' : ''}" 
+             onclick="selectReferrer('')">
+            <span>${noneText}</span>
+        </div>`;
+    }
+
+    if (filtered.length === 0 && !html) {
+        html = `<div class="no-results">${noResultsText}</div>`;
+    } else {
+        html += filtered.slice(0, 50).map(c => `
+            <div class="dropdown-item ${c.ma_ctv === selectedValue ? 'selected' : ''}" 
+                 onclick="selectReferrer('${c.ma_ctv}')">
+                <span><strong>${c.ten}</strong> (${c.ma_ctv})</span>
+            </div>
+        `).join('');
+    }
+
+    list.innerHTML = html;
+}
+
+/**
+ * Select referrer
+ */
+function selectReferrer(ctvCode) {
+    const hiddenInput = document.getElementById('newCtvReferrer');
+    const input = document.getElementById('referrerSearch');
+    const dropdown = document.getElementById('referrerDropdown');
+    
+    if (hiddenInput) hiddenInput.value = ctvCode;
+    
+    if (ctvCode) {
+        const ctv = (window.allCTV || []).find(c => c.ma_ctv === ctvCode);
+        if (ctv && input) {
+            input.value = `${ctv.ten} (${ctv.ma_ctv})`;
+        }
+    } else {
+        // Clear input for "None" selection
+        if (input) input.value = '';
+    }
+    
+    if (dropdown) dropdown.classList.remove('open');
+}
+
+
+/**
+ * Show change password modal
+ * @param {string} ctvCode - CTV Code
+ */
+function showChangePasswordModal(ctvCode) {
+    document.getElementById('changePasswordCtvCode').value = ctvCode;
+    document.getElementById('newPassword').value = '';
+    document.getElementById('changePasswordModal').classList.add('active');
+    applyTranslations();
+}
+
+/**
+ * Submit change password
+ */
+async function submitChangePassword() {
+    const ctvCode = document.getElementById('changePasswordCtvCode').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    if (!newPassword) {
+        alert(t('enter_password'));
+        return;
+    }
+
+    const result = await api(`/api/admin/ctv/${ctvCode}`, {
+        method: 'PUT',
+        body: JSON.stringify({ password: newPassword })
+    });
+
+    if (result.status === 'success') {
+        alert(t('password_changed'));
+        closeModal('changePasswordModal');
+    } else {
+        alert('Error: ' + result.message);
+    }
+}

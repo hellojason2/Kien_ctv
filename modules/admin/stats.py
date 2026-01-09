@@ -237,31 +237,38 @@ def get_date_ranges_with_data():
 
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Calculate missing commissions incrementally to ensure red dots are accurate
+        calculate_new_commissions_fast(connection=connection)
+        
         today = datetime.date.today()
         ranges_with_data = {}
 
         days_since_sunday = (today.weekday() + 1) % 7
         week_start = today - datetime.timedelta(days=days_since_sunday)
         
+        # Calculate end of current month
+        next_month = today.replace(day=28) + datetime.timedelta(days=4)
+        last_day_of_month = next_month - datetime.timedelta(days=next_month.day)
+        
         date_ranges = {
             'today': (today, today),
             '3days': (today - datetime.timedelta(days=2), today),
             'week': (week_start, today),
-            'month': (today.replace(day=1), today),
+            'month': (today.replace(day=1), last_day_of_month),
             'lastmonth': (
                 (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1),
                 today.replace(day=1) - datetime.timedelta(days=1)
             ),
             '3months': (today.replace(day=1) - datetime.timedelta(days=60), today),
-            'year': (today.replace(month=1, day=1), today)
+            'year': (today.replace(month=1, day=1), today.replace(month=12, day=31))
         }
 
         for preset, (from_date, to_date) in date_ranges.items():
             query_kh = """
                 SELECT COUNT(*) as count
                 FROM khach_hang
-                WHERE (trang_thai = 'Đã đến làm' OR trang_thai = 'Da den lam')
-                AND ngay_hen_lam >= %s
+                WHERE ngay_hen_lam >= %s
                 AND ngay_hen_lam <= %s
             """
             cursor.execute(query_kh, [from_date, to_date])
