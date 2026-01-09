@@ -20,11 +20,15 @@
             background: var(--bg-body);
             color: var(--text-primary);
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         .container {
             display: flex;
-            height: 100vh;
+            min-height: 100vh; /* Changed from height: 100vh to min-height */
+            width: 100%;
         }
 
         /* Sidebar - Glassmorphism Vibe */
@@ -41,6 +45,9 @@
             gap: 20px;
             box-shadow: var(--glass-shadow);
             z-index: 100;
+            position: sticky; /* Sticky on desktop */
+            top: 0;
+            height: 100vh;
         }
 
         .sidebar-icon {
@@ -117,13 +124,15 @@
             justify-content: center;
             gap: 20px;
             padding: 40px;
-            width: 100%;
+            width: 90%; /* Responsive width */
             max-width: 550px;
-            margin: 0 auto;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            margin: auto; /* Center with flex parent */
+            
+            /* Remove absolute positioning for better mobile flow */
+            position: relative;
+            top: auto;
+            left: auto;
+            transform: none;
 
             /* Glass Card Styling */
             background: var(--glass-bg);
@@ -232,6 +241,9 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            justify-content: center; /* Center content vertically */
+            padding: 20px;
+            min-height: 100vh; /* Ensure full height */
         }
 
         /* Side Panel Overlay */
@@ -408,23 +420,59 @@
 
             .sidebar {
                 width: 100%;
-                height: auto;
+                height: 64px; /* Fixed height for bottom bar */
                 flex-direction: row;
-                padding: 12px 20px;
-                gap: 10px;
+                padding: 0 20px;
+                gap: 0; /* Space handled by justify-content */
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
+                top: auto; /* Reset top */
                 z-index: 1000;
                 border-right: none;
                 border-top: 1px solid var(--glass-border);
                 justify-content: space-around;
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(255, 255, 255, 0.95); /* More opaque on mobile */
+            }
+
+            .sidebar-icon {
+                height: 100%;
+                width: auto;
+                padding: 0 16px;
+                border-radius: 8px;
+            }
+
+            /* Adjust language popup for bottom sidebar */
+            .lang-popup {
+                left: 50%;
+                bottom: 70px; /* Above the sidebar */
+                top: auto;
+                transform: translateX(-50%);
+                min-width: 160px;
+            }
+            
+            .lang-popup::before {
+                /* Arrow pointing down */
+                right: 50%;
+                left: auto;
+                bottom: -12px;
+                transform: translateX(50%);
+                border-top-color: #ffffff;
+                border-right-color: transparent;
+                border-left-color: transparent;
+                border-bottom-color: transparent;
+            }
+
+            .main-content {
+                padding-bottom: 100px; /* Space for bottom nav */
+                min-height: auto; /* Let content determine height if needed, but flex keeps it centered */
+                height: 100vh; /* Full viewport height */
             }
 
             .phone-check {
                 max-width: 90%;
+                padding: 30px 20px;
             }
 
             .sidebar-icon.ctv-login {
