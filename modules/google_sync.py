@@ -398,100 +398,325 @@ class GoogleSheetSync:
         Deletes all data from khach_hang for specified sources and re-syncs everything.
         Uses batch processing to handle large datasets without timeouts.
         """
+        success, stats, _ = self.hard_reset_with_logs()
+        return success, stats
+
+    def hard_reset_with_logs(self):
+        """
+        Deletes all data from khach_hang for specified sources and re-syncs everything.
+        Returns detailed logs for frontend display.
+        """
         stats = {
-            'tham_my': {'processed': 0, 'errors': 0},
-            'nha_khoa': {'processed': 0, 'errors': 0},
-            'gioi_thieu': {'processed': 0, 'errors': 0}
+            'tham_my': {'processed': 0, 'errors': 0, 'total_rows': 0},
+            'nha_khoa': {'processed': 0, 'errors': 0, 'total_rows': 0},
+            'gioi_thieu': {'processed': 0, 'errors': 0, 'total_rows': 0}
         }
         
+        logs = []
         conn = None
         
+        def add_log(message, log_type='info', step='general'):
+            logs.append({'message': message, 'type': log_type, 'step': step})
+            if log_type == 'error':
+                logger.error(message)
+            elif log_type == 'warning':
+                logger.warning(message)
+            else:
+                logger.info(message)
+        
         try:
-            logger.info("=" * 60)
-            logger.info("HARD RESET - Starting")
-            logger.info("=" * 60)
+            add_log("=" * 50, 'info', 'start')
+            add_log("HARD RESET - Starting", 'info', 'start')
+            add_log("=" * 50, 'info', 'start')
             
-            logger.info("Connecting to Google Sheets...")
-            client = self.get_google_client()
-            spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
-            logger.info("Google Sheets connected successfully")
+            # Connect to Google Sheets
+            add_log("Connecting to Google Sheets...", 'info', 'connect')
+            try:
+                client = self.get_google_client()
+                spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+                add_log("✓ Google Sheets connected successfully", 'success', 'connect')
+            except Exception as e:
+                add_log(f"✗ Failed to connect to Google Sheets: {e}", 'error', 'connect')
+                return False, stats, logs
             
-            logger.info("Connecting to database...")
-            conn = self.get_db_connection()
-            logger.info("Database connected successfully")
+            # Connect to database
+            add_log("Connecting to database...", 'info', 'connect')
+            try:
+                conn = self.get_db_connection()
+                add_log("✓ Database connected successfully", 'success', 'connect')
+            except Exception as e:
+                add_log(f"✗ Failed to connect to database: {e}", 'error', 'connect')
+                return False, stats, logs
             
-            # 1. Clear existing data
-            logger.info("\n--- STEP 1: Clearing existing data ---")
-            cur = conn.cursor()
+            # STEP 1: Clear existing data
+            add_log("", 'info', 'delete')
+            add_log("--- STEP 1: Clearing existing data ---", 'info', 'delete')
             
-            # Delete in smaller chunks to avoid lock timeout
-            logger.info("Deleting khach_hang records...")
-            cur.execute("""
-                DELETE FROM khach_hang 
-                WHERE source IN ('tham_my', 'nha_khoa', 'gioi_thieu')
-            """)
-            deleted_count = cur.rowcount
-            conn.commit()
-            logger.info(f"Deleted {deleted_count} records from khach_hang")
+            try:
+                cur = conn.cursor()
+                
+                add_log("Deleting khach_hang records...", 'info', 'delete')
+                cur.execute("""
+                    DELETE FROM khach_hang 
+                    WHERE source IN ('tham_my', 'nha_khoa', 'gioi_thieu')
+                """)
+                deleted_count = cur.rowcount
+                conn.commit()
+                add_log(f"✓ Deleted {deleted_count:,} records from khach_hang", 'success', 'delete')
+                
+                add_log("Deleting commission records...", 'info', 'delete')
+                cur.execute("DELETE FROM commissions WHERE level >= 0")
+                deleted_comm = cur.rowcount
+                conn.commit()
+                add_log(f"✓ Deleted {deleted_comm:,} commission records", 'success', 'delete')
+                
+                cur.close()
+            except Exception as e:
+                add_log(f"✗ Error clearing data: {e}", 'error', 'delete')
+                if conn:
+                    conn.rollback()
+                return False, stats, logs
             
-            logger.info("Deleting commission records...")
-            cur.execute("DELETE FROM commissions WHERE level >= 0")
-            deleted_comm = cur.rowcount
-            conn.commit()
-            logger.info(f"Deleted {deleted_comm} commission records")
+            # STEP 2: Import Thẩm Mỹ (Beauty)
+            add_log("", 'info', 'beauty')
+            add_log("--- STEP 2: Importing Thẩm Mỹ (Beauty) ---", 'info', 'beauty')
             
-            cur.close()
-            
-            # 2. Re-import everything with batch processing
-            logger.info("\n--- STEP 2: Importing Thẩm Mỹ (Beauty) ---")
-            conn = self.ensure_connection(conn)
-            p, e = self.sync_tab_by_count(spreadsheet, conn, 'tham_my', hard_reset=True)
-            stats['tham_my'] = {'processed': p, 'errors': e}
-            logger.info(f"Thẩm Mỹ complete: {p} records, {e} errors")
-            
-            logger.info("\n--- STEP 3: Importing Nha Khoa (Dental) ---")
-            conn = self.ensure_connection(conn)
-            p, e = self.sync_tab_by_count(spreadsheet, conn, 'nha_khoa', hard_reset=True)
-            stats['nha_khoa'] = {'processed': p, 'errors': e}
-            logger.info(f"Nha Khoa complete: {p} records, {e} errors")
-            
-            logger.info("\n--- STEP 4: Importing Giới Thiệu (Referral) ---")
-            conn = self.ensure_connection(conn)
-            p, e = self.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu', hard_reset=True)
-            stats['gioi_thieu'] = {'processed': p, 'errors': e}
-            logger.info(f"Giới Thiệu complete: {p} records, {e} errors")
-            
-            # 3. Recalculate commissions
-            total_processed = sum(s['processed'] for s in stats.values())
-            if total_processed > 0:
-                logger.info("\n--- STEP 5: Recalculating Commissions ---")
+            try:
                 conn = self.ensure_connection(conn)
+                p, e, tab_logs = self.sync_tab_with_logs(spreadsheet, conn, 'tham_my', hard_reset=True)
+                stats['tham_my'] = {'processed': p, 'errors': e}
+                logs.extend(tab_logs)
+                
+                if e > 0:
+                    add_log(f"⚠ Thẩm Mỹ: {p:,} imported, {e} errors", 'warning', 'beauty')
+                else:
+                    add_log(f"✓ Thẩm Mỹ complete: {p:,} records imported", 'success', 'beauty')
+            except Exception as e:
+                add_log(f"✗ Thẩm Mỹ import failed: {e}", 'error', 'beauty')
+                stats['tham_my']['errors'] = 1
+            
+            # STEP 3: Import Nha Khoa (Dental)
+            add_log("", 'info', 'dental')
+            add_log("--- STEP 3: Importing Nha Khoa (Dental) ---", 'info', 'dental')
+            
+            try:
+                conn = self.ensure_connection(conn)
+                p, e, tab_logs = self.sync_tab_with_logs(spreadsheet, conn, 'nha_khoa', hard_reset=True)
+                stats['nha_khoa'] = {'processed': p, 'errors': e}
+                logs.extend(tab_logs)
+                
+                if e > 0:
+                    add_log(f"⚠ Nha Khoa: {p:,} imported, {e} errors", 'warning', 'dental')
+                else:
+                    add_log(f"✓ Nha Khoa complete: {p:,} records imported", 'success', 'dental')
+            except Exception as e:
+                add_log(f"✗ Nha Khoa import failed: {e}", 'error', 'dental')
+                stats['nha_khoa']['errors'] = 1
+            
+            # STEP 4: Import Giới Thiệu (Referral)
+            add_log("", 'info', 'referral')
+            add_log("--- STEP 4: Importing Giới Thiệu (Referral) ---", 'info', 'referral')
+            
+            try:
+                conn = self.ensure_connection(conn)
+                p, e, tab_logs = self.sync_tab_with_logs(spreadsheet, conn, 'gioi_thieu', hard_reset=True)
+                stats['gioi_thieu'] = {'processed': p, 'errors': e}
+                logs.extend(tab_logs)
+                
+                if e > 0:
+                    add_log(f"⚠ Giới Thiệu: {p:,} imported, {e} errors", 'warning', 'referral')
+                else:
+                    add_log(f"✓ Giới Thiệu complete: {p:,} records imported", 'success', 'referral')
+            except Exception as e:
+                add_log(f"✗ Giới Thiệu import failed: {e}", 'error', 'referral')
+                stats['gioi_thieu']['errors'] = 1
+            
+            # STEP 5: Recalculate commissions
+            total_processed = sum(s['processed'] for s in stats.values())
+            total_errors = sum(s['errors'] for s in stats.values())
+            
+            if total_processed > 0:
+                add_log("", 'info', 'commission')
+                add_log("--- STEP 5: Recalculating Commissions ---", 'info', 'commission')
+                
                 try:
+                    conn = self.ensure_connection(conn)
                     from modules.mlm_core import calculate_new_commissions_fast
                     comm_stats = calculate_new_commissions_fast(connection=conn)
-                    logger.info(f"Commission calculation complete: {comm_stats}")
+                    add_log(f"✓ Commission calculation complete", 'success', 'commission')
+                    if comm_stats:
+                        add_log(f"  Commissions calculated: {comm_stats}", 'info', 'commission')
                 except Exception as e:
-                    logger.warning(f"Commission calculation warning: {e}")
+                    add_log(f"⚠ Commission calculation warning: {e}", 'warning', 'commission')
             
             # Update heartbeat
-            conn = self.ensure_connection(conn)
-            self.update_heartbeat(conn, total_processed)
+            try:
+                conn = self.ensure_connection(conn)
+                self.update_heartbeat(conn, total_processed)
+            except:
+                pass
             
-            logger.info("\n" + "=" * 60)
-            logger.info("HARD RESET - Complete")
-            logger.info(f"Total imported: {total_processed} records")
-            logger.info("=" * 60)
+            # Final summary
+            add_log("", 'info', 'complete')
+            add_log("=" * 50, 'info', 'complete')
+            add_log("HARD RESET - Complete", 'success', 'complete')
+            add_log(f"Total imported: {total_processed:,} records", 'success', 'complete')
+            if total_errors > 0:
+                add_log(f"Total errors: {total_errors}", 'warning', 'complete')
+            add_log("=" * 50, 'info', 'complete')
             
-            conn.close()
-            return True, stats
+            if conn:
+                conn.close()
+            
+            return True, stats, logs
             
         except Exception as e:
-            logger.error(f"Hard reset error: {e}")
+            add_log(f"✗ CRITICAL ERROR: {e}", 'error', 'exception')
             import traceback
-            traceback.print_exc()
+            add_log(traceback.format_exc(), 'error', 'exception')
+            
             if conn:
                 try:
                     conn.close()
                 except:
                     pass
-            return False, str(e)
+            return False, stats, logs
+
+    def sync_tab_with_logs(self, spreadsheet, conn, tab_type, hard_reset=False):
+        """Sync a tab from Google Sheets to database with batch processing and logging"""
+        logs = []
+        
+        def add_log(message, log_type='info'):
+            logs.append({'message': message, 'type': log_type, 'step': tab_type})
+        
+        if tab_type == 'tham_my':
+            variations = ['Khach hang Tham my', 'Khách hàng Thẩm mỹ', 'Tham My', 'Thẩm mỹ']
+            tab_name = 'Thẩm Mỹ'
+        elif tab_type == 'nha_khoa':
+            variations = ['Khach hang Nha khoa', 'Khách hàng Nha khoa', 'Nha Khoa', 'Nha khoa']
+            tab_name = 'Nha Khoa'
+        else:
+            variations = ['Khach gioi thieu', 'Khách giới thiệu', 'Gioi Thieu', 'Referral']
+            tab_name = 'Giới Thiệu'
+        
+        worksheet = self.find_worksheet(spreadsheet, variations)
+        if not worksheet:
+            add_log(f"✗ Tab not found for {tab_name}", 'error')
+            return 0, 1, logs
+        
+        add_log(f"Found worksheet: {worksheet.title}", 'info')
+        
+        try:
+            add_log(f"Reading data from Google Sheets...", 'info')
+            all_values = worksheet.get_all_values()
+            add_log(f"✓ Data loaded from sheet", 'success')
+        except Exception as e:
+            add_log(f"✗ Error reading worksheet: {e}", 'error')
+            return 0, 1, logs
+        
+        if len(all_values) < 2:
+            add_log(f"No data rows found in {tab_name}", 'warning')
+            return 0, 0, logs
+        
+        headers = all_values[0]
+        normalized_headers = [self.normalize_header(h) for h in headers]
+        
+        sheet_count = len(all_values) - 1
+        add_log(f"Total rows in sheet: {sheet_count:,}", 'info')
+        
+        conn = self.ensure_connection(conn)
+        
+        cur = conn.cursor()
+        if hard_reset:
+            db_count = 0
+        else:
+            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (tab_type,))
+            db_count = cur.fetchone()[0]
+        cur.close()
+        
+        if sheet_count <= db_count:
+            add_log(f"No new rows to sync (DB has {db_count:,} rows)", 'info')
+            return 0, 0, logs
+        
+        new_rows_count = sheet_count - db_count
+        add_log(f"Rows to import: {new_rows_count:,}", 'info')
+        add_log(f"Processing in batches of {BATCH_SIZE}...", 'info')
+        
+        processed = 0
+        errors = 0
+        error_details = []
+        
+        start_idx = db_count + 1
+        new_rows = all_values[start_idx:]
+        
+        batch = []
+        ctv_phones = []
+        batch_num = 0
+        
+        for i, row in enumerate(new_rows):
+            if not row: 
+                continue
+            
+            row_data = {}
+            for j, header in enumerate(normalized_headers):
+                if j < len(row):
+                    row_data[header] = row[j]
+            
+            try:
+                if tab_type in ['tham_my', 'nha_khoa']:
+                    prepared = self.prepare_khach_hang_row(row_data, tab_type)
+                    if prepared:
+                        batch.append(prepared)
+                else:
+                    prepared, ctv_phone = self.prepare_gioi_thieu_row(row_data)
+                    if prepared:
+                        batch.append(prepared)
+                        ctv_phones.append(ctv_phone)
+                
+                if len(batch) >= BATCH_SIZE:
+                    batch_num += 1
+                    conn = self.ensure_connection(conn)
+                    
+                    if tab_type in ['tham_my', 'nha_khoa']:
+                        inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                    else:
+                        inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
+                    
+                    processed += inserted
+                    progress_pct = round((processed / new_rows_count) * 100, 1)
+                    add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%)", 'info')
+                    batch = []
+                    ctv_phones = []
+                    
+            except Exception as e:
+                row_num = start_idx + i + 1
+                error_msg = f"Row {row_num}: {str(e)[:100]}"
+                error_details.append(error_msg)
+                errors += 1
+                if errors <= 5:  # Only log first 5 errors in detail
+                    add_log(f"✗ {error_msg}", 'error')
+        
+        # Commit remaining rows
+        if batch:
+            try:
+                batch_num += 1
+                conn = self.ensure_connection(conn)
+                
+                if tab_type in ['tham_my', 'nha_khoa']:
+                    inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                else:
+                    inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
+                
+                processed += inserted
+                add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%)", 'info')
+            except Exception as e:
+                add_log(f"✗ Final batch error: {e}", 'error')
+                errors += len(batch)
+        
+        # Summary
+        if errors > 5:
+            add_log(f"... and {errors - 5} more errors", 'warning')
+        
+        add_log(f"Completed: {processed:,} inserted, {errors} errors", 'success' if errors == 0 else 'warning')
+        
+        return processed, errors, logs

@@ -57,6 +57,8 @@ def reset_data():
     1. Clear khach_hang table for tham_my, nha_khoa, gioi_thieu
     2. Re-import all rows from Google Sheets
     3. Recalculate commissions
+    
+    Returns detailed logs for frontend display.
     """
     try:
         logger.info("=" * 60)
@@ -64,7 +66,7 @@ def reset_data():
         logger.info("=" * 60)
         
         syncer = GoogleSheetSync()
-        success, result = syncer.hard_reset()
+        success, result, logs = syncer.hard_reset_with_logs()
         
         if success:
             logger.info("=" * 60)
@@ -75,18 +77,22 @@ def reset_data():
             return jsonify({
                 'status': 'success', 
                 'message': 'Hard reset completed successfully',
-                'stats': result
+                'stats': result,
+                'logs': logs
             })
         else:
             logger.error(f"HARD RESET FAILED: {result}")
             return jsonify({
                 'status': 'error', 
-                'message': f'Hard reset failed: {result}'
+                'message': f'Hard reset failed: {result}',
+                'logs': logs
             }), 500
             
     except Exception as e:
         logger.error(f"HARD RESET EXCEPTION: {e}")
+        import traceback
         return jsonify({
             'status': 'error', 
-            'message': str(e)
+            'message': str(e),
+            'logs': [{'type': 'error', 'message': str(e), 'step': 'exception'}]
         }), 500

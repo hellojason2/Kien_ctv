@@ -970,14 +970,36 @@ async function confirmHardReset() {
             clearInterval(resetProgress.progressIntervals[key]);
         });
         
+        // Display backend logs
+        if (response.logs && response.logs.length > 0) {
+            addLogEntry('', 'info');
+            addLogEntry('─── Server Logs ───', 'info');
+            response.logs.forEach(log => {
+                if (log.message && log.message.trim()) {
+                    addLogEntry(log.message, log.type || 'info');
+                }
+            });
+        }
+        
         if (response.status === 'success') {
             // Mark all steps as complete
             resetProgress.steps.forEach(step => {
                 updateStepProgress(step, 'complete', 100, 'Completed');
             });
             
-            addLogEntry('Commission calculations complete', 'success');
-            addLogEntry(`Imported: ${response.stats.tham_my?.processed || 0} Beauty, ${response.stats.nha_khoa?.processed || 0} Dental, ${response.stats.gioi_thieu?.processed || 0} Referral`, 'success');
+            // Update step details with actual counts
+            const stats = response.stats;
+            updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 'all'} records`);
+            updateStepProgress('beauty', 'complete', 100, `Imported ${stats.tham_my?.processed?.toLocaleString() || 0} records`);
+            updateStepProgress('dental', 'complete', 100, `Imported ${stats.nha_khoa?.processed?.toLocaleString() || 0} records`);
+            updateStepProgress('referral', 'complete', 100, `Imported ${stats.gioi_thieu?.processed?.toLocaleString() || 0} records`);
+            updateStepProgress('commission', 'complete', 100, 'Commissions recalculated');
+            
+            // Check for any errors
+            const totalErrors = (stats.tham_my?.errors || 0) + (stats.nha_khoa?.errors || 0) + (stats.gioi_thieu?.errors || 0);
+            if (totalErrors > 0) {
+                addLogEntry(`⚠ Completed with ${totalErrors} errors`, 'warning');
+            }
             
             // Short delay then show summary
             setTimeout(() => {
@@ -985,12 +1007,19 @@ async function confirmHardReset() {
             }, 500);
             
         } else {
+            // Display error logs if available
+            if (response.logs && response.logs.length > 0) {
+                const errorLogs = response.logs.filter(l => l.type === 'error');
+                errorLogs.forEach(log => {
+                    addLogEntry(log.message, 'error');
+                });
+            }
             throw new Error(response.message || 'Unknown error');
         }
         
     } catch (error) {
         console.error('Hard reset error:', error);
-        addLogEntry(`ERROR: ${error.message}`, 'error');
+        addLogEntry(`✗ ERROR: ${error.message}`, 'error');
         
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {
@@ -1007,6 +1036,7 @@ async function confirmHardReset() {
         }
         
         addLogEntry('Hard reset failed. Check logs above for details.', 'error');
+        addLogEntry('You may need to restart the server and try again.', 'warning');
         
         // Re-enable button after delay
         setTimeout(() => {
