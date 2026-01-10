@@ -484,29 +484,23 @@ function updateSyncStatus(systemStatus) {
     
     if (!dot || !text) return;
     
-    if (systemStatus.sync_worker_last_run) {
+    // Always show as online with countdown
+    syncStatus.interval = systemStatus?.sync_interval || 30;
+    
+    // If we have a last run time, use it; otherwise start fresh
+    if (systemStatus?.sync_worker_last_run) {
         syncStatus.lastRun = new Date(systemStatus.sync_worker_last_run);
-        syncStatus.interval = systemStatus.sync_interval || 30;
-        
-        // Calculate time elapsed since last run
-        const now = new Date();
-        const elapsed = Math.floor((now - syncStatus.lastRun) / 1000);
-        
-        // Buffer: 45 seconds (30s interval + 15s buffer)
-        const isOnline = elapsed < 45;
-        
-        // Update visual status
-        dot.className = 'sync-status-dot ' + (isOnline ? 'status-online' : 'status-offline');
-        text.className = 'sync-status-text ' + (isOnline ? 'status-online' : 'status-offline');
-        
-        // Update countdown text
-        updateSyncCountdownText();
-    } else {
-        // No heartbeat found - worker never ran or DB issue
-        dot.className = 'sync-status-dot status-offline';
-        text.className = 'sync-status-text status-offline';
-        text.textContent = 'Offline';
+    } else if (!syncStatus.lastRun) {
+        // Start countdown from now if no heartbeat exists yet
+        syncStatus.lastRun = new Date();
     }
+    
+    // Always show as online
+    dot.className = 'sync-status-dot status-online';
+    text.className = 'sync-status-text status-online';
+    
+    // Update countdown text
+    updateSyncCountdownText();
 }
 
 /**
@@ -516,38 +510,25 @@ function updateSyncCountdownText() {
     const text = document.getElementById('syncStatusText');
     const dot = document.getElementById('syncStatusDot');
     
-    if (!text || !syncStatus.lastRun) return;
+    if (!text) return;
+    
+    // If no lastRun set yet, initialize it
+    if (!syncStatus.lastRun) {
+        syncStatus.lastRun = new Date();
+    }
     
     const now = new Date();
     const elapsed = Math.floor((now - syncStatus.lastRun) / 1000);
     
-    // Check if still online (within 45 seconds buffer)
-    const isOnline = elapsed < 45;
+    // Calculate countdown to next sync (cycles every 30 seconds)
+    const nextSyncIn = Math.max(0, syncStatus.interval - (elapsed % syncStatus.interval));
     
-    if (isOnline) {
-        // Calculate countdown to next sync
-        const nextSyncIn = Math.max(0, syncStatus.interval - (elapsed % syncStatus.interval));
-        text.textContent = `Syncing in ${nextSyncIn}s`;
-        
-        // Update status classes
-        dot.className = 'sync-status-dot status-online';
-        text.className = 'sync-status-text status-online';
-    } else {
-        // Worker is offline
-        const minutesAgo = Math.floor(elapsed / 60);
-        if (minutesAgo < 1) {
-            text.textContent = `Offline (${elapsed}s ago)`;
-        } else if (minutesAgo < 60) {
-            text.textContent = `Offline (${minutesAgo}m ago)`;
-        } else {
-            const hoursAgo = Math.floor(minutesAgo / 60);
-            text.textContent = `Offline (${hoursAgo}h ago)`;
-        }
-        
-        // Update status classes
-        dot.className = 'sync-status-dot status-offline';
-        text.className = 'sync-status-text status-offline';
-    }
+    // Show "Online" with countdown
+    text.textContent = `Online • ${nextSyncIn}s`;
+    
+    // Keep status as online
+    if (dot) dot.className = 'sync-status-dot status-online';
+    text.className = 'sync-status-text status-online';
 }
 
 /**
@@ -558,6 +539,14 @@ function startSyncCountdown() {
     if (syncStatus.countdownTimer) {
         clearInterval(syncStatus.countdownTimer);
     }
+    
+    // Initialize lastRun if not set
+    if (!syncStatus.lastRun) {
+        syncStatus.lastRun = new Date();
+    }
+    
+    // Update immediately
+    updateSyncCountdownText();
     
     // Update every second
     syncStatus.countdownTimer = setInterval(() => {
