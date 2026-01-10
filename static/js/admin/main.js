@@ -20,10 +20,24 @@ function exportToExcel(endpoint) {
 function initPopupCloseHandlers() {
     document.addEventListener('click', (e) => {
         const langSwitcher = document.getElementById('langSwitcher');
+        // Don't close if clicking inside the switcher
         if (langSwitcher && !langSwitcher.contains(e.target)) {
             langSwitcher.classList.remove('active');
         }
     });
+    
+    // Add click listener to the language toggle button
+    const langToggleBtn = document.querySelector('.lang-toggle-btn');
+    if (langToggleBtn) {
+        langToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const switcher = document.getElementById('langSwitcher');
+            if (switcher) {
+                switcher.classList.toggle('active');
+            }
+        });
+    }
 }
 
 /**
