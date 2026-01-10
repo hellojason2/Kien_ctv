@@ -3,6 +3,7 @@
     <div class="header">
         <h2 data-i18n="ctv_management">CTV Management</h2>
         <div class="header-actions">
+            <button class="btn btn-danger" onclick="deleteNonNumericCTVs()" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;" title="Delete all CTVs with non-numeric codes">🗑️ Clean Invalid Codes</button>
             <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/ctv/export')" data-i18n="export_excel">Export Excel</button>
             <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add CTV</button>
         </div>

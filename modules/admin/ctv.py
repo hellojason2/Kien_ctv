@@ -292,6 +292,130 @@ def deactivate_ctv(ctv_code):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@admin_bp.route('/api/admin/ctv/<ctv_code>/hard-delete', methods=['DELETE'])
+@require_admin
+def hard_delete_ctv(ctv_code):
+    """Permanently delete a CTV from the database"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Get CTV info before deleting
+        cursor.execute("SELECT ma_ctv, ten FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+        ctv = cursor.fetchone()
+        
+        if not ctv:
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({'status': 'error', 'message': 'CTV not found'}), 404
+        
+        # Update any referrals to remove this CTV as referrer
+        cursor.execute("""
+            UPDATE ctv SET nguoi_gioi_thieu = NULL 
+            WHERE nguoi_gioi_thieu = %s
+        """, (ctv_code,))
+        updated_referrals = cursor.rowcount
+        
+        # Delete related commissions
+        cursor.execute("DELETE FROM commissions WHERE ctv_code = %s", (ctv_code,))
+        deleted_commissions = cursor.rowcount
+        
+        # Delete the CTV
+        cursor.execute("DELETE FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        admin_username = g.current_user.get('username', 'admin')
+        log_ctv_deleted(admin_username, ctv_code)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'CTV {ctv_code} permanently deleted',
+            'deleted_commissions': deleted_commissions,
+            'updated_referrals': updated_referrals
+        })
+        
+    except Error as e:
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/ctv/delete-non-numeric', methods=['DELETE'])
+@require_admin
+def delete_non_numeric_ctv():
+    """Delete all CTVs with non-numeric codes"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Find all CTVs with non-numeric codes
+        cursor.execute("""
+            SELECT ma_ctv, ten FROM ctv 
+            WHERE ma_ctv !~ '^[0-9]+$'
+        """)
+        non_numeric_ctvs = cursor.fetchall()
+        
+        if not non_numeric_ctvs:
+            cursor.close()
+            return_db_connection(connection)
+            return jsonify({
+                'status': 'success',
+                'message': 'No non-numeric CTVs found',
+                'deleted_count': 0
+            })
+        
+        # Get the codes
+        codes_to_delete = [ctv['ma_ctv'] for ctv in non_numeric_ctvs]
+        
+        # Update any referrals to remove deleted CTVs as referrers
+        cursor.execute("""
+            UPDATE ctv SET nguoi_gioi_thieu = NULL 
+            WHERE nguoi_gioi_thieu = ANY(%s)
+        """, (codes_to_delete,))
+        
+        # Delete related commissions
+        cursor.execute("""
+            DELETE FROM commissions WHERE ctv_code = ANY(%s)
+        """, (codes_to_delete,))
+        
+        # Delete the CTVs
+        cursor.execute("""
+            DELETE FROM ctv WHERE ma_ctv !~ '^[0-9]+$'
+        """)
+        deleted_count = cursor.rowcount
+        
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        admin_username = g.current_user.get('username', 'admin')
+        for ctv in non_numeric_ctvs:
+            log_ctv_deleted(admin_username, ctv['ma_ctv'])
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Deleted {deleted_count} CTVs with non-numeric codes',
+            'deleted_count': deleted_count,
+            'deleted_codes': codes_to_delete
+        })
+        
+    except Error as e:
+        if connection:
+            connection.rollback()
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @admin_bp.route('/api/admin/hierarchy/<ctv_code>', methods=['GET'])
 @require_admin
 def get_hierarchy(ctv_code):

@@ -36,9 +36,14 @@ function renderCTVTable(data) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">${t('no_ctv_found')}</td></tr>`;
         return;
     }
-    tbody.innerHTML = data.map(ctv => `
+    tbody.innerHTML = data.map(ctv => {
+        // Check if code is numeric only
+        const isNumericCode = /^\d+$/.test(ctv.ma_ctv);
+        const codeStyle = isNumericCode ? '' : 'color:#b91c1c;font-weight:600;';
+        
+        return `
         <tr>
-            <td>${ctv.ma_ctv}</td>
+            <td style="${codeStyle}">${ctv.ma_ctv}${!isNumericCode ? ' ⚠️' : ''}</td>
             <td>${ctv.ten}</td>
             <td>${ctv.email || '-'}</td>
             <td>${ctv.sdt || '-'}</td>
@@ -46,13 +51,14 @@ function renderCTVTable(data) {
             <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
             <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
             <td>
-                <div style="display:flex;gap:4px">
-                    <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="viewHierarchy('${ctv.ma_ctv}')">Tree</button>
-                    <button class="btn btn-primary" style="padding:6px 12px;font-size:12px" onclick="showChangePasswordModal('${ctv.ma_ctv}')">Password</button>
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                    <button class="btn btn-secondary" style="padding:6px 10px;font-size:11px" onclick="viewHierarchy('${ctv.ma_ctv}')" title="View Tree">🌳</button>
+                    <button class="btn btn-primary" style="padding:6px 10px;font-size:11px" onclick="showChangePasswordModal('${ctv.ma_ctv}')" title="Change Password">🔑</button>
+                    <button class="btn btn-danger" style="padding:6px 10px;font-size:11px;background:#fee2e2;color:#b91c1c;border-color:#fecaca" onclick="deleteCTV('${ctv.ma_ctv}', '${ctv.ten.replace(/'/g, "\\'")}')" title="Delete CTV">🗑️</button>
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
     // Apply translations for new content
     applyTranslations();
 }
@@ -392,5 +398,87 @@ async function submitChangePassword() {
         closeModal('changePasswordModal');
     } else {
         alert('Error: ' + result.message);
+    }
+}
+
+/**
+ * Delete a single CTV
+ * @param {string} ctvCode - CTV code to delete
+ * @param {string} ctvName - CTV name for confirmation
+ */
+async function deleteCTV(ctvCode, ctvName) {
+    const confirmMsg = `Are you sure you want to DELETE this CTV?\n\nCode: ${ctvCode}\nName: ${ctvName}\n\nThis will permanently remove the CTV from the system.`;
+    
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+    
+    // Double confirm for safety
+    const doubleConfirm = prompt(`Type "${ctvCode}" to confirm deletion:`);
+    if (doubleConfirm !== ctvCode) {
+        alert('Deletion cancelled. Code did not match.');
+        return;
+    }
+    
+    try {
+        const result = await api(`/api/admin/ctv/${ctvCode}/hard-delete`, {
+            method: 'DELETE'
+        });
+        
+        if (result.status === 'success') {
+            alert(`CTV "${ctvCode}" has been deleted successfully.`);
+            loadCTVList();
+        } else {
+            alert('Error: ' + (result.message || 'Failed to delete CTV'));
+        }
+    } catch (error) {
+        console.error('Delete CTV error:', error);
+        alert('Error deleting CTV: ' + error.message);
+    }
+}
+
+/**
+ * Delete all CTVs with non-numeric codes
+ */
+async function deleteNonNumericCTVs() {
+    // First, find all non-numeric CTVs
+    const nonNumericCTVs = (window.allCTV || []).filter(ctv => !/^\d+$/.test(ctv.ma_ctv));
+    
+    if (nonNumericCTVs.length === 0) {
+        alert('No CTVs with non-numeric codes found.');
+        return;
+    }
+    
+    // Show list of CTVs to be deleted
+    const listPreview = nonNumericCTVs.slice(0, 10).map(c => `• ${c.ma_ctv} - ${c.ten}`).join('\n');
+    const moreText = nonNumericCTVs.length > 10 ? `\n... and ${nonNumericCTVs.length - 10} more` : '';
+    
+    const confirmMsg = `Found ${nonNumericCTVs.length} CTV(s) with non-numeric codes:\n\n${listPreview}${moreText}\n\nAre you sure you want to DELETE ALL of them?\n\nThis action cannot be undone!`;
+    
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+    
+    // Double confirm
+    const doubleConfirm = prompt(`Type "DELETE ${nonNumericCTVs.length}" to confirm:`);
+    if (doubleConfirm !== `DELETE ${nonNumericCTVs.length}`) {
+        alert('Deletion cancelled. Confirmation did not match.');
+        return;
+    }
+    
+    try {
+        const result = await api('/api/admin/ctv/delete-non-numeric', {
+            method: 'DELETE'
+        });
+        
+        if (result.status === 'success') {
+            alert(`Successfully deleted ${result.deleted_count} CTV(s) with non-numeric codes.`);
+            loadCTVList();
+        } else {
+            alert('Error: ' + (result.message || 'Failed to delete CTVs'));
+        }
+    } catch (error) {
+        console.error('Delete non-numeric CTVs error:', error);
+        alert('Error: ' + error.message);
     }
 }
