@@ -10,7 +10,7 @@ from . import clients
 from . import logs
 from . import export
 from . import debug  # TEMPORARY - DELETE WHEN DONE
+# from . import sync   # Disabled - has broken imports
 
 # Export admin_bp for backend.py
 __all__ = ['admin_bp']
-
