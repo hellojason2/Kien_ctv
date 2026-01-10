@@ -710,11 +710,11 @@ def check_phone():
     phone = data['phone'].strip()
     phone = ''.join(c for c in phone if c.isdigit())
     
-    if len(phone) < 9:
+    if len(phone) < 8:
         return jsonify({'status': 'error', 'message': 'Invalid phone number'}), 400
     
-    # Extract last 9 digits for fuzzy matching (handles leading zero variations)
-    phone_suffix = phone[-9:]
+    # Extract last 8 digits for fuzzy matching (handles leading zero variations and 8-digit DB entries)
+    phone_suffix = phone[-8:]
     
     connection = get_db_connection()
     if not connection:

@@ -12,7 +12,7 @@ async function checkPhonePortal() {
     const result = document.getElementById('dashPhoneResult');
     const phone = input.value.trim();
     
-    if (!phone || phone.length < 9) {
+    if (!phone || phone.length < 8) {
         result.textContent = t('phone_short');
         result.className = 'result';
         result.style.display = 'block';
