@@ -1,0 +1,102 @@
+/**
+ * Admin Dashboard - Overview Styles
+ * Styles for the Top Earners table/list and other overview components
+ */
+
+/* Top Earners Table */
+.top-earners {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 10px;
+}
+
+.earner-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.earner-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.earner-row:last-child {
+    border-bottom: none;
+}
+
+.earner-row:hover {
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.earner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.earner-info .name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.earner-info .code {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.earner-row .revenue {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.earner-row .commission {
+    font-weight: 600;
+    color: var(--accent-green);
+    font-size: 14px;
+}
+
+/* Header alignment */
+.header-revenue, .revenue {
+    text-align: right;
+}
+
+.header-commission, .commission {
+    text-align: right;
+}
+
+/* Loading state */
+.top-earners .loading {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .earner-header, .earner-row {
+        grid-template-columns: 1.5fr 1fr;
+    }
+    
+    .header-commission, .commission {
+        display: none;
+    }
+}
