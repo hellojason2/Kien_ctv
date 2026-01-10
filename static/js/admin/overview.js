@@ -17,7 +17,8 @@ let overviewDateFilter = {
 let syncStatus = {
     lastRun: null,
     interval: 30,
-    countdownTimer: null
+    countdownTimer: null,
+    newRecords: 0
 };
 
 /**
@@ -481,6 +482,7 @@ async function loadStats() {
 function updateSyncStatus(systemStatus) {
     const dot = document.getElementById('syncStatusDot');
     const text = document.getElementById('syncStatusText');
+    const badge = document.getElementById('syncBadge');
     
     if (!dot || !text) return;
     
@@ -493,6 +495,19 @@ function updateSyncStatus(systemStatus) {
     } else if (!syncStatus.lastRun) {
         // Start countdown from now if no heartbeat exists yet
         syncStatus.lastRun = new Date();
+    }
+    
+    // Update new records count
+    syncStatus.newRecords = systemStatus?.new_records || 0;
+    
+    // Update badge display
+    if (badge) {
+        if (syncStatus.newRecords > 0) {
+            badge.textContent = syncStatus.newRecords > 99 ? '99+' : syncStatus.newRecords;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
     }
     
     // Always show as online
@@ -561,5 +576,35 @@ function stopSyncCountdown() {
     if (syncStatus.countdownTimer) {
         clearInterval(syncStatus.countdownTimer);
         syncStatus.countdownTimer = null;
+    }
+}
+
+/**
+ * Reset the sync counter when clicking on the status indicator
+ */
+async function resetSyncCounter() {
+    // Only reset if there are new records
+    if (syncStatus.newRecords === 0) return;
+    
+    try {
+        const result = await api('/api/admin/sync/reset-counter', {
+            method: 'POST'
+        });
+        
+        if (result.status === 'success') {
+            // Reset local state
+            syncStatus.newRecords = 0;
+            
+            // Hide badge
+            const badge = document.getElementById('syncBadge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            
+            // Reload stats to refresh data
+            loadStats();
+        }
+    } catch (error) {
+        console.error('Error resetting sync counter:', error);
     }
 }

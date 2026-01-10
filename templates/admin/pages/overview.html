@@ -3,9 +3,10 @@
     <div class="header" style="display: flex; align-items: center; gap: 16px;">
         <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
         <!-- Sync Worker Status Indicator -->
-        <div class="sync-status-container" id="syncStatusContainer">
+        <div class="sync-status-container" id="syncStatusContainer" onclick="resetSyncCounter()" title="Click to clear notifications">
             <span class="sync-status-dot" id="syncStatusDot"></span>
             <span class="sync-status-text" id="syncStatusText">Checking...</span>
+            <span class="sync-badge" id="syncBadge" style="display: none;">0</span>
         </div>
     </div>
     

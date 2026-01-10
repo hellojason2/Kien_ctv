@@ -208,15 +208,21 @@ def get_stats():
         
         # Get sync worker heartbeat status
         sync_worker_last_run = None
+        sync_new_records = 0
         try:
             cursor.execute("""
-                SELECT last_updated 
+                SELECT last_updated, cache_value 
                 FROM commission_cache 
                 WHERE cache_key = 'sync_worker_heartbeat'
             """)
             result = cursor.fetchone()
             if result and result['last_updated']:
                 sync_worker_last_run = result['last_updated'].isoformat()
+                # Parse new records count from cache_value
+                try:
+                    sync_new_records = int(result['cache_value'] or 0)
+                except (ValueError, TypeError):
+                    sync_new_records = 0
         except Error:
             pass
         
@@ -235,9 +241,37 @@ def get_stats():
             },
             'system_status': {
                 'sync_worker_last_run': sync_worker_last_run,
-                'sync_interval': 30
+                'sync_interval': 30,
+                'new_records': sync_new_records
             }
         })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/sync/reset-counter', methods=['POST'])
+@require_admin
+def reset_sync_counter():
+    """Reset the new records counter to 0"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE commission_cache 
+            SET cache_value = '0'
+            WHERE cache_key = 'sync_worker_heartbeat'
+        """)
+        connection.commit()
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({'status': 'success', 'message': 'Counter reset'})
         
     except Error as e:
         if connection:

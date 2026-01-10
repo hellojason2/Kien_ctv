@@ -171,6 +171,13 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     font-size: 13px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sync-status-container:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .sync-status-dot {
@@ -217,6 +224,28 @@
 
 .sync-status-text.status-offline {
     color: #dc2626;
+}
+
+/* New records badge */
+.sync-badge {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 /* Responsive: Hide text on small screens */

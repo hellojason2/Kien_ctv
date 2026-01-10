@@ -222,20 +222,26 @@ def insert_gioi_thieu(conn, row_data):
 # HEARTBEAT
 # ══════════════════════════════════════════════════════════════════════════════
 
-def update_heartbeat(conn):
-    """Update sync worker heartbeat timestamp in the database"""
+def update_heartbeat(conn, new_records_count=0):
+    """Update sync worker heartbeat timestamp and increment new records count"""
     try:
         cur = conn.cursor()
         # Use UPSERT to update or insert the heartbeat record
+        # Also increment the new_records counter
         cur.execute("""
             INSERT INTO commission_cache (cache_key, cache_value, last_updated)
-            VALUES ('sync_worker_heartbeat', '{}', CURRENT_TIMESTAMP)
+            VALUES ('sync_worker_heartbeat', %s, CURRENT_TIMESTAMP)
             ON CONFLICT (cache_key) 
-            DO UPDATE SET last_updated = CURRENT_TIMESTAMP
-        """)
+            DO UPDATE SET 
+                cache_value = (COALESCE(commission_cache.cache_value::int, 0) + %s)::text,
+                last_updated = CURRENT_TIMESTAMP
+        """, (str(new_records_count), new_records_count))
         conn.commit()
         cur.close()
-        logger.info("Heartbeat updated.")
+        if new_records_count > 0:
+            logger.info(f"Heartbeat updated. New records added: {new_records_count}")
+        else:
+            logger.info("Heartbeat updated.")
     except Exception as e:
         logger.warning(f"Failed to update heartbeat: {e}")
 
@@ -369,8 +375,9 @@ def run_sync():
             comm_stats = calculate_new_commissions_fast(connection=conn)
             logger.info(f"Commission calculation: {comm_stats}")
         
-        # Update heartbeat after successful sync
-        update_heartbeat(conn)
+        # Update heartbeat after successful sync with count of new records
+        total_new = sum(s['processed'] for s in stats.values())
+        update_heartbeat(conn, total_new)
         
         conn.close()
         
