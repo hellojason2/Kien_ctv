@@ -7,6 +7,49 @@ from ..db_pool import get_db_connection, return_db_connection
 from ..mlm_core import get_max_depth_below, build_hierarchy_tree
 from ..activity_logger import log_ctv_created, log_ctv_updated, log_ctv_deleted
 
+@admin_bp.route('/api/admin/ctv/levels', methods=['GET'])
+@require_admin
+def get_ctv_levels():
+    """Get all distinct CTV levels"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT DISTINCT cap_bac 
+            FROM ctv 
+            WHERE cap_bac IS NOT NULL 
+            ORDER BY cap_bac
+        """)
+        
+        levels = [row[0] for row in cursor.fetchall()]
+        
+        # Add default levels if they don't exist
+        defaults = ['Đã đặt cọc', 'Đã đến làm']
+        for d in defaults:
+            if d not in levels:
+                levels.append(d)
+        
+        # Sort levels alphabetically or by some custom logic
+        # For now, just sort alphabetically
+        levels.sort()
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'levels': levels
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @admin_bp.route('/api/admin/ctv', methods=['GET'])
 @require_admin
 def list_ctv():
@@ -262,4 +305,3 @@ def get_hierarchy(ctv_code):
         'status': 'success',
         'hierarchy': tree
     })
-

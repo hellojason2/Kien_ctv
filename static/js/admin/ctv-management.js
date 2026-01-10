@@ -85,11 +85,39 @@ function showCreateCTVModal() {
     // Re-apply translations to modal elements
     applyTranslations();
     
+    // Generate CTV Code
+    generateCTVCode().then(code => {
+        const input = document.getElementById('newCtvCode');
+        if (input) input.value = code;
+    });
+    
+    // Load CTV levels for datalist
+    loadCTVLevels();
+    
     // Reset referrer dropdown
     const input = document.getElementById('referrerSearch');
     const hiddenInput = document.getElementById('newCtvReferrer');
     if (input) input.value = '';
     if (hiddenInput) hiddenInput.value = '';
+}
+
+/**
+ * Load available CTV levels from database
+ */
+async function loadCTVLevels() {
+    try {
+        const result = await api('/api/admin/ctv/levels');
+        if (result.status === 'success' && result.levels) {
+            const datalist = document.getElementById('levelOptions');
+            if (datalist) {
+                datalist.innerHTML = result.levels.map(level => 
+                    `<option value="${level}">`
+                ).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading CTV levels:', error);
+    }
 }
 
 /**
@@ -102,7 +130,7 @@ async function createCTV() {
         email: document.getElementById('newCtvEmail').value,
         sdt: document.getElementById('newCtvPhone').value,
         nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
-        cap_bac: document.getElementById('newCtvLevel').value || 'Bronze'
+        cap_bac: document.getElementById('newCtvLevel').value || 'Đã đặt cọc'
     };
     
     const result = await api('/api/admin/ctv', {
@@ -124,6 +152,32 @@ async function createCTV() {
     } else {
         alert('Error: ' + result.message);
     }
+}
+
+/**
+ * Generate next CTV code based on existing list
+ */
+async function generateCTVCode() {
+    // Ensure list is loaded
+    if (!window.allCTV || window.allCTV.length === 0) {
+        await loadCTVList();
+    }
+    
+    let maxId = 0;
+    if (window.allCTV && window.allCTV.length > 0) {
+        window.allCTV.forEach(ctv => {
+            // Extract numeric part from "CTVxxx" or just "xxx"
+            const match = ctv.ma_ctv.match(/(\d+)/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+    }
+    
+    const nextId = maxId + 1;
+    // Format as CTV + 3 digits (e.g. CTV005)
+    return `CTV${String(nextId).padStart(3, '0')}`;
 }
 
 /**
@@ -204,15 +258,15 @@ function initReferrerDropdown() {
             // Restore text from value if exists, else clear
             const selectedValue = hiddenInput.value;
             if (selectedValue) {
-            const ctv = (window.allCTV || []).find(c => c.ma_ctv === selectedValue);
-            if (ctv) {
-                input.value = `${ctv.ten} (${ctv.ma_ctv})`;
+                const ctv = (window.allCTV || []).find(c => c.ma_ctv === selectedValue);
+                if (ctv) {
+                    input.value = `${ctv.ten} (${ctv.ma_ctv})`;
+                }
+            } else {
+                input.value = '';
             }
-        } else {
-            input.value = '';
         }
-    }
-});
+    });
 
     // Toggle on arrow click
     const arrow = dropdown.querySelector('.dropdown-arrow');
