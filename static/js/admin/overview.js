@@ -729,21 +729,41 @@ function updateStepProgress(stepId, status, progress, detail) {
     const detailEl = document.getElementById(`step-${stepId}-detail`);
     
     if (stepEl) {
-        stepEl.classList.remove('active', 'complete', 'error');
+        stepEl.classList.remove('active', 'complete', 'error', 'pending');
         if (status === 'active') stepEl.classList.add('active');
         else if (status === 'complete') stepEl.classList.add('complete');
         else if (status === 'error') stepEl.classList.add('error');
+        else if (status === 'pending') stepEl.classList.add('pending');
     }
     
-    if (progressBar && progress !== undefined) {
-        progressBar.style.width = `${progress}%`;
+    if (progressBar) {
+        if (progress !== undefined && progress !== null) {
+            progressBar.style.width = `${progress}%`;
+        } else if (status === 'active') {
+            // Indeterminate progress - show pulsing bar
+            progressBar.style.width = '100%';
+            progressBar.classList.add('indeterminate');
+        } else if (status === 'complete') {
+            progressBar.style.width = '100%';
+            progressBar.classList.remove('indeterminate');
+        } else {
+            progressBar.style.width = '0%';
+            progressBar.classList.remove('indeterminate');
+        }
     }
     
     if (statusEl) {
-        if (status === 'active') statusEl.textContent = `${Math.round(progress || 0)}%`;
-        else if (status === 'complete') statusEl.textContent = '✓ Done';
-        else if (status === 'error') statusEl.textContent = '✗ Failed';
-        else statusEl.textContent = 'Waiting...';
+        if (status === 'active') {
+            statusEl.textContent = progress !== null ? `${Math.round(progress)}%` : 'Processing...';
+        } else if (status === 'complete') {
+            statusEl.textContent = '✓ Done';
+        } else if (status === 'error') {
+            statusEl.textContent = '✗ Failed';
+        } else if (status === 'pending') {
+            statusEl.textContent = 'Waiting...';
+        } else {
+            statusEl.textContent = 'Waiting...';
+        }
     }
     
     if (detailEl && detail) {
@@ -895,125 +915,122 @@ async function confirmHardReset() {
             throw new Error('Failed to get database counts');
         }
         
-        // Small delay before starting delete
+        // Small delay before starting
         await new Promise(r => setTimeout(r, 500));
         
         addLogEntry('Starting data deletion and re-import process...', 'info');
+        addLogEntry('This may take several minutes for large datasets...', 'warning');
         
-        // Start the actual API call
-        const apiPromise = api('/api/admin/reset-data', { method: 'POST' });
+        // Set all steps to "Processing" state - NO FAKE ANIMATIONS
+        updateStepProgress('delete', 'active', null, 'Processing... Please wait');
+        updateStepProgress('beauty', 'pending', null, 'Waiting...');
+        updateStepProgress('dental', 'pending', null, 'Waiting...');
+        updateStepProgress('referral', 'pending', null, 'Waiting...');
+        updateStepProgress('commission', 'pending', null, 'Waiting...');
         
-        // STEP 1: Delete
-        addLogEntry('Clearing existing database records...', 'warning');
-        animateStepProgress('delete', 3000, [
-            'Connecting to database...',
-            'Clearing Beauty records...',
-            'Clearing Dental records...',
-            'Clearing Referral records...',
-            'Clearing commission data...'
-        ]);
+        // Show processing indicator
+        const statusText = document.getElementById('step-delete-status');
+        if (statusText) statusText.textContent = 'Processing...';
         
-        // Step 2-5: Start with delays to simulate sequential processing
-        setTimeout(() => {
-            updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
-            addLogEntry(`Database cleared: ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records deleted`, 'success');
-            addLogEntry('Starting Google Sheets import...', 'info');
-            animateStepProgress('beauty', 8000, [
-                'Connecting to Google Sheets...',
-                'Reading Thẩm Mỹ worksheet...',
-                'Parsing headers...',
-                'Importing records...',
-                'Validating data...'
-            ]);
-        }, 3000);
+        addLogEntry('Sending request to server...', 'info');
+        addLogEntry('Server is now processing. Steps will update when complete.', 'info');
         
-        setTimeout(() => {
-            updateStepProgress('beauty', 'complete', 100, 'Beauty data imported');
-            addLogEntry('Beauty (Thẩm Mỹ) data import complete', 'success');
-            animateStepProgress('dental', 6000, [
-                'Reading Nha Khoa worksheet...',
-                'Parsing dental records...',
-                'Importing records...',
-                'Validating phone numbers...'
-            ]);
-        }, 11000);
-        
-        setTimeout(() => {
-            updateStepProgress('dental', 'complete', 100, 'Dental data imported');
-            addLogEntry('Dental (Nha Khoa) data import complete', 'success');
-            animateStepProgress('referral', 4000, [
-                'Reading Giới Thiệu worksheet...',
-                'Processing referral data...',
-                'Creating new CTV accounts...',
-                'Linking referrals...'
-            ]);
-        }, 17000);
-        
-        setTimeout(() => {
-            updateStepProgress('referral', 'complete', 100, 'Referral data imported');
-            addLogEntry('Referral (Giới Thiệu) data import complete', 'success');
-            addLogEntry('Starting commission calculations...', 'info');
-            animateStepProgress('commission', 5000, [
-                'Loading transaction data...',
-                'Calculating Level 0 commissions...',
-                'Calculating Level 1 commissions...',
-                'Calculating Level 2 commissions...',
-                'Finalizing calculations...'
-            ]);
-        }, 21000);
-        
-        // Wait for API to complete
-        const response = await apiPromise;
+        // Make the actual API call - wait for real results
+        const response = await api('/api/admin/reset-data', { method: 'POST' });
         
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {
             clearInterval(resetProgress.progressIntervals[key]);
         });
         
-        // Display backend logs
+        // Process and display backend logs step by step
+        addLogEntry('', 'info');
+        addLogEntry('═══════════════════════════════════════', 'info');
+        addLogEntry('SERVER PROCESSING COMPLETE', 'success');
+        addLogEntry('═══════════════════════════════════════', 'info');
+        
         if (response.logs && response.logs.length > 0) {
-            addLogEntry('', 'info');
-            addLogEntry('─── Server Logs ───', 'info');
+            // Track which steps have been logged
+            let currentStep = null;
+            
             response.logs.forEach(log => {
-                if (log.message && log.message.trim()) {
-                    addLogEntry(log.message, log.type || 'info');
+                if (!log.message || !log.message.trim()) return;
+                
+                const msg = log.message;
+                const type = log.type || 'info';
+                const step = log.step;
+                
+                // Update step status based on log step
+                if (step && step !== currentStep) {
+                    currentStep = step;
+                    
+                    // Mark previous steps as complete, current as active
+                    if (step === 'delete') {
+                        updateStepProgress('delete', 'active', null, 'Processing...');
+                    } else if (step === 'beauty' || step === 'tham_my') {
+                        updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
+                        updateStepProgress('beauty', 'active', null, 'Importing...');
+                    } else if (step === 'dental' || step === 'nha_khoa') {
+                        updateStepProgress('beauty', 'complete', 100, 'Import complete');
+                        updateStepProgress('dental', 'active', null, 'Importing...');
+                    } else if (step === 'referral' || step === 'gioi_thieu') {
+                        updateStepProgress('dental', 'complete', 100, 'Import complete');
+                        updateStepProgress('referral', 'active', null, 'Importing...');
+                    } else if (step === 'commission') {
+                        updateStepProgress('referral', 'complete', 100, 'Import complete');
+                        updateStepProgress('commission', 'active', null, 'Calculating...');
+                    }
                 }
+                
+                // Add to log panel
+                addLogEntry(msg, type);
             });
         }
         
         if (response.status === 'success') {
-            // Mark all steps as complete
-            resetProgress.steps.forEach(step => {
-                updateStepProgress(step, 'complete', 100, 'Completed');
-            });
-            
-            // Update step details with actual counts
             const stats = response.stats;
-            updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 'all'} records`);
-            updateStepProgress('beauty', 'complete', 100, `Imported ${stats.tham_my?.processed?.toLocaleString() || 0} records`);
-            updateStepProgress('dental', 'complete', 100, `Imported ${stats.nha_khoa?.processed?.toLocaleString() || 0} records`);
-            updateStepProgress('referral', 'complete', 100, `Imported ${stats.gioi_thieu?.processed?.toLocaleString() || 0} records`);
-            updateStepProgress('commission', 'complete', 100, 'Commissions recalculated');
             
-            // Check for any errors
-            const totalErrors = (stats.tham_my?.errors || 0) + (stats.nha_khoa?.errors || 0) + (stats.gioi_thieu?.errors || 0);
+            // Mark all steps as complete with actual data
+            updateStepProgress('delete', 'complete', 100, `✓ Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
+            
+            const beautyCount = stats.tham_my?.processed || 0;
+            const beautyErrors = stats.tham_my?.errors || 0;
+            updateStepProgress('beauty', beautyErrors > 0 ? 'error' : 'complete', 100, 
+                `✓ Imported ${beautyCount.toLocaleString()} records${beautyErrors > 0 ? ` (${beautyErrors} errors)` : ''}`);
+            
+            const dentalCount = stats.nha_khoa?.processed || 0;
+            const dentalErrors = stats.nha_khoa?.errors || 0;
+            updateStepProgress('dental', dentalErrors > 0 ? 'error' : 'complete', 100,
+                `✓ Imported ${dentalCount.toLocaleString()} records${dentalErrors > 0 ? ` (${dentalErrors} errors)` : ''}`);
+            
+            const referralCount = stats.gioi_thieu?.processed || 0;
+            const referralErrors = stats.gioi_thieu?.errors || 0;
+            updateStepProgress('referral', referralErrors > 0 ? 'error' : 'complete', 100,
+                `✓ Imported ${referralCount.toLocaleString()} records${referralErrors > 0 ? ` (${referralErrors} errors)` : ''}`);
+            
+            updateStepProgress('commission', 'complete', 100, '✓ Commissions recalculated');
+            
+            // Final summary in log
+            const totalImported = beautyCount + dentalCount + referralCount;
+            const totalErrors = beautyErrors + dentalErrors + referralErrors;
+            
+            addLogEntry('', 'info');
+            addLogEntry('═══════════════════════════════════════', 'info');
+            addLogEntry(`TOTAL IMPORTED: ${totalImported.toLocaleString()} records`, 'success');
             if (totalErrors > 0) {
-                addLogEntry(`⚠ Completed with ${totalErrors} errors`, 'warning');
+                addLogEntry(`TOTAL ERRORS: ${totalErrors}`, 'warning');
             }
+            addLogEntry('═══════════════════════════════════════', 'info');
             
             // Short delay then show summary
             setTimeout(() => {
                 showResetSummary(response.stats);
-            }, 500);
+            }, 800);
             
         } else {
-            // Display error logs if available
-            if (response.logs && response.logs.length > 0) {
-                const errorLogs = response.logs.filter(l => l.type === 'error');
-                errorLogs.forEach(log => {
-                    addLogEntry(log.message, 'error');
-                });
-            }
+            // Handle error
+            addLogEntry('', 'error');
+            addLogEntry(`✗ FAILED: ${response.message || 'Unknown error'}`, 'error');
             throw new Error(response.message || 'Unknown error');
         }
         
