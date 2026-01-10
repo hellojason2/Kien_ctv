@@ -1,7 +1,12 @@
 <!-- Overview Page -->
 <div class="page-section active" id="page-overview">
-    <div class="header">
+    <div class="header" style="display: flex; align-items: center; gap: 16px;">
         <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
+        <!-- Sync Worker Status Indicator -->
+        <div class="sync-status-container" id="syncStatusContainer">
+            <span class="sync-status-dot" id="syncStatusDot"></span>
+            <span class="sync-status-text" id="syncStatusText">Checking...</span>
+        </div>
     </div>
     
     <!-- Date Filter Card -->

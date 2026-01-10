@@ -4,12 +4,20 @@
  * 
  * Created: December 30, 2025
  * Updated: January 3, 2026 - Replaced with CTV-style filter buttons with red dot indicators
+ * Updated: January 9, 2026 - Added sync worker status indicator with countdown
  */
 
 let overviewDateFilter = {
     preset: 'month', // default to current month
     fromDate: null,
     toDate: null
+};
+
+// Sync status state
+let syncStatus = {
+    lastRun: null,
+    interval: 30,
+    countdownTimer: null
 };
 
 /**
@@ -21,6 +29,9 @@ function initOverview() {
     
     // Check which date ranges have data and show red dot indicators
     checkOverviewDateRangesWithData();
+    
+    // Start the countdown timer
+    startSyncCountdown();
 }
 
 /**
@@ -359,6 +370,11 @@ async function loadStats() {
             document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission || 0);
             document.getElementById('statMonthlyTx').textContent = s.monthly_transactions || 0;
             document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue || 0);
+            
+            // Update sync worker status
+            if (result.system_status) {
+                updateSyncStatus(result.system_status);
+            }
         
             // Top earners with revenue and commission columns
             const topEarnersEl = document.getElementById('topEarnersTableBody');
@@ -452,5 +468,109 @@ async function loadStats() {
                 </tr>
             `;
         }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SYNC WORKER STATUS INDICATOR
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Update the sync worker status indicator
+ */
+function updateSyncStatus(systemStatus) {
+    const dot = document.getElementById('syncStatusDot');
+    const text = document.getElementById('syncStatusText');
+    
+    if (!dot || !text) return;
+    
+    if (systemStatus.sync_worker_last_run) {
+        syncStatus.lastRun = new Date(systemStatus.sync_worker_last_run);
+        syncStatus.interval = systemStatus.sync_interval || 30;
+        
+        // Calculate time elapsed since last run
+        const now = new Date();
+        const elapsed = Math.floor((now - syncStatus.lastRun) / 1000);
+        
+        // Buffer: 45 seconds (30s interval + 15s buffer)
+        const isOnline = elapsed < 45;
+        
+        // Update visual status
+        dot.className = 'sync-status-dot ' + (isOnline ? 'status-online' : 'status-offline');
+        text.className = 'sync-status-text ' + (isOnline ? 'status-online' : 'status-offline');
+        
+        // Update countdown text
+        updateSyncCountdownText();
+    } else {
+        // No heartbeat found - worker never ran or DB issue
+        dot.className = 'sync-status-dot status-offline';
+        text.className = 'sync-status-text status-offline';
+        text.textContent = 'Offline';
+    }
+}
+
+/**
+ * Update the countdown text display
+ */
+function updateSyncCountdownText() {
+    const text = document.getElementById('syncStatusText');
+    const dot = document.getElementById('syncStatusDot');
+    
+    if (!text || !syncStatus.lastRun) return;
+    
+    const now = new Date();
+    const elapsed = Math.floor((now - syncStatus.lastRun) / 1000);
+    
+    // Check if still online (within 45 seconds buffer)
+    const isOnline = elapsed < 45;
+    
+    if (isOnline) {
+        // Calculate countdown to next sync
+        const nextSyncIn = Math.max(0, syncStatus.interval - (elapsed % syncStatus.interval));
+        text.textContent = `Syncing in ${nextSyncIn}s`;
+        
+        // Update status classes
+        dot.className = 'sync-status-dot status-online';
+        text.className = 'sync-status-text status-online';
+    } else {
+        // Worker is offline
+        const minutesAgo = Math.floor(elapsed / 60);
+        if (minutesAgo < 1) {
+            text.textContent = `Offline (${elapsed}s ago)`;
+        } else if (minutesAgo < 60) {
+            text.textContent = `Offline (${minutesAgo}m ago)`;
+        } else {
+            const hoursAgo = Math.floor(minutesAgo / 60);
+            text.textContent = `Offline (${hoursAgo}h ago)`;
+        }
+        
+        // Update status classes
+        dot.className = 'sync-status-dot status-offline';
+        text.className = 'sync-status-text status-offline';
+    }
+}
+
+/**
+ * Start the countdown timer that updates every second
+ */
+function startSyncCountdown() {
+    // Clear any existing timer
+    if (syncStatus.countdownTimer) {
+        clearInterval(syncStatus.countdownTimer);
+    }
+    
+    // Update every second
+    syncStatus.countdownTimer = setInterval(() => {
+        updateSyncCountdownText();
+    }, 1000);
+}
+
+/**
+ * Stop the countdown timer (call when leaving the page)
+ */
+function stopSyncCountdown() {
+    if (syncStatus.countdownTimer) {
+        clearInterval(syncStatus.countdownTimer);
+        syncStatus.countdownTimer = null;
     }
 }

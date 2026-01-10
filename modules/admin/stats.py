@@ -206,6 +206,20 @@ def get_stats():
         except Error:
             pass
         
+        # Get sync worker heartbeat status
+        sync_worker_last_run = None
+        try:
+            cursor.execute("""
+                SELECT last_updated 
+                FROM commission_cache 
+                WHERE cache_key = 'sync_worker_heartbeat'
+            """)
+            result = cursor.fetchone()
+            if result and result['last_updated']:
+                sync_worker_last_run = result['last_updated'].isoformat()
+        except Error:
+            pass
+        
         cursor.close()
         return_db_connection(connection)
         
@@ -218,6 +232,10 @@ def get_stats():
                 'monthly_revenue': monthly_revenue,
                 'ctv_by_level': ctv_by_level,
                 'top_earners': top_earners
+            },
+            'system_status': {
+                'sync_worker_last_run': sync_worker_last_run,
+                'sync_interval': 30
             }
         })
         

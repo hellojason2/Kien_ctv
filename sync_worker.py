@@ -219,6 +219,27 @@ def insert_gioi_thieu(conn, row_data):
     return record_id
 
 # ══════════════════════════════════════════════════════════════════════════════
+# HEARTBEAT
+# ══════════════════════════════════════════════════════════════════════════════
+
+def update_heartbeat(conn):
+    """Update sync worker heartbeat timestamp in the database"""
+    try:
+        cur = conn.cursor()
+        # Use UPSERT to update or insert the heartbeat record
+        cur.execute("""
+            INSERT INTO commission_cache (cache_key, cache_value, last_updated)
+            VALUES ('sync_worker_heartbeat', '{}', CURRENT_TIMESTAMP)
+            ON CONFLICT (cache_key) 
+            DO UPDATE SET last_updated = CURRENT_TIMESTAMP
+        """)
+        conn.commit()
+        cur.close()
+        logger.info("Heartbeat updated.")
+    except Exception as e:
+        logger.warning(f"Failed to update heartbeat: {e}")
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SYNC LOGIC
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -347,6 +368,9 @@ def run_sync():
             logger.info("\n--- Calculating Commissions ---")
             comm_stats = calculate_new_commissions_fast(connection=conn)
             logger.info(f"Commission calculation: {comm_stats}")
+        
+        # Update heartbeat after successful sync
+        update_heartbeat(conn)
         
         conn.close()
         

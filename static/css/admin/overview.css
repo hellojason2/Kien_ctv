@@ -154,3 +154,78 @@
         display: none;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SYNC WORKER STATUS INDICATOR
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sync-status-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.sync-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #9ca3af; /* Default gray */
+    transition: background-color 0.3s ease;
+}
+
+/* Green status - Worker is running */
+.sync-status-dot.status-online {
+    background-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    animation: pulse-green 2s ease-in-out infinite;
+}
+
+/* Red status - Worker is offline/stale */
+.sync-status-dot.status-offline {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Pulse animation for green dot */
+@keyframes pulse-green {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);
+    }
+}
+
+.sync-status-text {
+    color: var(--text-secondary);
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+}
+
+.sync-status-text.status-online {
+    color: #16a34a;
+}
+
+.sync-status-text.status-offline {
+    color: #dc2626;
+}
+
+/* Responsive: Hide text on small screens */
+@media (max-width: 480px) {
+    .sync-status-text {
+        display: none;
+    }
+    
+    .sync-status-container {
+        padding: 6px 10px;
+    }
+}
