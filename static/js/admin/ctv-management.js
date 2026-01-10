@@ -407,16 +407,14 @@ async function submitChangePassword() {
  * @param {string} ctvName - CTV name for confirmation
  */
 async function deleteCTV(ctvCode, ctvName) {
-    const confirmMsg = `Are you sure you want to DELETE this CTV?\n\nCode: ${ctvCode}\nName: ${ctvName}\n\nThis will permanently remove the CTV from the system.`;
+    const confirmMsg = `⚠️ DELETE CTV?\n\nCode: ${ctvCode}\nName: ${ctvName}\n\nThis will PERMANENTLY remove this CTV from the system.`;
     
     if (!confirm(confirmMsg)) {
         return;
     }
     
-    // Double confirm for safety
-    const doubleConfirm = prompt(`Type "${ctvCode}" to confirm deletion:`);
-    if (doubleConfirm !== ctvCode) {
-        alert('Deletion cancelled. Code did not match.');
+    // Second confirm for safety
+    if (!confirm(`⚠️ FINAL CONFIRMATION\n\nAre you ABSOLUTELY SURE you want to delete:\n${ctvCode} - ${ctvName}?\n\nClick OK to DELETE or Cancel to abort.`)) {
         return;
     }
     
@@ -426,14 +424,14 @@ async function deleteCTV(ctvCode, ctvName) {
         });
         
         if (result.status === 'success') {
-            alert(`CTV "${ctvCode}" has been deleted successfully.`);
+            alert(`✅ CTV "${ctvCode}" has been deleted successfully.`);
             loadCTVList();
         } else {
-            alert('Error: ' + (result.message || 'Failed to delete CTV'));
+            alert('❌ Error: ' + (result.message || 'Failed to delete CTV'));
         }
     } catch (error) {
         console.error('Delete CTV error:', error);
-        alert('Error deleting CTV: ' + error.message);
+        alert('❌ Error deleting CTV: ' + error.message);
     }
 }
 
@@ -445,7 +443,7 @@ async function deleteNonNumericCTVs() {
     const nonNumericCTVs = (window.allCTV || []).filter(ctv => !/^\d+$/.test(ctv.ma_ctv));
     
     if (nonNumericCTVs.length === 0) {
-        alert('No CTVs with non-numeric codes found.');
+        alert('✅ No CTVs with non-numeric codes found. All codes are valid!');
         return;
     }
     
@@ -453,16 +451,14 @@ async function deleteNonNumericCTVs() {
     const listPreview = nonNumericCTVs.slice(0, 10).map(c => `• ${c.ma_ctv} - ${c.ten}`).join('\n');
     const moreText = nonNumericCTVs.length > 10 ? `\n... and ${nonNumericCTVs.length - 10} more` : '';
     
-    const confirmMsg = `Found ${nonNumericCTVs.length} CTV(s) with non-numeric codes:\n\n${listPreview}${moreText}\n\nAre you sure you want to DELETE ALL of them?\n\nThis action cannot be undone!`;
+    const confirmMsg = `⚠️ BULK DELETE WARNING\n\nFound ${nonNumericCTVs.length} CTV(s) with non-numeric codes:\n\n${listPreview}${moreText}\n\nClick OK to DELETE ALL of them.`;
     
     if (!confirm(confirmMsg)) {
         return;
     }
     
-    // Double confirm
-    const doubleConfirm = prompt(`Type "DELETE ${nonNumericCTVs.length}" to confirm:`);
-    if (doubleConfirm !== `DELETE ${nonNumericCTVs.length}`) {
-        alert('Deletion cancelled. Confirmation did not match.');
+    // Second confirm for bulk delete
+    if (!confirm(`⚠️ FINAL CONFIRMATION\n\nYou are about to DELETE ${nonNumericCTVs.length} CTV(s).\n\nThis action CANNOT be undone!\n\nClick OK to proceed or Cancel to abort.`)) {
         return;
     }
     
@@ -472,13 +468,13 @@ async function deleteNonNumericCTVs() {
         });
         
         if (result.status === 'success') {
-            alert(`Successfully deleted ${result.deleted_count} CTV(s) with non-numeric codes.`);
+            alert(`✅ Successfully deleted ${result.deleted_count} CTV(s) with non-numeric codes.`);
             loadCTVList();
         } else {
-            alert('Error: ' + (result.message || 'Failed to delete CTVs'));
+            alert('❌ Error: ' + (result.message || 'Failed to delete CTVs'));
         }
     } catch (error) {
         console.error('Delete non-numeric CTVs error:', error);
-        alert('Error: ' + error.message);
+        alert('❌ Error: ' + error.message);
     }
 }
