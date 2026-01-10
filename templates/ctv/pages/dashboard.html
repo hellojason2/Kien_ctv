@@ -62,34 +62,13 @@
 
     <div class="card">
         <div class="card-header">
-            <h3 data-i18n="recent_commissions"></h3>
+            <h3 data-i18n="recent_commissions">RECENT COMMISSIONS - THIS MONTH</h3>
         </div>
         <div class="card-body">
             <div id="recentCommissions">
+                <!-- Content populated by JS -->
                 <div style="padding: 20px;">
-                    <!-- Table header skeleton -->
-                    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e0e0e0;">
-                        <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 16px; border-radius: 4px;"></div>
-                    </div>
-                    <!-- Table rows skeleton -->
-                    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 12px; padding: 12px 0;">
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr 1.5fr; gap: 16px; margin-bottom: 12px; padding: 12px 0;">
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                        <div class="skeleton-loader" style="height: 20px; border-radius: 4px;"></div>
-                    </div>
+                    <div class="skeleton-loader" style="height: 200px; width: 100%; border-radius: 12px;"></div>
                 </div>
             </div>
         </div>
@@ -98,41 +77,21 @@
     <!-- Lifetime Statistics Table -->
     <div class="card">
         <div class="card-header">
-            <h3 class="badge-header" data-i18n="lifetime_statistics"></h3>
+            <h3 class="badge-header" data-i18n="lifetime_statistics" style="background:var(--primary-blue); color:white; padding:8px 16px; border-radius:20px; font-size:12px; display:inline-block; font-weight:700; text-transform:uppercase;">LIFETIME STATISTICS</h3>
         </div>
         <div class="card-body">
             <div class="lifetime-stats-table">
                 <table class="stats-table">
                     <thead>
                         <tr>
-                            <th data-i18n="metric"></th>
-                            <th data-i18n="value"></th>
+                            <th data-i18n="metric">METRIC</th>
+                            <th data-i18n="value">VALUE</th>
                         </tr>
                     </thead>
                     <tbody id="lifetimeStatsBody">
+                        <!-- Content populated by JS -->
                         <tr>
-                            <td data-i18n="total_commissions_earned"></td>
-                            <td id="lifetimeTotalCommissions"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_transactions"></td>
-                            <td id="lifetimeTotalTransactions"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_network_members"></td>
-                            <td id="lifetimeNetworkSize"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="direct_referrals"></td>
-                            <td id="lifetimeDirectReferrals"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_services_completed"></td>
-                            <td id="lifetimeTotalServices"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_revenue_generated"></td>
-                            <td id="lifetimeTotalRevenue"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
+                            <td colspan="2"><div class="skeleton-loader" style="height: 40px; width: 100%;"></div></td>
                         </tr>
                     </tbody>
                 </table>

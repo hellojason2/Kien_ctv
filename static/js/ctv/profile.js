@@ -427,11 +427,22 @@ async function loadLifetimeStats() {
         
         // Update lifetime stats table
         document.getElementById('lifetimeTotalCommissions').textContent = formatCurrency(stats.total_commissions || 0);
+        document.getElementById('lifetimeTotalCommissions').className = 'value-highlight';
+        
         document.getElementById('lifetimeTotalTransactions').textContent = stats.total_transactions || 0;
+        document.getElementById('lifetimeTotalTransactions').className = 'value-normal';
+        
         document.getElementById('lifetimeNetworkSize').textContent = stats.network_size || 0;
+        document.getElementById('lifetimeNetworkSize').className = 'value-normal';
+        
         document.getElementById('lifetimeDirectReferrals').textContent = stats.direct_referrals || 0;
+        document.getElementById('lifetimeDirectReferrals').className = 'value-normal';
+        
         document.getElementById('lifetimeTotalServices').textContent = stats.total_services || 0;
+        document.getElementById('lifetimeTotalServices').className = 'value-normal';
+        
         document.getElementById('lifetimeTotalRevenue').textContent = formatCurrency(stats.total_revenue || 0);
+        document.getElementById('lifetimeTotalRevenue').className = 'value-normal';
     } else {
         // Fallback: use data from profile endpoint
         const profileResult = await api('/api/ctv/me');

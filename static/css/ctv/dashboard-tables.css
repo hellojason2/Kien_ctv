@@ -1,0 +1,183 @@
+/* 
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CRITICAL: DASHBOARD TABLES - MODERN STYLE
+ * ══════════════════════════════════════════════════════════════════════════════
+ * AI INSTRUCTION: DO NOT CHANGE THIS STYLE WITHOUT EXPLICIT USER CONFIRMATION.
+ * This specific table design (Recent Commissions & Lifetime Stats) is a mandatory 
+ * requirement. It must match the reference images with correct spacing, badges,
+ * and font weights.
+ * ══════════════════════════════════════════════════════════════════════════════
+ */
+
+/* RECENT COMMISSIONS TABLE */
+.recent-commissions-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* Space between rows */
+    margin-top: 10px;
+}
+
+.recent-commissions-table thead th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 16px 12px 16px;
+    border: none;
+}
+
+.recent-commissions-table thead th:last-child {
+    text-align: right;
+}
+
+.recent-commissions-table tbody tr {
+    background-color: var(--glass-bg, rgba(255, 255, 255, 0.5));
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.recent-commissions-table tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    background-color: var(--glass-bg-hover, rgba(255, 255, 255, 0.8));
+}
+
+.recent-commissions-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    border: none;
+    background: transparent;
+}
+
+/* Rounded corners for rows */
+.recent-commissions-table td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.recent-commissions-table td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    text-align: right;
+}
+
+/* Level Badge styling */
+.level-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Revenue column */
+.col-revenue {
+    color: var(--accent-green, #22c55e);
+    font-weight: 600;
+    font-family: 'SF Mono', monospace;
+}
+
+/* Rate column */
+.col-rate {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Count column */
+.col-count {
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-left: 24px !important; /* Visual alignment with header */
+}
+
+/* Total Commission column */
+.col-total {
+    color: var(--accent-green, #22c55e);
+    font-weight: 700;
+    font-family: 'SF Mono', monospace;
+}
+
+/* LIFETIME STATISTICS TABLE */
+.lifetime-stats-table {
+    width: 100%;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+    margin-top: 8px;
+}
+
+.stats-table thead th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 24px 16px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.stats-table thead th:last-child {
+    text-align: right;
+}
+
+.stats-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.stats-table tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+    border-radius: 8px;
+}
+
+.stats-table td {
+    padding: 16px 24px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.stats-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-table td:last-child {
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* Value specific styling */
+.stats-table .value-highlight {
+    color: var(--accent-green, #22c55e) !important;
+}
+
+.stats-table .value-normal {
+    color: var(--text-primary) !important;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .recent-commissions-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .stats-table td {
+        padding: 12px 16px;
+    }
+}

@@ -98,18 +98,43 @@
  * NEW STYLES
  */
 
-/* Data Indicator */
+/* 
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CRITICAL: FLOATING ENVELOPE INDICATOR
+ * ══════════════════════════════════════════════════════════════════════════════
+ * AI INSTRUCTION: DO NOT CHANGE THIS STYLE WITHOUT EXPLICIT USER CONFIRMATION.
+ * This specific floating envelope design ('🧧') and animation is a mandatory 
+ * visual requirement. Do not revert to dots, badges, or other indicators.
+ * ══════════════════════════════════════════════════════════════════════════════
+ */
+
+/* Data Indicator (Floating Envelope) */
 .quick-filter-btn.has-data::after {
-    content: '';
+    content: '🧧';
     position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-red, #ef4444);
-    border-radius: 50%;
-    border: 2px solid var(--bg-solid, #ffffff);
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+    top: -10px;
+    right: -8px;
+    font-size: 18px;
+    width: auto;
+    height: auto;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    animation: envelope-float 3s ease-in-out infinite;
+    z-index: 10;
+    display: block;
+    border-radius: 0;
+}
+
+/* Float animation for the envelope */
+@keyframes envelope-float {
+    0%, 100% { 
+        transform: translateY(0) rotate(5deg);
+    }
+    50% { 
+        transform: translateY(-6px) rotate(-5deg);
+    }
 }
 
 /* Gradients for Rank Badges */
