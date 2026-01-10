@@ -1681,9 +1681,26 @@
                     <div class="card-header">
                         <h3 data-i18n="top_earners">Top Earners This Month</h3>
                     </div>
-                    <div class="card-body">
-                        <div class="top-earners" id="topEarners">
-                            <div class="loading" data-i18n="loading">Loading...</div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="rank" style="width: 60px;">#</th>
+                                        <th data-i18n="ctv_name">Name</th>
+                                        <th data-i18n="ctv_code">Code</th>
+                                        <th data-i18n="total_revenue" style="text-align: right;">Total Revenue</th>
+                                        <th data-i18n="total_commission" style="text-align: right;">Total Commission</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topEarnersTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                            <div class="loading" data-i18n="loading">Loading...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2178,31 +2195,51 @@
                 document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue);
                 
                 // Top earners with revenue and commission columns
-                const topEarnersEl = document.getElementById('topEarners');
-                if (s.top_earners.length > 0) {
-                    topEarnersEl.innerHTML = `
-                        <div class="earner-header">
-                            <div class="header-name" data-i18n="ctv_name">CTV</div>
-                            <div class="header-revenue" data-i18n="total_revenue">Total Revenue</div>
-                            <div class="header-commission" data-i18n="total_commission">Total Commission</div>
-                        </div>
-                        ${s.top_earners.map(e => `
-                        <div class="earner-row">
-                            <div class="earner-info">
-                                <div class="name">${e.ten}</div>
-                                <div class="code">${e.ctv_code}</div>
-                            </div>
-                            <div class="revenue">${formatCurrency(e.total_revenue)}</div>
-                            <div class="commission">${formatCurrency(e.total_commission)}</div>
-                        </div>
-                        `).join('')}
-                    `;
-                    // Apply translations to dynamically added elements
-                    if (typeof applyTranslations === 'function') {
-                        applyTranslations();
+                const topEarnersEl = document.getElementById('topEarnersTableBody');
+                if (topEarnersEl) {
+                    if (s.top_earners && s.top_earners.length > 0) {
+                        topEarnersEl.innerHTML = s.top_earners.map((e, index) => `
+                            <tr>
+                                <td style="font-weight: 500;">
+                                    ${index < 3 ? `
+                                        <div style="
+                                            width: 24px; 
+                                            height: 24px; 
+                                            background: ${index === 0 ? 'linear-gradient(135deg, #fbbf24, #d97706)' : index === 1 ? 'linear-gradient(135deg, #9ca3af, #4b5563)' : 'linear-gradient(135deg, #d97706, #92400e)'}; 
+                                            color: white; 
+                                            border-radius: 50%; 
+                                            display: flex; 
+                                            align-items: center; 
+                                            justify-content: center; 
+                                            font-size: 12px; 
+                                            font-weight: 700;
+                                        ">${index + 1}</div>
+                                    ` : `<span style="margin-left: 8px;">${index + 1}</span>`}
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: var(--text-primary);">${e.ten}</div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; display: inline-block;">${e.ctv_code}</div>
+                                </td>
+                                <td style="text-align: right; font-weight: 600;">${formatCurrency(e.total_revenue)}</td>
+                                <td style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
+                            </tr>
+                        `).join('');
+                        
+                        // Apply translations to dynamically added elements
+                        if (typeof applyTranslations === 'function') {
+                            applyTranslations();
+                        }
+                    } else {
+                        topEarnersEl.innerHTML = `
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    <div style="font-style: italic;">No earnings this month</div>
+                                </td>
+                            </tr>
+                        `;
                     }
-                } else {
-                    topEarnersEl.innerHTML = '<div style="color:var(--text-secondary)">No earnings this month</div>';
                 }
             }
         }

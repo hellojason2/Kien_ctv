@@ -39,7 +39,7 @@ async function checkOverviewDateRangesWithData() {
             
             // Update each button based on data availability
             Object.keys(result.ranges_with_data).forEach(preset => {
-                const button = overviewPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+                const button = overviewPage.querySelector(`.quick-filter-btn[data-preset="${preset}"]`);
                 if (button) {
                     if (result.ranges_with_data[preset]) {
                         button.classList.add('has-data');
@@ -69,7 +69,7 @@ function applyOverviewPreset(preset) {
     // Reset all buttons to default text first, then update active button
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
-        overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
+        overviewPage.querySelectorAll('.quick-filter-btn').forEach(btn => {
             btn.classList.remove('active');
             // Reset button text to translation only (remove date range)
             const translationKey = btn.getAttribute('data-i18n');
@@ -169,7 +169,7 @@ function applyOverviewPreset(preset) {
     
     // Update button text with date range for active button
     if (overviewPage) {
-        const activeButton = overviewPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
+        const activeButton = overviewPage.querySelector(`.quick-filter-btn[data-preset="${preset}"]`);
         if (activeButton && typeof formatDateRangeForButton === 'function') {
             activeButton.classList.add('active');
             const dateRange = formatDateRangeForButton(fromDate, toDate);
@@ -248,7 +248,7 @@ function applyOverviewCustomDateFilter() {
     // Update active button and show date range
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
-        overviewPage.querySelectorAll('.btn-filter-preset').forEach(btn => {
+        overviewPage.querySelectorAll('.quick-filter-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.dataset.preset === 'custom') {
                 btn.classList.add('active');
@@ -256,7 +256,7 @@ function applyOverviewCustomDateFilter() {
         });
         
         // Update button text with date range for custom button
-        const customButton = overviewPage.querySelector('.btn-filter-preset[data-preset="custom"]');
+        const customButton = overviewPage.querySelector('.quick-filter-btn[data-preset="custom"]');
         if (customButton && typeof formatDateRangeForButton === 'function') {
             const fromDateObj = new Date(fromDateInput.value);
             const toDateObj = new Date(toDateInput.value);
@@ -292,13 +292,19 @@ function showOverviewLoading() {
         }
     });
     
-    const topEarnersEl = document.getElementById('topEarners');
+    const topEarnersEl = document.getElementById('topEarnersTableBody');
     if (topEarnersEl) {
-        topEarnersEl.innerHTML = '<div class="loading" data-i18n="loading">Loading...</div>';
+        topEarnersEl.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <div class="loading" data-i18n="loading">Loading...</div>
+                </td>
+            </tr>
+        `;
     }
     
     // Disable filter buttons during loading
-    document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
         btn.disabled = true;
     });
     const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
@@ -337,7 +343,7 @@ async function loadStats() {
         console.log('Result stats:', result?.stats);
         
         // Re-enable buttons after loading
-        document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
             btn.disabled = false;
         });
         const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
@@ -355,32 +361,50 @@ async function loadStats() {
             document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue || 0);
         
             // Top earners with revenue and commission columns
-            const topEarnersEl = document.getElementById('topEarners');
+            const topEarnersEl = document.getElementById('topEarnersTableBody');
             console.log('Top earners data:', s.top_earners);
             if (s.top_earners && Array.isArray(s.top_earners) && s.top_earners.length > 0) {
-            topEarnersEl.innerHTML = `
-                <div class="earner-header">
-                    <div class="header-name" data-i18n="ctv_name">${t('ctv_name')}</div>
-                    <div class="header-revenue" data-i18n="total_revenue">${t('total_revenue')}</div>
-                    <div class="header-commission" data-i18n="total_commission">${t('total_commission')}</div>
-                </div>
-                ${s.top_earners.map(e => `
-                <div class="earner-row">
-                    <div class="earner-info">
-                        <div class="name">${e.ten}</div>
-                        <div class="code">${e.ctv_code}</div>
-                    </div>
-                    <div class="revenue">${formatCurrency(e.total_revenue)}</div>
-                    <div class="commission">${formatCurrency(e.total_commission)}</div>
-                </div>
-                `).join('')}
-            `;
+            topEarnersEl.innerHTML = s.top_earners.map((e, index) => `
+                <tr>
+                    <td style="font-weight: 500;">
+                        ${index < 3 ? `
+                            <div style="
+                                width: 24px; 
+                                height: 24px; 
+                                background: ${index === 0 ? 'var(--gradient-gold, linear-gradient(135deg, #fbbf24, #d97706))' : index === 1 ? 'var(--gradient-silver, linear-gradient(135deg, #9ca3af, #4b5563))' : 'var(--gradient-bronze, linear-gradient(135deg, #d97706, #92400e))'}; 
+                                color: white; 
+                                border-radius: 50%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                font-size: 12px; 
+                                font-weight: 700;
+                            ">${index + 1}</div>
+                        ` : `<span style="margin-left: 8px;">${index + 1}</span>`}
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-primary);">${e.ten}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px; font-family: 'SF Mono', monospace; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; display: inline-block;">${e.ctv_code}</div>
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">${formatCurrency(e.total_revenue)}</td>
+                    <td style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
+                </tr>
+            `).join('');
+            
             // Apply translations to dynamically added elements
             if (typeof applyTranslations === 'function') {
                 applyTranslations();
             }
         } else {
-            topEarnersEl.innerHTML = `<div style="color:var(--text-secondary)">${t('no_earnings') || 'No earnings found'}</div>`;
+            topEarnersEl.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-style: italic;">${t('no_earnings') || 'No earnings found'}</div>
+                    </td>
+                </tr>
+            `;
         }
         } else {
             console.error('Stats API Error:', result);
@@ -392,15 +416,21 @@ async function loadStats() {
                 const el = document.getElementById(id);
                 if (el) el.textContent = '-';
             });
-            const topEarnersEl = document.getElementById('topEarners');
+            const topEarnersEl = document.getElementById('topEarnersTableBody');
             if (topEarnersEl) {
-                topEarnersEl.innerHTML = `<div style="color:var(--accent-red); padding: 20px; text-align: center;">Error loading data: ${errorMsg}</div>`;
+                topEarnersEl.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--accent-red);">
+                            <div>Error loading data: ${errorMsg}</div>
+                        </td>
+                    </tr>
+                `;
             }
         }
     } catch (error) {
         console.error('Error loading stats:', error);
         // Re-enable buttons on error
-        document.querySelectorAll('.btn-filter-preset').forEach(btn => {
+        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
             btn.disabled = false;
         });
         const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
@@ -412,9 +442,15 @@ async function loadStats() {
             const el = document.getElementById(id);
             if (el) el.textContent = '-';
         });
-        const topEarnersEl = document.getElementById('topEarners');
+        const topEarnersEl = document.getElementById('topEarnersTableBody');
         if (topEarnersEl) {
-            topEarnersEl.innerHTML = `<div style="color:var(--accent-red)">Error loading data: ${error.message}</div>`;
+            topEarnersEl.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--accent-red);">
+                        <div>Error loading data: ${error.message}</div>
+                    </td>
+                </tr>
+            `;
         }
     }
 }

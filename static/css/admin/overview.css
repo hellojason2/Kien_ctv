@@ -3,7 +3,14 @@
  * Styles for the Top Earners table/list and other overview components
  */
 
-/* Top Earners Table */
+/* 
+ * BACKWARD COMPATIBILITY: 
+ * These styles are preserved for cached clients that might still be loading 
+ * the old HTML structure with divs. New clients will use the table structure 
+ * which doesn't need these styles.
+ */
+
+/* Top Earners List (Legacy Div Structure) */
 .top-earners {
     display: flex;
     flex-direction: column;
@@ -65,29 +72,51 @@
     font-weight: 600;
     color: var(--text-primary);
     font-size: 14px;
+    text-align: right;
 }
 
 .earner-row .commission {
     font-weight: 600;
     color: var(--accent-green);
     font-size: 14px;
-}
-
-/* Header alignment */
-.header-revenue, .revenue {
     text-align: right;
 }
 
-.header-commission, .commission {
-    text-align: right;
-}
+/* Header alignment (Legacy) */
+.header-revenue { text-align: right; }
+.header-commission { text-align: right; }
 
-/* Loading state */
+/* Loading state (Legacy) */
 .top-earners .loading {
     padding: 40px;
     text-align: center;
     color: var(--text-secondary);
     font-style: italic;
+}
+
+/* 
+ * NEW STYLES
+ */
+
+/* Data Indicator */
+.quick-filter-btn.has-data::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-red, #ef4444);
+    border-radius: 50%;
+    border: 2px solid var(--bg-solid, #ffffff);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+/* Gradients for Rank Badges */
+:root {
+    --gradient-gold: linear-gradient(135deg, #fbbf24, #d97706);
+    --gradient-silver: linear-gradient(135deg, #9ca3af, #4b5563);
+    --gradient-bronze: linear-gradient(135deg, #d97706, #92400e);
 }
 
 /* Responsive adjustments */

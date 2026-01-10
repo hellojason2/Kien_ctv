@@ -10,31 +10,42 @@ from psycopg2.extras import RealDictCursor
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # App version for cache busting (update on each deploy)
-APP_VERSION = "2026.01.05.2"
+APP_VERSION = "2026.01.09.1"
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
-def dated_url_for(endpoint, **values):
-    if endpoint == 'static':
-        filename = values.get('filename', None)
+# ══════════════════════════════════════════════════════════════════════════════
+# CACHE BUSTING CONFIGURATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.url_defaults
+def hashed_url_for_static_file(endpoint, values):
+    """
+    Automatically append a version parameter to all static file URLs 
+    for cache busting. Uses file modification time.
+    """
+    if endpoint == 'static' or endpoint.endswith('.static'):
+        filename = values.get('filename')
         if filename:
-            file_path = os.path.join(app.root_path, endpoint, filename)
-            # Try to locate the file in static folder
             if app.static_folder:
-                 # static_folder can be absolute or relative
                  if os.path.isabs(app.static_folder):
-                     file_path = os.path.join(app.static_folder, filename)
+                     static_folder = app.static_folder
                  else:
-                     file_path = os.path.join(app.root_path, app.static_folder, filename)
+                     static_folder = os.path.join(app.root_path, app.static_folder)
             
+            file_path = os.path.join(static_folder, filename)
             if os.path.isfile(file_path):
+                # Use file modification time as version
                 values['v'] = int(os.stat(file_path).st_mtime)
-    return url_for(endpoint, **values)
+            else:
+                # Fallback to app version if file not found
+                values['v'] = APP_VERSION
 
 @app.context_processor
-def override_url_for():
-    return dict(url_for=dated_url_for, version=APP_VERSION)
+def inject_version():
+    """Inject version into templates for manual usage if needed"""
+    return dict(version=APP_VERSION)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # REGISTER MODULAR BLUEPRINTS

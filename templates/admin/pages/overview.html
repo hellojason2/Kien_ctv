@@ -7,16 +7,19 @@
     <!-- Date Filter Card -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body" style="padding: 16px;">
-            <div class="date-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                <!-- Quick Filter Buttons -->
-                <button class="btn-filter-preset" data-preset="today" onclick="applyOverviewPreset('today')" data-i18n="today">Today<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="3days" onclick="applyOverviewPreset('3days')" data-i18n="three_days">3 Days<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="week" onclick="applyOverviewPreset('week')" data-i18n="week">This Week<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset active" data-preset="month" onclick="applyOverviewPreset('month')" data-i18n="this_month">This Month<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="lastmonth" onclick="applyOverviewPreset('lastmonth')" data-i18n="last_month">Last Month<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="3months" onclick="applyOverviewPreset('3months')" data-i18n="three_months">3 Months<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="year" onclick="applyOverviewPreset('year')" data-i18n="this_year">This Year<span class="data-indicator"></span></button>
-                <button class="btn-filter-preset" data-preset="custom" onclick="toggleOverviewCustomDateFilter()" data-i18n="custom_range">Custom</button>
+            <div class="date-filter-section">
+                <label class="filter-label" data-i18n="quick_filters">Quick Filters</label>
+                <div class="quick-filter-buttons">
+                    <!-- Quick Filter Buttons -->
+                    <button class="quick-filter-btn" data-preset="today" onclick="applyOverviewPreset('today')" data-i18n="today">Today<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="3days" onclick="applyOverviewPreset('3days')" data-i18n="three_days">3 Days<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="week" onclick="applyOverviewPreset('week')" data-i18n="week">This Week<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn active" data-preset="month" onclick="applyOverviewPreset('month')" data-i18n="this_month">This Month<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="lastmonth" onclick="applyOverviewPreset('lastmonth')" data-i18n="last_month">Last Month<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="3months" onclick="applyOverviewPreset('3months')" data-i18n="three_months">3 Months<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="year" onclick="applyOverviewPreset('year')" data-i18n="this_year">This Year<span class="data-indicator"></span></button>
+                    <button class="quick-filter-btn" data-preset="custom" onclick="toggleOverviewCustomDateFilter()" data-i18n="custom_range">Custom</button>
+                </div>
             </div>
             <!-- Custom Date Range (hidden by default) -->
             <div id="overviewCustomDateFilter" class="custom-date-filter" style="display: none; margin-top: 12px;">
@@ -57,9 +60,26 @@
         <div class="card-header">
             <h3 data-i18n="top_earners">Top Earners This Month</h3>
         </div>
-        <div class="card-body">
-            <div class="top-earners" id="topEarners">
-                <div class="loading" data-i18n="loading">Loading...</div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="rank" style="width: 60px;">#</th>
+                            <th data-i18n="ctv_name">Name</th>
+                            <th data-i18n="ctv_code">Code</th>
+                            <th data-i18n="total_revenue" style="text-align: right;">Total Revenue</th>
+                            <th data-i18n="total_commission" style="text-align: right;">Total Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topEarnersTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <div class="loading" data-i18n="loading">Loading...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
