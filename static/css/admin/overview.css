@@ -568,3 +568,88 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACTIVITY LOG PANEL
+   ═══════════════════════════════════════════════════════════════════ */
+
+.progress-log-panel {
+    margin-top: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f9fafb;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.log-header:hover {
+    background: #e5e7eb;
+}
+
+.log-toggle {
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.log-toggle.expanded {
+    transform: rotate(180deg);
+}
+
+.log-content {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #1f2937;
+    border-top: 1px solid #374151;
+}
+
+.log-entries {
+    padding: 10px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.log-entry {
+    display: flex;
+    gap: 8px;
+    padding: 3px 0;
+    color: #9ca3af;
+}
+
+.log-entry.info {
+    color: #60a5fa;
+}
+
+.log-entry.success {
+    color: #4ade80;
+}
+
+.log-entry.warning {
+    color: #fbbf24;
+}
+
+.log-entry.error {
+    color: #f87171;
+}
+
+.log-time {
+    color: #6b7280;
+    min-width: 70px;
+}
+
+.log-message {
+    flex: 1;
+    word-break: break-word;
+}

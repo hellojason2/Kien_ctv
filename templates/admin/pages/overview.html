@@ -98,7 +98,7 @@
 
 <!-- Hard Reset Progress Modal -->
 <div id="hardResetModal" class="progress-modal-overlay" style="display: none;">
-    <div class="progress-modal">
+    <div class="progress-modal" style="max-width: 600px;">
         <div class="progress-modal-header">
             <div class="progress-modal-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -110,6 +110,37 @@
         </div>
         
         <div class="progress-steps">
+            <!-- Step 0: Reading Database -->
+            <div class="progress-step" id="step-read">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-title">Reading Database</span>
+                        <span class="step-status" id="step-read-status">Waiting...</span>
+                    </div>
+                    <div class="step-progress-bar">
+                        <div class="step-progress-fill" id="step-read-progress"></div>
+                    </div>
+                    <div class="step-detail" id="step-read-detail">Counting existing records...</div>
+                    <!-- Database counts display -->
+                    <div class="db-counts" id="dbCounts" style="display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 12px;">
+                            <div><strong>Thẩm Mỹ:</strong> <span id="count-tham-my">-</span></div>
+                            <div><strong>Nha Khoa:</strong> <span id="count-nha-khoa">-</span></div>
+                            <div><strong>Giới Thiệu:</strong> <span id="count-gioi-thieu">-</span></div>
+                            <div><strong>Commissions:</strong> <span id="count-commissions">-</span></div>
+                        </div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); font-weight: 700; color: #b91c1c;">
+                            Total Records to Delete: <span id="count-total">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Step 1: Delete -->
             <div class="progress-step" id="step-delete">
                 <div class="step-icon">
@@ -203,6 +234,17 @@
                     </div>
                     <div class="step-detail" id="step-commission-detail">Recalculating all commission levels...</div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Activity Log Panel -->
+        <div class="progress-log-panel">
+            <div class="log-header" onclick="toggleLogPanel()">
+                <span>📋 Activity Log</span>
+                <span class="log-toggle" id="logToggle">▼</span>
+            </div>
+            <div class="log-content" id="logContent" style="display: none;">
+                <div class="log-entries" id="logEntries"></div>
             </div>
         </div>
         

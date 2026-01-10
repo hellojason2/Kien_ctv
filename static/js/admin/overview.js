@@ -583,19 +583,47 @@ function stopSyncCountdown() {
  * Hard Reset Progress Controller
  */
 const resetProgress = {
-    steps: ['delete', 'beauty', 'dental', 'referral', 'commission'],
+    steps: ['read', 'delete', 'beauty', 'dental', 'referral', 'commission'],
     currentStep: 0,
     progressIntervals: {},
-    
-    // Estimated times for each step (in ms)
-    estimatedTimes: {
-        delete: 2000,
-        beauty: 8000,
-        dental: 6000,
-        referral: 4000,
-        commission: 5000
-    }
+    dbCounts: null,
+    logs: []
 };
+
+/**
+ * Add entry to the activity log
+ */
+function addLogEntry(message, type = 'info') {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+    
+    resetProgress.logs.push({ time: timeStr, message, type });
+    
+    const logEntries = document.getElementById('logEntries');
+    if (logEntries) {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-message">${message}</span>`;
+        logEntries.appendChild(entry);
+        logEntries.scrollTop = logEntries.scrollHeight;
+    }
+    
+    // Also log to console
+    console.log(`[HardReset ${type.toUpperCase()}] ${message}`);
+}
+
+/**
+ * Toggle log panel visibility
+ */
+function toggleLogPanel() {
+    const logContent = document.getElementById('logContent');
+    const logToggle = document.getElementById('logToggle');
+    if (logContent && logToggle) {
+        const isHidden = logContent.style.display === 'none';
+        logContent.style.display = isHidden ? 'block' : 'none';
+        logToggle.classList.toggle('expanded', isHidden);
+    }
+}
 
 /**
  * Show the progress modal
@@ -604,6 +632,16 @@ function showHardResetModal() {
     const modal = document.getElementById('hardResetModal');
     if (modal) {
         modal.style.display = 'flex';
+        
+        // Clear previous logs
+        resetProgress.logs = [];
+        const logEntries = document.getElementById('logEntries');
+        if (logEntries) logEntries.innerHTML = '';
+        
+        // Hide database counts
+        const dbCounts = document.getElementById('dbCounts');
+        if (dbCounts) dbCounts.style.display = 'none';
+        
         // Reset all steps to initial state
         resetProgress.steps.forEach(step => {
             const stepEl = document.getElementById(`step-${step}`);
@@ -619,16 +657,47 @@ function showHardResetModal() {
                 status.textContent = 'Waiting...';
             }
         });
+        
+        // Reset detail texts
+        document.getElementById('step-read-detail').textContent = 'Counting existing records...';
+        document.getElementById('step-delete-detail').textContent = 'Preparing to delete existing records...';
+        document.getElementById('step-beauty-detail').textContent = 'Extracting from Thẩm Mỹ sheet...';
+        document.getElementById('step-dental-detail').textContent = 'Extracting from Nha Khoa sheet...';
+        document.getElementById('step-referral-detail').textContent = 'Extracting from Giới Thiệu sheet...';
+        document.getElementById('step-commission-detail').textContent = 'Recalculating all commission levels...';
+        
         // Hide summary
         const summary = document.getElementById('progressSummary');
         if (summary) {
             summary.style.display = 'none';
         }
+        
         // Show progress steps
         const steps = document.querySelector('.progress-steps');
         if (steps) {
             steps.style.display = 'flex';
         }
+        
+        // Show log panel
+        const logPanel = document.querySelector('.progress-log-panel');
+        if (logPanel) {
+            logPanel.style.display = 'block';
+        }
+        
+        // Reset modal header
+        const icon = document.querySelector('.progress-modal-icon');
+        if (icon) {
+            icon.style.animation = 'spin-slow 3s linear infinite';
+            icon.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
+            icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>`;
+            icon.querySelector('svg').style.stroke = '#b91c1c';
+        }
+        const header = document.querySelector('.progress-modal-header h3');
+        if (header) header.textContent = t('hard_reset_progress') || 'Hard Reset In Progress';
+        const subtitle = document.querySelector('.progress-modal-subtitle');
+        if (subtitle) subtitle.textContent = t('hard_reset_subtitle') || 'Please wait while we sync your data...';
     }
 }
 
@@ -645,6 +714,9 @@ function closeHardResetModal() {
         clearInterval(resetProgress.progressIntervals[key]);
     });
     resetProgress.progressIntervals = {};
+    
+    // Reload page to refresh data
+    window.location.reload();
 }
 
 /**
@@ -691,12 +763,12 @@ function animateStepProgress(stepId, duration, detailMessages) {
         
         const interval = setInterval(() => {
             const elapsed = Date.now() - startTime;
-            const progress = Math.min((elapsed / duration) * 100, 95); // Cap at 95% until confirmed
+            const progress = Math.min((elapsed / duration) * 100, 95);
             
-            // Update detail message at certain thresholds
             const newMessageIndex = Math.floor((progress / 100) * detailMessages.length);
             if (newMessageIndex !== messageIndex && newMessageIndex < detailMessages.length) {
                 messageIndex = newMessageIndex;
+                addLogEntry(detailMessages[messageIndex]);
             }
             
             updateStepProgress(stepId, 'active', progress, detailMessages[messageIndex]);
@@ -742,10 +814,13 @@ function showResetSummary(stats) {
         subtitle.textContent = t('data_synced_successfully') || 'All data has been synced successfully.';
     }
     
-    // Show summary
+    // Show summary with before/after comparison
     const summary = document.getElementById('progressSummary');
     const summaryStats = document.getElementById('summaryStats');
     if (summary && summaryStats) {
+        const beforeTotal = resetProgress.dbCounts?.total || 0;
+        const afterTotal = (stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0);
+        
         summaryStats.innerHTML = `
             <div class="summary-stat">
                 <div class="summary-stat-value">${stats.tham_my?.processed || 0}</div>
@@ -762,6 +837,8 @@ function showResetSummary(stats) {
         `;
         summary.style.display = 'block';
     }
+    
+    addLogEntry(`Reset complete! Imported ${(stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0)} total records.`, 'success');
 }
 
 /**
@@ -783,69 +860,108 @@ async function confirmHardReset() {
     // Show progress modal
     showHardResetModal();
     
-    // Start simulated progress for each step
-    // These will animate while the actual API call is running
-    const progressPromises = [];
+    addLogEntry('Hard Reset initiated by user', 'info');
+    addLogEntry('Starting database analysis...', 'info');
     
-    // Step 1: Delete - Start immediately
-    progressPromises.push(animateStepProgress('delete', 3000, [
-        'Connecting to database...',
-        'Clearing Beauty records...',
-        'Clearing Dental records...',
-        'Clearing Referral records...',
-        'Clearing commission data...'
-    ]));
-    
-    // Start the actual API call
-    const apiPromise = api('/api/admin/reset-data', { method: 'POST' });
-    
-    // Step 2-5: Start with delays to simulate sequential processing
-    setTimeout(() => {
-        updateStepProgress('delete', 'complete', 100, 'Database cleared successfully');
-        animateStepProgress('beauty', 8000, [
-            'Connecting to Google Sheets...',
-            'Reading Thẩm Mỹ worksheet...',
-            'Parsing headers...',
-            'Importing row 1-50...',
-            'Importing row 51-100...',
-            'Importing row 101-150...',
-            'Validating data...'
-        ]);
-    }, 3000);
-    
-    setTimeout(() => {
-        updateStepProgress('beauty', 'complete', 100, 'Beauty data imported');
-        animateStepProgress('dental', 6000, [
-            'Reading Nha Khoa worksheet...',
-            'Parsing dental records...',
-            'Importing row 1-50...',
-            'Importing row 51-100...',
-            'Validating phone numbers...'
-        ]);
-    }, 11000);
-    
-    setTimeout(() => {
-        updateStepProgress('dental', 'complete', 100, 'Dental data imported');
-        animateStepProgress('referral', 4000, [
-            'Reading Giới Thiệu worksheet...',
-            'Processing referral data...',
-            'Creating new CTV accounts...',
-            'Linking referrals...'
-        ]);
-    }, 17000);
-    
-    setTimeout(() => {
-        updateStepProgress('referral', 'complete', 100, 'Referral data imported');
-        animateStepProgress('commission', 5000, [
-            'Loading transaction data...',
-            'Calculating Level 0 commissions...',
-            'Calculating Level 1 commissions...',
-            'Calculating Level 2 commissions...',
-            'Finalizing calculations...'
-        ]);
-    }, 21000);
+    // STEP 0: Read database counts first
+    updateStepProgress('read', 'active', 10, 'Connecting to database...');
     
     try {
+        // Fetch current database counts
+        addLogEntry('Fetching current record counts from database...', 'info');
+        const previewResponse = await api('/api/admin/reset-data/preview');
+        
+        if (previewResponse.status === 'success') {
+            resetProgress.dbCounts = previewResponse.counts;
+            
+            // Update the counts display
+            document.getElementById('count-tham-my').textContent = previewResponse.counts.tham_my.toLocaleString();
+            document.getElementById('count-nha-khoa').textContent = previewResponse.counts.nha_khoa.toLocaleString();
+            document.getElementById('count-gioi-thieu').textContent = previewResponse.counts.gioi_thieu.toLocaleString();
+            document.getElementById('count-commissions').textContent = previewResponse.counts.commissions.toLocaleString();
+            document.getElementById('count-total').textContent = previewResponse.counts.total.toLocaleString();
+            
+            // Show the counts panel
+            document.getElementById('dbCounts').style.display = 'block';
+            
+            addLogEntry(`Found ${previewResponse.counts.tham_my.toLocaleString()} Beauty records`, 'info');
+            addLogEntry(`Found ${previewResponse.counts.nha_khoa.toLocaleString()} Dental records`, 'info');
+            addLogEntry(`Found ${previewResponse.counts.gioi_thieu.toLocaleString()} Referral records`, 'info');
+            addLogEntry(`Found ${previewResponse.counts.commissions.toLocaleString()} Commission records`, 'info');
+            addLogEntry(`TOTAL: ${previewResponse.counts.total.toLocaleString()} records will be deleted`, 'warning');
+            
+            updateStepProgress('read', 'complete', 100, `Found ${previewResponse.counts.total.toLocaleString()} records`);
+        } else {
+            throw new Error('Failed to get database counts');
+        }
+        
+        // Small delay before starting delete
+        await new Promise(r => setTimeout(r, 500));
+        
+        addLogEntry('Starting data deletion and re-import process...', 'info');
+        
+        // Start the actual API call
+        const apiPromise = api('/api/admin/reset-data', { method: 'POST' });
+        
+        // STEP 1: Delete
+        addLogEntry('Clearing existing database records...', 'warning');
+        animateStepProgress('delete', 3000, [
+            'Connecting to database...',
+            'Clearing Beauty records...',
+            'Clearing Dental records...',
+            'Clearing Referral records...',
+            'Clearing commission data...'
+        ]);
+        
+        // Step 2-5: Start with delays to simulate sequential processing
+        setTimeout(() => {
+            updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
+            addLogEntry(`Database cleared: ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records deleted`, 'success');
+            addLogEntry('Starting Google Sheets import...', 'info');
+            animateStepProgress('beauty', 8000, [
+                'Connecting to Google Sheets...',
+                'Reading Thẩm Mỹ worksheet...',
+                'Parsing headers...',
+                'Importing records...',
+                'Validating data...'
+            ]);
+        }, 3000);
+        
+        setTimeout(() => {
+            updateStepProgress('beauty', 'complete', 100, 'Beauty data imported');
+            addLogEntry('Beauty (Thẩm Mỹ) data import complete', 'success');
+            animateStepProgress('dental', 6000, [
+                'Reading Nha Khoa worksheet...',
+                'Parsing dental records...',
+                'Importing records...',
+                'Validating phone numbers...'
+            ]);
+        }, 11000);
+        
+        setTimeout(() => {
+            updateStepProgress('dental', 'complete', 100, 'Dental data imported');
+            addLogEntry('Dental (Nha Khoa) data import complete', 'success');
+            animateStepProgress('referral', 4000, [
+                'Reading Giới Thiệu worksheet...',
+                'Processing referral data...',
+                'Creating new CTV accounts...',
+                'Linking referrals...'
+            ]);
+        }, 17000);
+        
+        setTimeout(() => {
+            updateStepProgress('referral', 'complete', 100, 'Referral data imported');
+            addLogEntry('Referral (Giới Thiệu) data import complete', 'success');
+            addLogEntry('Starting commission calculations...', 'info');
+            animateStepProgress('commission', 5000, [
+                'Loading transaction data...',
+                'Calculating Level 0 commissions...',
+                'Calculating Level 1 commissions...',
+                'Calculating Level 2 commissions...',
+                'Finalizing calculations...'
+            ]);
+        }, 21000);
+        
         // Wait for API to complete
         const response = await apiPromise;
         
@@ -860,6 +976,9 @@ async function confirmHardReset() {
                 updateStepProgress(step, 'complete', 100, 'Completed');
             });
             
+            addLogEntry('Commission calculations complete', 'success');
+            addLogEntry(`Imported: ${response.stats.tham_my?.processed || 0} Beauty, ${response.stats.nha_khoa?.processed || 0} Dental, ${response.stats.gioi_thieu?.processed || 0} Referral`, 'success');
+            
             // Short delay then show summary
             setTimeout(() => {
                 showResetSummary(response.stats);
@@ -871,6 +990,7 @@ async function confirmHardReset() {
         
     } catch (error) {
         console.error('Hard reset error:', error);
+        addLogEntry(`ERROR: ${error.message}`, 'error');
         
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {
@@ -886,35 +1006,15 @@ async function confirmHardReset() {
             updateStepProgress(currentActiveStep, 'error', 0, `Error: ${error.message}`);
         }
         
-        // Close modal after delay and show error
-        setTimeout(() => {
-            closeHardResetModal();
-            alert((t('hard_reset_error') || 'Hard reset failed: ') + error.message);
-        }, 2000);
+        addLogEntry('Hard reset failed. Check logs above for details.', 'error');
         
-        // Re-enable button
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        btn.style.opacity = '1';
+        // Re-enable button after delay
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            btn.style.opacity = '1';
+        }, 2000);
     }
-}
-
-/**
- * Handle modal close and refresh
- */
-function closeHardResetModal() {
-    const modal = document.getElementById('hardResetModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    // Stop all progress animations
-    Object.keys(resetProgress.progressIntervals).forEach(key => {
-        clearInterval(resetProgress.progressIntervals[key]);
-    });
-    resetProgress.progressIntervals = {};
-    
-    // Reload page to refresh data
-    window.location.reload();
 }
 
 /**
