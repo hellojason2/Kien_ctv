@@ -258,3 +258,313 @@
         padding: 6px 10px;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   HARD RESET PROGRESS MODAL
+   ═══════════════════════════════════════════════════════════════════ */
+
+.progress-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.progress-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.progress-modal-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.progress-modal-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    animation: spin-slow 3s linear infinite;
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.progress-modal-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: #b91c1c;
+}
+
+.progress-modal-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.progress-modal-subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Progress Steps */
+.progress-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.progress-step {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background: #fffbeb;
+    border-color: #fcd34d;
+}
+
+.progress-step.complete {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.progress-step.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.step-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active .step-icon {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    animation: pulse-icon 1.5s ease-in-out infinite;
+}
+
+.progress-step.complete .step-icon {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.progress-step.error .step-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+.step-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: #9ca3af;
+    transition: stroke 0.3s ease;
+}
+
+.progress-step.active .step-icon svg,
+.progress-step.complete .step-icon svg,
+.progress-step.error .step-icon svg {
+    stroke: white;
+}
+
+.step-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.step-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 6px;
+}
+
+.progress-step.active .step-status {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.progress-step.complete .step-status {
+    color: #15803d;
+    background: #dcfce7;
+}
+
+.progress-step.error .step-status {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.step-progress-bar {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.step-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.progress-step.complete .step-progress-fill {
+    width: 100%;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.progress-step.error .step-progress-fill {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.step-detail {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Summary Section */
+.progress-summary {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    animation: fadeIn 0.5s ease;
+}
+
+.summary-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #16a34a;
+    margin-bottom: 20px;
+}
+
+.summary-title svg {
+    width: 24px;
+    height: 24px;
+    stroke: #16a34a;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.summary-stat {
+    text-align: center;
+    padding: 14px 10px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.summary-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-close-modal {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-close-modal:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}

@@ -580,6 +580,344 @@ function stopSyncCountdown() {
 }
 
 /**
+ * Hard Reset Progress Controller
+ */
+const resetProgress = {
+    steps: ['delete', 'beauty', 'dental', 'referral', 'commission'],
+    currentStep: 0,
+    progressIntervals: {},
+    
+    // Estimated times for each step (in ms)
+    estimatedTimes: {
+        delete: 2000,
+        beauty: 8000,
+        dental: 6000,
+        referral: 4000,
+        commission: 5000
+    }
+};
+
+/**
+ * Show the progress modal
+ */
+function showHardResetModal() {
+    const modal = document.getElementById('hardResetModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Reset all steps to initial state
+        resetProgress.steps.forEach(step => {
+            const stepEl = document.getElementById(`step-${step}`);
+            if (stepEl) {
+                stepEl.classList.remove('active', 'complete', 'error');
+            }
+            const progressBar = document.getElementById(`step-${step}-progress`);
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+            const status = document.getElementById(`step-${step}-status`);
+            if (status) {
+                status.textContent = 'Waiting...';
+            }
+        });
+        // Hide summary
+        const summary = document.getElementById('progressSummary');
+        if (summary) {
+            summary.style.display = 'none';
+        }
+        // Show progress steps
+        const steps = document.querySelector('.progress-steps');
+        if (steps) {
+            steps.style.display = 'flex';
+        }
+    }
+}
+
+/**
+ * Close the progress modal
+ */
+function closeHardResetModal() {
+    const modal = document.getElementById('hardResetModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Stop all progress animations
+    Object.keys(resetProgress.progressIntervals).forEach(key => {
+        clearInterval(resetProgress.progressIntervals[key]);
+    });
+    resetProgress.progressIntervals = {};
+}
+
+/**
+ * Update a step's progress
+ */
+function updateStepProgress(stepId, status, progress, detail) {
+    const stepEl = document.getElementById(`step-${stepId}`);
+    const progressBar = document.getElementById(`step-${stepId}-progress`);
+    const statusEl = document.getElementById(`step-${stepId}-status`);
+    const detailEl = document.getElementById(`step-${stepId}-detail`);
+    
+    if (stepEl) {
+        stepEl.classList.remove('active', 'complete', 'error');
+        if (status === 'active') stepEl.classList.add('active');
+        else if (status === 'complete') stepEl.classList.add('complete');
+        else if (status === 'error') stepEl.classList.add('error');
+    }
+    
+    if (progressBar && progress !== undefined) {
+        progressBar.style.width = `${progress}%`;
+    }
+    
+    if (statusEl) {
+        if (status === 'active') statusEl.textContent = `${Math.round(progress || 0)}%`;
+        else if (status === 'complete') statusEl.textContent = '✓ Done';
+        else if (status === 'error') statusEl.textContent = '✗ Failed';
+        else statusEl.textContent = 'Waiting...';
+    }
+    
+    if (detailEl && detail) {
+        detailEl.textContent = detail;
+    }
+}
+
+/**
+ * Animate a step's progress bar
+ */
+function animateStepProgress(stepId, duration, detailMessages) {
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        let messageIndex = 0;
+        
+        updateStepProgress(stepId, 'active', 0, detailMessages[0]);
+        
+        const interval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min((elapsed / duration) * 100, 95); // Cap at 95% until confirmed
+            
+            // Update detail message at certain thresholds
+            const newMessageIndex = Math.floor((progress / 100) * detailMessages.length);
+            if (newMessageIndex !== messageIndex && newMessageIndex < detailMessages.length) {
+                messageIndex = newMessageIndex;
+            }
+            
+            updateStepProgress(stepId, 'active', progress, detailMessages[messageIndex]);
+            
+            if (progress >= 95) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, 100);
+        
+        resetProgress.progressIntervals[stepId] = interval;
+    });
+}
+
+/**
+ * Show completion summary
+ */
+function showResetSummary(stats) {
+    // Hide progress steps
+    const steps = document.querySelector('.progress-steps');
+    if (steps) {
+        steps.style.display = 'none';
+    }
+    
+    // Stop the spinning icon
+    const icon = document.querySelector('.progress-modal-icon');
+    if (icon) {
+        icon.style.animation = 'none';
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>`;
+        icon.style.background = 'linear-gradient(135deg, #dcfce7, #bbf7d0)';
+        icon.querySelector('svg').style.stroke = '#16a34a';
+    }
+    
+    // Update header
+    const header = document.querySelector('.progress-modal-header h3');
+    if (header) {
+        header.textContent = t('hard_reset_complete') || 'Hard Reset Complete!';
+    }
+    const subtitle = document.querySelector('.progress-modal-subtitle');
+    if (subtitle) {
+        subtitle.textContent = t('data_synced_successfully') || 'All data has been synced successfully.';
+    }
+    
+    // Show summary
+    const summary = document.getElementById('progressSummary');
+    const summaryStats = document.getElementById('summaryStats');
+    if (summary && summaryStats) {
+        summaryStats.innerHTML = `
+            <div class="summary-stat">
+                <div class="summary-stat-value">${stats.tham_my?.processed || 0}</div>
+                <div class="summary-stat-label">Thẩm Mỹ</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value">${stats.nha_khoa?.processed || 0}</div>
+                <div class="summary-stat-label">Nha Khoa</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value">${stats.gioi_thieu?.processed || 0}</div>
+                <div class="summary-stat-label">Giới Thiệu</div>
+            </div>
+        `;
+        summary.style.display = 'block';
+    }
+}
+
+/**
+ * Confirm and trigger Hard Reset with detailed progress
+ */
+async function confirmHardReset() {
+    if (!confirm(t('confirm_hard_reset') || 'WARNING: This will DELETE all Client Service data (Beauty, Dental, Referral) and re-import everything from Google Sheets.\n\nThis process may take a minute. Are you sure you want to proceed?')) {
+        return;
+    }
+    
+    const btn = document.getElementById('hardResetBtn');
+    const originalText = btn.innerHTML;
+    
+    // Disable button
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.innerHTML = '<span style="font-weight: bold;">↻</span> In Progress...';
+    
+    // Show progress modal
+    showHardResetModal();
+    
+    // Start simulated progress for each step
+    // These will animate while the actual API call is running
+    const progressPromises = [];
+    
+    // Step 1: Delete - Start immediately
+    progressPromises.push(animateStepProgress('delete', 3000, [
+        'Connecting to database...',
+        'Clearing Beauty records...',
+        'Clearing Dental records...',
+        'Clearing Referral records...',
+        'Clearing commission data...'
+    ]));
+    
+    // Start the actual API call
+    const apiPromise = api('/api/admin/reset-data', { method: 'POST' });
+    
+    // Step 2-5: Start with delays to simulate sequential processing
+    setTimeout(() => {
+        updateStepProgress('delete', 'complete', 100, 'Database cleared successfully');
+        animateStepProgress('beauty', 8000, [
+            'Connecting to Google Sheets...',
+            'Reading Thẩm Mỹ worksheet...',
+            'Parsing headers...',
+            'Importing row 1-50...',
+            'Importing row 51-100...',
+            'Importing row 101-150...',
+            'Validating data...'
+        ]);
+    }, 3000);
+    
+    setTimeout(() => {
+        updateStepProgress('beauty', 'complete', 100, 'Beauty data imported');
+        animateStepProgress('dental', 6000, [
+            'Reading Nha Khoa worksheet...',
+            'Parsing dental records...',
+            'Importing row 1-50...',
+            'Importing row 51-100...',
+            'Validating phone numbers...'
+        ]);
+    }, 11000);
+    
+    setTimeout(() => {
+        updateStepProgress('dental', 'complete', 100, 'Dental data imported');
+        animateStepProgress('referral', 4000, [
+            'Reading Giới Thiệu worksheet...',
+            'Processing referral data...',
+            'Creating new CTV accounts...',
+            'Linking referrals...'
+        ]);
+    }, 17000);
+    
+    setTimeout(() => {
+        updateStepProgress('referral', 'complete', 100, 'Referral data imported');
+        animateStepProgress('commission', 5000, [
+            'Loading transaction data...',
+            'Calculating Level 0 commissions...',
+            'Calculating Level 1 commissions...',
+            'Calculating Level 2 commissions...',
+            'Finalizing calculations...'
+        ]);
+    }, 21000);
+    
+    try {
+        // Wait for API to complete
+        const response = await apiPromise;
+        
+        // Stop all animations
+        Object.keys(resetProgress.progressIntervals).forEach(key => {
+            clearInterval(resetProgress.progressIntervals[key]);
+        });
+        
+        if (response.status === 'success') {
+            // Mark all steps as complete
+            resetProgress.steps.forEach(step => {
+                updateStepProgress(step, 'complete', 100, 'Completed');
+            });
+            
+            // Short delay then show summary
+            setTimeout(() => {
+                showResetSummary(response.stats);
+            }, 500);
+            
+        } else {
+            throw new Error(response.message || 'Unknown error');
+        }
+        
+    } catch (error) {
+        console.error('Hard reset error:', error);
+        
+        // Stop all animations
+        Object.keys(resetProgress.progressIntervals).forEach(key => {
+            clearInterval(resetProgress.progressIntervals[key]);
+        });
+        
+        // Mark current step as error
+        const currentActiveStep = resetProgress.steps.find(step => {
+            const el = document.getElementById(`step-${step}`);
+            return el && el.classList.contains('active');
+        });
+        if (currentActiveStep) {
+            updateStepProgress(currentActiveStep, 'error', 0, `Error: ${error.message}`);
+        }
+        
+        // Close modal after delay and show error
+        setTimeout(() => {
+            closeHardResetModal();
+            alert((t('hard_reset_error') || 'Hard reset failed: ') + error.message);
+        }, 2000);
+        
+        // Re-enable button
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        btn.style.opacity = '1';
+    }
+}
+
+/**
+ * Handle modal close and refresh
+ */
+function closeHardResetModal() {
+    const modal = document.getElementById('hardResetModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Stop all progress animations
+    Object.keys(resetProgress.progressIntervals).forEach(key => {
+        clearInterval(resetProgress.progressIntervals[key]);
+    });
+    resetProgress.progressIntervals = {};
+    
+    // Reload page to refresh data
+    window.location.reload();
+}
+
+/**
  * Reset the sync counter when clicking on the status indicator
  */
 async function resetSyncCounter() {
