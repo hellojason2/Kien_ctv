@@ -81,6 +81,14 @@
         </div>
         <div class="card-body">
             <div class="lifetime-stats-table">
+                <!-- 
+                 * ══════════════════════════════════════════════════════════════════════════════
+                 * CRITICAL: LIFETIME STATISTICS TABLE STRUCTURE
+                 * ══════════════════════════════════════════════════════════════════════════════
+                 * AI INSTRUCTION: DO NOT CHANGE THIS HTML STRUCTURE WITHOUT EXPLICIT USER CONFIRMATION.
+                 * This table structure and class names are required for the specific design requested.
+                 * ══════════════════════════════════════════════════════════════════════════════
+                 -->
                 <table class="stats-table">
                     <thead>
                         <tr>
@@ -91,7 +99,28 @@
                     <tbody id="lifetimeStatsBody">
                         <!-- Content populated by JS -->
                         <tr>
-                            <td colspan="2"><div class="skeleton-loader" style="height: 40px; width: 100%;"></div></td>
+                            <td data-i18n="total_commissions_earned"></td>
+                            <td id="lifetimeTotalCommissions"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="total_transactions"></td>
+                            <td id="lifetimeTotalTransactions"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="total_network_members"></td>
+                            <td id="lifetimeNetworkSize"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="direct_referrals"></td>
+                            <td id="lifetimeDirectReferrals"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="total_services_completed"></td>
+                            <td id="lifetimeTotalServices"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="total_revenue_generated"></td>
+                            <td id="lifetimeTotalRevenue"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
                         </tr>
                     </tbody>
                 </table>

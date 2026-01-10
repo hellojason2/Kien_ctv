@@ -128,6 +128,14 @@
     border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
+/* 
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CRITICAL: LIFETIME STATS COLUMN ALIGNMENT
+ * ══════════════════════════════════════════════════════════════════════════════
+ * AI INSTRUCTION: DO NOT CHANGE THIS STYLE WITHOUT EXPLICIT USER CONFIRMATION.
+ * The value column MUST be right-aligned as per the reference design.
+ * ══════════════════════════════════════════════════════════════════════════════
+ */
 .stats-table thead th:last-child {
     text-align: right;
 }
