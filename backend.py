@@ -94,10 +94,12 @@ def check_duplicate():
     
     phone = data['phone'].strip()
     phone = ''.join(c for c in phone if c.isdigit())
-    phone = phone.lstrip('0')
     
-    if len(phone) < 9:
+    if len(phone) < 8:
         return jsonify({'status': 'error', 'message': 'Invalid phone number'}), 400
+    
+    # Extract last 8 digits for fuzzy matching (handles leading zero variations)
+    phone_suffix = phone[-8:]
     
     connection = get_db_connection()
     if not connection:
@@ -109,7 +111,7 @@ def check_duplicate():
             SELECT EXISTS (
                 SELECT 1
                 FROM khach_hang
-                WHERE sdt = %s
+                WHERE sdt LIKE %s
                   AND (
                     (trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
                      AND ngay_hen_lam >= CURRENT_DATE - INTERVAL '360 days')
@@ -118,7 +120,7 @@ def check_duplicate():
                     OR ngay_nhap_don >= CURRENT_DATE - INTERVAL '60 days'
                   )
             ) AS is_duplicate;
-        """, (phone,))
+        """, ('%' + phone_suffix,))
         
         result = cursor.fetchone()
         is_duplicate = bool(result[0]) if result else False

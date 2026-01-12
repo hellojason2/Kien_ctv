@@ -24,7 +24,7 @@
 
 .sidebar {
     width: 240px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.95); /* More opaque */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-right: 1px solid var(--border-color);
@@ -34,10 +34,37 @@
     left: 0;
     top: 0;
     transition: transform 0.3s ease;
-    z-index: 1000;
+    z-index: 9000; /* High z-index */
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
-    overflow-y: auto;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: visible !important; /* Force visible */
+}
+
+.sidebar-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+    margin: -24px -16px;
+    padding: 24px 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar {
+    display: none;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    position: relative;
+    z-index: 9002; /* Higher than content */
+    overflow: visible;
 }
 
 .sidebar.collapsed {
@@ -306,26 +333,28 @@
 /* Language Popup */
 .lang-popup {
     position: absolute;
-    left: calc(100% + 12px);
-    top: 0;
+    left: calc(100% + 15px); /* Slightly further out */
+    bottom: 0; /* Align to bottom of button */
+    top: auto; /* Reset top */
     background: var(--bg-solid);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); /* Stronger shadow */
     padding: 8px;
     min-width: 180px;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-8px);
-    transition: all 0.2s ease;
-    z-index: 1000;
+    transform: translateX(-10px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9999; /* Very high z-index */
 }
 
 .lang-popup::before {
     content: '';
     position: absolute;
     left: -6px;
-    top: 16px;
+    bottom: 16px; /* Align arrow */
+    top: auto;
     border: 6px solid transparent;
     border-right-color: var(--bg-solid);
 }
@@ -404,6 +433,12 @@
         width: 60px;
         padding: 16px 8px;
     }
+
+    .sidebar-scroll-content {
+        margin: -16px -8px;
+        padding: 16px 8px;
+    }
+
     .sidebar-logo {
         font-size: 12px;
         text-align: center;

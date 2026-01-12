@@ -18,6 +18,7 @@ let currentClientView = localStorage.getItem('clientView') || 'grid';
 async function loadClientsWithServices(page = 1) {
     clientsCurrentPage = page;
     const search = document.getElementById('clientSearch')?.value || '';
+    const status = document.getElementById('clientStatusFilter')?.value || '';
     const grid = document.getElementById('clientsGrid');
     
     grid.innerHTML = '<div class="loading">' + t('loading') + '</div>';
@@ -26,6 +27,7 @@ async function loadClientsWithServices(page = 1) {
     params.append('page', page);
     params.append('per_page', 50);
     if (search) params.append('search', search);
+    if (status) params.append('status', status);
     
     try {
         const result = await api(`/api/admin/clients-with-services?${params}`);
@@ -437,9 +439,7 @@ async function showCommissionReport(phone, name) {
 
 function closeCommissionReportModal() {
     document.getElementById('commissionReportModal').style.display = 'none';
-}
-
-// Close on outside click
+}// Close on outside click
 window.onclick = function(event) {
     const modal = document.getElementById('commissionReportModal');
     if (event.target == modal) {

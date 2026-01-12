@@ -18,6 +18,7 @@ def get_clients_with_services():
         
         search = request.args.get('search', '').strip()
         nguoi_chot = request.args.get('nguoi_chot', '').strip()
+        status_filter = request.args.get('status', '').strip()
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 50, type=int)
         
@@ -35,6 +36,11 @@ def get_clients_with_services():
         if nguoi_chot:
             base_where += " AND nguoi_chot = %s"
             params.append(nguoi_chot)
+            
+        if status_filter == 'deposited':
+            base_where += " AND tien_coc > 0"
+        elif status_filter == 'not_deposited':
+            base_where += " AND (tien_coc = 0 OR tien_coc IS NULL)"
         
         client_query = f"""
             SELECT 

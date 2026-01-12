@@ -729,7 +729,8 @@ def check_phone():
                 SELECT 1 FROM khach_hang
                 WHERE sdt LIKE %s
                   AND (
-                    trang_thai IN ('Da den lam', 'Da coc')
+                    (trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
+                     AND ngay_hen_lam >= CURRENT_DATE - INTERVAL '360 days')
                     OR (ngay_hen_lam >= CURRENT_DATE 
                         AND ngay_hen_lam < CURRENT_DATE + INTERVAL '180 days')
                     OR ngay_nhap_don >= CURRENT_DATE - INTERVAL '60 days'
