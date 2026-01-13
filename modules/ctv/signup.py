@@ -158,6 +158,7 @@ def ctv_signup():
             return_db_connection(connection)
             return jsonify({
                 'status': 'error',
+                'error_code': 'ALREADY_REGISTERED',
                 'message': 'Phone number already registered'
             }), 400
         
@@ -169,6 +170,7 @@ def ctv_signup():
             return_db_connection(connection)
             return jsonify({
                 'status': 'error',
+                'error_code': 'PENDING_APPROVAL',
                 'message': 'You already have a pending registration'
             }), 400
         

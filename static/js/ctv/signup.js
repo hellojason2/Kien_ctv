@@ -52,7 +52,9 @@ const translations = {
         phone_exists: 'Số điện thoại này đã được đăng ký',
         submitting: 'Đang gửi...',
         terms_required: 'Vui lòng đồng ý với điều khoản và điều kiện',
-        signature_required: 'Vui lòng nhập chữ ký của bạn'
+        signature_required: 'Vui lòng nhập chữ ký của bạn',
+        pending_approval: 'Tài khoản của bạn đang chờ phê duyệt. Vui lòng đợi quản trị viên xác nhận.',
+        account_already_exists: 'Số điện thoại này đã được đăng ký làm CTV. Vui lòng đăng nhập.'
     },
     en: {
         signup_title: 'CTV Sign Up',
@@ -101,7 +103,9 @@ const translations = {
         phone_exists: 'This phone number is already registered',
         submitting: 'Submitting...',
         terms_required: 'Please agree to the terms and conditions',
-        signature_required: 'Please enter your signature'
+        signature_required: 'Please enter your signature',
+        pending_approval: 'Your account is pending approval. Please wait for admin confirmation.',
+        account_already_exists: 'This phone number is already registered as a CTV. Please login.'
     }
 };
 
@@ -587,7 +591,13 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
             }, 3000);
         } else {
             // Show error message
-            if (data.message && data.message.includes('phone')) {
+            if (data.error_code === 'PENDING_APPROVAL') {
+                alert(t('pending_approval'));
+                errorMsg.textContent = t('pending_approval');
+            } else if (data.error_code === 'ALREADY_REGISTERED') {
+                alert(t('account_already_exists'));
+                errorMsg.textContent = t('account_already_exists');
+            } else if (data.message && data.message.includes('phone')) {
                 errorMsg.textContent = t('phone_exists');
             } else {
                 errorMsg.textContent = data.message || t('signup_error');
