@@ -36,8 +36,9 @@ const translations = {
         terms_link: 'Điều khoản và Điều kiện',
         terms_title: 'Điều Khoản và Điều Kiện',
         signature_agreement: 'Bằng cách ký tên bên dưới, tôi xác nhận đã đọc, hiểu và đồng ý với tất cả các điều khoản và điều kiện trên.',
-        signature_label: 'Chữ ký điện tử (nhập họ tên) *',
-        signature_placeholder: 'Nhập họ tên của bạn',
+        signature_label: 'Chữ ký điện tử *',
+        signature_placeholder: 'Vẽ chữ ký của bạn ở đây',
+        clear_signature: 'Xóa chữ ký',
         signature_date: 'Ngày:',
         accept_sign: 'Chấp nhận và Ký',
         cancel: 'Hủy',
@@ -84,8 +85,9 @@ const translations = {
         terms_link: 'Terms and Conditions',
         terms_title: 'Terms and Conditions',
         signature_agreement: 'By signing below, I confirm that I have read, understood, and agree to all the terms and conditions above.',
-        signature_label: 'Digital Signature (enter full name) *',
-        signature_placeholder: 'Enter your full name',
+        signature_label: 'Digital Signature *',
+        signature_placeholder: 'Draw your signature here',
+        clear_signature: 'Clear Signature',
         signature_date: 'Date:',
         accept_sign: 'Accept and Sign',
         cancel: 'Cancel',
@@ -242,12 +244,135 @@ const debouncedCheckReferrer = debounce(checkReferrerPhone, 500);
 
 // Terms and Conditions Modal
 let termsAccepted = false;
-let signatureName = '';
+let signatureData = null;
+
+// Signature Pad Setup
+let canvas, ctx, isDrawing = false;
+let lastX = 0, lastY = 0;
+
+function initSignaturePad() {
+    canvas = document.getElementById('signatureCanvas');
+    ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match display size
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2; // Retina display support
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+    
+    // Set drawing styles
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch events
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchend', stopDrawing);
+}
+
+function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function getTouchPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+    };
+}
+
+function startDrawing(e) {
+    isDrawing = true;
+    const pos = getMousePos(e);
+    lastX = pos.x;
+    lastY = pos.y;
+    hidePlaceholder();
+}
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getTouchPos(e);
+    lastX = pos.x;
+    lastY = pos.y;
+    hidePlaceholder();
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    
+    const pos = getMousePos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    if (!isDrawing) return;
+    
+    const pos = getTouchPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function clearSignature() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    showPlaceholder();
+    signatureData = null;
+}
+
+function hidePlaceholder() {
+    const placeholder = document.getElementById('signaturePlaceholder');
+    if (placeholder) {
+        placeholder.classList.add('hidden');
+    }
+}
+
+function showPlaceholder() {
+    const placeholder = document.getElementById('signaturePlaceholder');
+    if (placeholder) {
+        placeholder.classList.remove('hidden');
+    }
+}
+
+function isCanvasBlank() {
+    const pixelBuffer = new Uint32Array(
+        ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+    );
+    return !pixelBuffer.some(color => color !== 0);
+}
 
 function openTermsModal() {
     const modal = document.getElementById('termsModal');
     const dateElement = document.getElementById('currentDate');
-    const signatureInput = document.getElementById('signatureInput');
     
     // Set current date
     const today = new Date();
@@ -258,36 +383,39 @@ function openTermsModal() {
     });
     dateElement.textContent = dateString;
     
-    // Pre-fill signature with user's name if available
-    const lastName = document.getElementById('lastName').value.trim();
-    const firstName = document.getElementById('firstName').value.trim();
-    if (lastName && firstName) {
-        signatureInput.value = `${lastName} ${firstName}`;
-    }
-    
+    // Initialize signature pad
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
+    
+    // Need to wait for modal to be visible before initializing canvas
+    setTimeout(() => {
+        initSignaturePad();
+    }, 100);
 }
 
 function closeTermsModal() {
     const modal = document.getElementById('termsModal');
     modal.classList.remove('show');
     document.body.style.overflow = '';
+    
+    // Clear signature if terms not accepted
+    if (!termsAccepted && canvas) {
+        clearSignature();
+    }
 }
 
 function acceptTerms() {
-    const signatureInput = document.getElementById('signatureInput');
-    const signature = signatureInput.value.trim();
-    
-    if (!signature) {
+    // Check if signature is drawn
+    if (isCanvasBlank()) {
         alert(t('signature_required'));
-        signatureInput.focus();
         return;
     }
     
+    // Save signature as data URL
+    signatureData = canvas.toDataURL('image/png');
+    
     // Mark terms as accepted
     termsAccepted = true;
-    signatureName = signature;
     
     // Check the checkbox
     document.getElementById('termsCheckbox').checked = true;
@@ -428,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeTermsModal_btn = document.getElementById('closeTermsModal');
     const cancelTermsBtn = document.getElementById('cancelTermsBtn');
     const acceptTermsBtn = document.getElementById('acceptTermsBtn');
+    const clearSignatureBtn = document.getElementById('clearSignatureBtn');
     const termsModal = document.getElementById('termsModal');
     
     viewTermsLink.addEventListener('click', (e) => {
@@ -438,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeTermsModal_btn.addEventListener('click', closeTermsModal);
     cancelTermsBtn.addEventListener('click', closeTermsModal);
     acceptTermsBtn.addEventListener('click', acceptTerms);
+    clearSignatureBtn.addEventListener('click', clearSignature);
     
     // Close modal when clicking outside
     termsModal.addEventListener('click', (e) => {
@@ -451,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
     termsCheckbox.addEventListener('change', (e) => {
         if (!e.target.checked) {
             termsAccepted = false;
-            signatureName = '';
+            signatureData = null;
         }
     });
 });

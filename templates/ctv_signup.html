@@ -206,8 +206,12 @@
                 <div class="signature-section">
                     <p class="signature-text" data-i18n="signature_agreement">Bằng cách ký tên bên dưới, tôi xác nhận đã đọc, hiểu và đồng ý với tất cả các điều khoản và điều kiện trên.</p>
                     <div class="signature-input-group">
-                        <label data-i18n="signature_label">Chữ ký điện tử (nhập họ tên) *</label>
-                        <input type="text" id="signatureInput" data-i18n-placeholder="signature_placeholder" placeholder="Nhập họ tên của bạn">
+                        <label data-i18n="signature_label">Chữ ký điện tử *</label>
+                        <div class="signature-pad-container">
+                            <canvas id="signatureCanvas" width="700" height="200"></canvas>
+                            <div class="signature-pad-placeholder" id="signaturePlaceholder" data-i18n="signature_placeholder">Vẽ chữ ký của bạn ở đây</div>
+                        </div>
+                        <button type="button" class="btn-clear-signature" id="clearSignatureBtn" data-i18n="clear_signature">Xóa chữ ký</button>
                     </div>
                     <div class="signature-date">
                         <span data-i18n="signature_date">Ngày:</span> <span id="currentDate"></span>

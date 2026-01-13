@@ -489,18 +489,57 @@
     margin-bottom: 8px;
 }
 
-.signature-input-group input {
+.signature-pad-container {
+    position: relative;
     width: 100%;
-    padding: 12px 16px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
+    background-color: white;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+#signatureCanvas {
+    display: block;
+    width: 100%;
+    height: 200px;
+    touch-action: none;
+}
+
+.signature-pad-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #9ca3af;
     font-size: 15px;
-    font-family: 'Brush Script MT', cursive, inherit;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.signature-pad-placeholder.hidden {
+    opacity: 0;
+}
+
+.btn-clear-signature {
+    margin-top: 8px;
+    padding: 8px 16px;
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
     transition: all 0.2s;
 }
 
-.signature-input-group input:focus {
-    outline: none;
+.btn-clear-signature:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.signature-pad-container:focus-within {
     border-color: #4a7c23;
     box-shadow: 0 0 0 4px rgba(74, 124, 35, 0.1);
 }
