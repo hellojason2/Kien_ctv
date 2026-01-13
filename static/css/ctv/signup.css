@@ -112,9 +112,16 @@
 }
 
 .signup-box .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
+    box-shadow: none !important;
+}
+
+.signup-box .btn-primary:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .error-msg {
@@ -436,7 +443,7 @@
 
 /* Terms Modal */
 .terms-modal {
-    display: none;
+    display: none !important;
     position: fixed;
     z-index: 10000; /* Increased z-index for mobile */
     left: 0;
@@ -446,12 +453,15 @@
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     animation: fadeIn 0.3s ease;
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .terms-modal.show {
     display: flex !important; /* Force display on mobile */
+    visibility: visible !important;
+    opacity: 1 !important;
     align-items: center;
     justify-content: center;
 }

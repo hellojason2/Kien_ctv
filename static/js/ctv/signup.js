@@ -383,8 +383,11 @@ function openTermsModal() {
     
     if (!modal) {
         console.error('Terms modal not found');
+        alert('Error: Modal not found. Please refresh the page.');
         return;
     }
+    
+    console.log('Opening modal...'); // Debug log
     
     // Set current date
     const today = new Date();
@@ -397,16 +400,25 @@ function openTermsModal() {
         dateElement.textContent = dateString;
     }
     
-    // Show modal with proper mobile support
+    // Show modal with proper mobile support - FORCE DISPLAY
     modal.classList.add('show');
     modal.style.display = 'flex'; // Force display for mobile browsers
+    modal.style.visibility = 'visible'; // Ensure visibility
+    modal.style.opacity = '1'; // Ensure opacity
+    
+    // Prevent background scrolling on iOS
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed'; // Prevent background scrolling on iOS
+    document.body.style.position = 'fixed';
     document.body.style.width = '100%';
+    document.body.style.top = '0';
+    
+    console.log('Modal display:', modal.style.display); // Debug log
+    console.log('Modal classes:', modal.className); // Debug log
     
     // Need to wait for modal to be visible before initializing canvas
     setTimeout(() => {
         initSignaturePad();
+        console.log('Signature pad initialized'); // Debug log
     }, 150);
 }
 
@@ -442,7 +454,18 @@ function acceptTerms() {
     termsAccepted = true;
     
     // Check the checkbox
-    document.getElementById('termsCheckbox').checked = true;
+    const termsCheckbox = document.getElementById('termsCheckbox');
+    if (termsCheckbox) {
+        termsCheckbox.checked = true;
+        
+        // Enable signup button
+        const signupBtn = document.getElementById('signupBtn');
+        if (signupBtn) {
+            signupBtn.disabled = false;
+            signupBtn.style.opacity = '1';
+            signupBtn.style.cursor = 'pointer';
+        }
+    }
     
     // Close modal
     closeTermsModal();
@@ -567,6 +590,35 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLang);
     
+    // Disable signup button initially
+    const signupBtn = document.getElementById('signupBtn');
+    const termsCheckbox = document.getElementById('termsCheckbox');
+    
+    if (signupBtn && termsCheckbox) {
+        signupBtn.disabled = true;
+        signupBtn.style.opacity = '0.5';
+        signupBtn.style.cursor = 'not-allowed';
+        
+        // Enable/disable signup button based on checkbox
+        termsCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked && termsAccepted) {
+                signupBtn.disabled = false;
+                signupBtn.style.opacity = '1';
+                signupBtn.style.cursor = 'pointer';
+            } else {
+                signupBtn.disabled = true;
+                signupBtn.style.opacity = '0.5';
+                signupBtn.style.cursor = 'not-allowed';
+                
+                // If unchecked, reset terms acceptance
+                if (!e.target.checked) {
+                    termsAccepted = false;
+                    signatureData = null;
+                }
+            }
+        });
+    }
+    
     // Attach real-time validation to referrer code input
     const referrerInput = document.getElementById('referrerCode');
     if (referrerInput) {
@@ -583,29 +635,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSignatureBtn = document.getElementById('clearSignatureBtn');
     const termsModal = document.getElementById('termsModal');
     
-    viewTermsLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        openTermsModal();
-    });
+    if (viewTermsLink) {
+        viewTermsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Terms link clicked'); // Debug log
+            openTermsModal();
+        });
+    }
     
-    closeTermsModal_btn.addEventListener('click', closeTermsModal);
-    cancelTermsBtn.addEventListener('click', closeTermsModal);
-    acceptTermsBtn.addEventListener('click', acceptTerms);
-    clearSignatureBtn.addEventListener('click', clearSignature);
+    if (closeTermsModal_btn) {
+        closeTermsModal_btn.addEventListener('click', closeTermsModal);
+    }
+    
+    if (cancelTermsBtn) {
+        cancelTermsBtn.addEventListener('click', closeTermsModal);
+    }
+    
+    if (acceptTermsBtn) {
+        acceptTermsBtn.addEventListener('click', acceptTerms);
+    }
+    
+    if (clearSignatureBtn) {
+        clearSignatureBtn.addEventListener('click', clearSignature);
+    }
     
     // Close modal when clicking outside
-    termsModal.addEventListener('click', (e) => {
-        if (e.target === termsModal) {
-            closeTermsModal();
-        }
-    });
-    
-    // Reset terms acceptance if checkbox is unchecked manually
-    const termsCheckbox = document.getElementById('termsCheckbox');
-    termsCheckbox.addEventListener('change', (e) => {
-        if (!e.target.checked) {
-            termsAccepted = false;
-            signatureData = null;
-        }
-    });
+    if (termsModal) {
+        termsModal.addEventListener('click', (e) => {
+            if (e.target === termsModal) {
+                closeTermsModal();
+            }
+        });
+    }
 });
