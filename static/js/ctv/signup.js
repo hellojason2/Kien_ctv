@@ -252,13 +252,19 @@ let lastX = 0, lastY = 0;
 
 function initSignaturePad() {
     canvas = document.getElementById('signatureCanvas');
+    if (!canvas) {
+        console.error('Signature canvas not found');
+        return;
+    }
+    
     ctx = canvas.getContext('2d');
     
     // Set canvas size to match display size
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * 2; // Retina display support
-    canvas.height = rect.height * 2;
-    ctx.scale(2, 2);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; // Use device pixel ratio
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
     
     // Set drawing styles
     ctx.strokeStyle = '#1a1a1a';
@@ -272,10 +278,11 @@ function initSignaturePad() {
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
     
-    // Touch events
-    canvas.addEventListener('touchstart', handleTouchStart);
-    canvas.addEventListener('touchmove', handleTouchMove);
+    // Touch events (important for mobile)
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
 }
 
 function getMousePos(e) {
@@ -374,6 +381,11 @@ function openTermsModal() {
     const modal = document.getElementById('termsModal');
     const dateElement = document.getElementById('currentDate');
     
+    if (!modal) {
+        console.error('Terms modal not found');
+        return;
+    }
+    
     // Set current date
     const today = new Date();
     const dateString = today.toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US', {
@@ -381,22 +393,34 @@ function openTermsModal() {
         month: 'long',
         day: 'numeric'
     });
-    dateElement.textContent = dateString;
+    if (dateElement) {
+        dateElement.textContent = dateString;
+    }
     
-    // Initialize signature pad
+    // Show modal with proper mobile support
     modal.classList.add('show');
+    modal.style.display = 'flex'; // Force display for mobile browsers
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed'; // Prevent background scrolling on iOS
+    document.body.style.width = '100%';
     
     // Need to wait for modal to be visible before initializing canvas
     setTimeout(() => {
         initSignaturePad();
-    }, 100);
+    }, 150);
 }
 
 function closeTermsModal() {
     const modal = document.getElementById('termsModal');
+    if (!modal) return;
+    
     modal.classList.remove('show');
+    modal.style.display = ''; // Reset display
+    
+    // Reset body styles for mobile
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
     
     // Clear signature if terms not accepted
     if (!termsAccepted && canvas) {
