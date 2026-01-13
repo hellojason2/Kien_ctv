@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTV Portal</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    
     <style>
         * {
             margin: 0;
@@ -177,6 +183,41 @@
 
         .back-link a:hover {
             color: #1a1a1a;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px 0 0;
+        }
+
+        .signup-link p {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .btn-signup {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c23 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(74, 124, 35, 0.3);
+        }
+
+        .btn-signup:hover {
+            background: linear-gradient(135deg, #3d6a1e 0%, #5a8c33 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(74, 124, 35, 0.4);
+        }
+
+        .btn-signup:active {
+            transform: scale(0.98);
         }
 
         /* Language Toggle in Sidebar */
@@ -414,48 +455,302 @@
 
         .portal.active {
             display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 80px;
-            background-color: #ffffff;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 40px;
-            gap: 20px;
+        /* ═══════════════════════════════════════════════════════════════════
+           TOP FLOATING NAVIGATION - TradeVerse Inspired
+           ═══════════════════════════════════════════════════════════════════ */
+
+        .top-nav {
             position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            animation: slideDown 0.5s ease;
         }
 
-        .sidebar-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background-color: #f5f5f5;
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .nav-container {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            gap: 32px;
+        }
+
+        /* Logo */
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-logo svg {
+            width: 36px;
+            height: 36px;
+            color: #1a1a1a;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.02em;
+        }
+
+        /* Navigation Links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1a1a1a;
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: #1a1a1a;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Right Side Actions */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        .user-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        .user-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .user-badge.manager {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+        }
+
+        .user-badge.director {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .user-badge.leader {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            color: white;
+        }
+
+        .user-badge.gold { 
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+        }
+
+        .user-badge.silver { 
+            background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+            color: white;
+        }
+
+        .user-badge.bronze { 
+            background: linear-gradient(135deg, #fdba74 0%, #c2410c 100%);
+            color: white;
+        }
+
+        /* Language Selector */
+        .nav-lang {
+            position: relative;
+        }
+
+        .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.6);
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .sidebar-icon:hover {
-            background-color: #ebebeb;
+        .lang-toggle:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
         }
 
-        .sidebar-icon.active {
-            background-color: #1a1a1a;
+        .lang-toggle svg {
+            width: 18px;
+            height: 18px;
+            stroke: #666666;
+            fill: none;
+            stroke-width: 2;
         }
 
-        .sidebar-icon svg {
-            width: 24px;
-            height: 24px;
+        .lang-current {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .lang-popup {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 8px;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1100;
+        }
+
+        .nav-lang:hover .lang-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .lang-popup-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px 6px;
+            margin-bottom: 4px;
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .lang-option:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .lang-option.active {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .lang-flag {
+            font-size: 18px;
+        }
+
+        .lang-name {
+            font-weight: 500;
+        }
+
+        .lang-check {
+            margin-left: auto;
+            opacity: 0;
+        }
+
+        .lang-option.active .lang-check {
+            opacity: 1;
+        }
+
+        /* Logout Button */
+        .nav-logout {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-logout:hover {
+            background: #fee2e2;
+            transform: translateY(-2px);
+        }
+
+        .nav-logout svg {
+            width: 18px;
+            height: 18px;
             stroke: #666666;
             fill: none;
             stroke-width: 2;
@@ -463,134 +758,253 @@
             stroke-linejoin: round;
         }
 
-        .sidebar-icon.active svg {
-            stroke: #ffffff;
+        .nav-logout:hover svg {
+            stroke: #dc2626;
         }
 
-        .sidebar-logout {
-            margin-top: auto;
-            margin-bottom: 30px;
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .sidebar-logout:hover {
-            background-color: #fee2e2;
-        }
-
-        .sidebar-logout:hover svg {
-            stroke: #dc3545;
-        }
-
-        /* Sidebar Tooltip Styles */
-        .sidebar-icon {
-            position: relative;
-        }
-
-        .sidebar-icon::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: calc(100% + 12px);
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #1a1a1a;
-            color: #ffffff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            z-index: 1000;
-            pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar-icon::before {
-            content: '';
-            position: absolute;
-            left: calc(100% + 4px);
-            top: 50%;
-            transform: translateY(-50%);
-            border: 6px solid transparent;
-            border-right-color: #1a1a1a;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .sidebar-icon:hover::after,
-        .sidebar-icon:hover::before {
-            opacity: 1;
-            visibility: visible;
+        .mobile-menu-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #1a1a1a;
+            stroke-width: 2;
+            stroke-linecap: round;
         }
 
         /* Main Content Area */
         .main-wrapper {
             flex: 1;
-            margin-left: 80px;
             display: flex;
             flex-direction: column;
+            padding-top: 96px; /* Space for fixed nav */
         }
-
-        /* Header */
-        .header {
-            background-color: #ffffff;
-            padding: 20px 40px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .header-logo svg {
-            width: 48px;
-            height: 48px;
-        }
-
-        .header-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .user-badge {
-            background: #f5f5f5;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #666666;
-        }
-
-        .user-badge.gold { color: #d97706; background: #fef3c7; }
-        .user-badge.silver { color: #6b7280; background: #f3f4f6; }
-        .user-badge.bronze { color: #92400e; background: #fde68a; }
 
         /* Content Area */
         .content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           RESPONSIVE MOBILE NAVIGATION
+           ═══════════════════════════════════════════════════════════════════ */
+
+        @media (max-width: 1024px) {
+            .nav-links .nav-link span {
+                display: none;
+            }
+
+            .nav-links {
+                gap: 4px;
+            }
+
+            .nav-link {
+                padding: 10px 14px;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .nav-container {
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-nav {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+            }
+
+            .nav-container {
+                padding: 10px 16px;
+            }
+
+            .nav-title {
+                font-size: 16px;
+            }
+
+            .nav-links,
+            .user-name,
+            .nav-logout {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .main-wrapper {
+                padding-top: 80px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            /* Mobile Menu Overlay */
+            .mobile-menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                z-index: 1500;
+            }
+
+            .mobile-menu-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Mobile Menu Drawer */
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 280px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                z-index: 1600;
+                display: flex;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .mobile-menu.active {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 24px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }
+
+            .mobile-menu-close {
+                padding: 8px;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+            }
+
+            .mobile-menu-close svg {
+                width: 24px;
+                height: 24px;
+                stroke: #1a1a1a;
+                stroke-width: 2;
+            }
+
+            .mobile-menu-links {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                flex: 1;
+            }
+
+            .mobile-menu-link {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #666666;
+                background: transparent;
+                border: none;
+                text-align: left;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .mobile-menu-link svg {
+                width: 20px;
+                height: 20px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 2;
+            }
+
+            .mobile-menu-link:hover {
+                background: rgba(0, 0, 0, 0.05);
+            }
+
+            .mobile-menu-link.active {
+                background: #1a1a1a;
+                color: #ffffff;
+            }
+
+            .mobile-menu-footer {
+                padding-top: 16px;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .mobile-menu-logout {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #dc2626;
+                background: #fee2e2;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .mobile-menu-logout svg {
+                width: 20px;
+                height: 20px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 2;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-logo svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .nav-title {
+                font-size: 14px;
+            }
+
+            .user-badge {
+                font-size: 11px;
+                padding: 4px 12px;
+            }
         }
 
         /* Cards */
@@ -1887,6 +2301,11 @@
                 <a href="/" data-i18n="back_home">Quay về trang chủ</a>
             </div>
 
+            <div class="signup-link">
+                <p data-i18n="no_account">Chưa có tài khoản?</p>
+                <a href="/ctv/signup" class="btn-signup" data-i18n="register_ctv">Đăng Ký Làm CTV</a>
+            </div>
+
             <!-- Success Animation -->
             <div class="login-success" id="loginSuccess">
                 <div class="success-checkmark">
@@ -1902,93 +2321,175 @@
 
     <!-- Portal -->
     <div class="portal" id="portal">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-icon active" data-page="dashboard" data-i18n-title="overview">
-                <svg viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                </svg>
-            </div>
-            <div class="sidebar-icon" data-page="earnings" data-i18n-title="earnings">
-                <svg viewBox="0 0 24 24">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-            </div>
-            <div class="sidebar-icon" data-page="network" data-i18n-title="network">
-                <svg viewBox="0 0 24 24">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-            </div>
-            <div class="sidebar-icon" data-page="settings" data-i18n-title="settings">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-            </div>
-            <!-- Language Switcher -->
-            <div class="sidebar-lang" id="langSwitcher">
-                <div class="sidebar-icon" data-i18n-title="language">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        <!-- Top Floating Navigation -->
+        <nav class="top-nav">
+            <div class="nav-container">
+                <!-- Logo -->
+                <div class="nav-logo">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="currentColor" stroke-width="3" fill="none"/>
+                        <path d="M50 10 L50 90" stroke="currentColor" stroke-width="3"/>
+                        <path d="M20 30 L80 70" stroke="currentColor" stroke-width="3"/>
+                        <path d="M20 70 L80 30" stroke="currentColor" stroke-width="3"/>
                     </svg>
-                    <span class="lang-current" id="currentLangLabel">VI</span>
+                    <span class="nav-title">CTV Portal</span>
                 </div>
-                <div class="lang-popup">
-                    <div class="lang-popup-title" data-i18n="choose_language">Chon Ngon Ngu</div>
-                    <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
-                        <span class="lang-flag">VN</span>
-                        <span class="lang-name">Tiếng Việt</span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
+
+                <!-- Navigation Links -->
+                <div class="nav-links">
+                    <div class="nav-link active" data-page="dashboard" data-i18n="nav_dashboard">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
                         </svg>
+                        <span>Dashboard</span>
                     </div>
-                    <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
-                        <span class="lang-flag">US</span>
-                        <span class="lang-name">English</span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                    <div class="nav-link" data-page="earnings" data-i18n="nav_earnings">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                         </svg>
+                        <span>Earnings</span>
                     </div>
+                    <div class="nav-link" data-page="network" data-i18n="nav_network">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Network</span>
+                    </div>
+                    <div class="nav-link" data-page="settings" data-i18n="nav_settings">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </div>
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="nav-actions">
+                    <!-- User Badge -->
+                    <span class="user-badge" id="userLevel">-</span>
+                    
+                    <!-- User Name -->
+                    <span class="user-name" id="userName">-</span>
+                    
+                    <!-- Language Selector -->
+                    <div class="nav-lang" id="langSwitcher">
+                        <div class="lang-toggle">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <span class="lang-current" id="currentLangLabel">VI</span>
+                        </div>
+                        <div class="lang-popup">
+                            <div class="lang-popup-title" data-i18n="choose_language">Chon Ngon Ngu</div>
+                            <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
+                                <span class="lang-flag">VN</span>
+                                <span class="lang-name">Tiếng Việt</span>
+                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
+                                <span class="lang-flag">US</span>
+                                <span class="lang-name">English</span>
+                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button class="nav-logout" id="logoutBtn" data-i18n-title="logout">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
-            <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout">
-                <svg viewBox="0 0 24 24">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
+        </nav>
+
+        <!-- Mobile Menu Overlay & Drawer -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-header">
+                <span class="user-name" id="mobileUserName">-</span>
+                <button class="mobile-menu-close" id="mobileMenuClose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
-        </aside>
+            <div class="mobile-menu-links">
+                <button class="mobile-menu-link active" data-page="dashboard" data-i18n="nav_dashboard">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="mobile-menu-link" data-page="earnings" data-i18n="nav_earnings">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>Earnings</span>
+                </button>
+                <button class="mobile-menu-link" data-page="network" data-i18n="nav_network">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Network</span>
+                </button>
+                <button class="mobile-menu-link" data-page="settings" data-i18n="nav_settings">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Settings</span>
+                </button>
+            </div>
+            <div class="mobile-menu-footer">
+                <span class="user-badge" id="mobileUserLevel">-</span>
+                <button class="mobile-menu-logout" id="mobileLogoutBtn" data-i18n="logout">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Main Content -->
         <div class="main-wrapper">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <div class="header-logo">
-                        <svg viewBox="0 0 100 100" fill="none">
-                            <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3" fill="none"/>
-                            <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3"/>
-                            <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3"/>
-                            <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3"/>
-                        </svg>
-                    </div>
-                    <span class="header-title">CTV Portal</span>
-                </div>
-                <div class="header-right">
-                    <span class="user-name" id="userName">-</span>
-                    <span class="user-badge" id="userLevel">-</span>
-                </div>
-            </header>
 
             <!-- Content -->
             <div class="content">
@@ -2629,16 +3130,98 @@
         }
 
         // Navigation
-        document.querySelectorAll('.sidebar-icon[data-page]').forEach(icon => {
-            icon.addEventListener('click', () => {
-                const page = icon.dataset.page;
-                
-                // Update active states
-                document.querySelectorAll('.sidebar-icon[data-page]').forEach(i => i.classList.remove('active'));
-                icon.classList.add('active');
-                
-                document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-                document.getElementById(`page-${page}`).classList.add('active');
+        function navigateToPage(page) {
+            // Update active states for top nav
+            document.querySelectorAll('.nav-link[data-page]').forEach(i => i.classList.remove('active'));
+            const navLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+            if (navLink) navLink.classList.add('active');
+            
+            // Update active states for mobile menu
+            document.querySelectorAll('.mobile-menu-link[data-page]').forEach(i => i.classList.remove('active'));
+            const mobileLink = document.querySelector(`.mobile-menu-link[data-page="${page}"]`);
+            if (mobileLink) mobileLink.classList.add('active');
+            
+            // Update page sections
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            const pageSection = document.getElementById(`page-${page}`);
+            if (pageSection) pageSection.classList.add('active');
+            
+            // Re-apply translations
+            if (typeof applyTranslations === 'function') {
+                applyTranslations();
+            }
+            
+            // Load page data
+            if (page === 'dashboard' && typeof loadLifetimeStats === 'function') loadLifetimeStats();
+            if (page === 'earnings' && typeof initEarnings === 'function') initEarnings();
+            if (page === 'network' && typeof loadNetwork === 'function') loadNetwork();
+            if (page === 'clients' && typeof switchToCardView === 'function') switchToCardView();
+            
+            // Close mobile menu
+            closeMobileMenu();
+        }
+
+        // Top Navigation Click Handlers
+        document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+            link.addEventListener('click', () => {
+                navigateToPage(link.dataset.page);
+            });
+        });
+
+        // Mobile Menu Navigation Click Handlers
+        document.querySelectorAll('.mobile-menu-link[data-page]').forEach(link => {
+            link.addEventListener('click', () => {
+                navigateToPage(link.dataset.page);
+            });
+        });
+
+        // Mobile Menu Toggle
+        function openMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            const menu = document.getElementById('mobileMenu');
+            if (overlay && menu) {
+                overlay.classList.add('active');
+                menu.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            const menu = document.getElementById('mobileMenu');
+            if (overlay && menu) {
+                overlay.classList.remove('active');
+                menu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Mobile Menu Button
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+        }
+
+        // Mobile Menu Close Button
+        const mobileMenuClose = document.getElementById('mobileMenuClose');
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+
+        // Mobile Menu Overlay
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+        }
+
+        // Mobile Logout Button
+        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+        if (mobileLogoutBtn) {
+            mobileLogoutBtn.addEventListener('click', () => {
+                handleLogout();
+                closeMobileMenu();
+            });
+        }
                 
                 // Load page data
                 if (page === 'earnings') {
@@ -2984,17 +3567,23 @@
                 remember_me: 'Ghi nhớ đăng nhập',
                 login: 'Đăng Nhập',
                 back_home: 'Quay về trang chủ',
+                no_account: 'Chưa có tài khoản?',
+                register_ctv: 'Đăng Ký Làm CTV',
                 login_success: 'Đăng nhập thành công!',
                 login_failed: 'Đăng nhập thất bại',
                 logging_in: 'Đang đăng nhập...',
                 
                 // Dashboard
                 overview: 'Tổng Quan',
+                nav_dashboard: 'Tổng Quan',
+                nav_earnings: 'Hoa Hồng',
+                nav_network: 'Mạng Lưới',
+                nav_settings: 'Cài Đặt',
                 earnings: 'Hoa Hồng',
                 network: 'Mạng Lưới',
                 search: 'Tìm Kiếm',
                 settings: 'Cài Dat',
-                logout: 'Dang Xuat',
+                logout: 'Đăng Xuất',
                 language: 'Ngon Ngu',
                 choose_language: 'Chon Ngon Ngu',
                 
@@ -3107,12 +3696,18 @@
                 remember_me: 'Remember me',
                 login: 'Login',
                 back_home: 'Back to Home',
+                no_account: "Don't have an account?",
+                register_ctv: 'Register as CTV',
                 login_success: 'Login successful!',
                 login_failed: 'Login failed',
                 logging_in: 'Logging in...',
                 
                 // Dashboard
                 overview: 'Overview',
+                nav_dashboard: 'Dashboard',
+                nav_earnings: 'Earnings',
+                nav_network: 'Network',
+                nav_settings: 'Settings',
                 earnings: 'Earnings',
                 network: 'Network',
                 settings: 'Settings',
