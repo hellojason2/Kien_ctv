@@ -377,17 +377,23 @@ function isCanvasBlank() {
     return !pixelBuffer.some(color => color !== 0);
 }
 
-function openTermsModal() {
+// Make functions global for HTML onclick access
+window.openTermsModal = function(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    console.log('Global openTermsModal called');
+
     const modal = document.getElementById('termsModal');
     const dateElement = document.getElementById('currentDate');
     
     if (!modal) {
         console.error('Terms modal not found');
-        alert('Error: Modal not found. Please refresh the page.');
+        alert('Lỗi: Không tìm thấy khung điều khoản. Vui lòng tải lại trang.');
         return;
     }
-    
-    console.log('Opening modal...'); // Debug log
     
     // Set current date
     const today = new Date();
@@ -400,47 +406,55 @@ function openTermsModal() {
         dateElement.textContent = dateString;
     }
     
-    // Show modal with proper mobile support - FORCE DISPLAY
+    // FORCE SHOW MODAL - Direct Style Manipulation
     modal.classList.add('show');
-    modal.style.display = 'flex'; // Force display for mobile browsers
-    modal.style.visibility = 'visible'; // Ensure visibility
-    modal.style.opacity = '1'; // Ensure opacity
+    modal.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important;';
     
-    // Prevent background scrolling on iOS
+    // Fix body
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.top = '0';
     
-    console.log('Modal display:', modal.style.display); // Debug log
-    console.log('Modal classes:', modal.className); // Debug log
-    
-    // Need to wait for modal to be visible before initializing canvas
+    // Initialize canvas with delay
     setTimeout(() => {
         initSignaturePad();
-        console.log('Signature pad initialized'); // Debug log
-    }, 150);
+        // Force redraw of canvas
+        if (canvas) {
+            canvas.width = canvas.width; 
+            initSignaturePad(); 
+        }
+    }, 200);
+    
+    return false;
+};
+
+// Also attach to the old name just in case
+function openTermsModal() {
+    return window.openTermsModal();
 }
 
-function closeTermsModal() {
+window.closeTermsModal = function() {
     const modal = document.getElementById('termsModal');
     if (!modal) return;
     
     modal.classList.remove('show');
-    modal.style.display = ''; // Reset display
+    modal.style.display = 'none'; // Explicitly hide
+    modal.style.cssText = ''; // Clear inline styles
     
     // Reset body styles for mobile
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
+    document.body.style.top = '';
     
     // Clear signature if terms not accepted
-    if (!termsAccepted && canvas) {
+    if (!termsAccepted && typeof clearSignature === 'function') {
         clearSignature();
     }
-}
+};
 
-function acceptTerms() {
+window.acceptTerms = function() {
     // Check if signature is drawn
     if (isCanvasBlank()) {
         alert(t('signature_required'));
@@ -458,7 +472,11 @@ function acceptTerms() {
     if (termsCheckbox) {
         termsCheckbox.checked = true;
         
-        // Enable signup button
+        // Trigger change event manually so the listener fires
+        const event = new Event('change');
+        termsCheckbox.dispatchEvent(event);
+        
+        // Also manually enable button just in case listener fails
         const signupBtn = document.getElementById('signupBtn');
         if (signupBtn) {
             signupBtn.disabled = false;
@@ -468,8 +486,8 @@ function acceptTerms() {
     }
     
     // Close modal
-    closeTermsModal();
-}
+    window.closeTermsModal();
+};
 
 // Signup form submission
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
@@ -635,24 +653,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSignatureBtn = document.getElementById('clearSignatureBtn');
     const termsModal = document.getElementById('termsModal');
     
-    if (viewTermsLink) {
-        viewTermsLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Terms link clicked'); // Debug log
-            openTermsModal();
-        });
-    }
+    // Note: viewTermsLink now uses inline onclick="openTermsModal(event)"
     
     if (closeTermsModal_btn) {
-        closeTermsModal_btn.addEventListener('click', closeTermsModal);
+        closeTermsModal_btn.addEventListener('click', window.closeTermsModal);
     }
     
     if (cancelTermsBtn) {
-        cancelTermsBtn.addEventListener('click', closeTermsModal);
+        cancelTermsBtn.addEventListener('click', window.closeTermsModal);
     }
     
     if (acceptTermsBtn) {
-        acceptTermsBtn.addEventListener('click', acceptTerms);
+        acceptTermsBtn.addEventListener('click', window.acceptTerms);
     }
     
     if (clearSignatureBtn) {
@@ -663,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (termsModal) {
         termsModal.addEventListener('click', (e) => {
             if (e.target === termsModal) {
-                closeTermsModal();
+                window.closeTermsModal();
             }
         });
     }
