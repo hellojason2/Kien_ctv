@@ -125,9 +125,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
-}
-
-/* Utility Classes */
+}/* Utility Classes */
 .text-green { color: var(--accent-green); }
 .text-orange { color: var(--accent-orange); }
 .text-purple { color: var(--accent-purple); }

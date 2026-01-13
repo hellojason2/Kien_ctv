@@ -235,6 +235,34 @@
             border: 1px solid #fde68a;
         }
 
+        /* Book Appointment Button */
+        .book-appointment-btn {
+            display: inline-block;
+            padding: 16px 32px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .book-appointment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .book-appointment-btn:active {
+            transform: scale(0.98);
+        }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -507,6 +535,12 @@
                 padding: 14px 24px !important;
                 display: block !important;
             }
+
+            .book-appointment-btn {
+                width: 100% !important;
+                padding: 14px 24px !important;
+                box-sizing: border-box !important;
+            }
         }
     </style>
 </head>
@@ -578,6 +612,11 @@
                     </button>
                 </div>
                 <div id="phoneCheckResult" class="phone-check-result"></div>
+                
+                <!-- Book Appointment Button -->
+                <a href="https://forms.gle/QXYGaJ4zHQmxcg1F8" target="_blank" class="book-appointment-btn" data-i18n="book_appointment">
+                    Đặt Lịch Hẹn
+                </a>
             </div>
         </main>
     </div>
@@ -630,6 +669,7 @@
                 not_duplicate: 'KHONG TRUNG',
                 error: 'Loi',
                 connection_error: 'Loi ket noi',
+                book_appointment: 'Đặt Lịch Hẹn',
 
                 // Panel
                 customer_details: 'Thong Tin Khach Hang',
@@ -664,6 +704,7 @@
                 not_duplicate: 'NOT DUPLICATE',
                 error: 'Error',
                 connection_error: 'Connection Error',
+                book_appointment: 'Book Appointment',
 
                 // Panel
                 customer_details: 'Customer Details',
