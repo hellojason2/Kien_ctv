@@ -379,7 +379,7 @@
     background-color: white;
     border-radius: 16px;
     width: 90%;
-    max-width: 800px;
+    max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -424,10 +424,11 @@
 }
 
 .terms-modal-body {
-    padding: 32px;
+    padding: 24px 32px;
     overflow-y: auto;
     flex: 1;
-    max-height: calc(90vh - 400px);
+    min-height: 300px;
+    max-height: calc(90vh - 320px);
 }
 
 .terms-content h3 {
@@ -459,7 +460,7 @@
 }
 
 .terms-modal-footer {
-    padding: 24px 32px;
+    padding: 20px 24px;
     border-top: 1px solid #e5e7eb;
     background-color: #f9fafb;
     border-radius: 0 0 16px 16px;
@@ -467,31 +468,35 @@
 }
 
 .signature-section {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .signature-text {
-    font-size: 14px;
+    font-size: 13px;
     color: #374151;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     font-style: italic;
+    text-align: center;
 }
 
 .signature-input-group {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .signature-input-group label {
     display: block;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #374151;
     margin-bottom: 8px;
+    text-align: center;
 }
 
 .signature-pad-container {
     position: relative;
     width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
     border: 2px solid #d1d5db;
     border-radius: 8px;
     background-color: white;
@@ -502,7 +507,7 @@
 #signatureCanvas {
     display: block;
     width: 100%;
-    height: 200px;
+    height: 120px;
     touch-action: none;
 }
 
@@ -522,7 +527,8 @@
 }
 
 .btn-clear-signature {
-    margin-top: 8px;
+    display: block;
+    margin: 8px auto 0;
     padding: 8px 16px;
     background-color: #f3f4f6;
     color: #374151;
@@ -545,9 +551,10 @@
 }
 
 .signature-date {
-    font-size: 14px;
+    font-size: 12px;
     color: #6b7280;
     font-style: italic;
+    text-align: center;
 }
 
 .terms-modal-actions {
@@ -593,47 +600,95 @@
     transform: none;
 }
 
-/* Responsive */
+/* Responsive - Optimized for iPhone */
 @media (max-width: 768px) {
     .terms-modal-content {
         width: 95%;
-        max-height: 95vh;
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 12px;
     }
 
     .terms-modal-header {
-        padding: 20px;
+        padding: 16px 20px;
     }
 
     .terms-modal-header h2 {
-        font-size: 20px;
-    }
-
-    .terms-modal-body {
-        padding: 20px;
-        max-height: calc(95vh - 380px);
-    }
-
-    .terms-content h3 {
         font-size: 18px;
     }
 
+    .terms-modal-body {
+        padding: 16px 20px;
+        min-height: 250px;
+        max-height: calc(92vh - 280px);
+    }
+
+    .terms-content h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+
     .terms-content h4 {
-        font-size: 15px;
+        font-size: 14px;
+        margin-top: 16px;
+        margin-bottom: 8px;
     }
 
     .terms-content p {
         font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 6px;
     }
 
     .terms-modal-footer {
-        padding: 20px;
+        padding: 16px;
+    }
+
+    .signature-section {
+        margin-bottom: 12px;
+    }
+
+    .signature-text {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .signature-input-group {
+        margin-bottom: 10px;
+    }
+
+    .signature-input-group label {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .signature-pad-container {
+        max-width: 100%;
+    }
+
+    #signatureCanvas {
+        height: 100px;
+    }
+
+    .btn-clear-signature {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin-top: 6px;
+    }
+
+    .signature-date {
+        font-size: 11px;
+        margin-bottom: 8px;
     }
 
     .terms-modal-actions {
         flex-direction: column;
+        gap: 8px;
     }
 
     .terms-modal-actions .btn {
         width: 100%;
+        padding: 10px 20px;
+        font-size: 14px;
     }
 }

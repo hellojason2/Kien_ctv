@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTV Sign Up - Đăng Ký CTV</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/login.css') }}">
@@ -208,7 +214,7 @@
                     <div class="signature-input-group">
                         <label data-i18n="signature_label">Chữ ký điện tử *</label>
                         <div class="signature-pad-container">
-                            <canvas id="signatureCanvas" width="700" height="200"></canvas>
+                            <canvas id="signatureCanvas" width="400" height="120"></canvas>
                             <div class="signature-pad-placeholder" id="signaturePlaceholder" data-i18n="signature_placeholder">Vẽ chữ ký của bạn ở đây</div>
                         </div>
                         <button type="button" class="btn-clear-signature" id="clearSignatureBtn" data-i18n="clear_signature">Xóa chữ ký</button>
