@@ -302,6 +302,10 @@ async function confirmRejection() {
             showNotification('Registration rejected', 'success');
             closeRejectModal();
             loadRegistrations();
+            // Update sidebar badge
+            if (typeof initPendingRegistrationsBadge === 'function') {
+                initPendingRegistrationsBadge();
+            }
         } else {
             showNotification(response.message || 'Failed to reject registration', 'error');
         }
