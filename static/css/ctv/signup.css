@@ -65,6 +65,15 @@
     color: #1a1a1a;
     transition: all 0.2s;
     font-family: inherit;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Specific styling for date input */
+.signup-box .form-group input[type="date"] {
+    min-height: 44px;
+    padding-right: 8px;
 }
 
 .signup-box .form-group input:focus {
@@ -153,33 +162,104 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .login-container {
+        padding: 10px;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        padding-top: 20px;
+    }
+    
     .signup-box {
-        padding: 32px 24px;
+        padding: 24px 20px;
         max-width: 100%;
-        margin: 20px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .signup-box h1 {
-        font-size: 24px;
+        font-size: 22px;
+        margin-bottom: 6px;
     }
 
     .signup-box .subtitle {
-        font-size: 14px;
+        font-size: 13px;
+        margin-bottom: 24px;
     }
 
     .signup-box .form-group {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
+    }
+    
+    .signup-box .form-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .signup-box .form-group input {
-        padding: 10px 14px;
-        font-size: 14px;
+        padding: 10px 12px;
+        font-size: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    
+    /* Fix for date input on iOS */
+    .signup-box .form-group input[type="date"] {
+        min-height: 42px;
+        line-height: normal;
     }
     
     /* Stack name fields on mobile */
     .signup-box .form-group[style*="flex"] {
         flex-direction: column !important;
-        gap: 16px !important;
+        gap: 14px !important;
+    }
+    
+    .signup-box .btn-primary {
+        padding: 12px;
+        font-size: 15px;
+        margin-top: 6px;
+    }
+    
+    .terms-group {
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .checkbox-container {
+        padding-left: 28px;
+        font-size: 13px;
+    }
+    
+    .terms-text {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+}
+
+/* Extra small devices (iPhone SE, small phones) */
+@media (max-width: 375px) {
+    .signup-box {
+        padding: 20px 16px;
+    }
+    
+    .signup-box h1 {
+        font-size: 20px;
+    }
+    
+    .signup-box .form-group label {
+        font-size: 12px;
+    }
+    
+    .signup-box .form-group input {
+        padding: 9px 10px;
+        font-size: 14px;
     }
 }
 
