@@ -223,6 +223,10 @@ async function confirmApproval() {
             showNotification(`Registration approved! CTV code: ${ctvCode}`, 'success');
             closeApproveModal();
             loadRegistrations();
+            // Update sidebar badge
+            if (typeof initPendingRegistrationsBadge === 'function') {
+                initPendingRegistrationsBadge();
+            }
         } else {
             showNotification(response.message || 'Failed to approve registration', 'error');
         }

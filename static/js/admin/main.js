@@ -188,8 +188,43 @@ async function initializeApp() {
     // Initialize sidebar scroll collapse
     initSidebarScrollCollapse();
     
+    // Initialize pending registrations badge
+    initPendingRegistrationsBadge();
+    
     // Check authentication
     checkAuth();
+}
+
+/**
+ * Initialize and update the pending registrations badge
+ */
+async function initPendingRegistrationsBadge() {
+    const badge = document.getElementById('pendingRegistrationsBadge');
+    if (!badge) return;
+    
+    try {
+        // Fetch count from API
+        const response = await fetch('/api/admin/registrations/count', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('session_token')}`
+            }
+        });
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            const count = data.count;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching pending registrations count:', error);
+    }
 }
 
 // Initialize app when DOM is loaded

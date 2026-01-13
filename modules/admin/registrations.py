@@ -82,6 +82,32 @@ def get_registrations():
             return_db_connection(connection)
         return jsonify({'status': 'error', 'message': f'Database error: {str(e)}'}), 500
 
+@admin_bp.route('/api/admin/registrations/count', methods=['GET'])
+@require_admin
+def get_pending_registrations_count():
+    """Get count of pending registrations"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT COUNT(*) FROM ctv_registrations WHERE status = 'pending'")
+        count = cursor.fetchone()[0]
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'count': count
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': f'Database error: {str(e)}'}), 500
+
 @admin_bp.route('/api/admin/registrations/<int:registration_id>/approve', methods=['POST'])
 @require_admin
 def approve_registration(registration_id):
