@@ -24,6 +24,106 @@ async function loadCTVList() {
         const activeCTV = showInactive ? result.data.filter(c => c.is_active !== false) : result.data;
         populateCTVSelects(activeCTV);
     }
+    
+    // Also load pending registrations
+    loadPendingRegistrations();
+}
+
+/**
+ * Load pending registrations
+ */
+async function loadPendingRegistrations() {
+    const card = document.getElementById('pendingRegistrationsCard');
+    const tbody = document.getElementById('pendingRegistrationsTableBody');
+    const badge = document.getElementById('pendingCountBadge');
+    
+    if (!card || !tbody) return;
+    
+    try {
+        const result = await api('/api/admin/registrations?status=pending');
+        
+        if (result.status === 'success' && result.registrations && result.registrations.length > 0) {
+            card.style.display = 'block';
+            if (badge) badge.textContent = result.registrations.length;
+            
+            tbody.innerHTML = result.registrations.map(reg => `
+                <tr>
+                    <td><strong>${reg.full_name}</strong></td>
+                    <td>${reg.phone}</td>
+                    <td>${reg.email || '-'}</td>
+                    <td>${reg.referrer_name ? `${reg.referrer_name} (${reg.referrer_code})` : (reg.referrer_code || '-')}</td>
+                    <td>${reg.created_at}</td>
+                    <td>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-success" style="background:#dcfce7;color:#166534;border-color:#bbf7d0;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:4px;" onclick="approveRegistration(${reg.id})">
+                                ✅ Approve
+                            </button>
+                            <button class="btn btn-danger" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:4px;" onclick="rejectRegistration(${reg.id})">
+                                ❌ Decline
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            card.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading pending registrations:', error);
+    }
+}
+
+/**
+ * Approve registration
+ */
+async function approveRegistration(id) {
+    // Generate a new CTV code first to suggest
+    const nextCode = await generateCTVCode();
+    const code = prompt('Enter new CTV Code for this user:', nextCode);
+    if (!code) return;
+    
+    try {
+        const result = await api(`/api/admin/registrations/${id}/approve`, {
+            method: 'POST',
+            body: JSON.stringify({ ctv_code: code })
+        });
+        
+        if (result.status === 'success') {
+            alert(result.message);
+            loadPendingRegistrations();
+            loadCTVList(); // Refresh main list to show new CTV
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Approve error:', error);
+        alert('Error approving registration');
+    }
+}
+
+/**
+ * Reject registration
+ */
+async function rejectRegistration(id) {
+    if (!confirm('Are you sure you want to DECLINE this registration request?')) return;
+    
+    const reason = prompt('Reason for rejection (optional):', '');
+    
+    try {
+        const result = await api(`/api/admin/registrations/${id}/reject`, {
+            method: 'POST',
+            body: JSON.stringify({ reason: reason })
+        });
+        
+        if (result.status === 'success') {
+            loadPendingRegistrations();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Reject error:', error);
+        alert('Error rejecting registration');
+    }
 }
 
 /**
