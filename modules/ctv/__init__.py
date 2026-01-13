@@ -7,6 +7,7 @@ from . import commissions
 from . import network
 from . import customers
 from . import clients
+from . import signup
 
 # Export ctv_bp for backend.py
 __all__ = ['ctv_bp']

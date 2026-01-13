@@ -187,6 +187,47 @@ def create_ctv():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@admin_bp.route('/api/admin/ctv/generate-code', methods=['POST'])
+@require_admin
+def generate_ctv_code():
+    """Generate a unique CTV code"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Find the highest numeric CTV code
+        cursor.execute("""
+            SELECT ma_ctv FROM ctv 
+            WHERE ma_ctv ~ '^[0-9]+$'
+            ORDER BY CAST(ma_ctv AS INTEGER) DESC 
+            LIMIT 1
+        """)
+        
+        result = cursor.fetchone()
+        
+        if result:
+            next_code = str(int(result['ma_ctv']) + 1)
+        else:
+            # No numeric codes exist, start from 1
+            next_code = '1'
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        return jsonify({
+            'status': 'success',
+            'ctv_code': next_code
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @admin_bp.route('/api/admin/ctv/<ctv_code>', methods=['PUT'])
 @require_admin
 def update_ctv(ctv_code):

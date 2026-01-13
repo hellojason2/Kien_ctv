@@ -53,6 +53,7 @@ function renderCTVTable(data) {
             <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap">
                     <button class="btn btn-secondary" style="padding:6px 10px;font-size:11px" onclick="viewHierarchy('${ctv.ma_ctv}')" title="View Tree">🌳</button>
+                    <button class="btn btn-info" style="padding:6px 10px;font-size:11px;background:#dbeafe;color:#1e40af;border-color:#bfdbfe" onclick="showEditCTVModal('${ctv.ma_ctv}')" title="Edit CTV">✏️</button>
                     <button class="btn btn-primary" style="padding:6px 10px;font-size:11px" onclick="showChangePasswordModal('${ctv.ma_ctv}')" title="Change Password">🔑</button>
                     <button class="btn btn-danger" style="padding:6px 10px;font-size:11px;background:#fee2e2;color:#b91c1c;border-color:#fecaca" onclick="deleteCTV('${ctv.ma_ctv}', '${ctv.ten.replace(/'/g, "\\'")}')" title="Delete CTV">🗑️</button>
                 </div>
@@ -161,6 +162,68 @@ async function createCTV() {
 }
 
 /**
+ * Show edit CTV modal
+ * @param {string} ctvCode - CTV Code to edit
+ */
+async function showEditCTVModal(ctvCode) {
+    // Find the CTV in our loaded list
+    const ctv = window.allCTV.find(c => c.ma_ctv === ctvCode);
+    
+    if (!ctv) {
+        alert('CTV not found');
+        return;
+    }
+    
+    // Populate the form fields
+    document.getElementById('editCtvCode').value = ctv.ma_ctv;
+    document.getElementById('editCtvName').value = ctv.ten || '';
+    document.getElementById('editCtvPhone').value = ctv.sdt || '';
+    document.getElementById('editCtvEmail').value = ctv.email || '';
+    document.getElementById('editCtvLevel').value = ctv.cap_bac || '';
+    
+    // Show the modal
+    document.getElementById('editCTVModal').classList.add('active');
+    applyTranslations();
+    
+    // Load CTV levels for datalist
+    loadCTVLevels();
+}
+
+/**
+ * Submit edit CTV form
+ */
+async function submitEditCTV() {
+    const ctvCode = document.getElementById('editCtvCode').value;
+    const data = {
+        ten: document.getElementById('editCtvName').value,
+        sdt: document.getElementById('editCtvPhone').value,
+        email: document.getElementById('editCtvEmail').value,
+        cap_bac: document.getElementById('editCtvLevel').value
+    };
+    
+    // Validate required fields
+    if (!data.ten) {
+        alert(t('enter_name') || 'Please enter a name');
+        return;
+    }
+    
+    const result = await api(`/api/admin/ctv/${ctvCode}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    
+    if (result.status === 'success') {
+        alert(t('ctv_updated') || 'CTV updated successfully');
+        closeModal('editCTVModal');
+        document.getElementById('editCTVForm').reset();
+        loadCTVList();
+    } else {
+        alert('Error: ' + result.message);
+    }
+}
+
+
+/**
  * Generate next CTV code based on existing list
  */
 async function generateCTVCode() {
@@ -209,24 +272,36 @@ function initCTVSearch() {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const term = normalizeVietnamese(e.target.value);
+            const searchValue = e.target.value;
             
             // If search is empty, show all CTVs
-            if (!term) {
+            if (!term && !searchValue) {
                 renderCTVTable(window.allCTV);
                 return;
             }
+            
+            // Extract digits only from search term for phone comparison
+            const searchDigits = searchValue.replace(/\D/g, '');
+            const searchDigitsNoZero = searchDigits.replace(/^0+/, ''); // Remove leading zeros
             
             // Filter CTVs - normalize all fields for comparison
             const filtered = window.allCTV.filter(c => {
                 const code = normalizeVietnamese(c.ma_ctv || '');
                 const name = normalizeVietnamese(c.ten || '');
                 const email = normalizeVietnamese(c.email || '');
-                const phone = (c.sdt || '').toString().trim();
+                const phone = (c.sdt || '').toString().replace(/\D/g, ''); // Extract digits from phone
+                const phoneNoZero = phone.replace(/^0+/, ''); // Remove leading zeros from stored phone
                 
+                // Match by code, name, email, or phone (with flexible phone matching)
                 return code.includes(term) ||
                        name.includes(term) ||
                        email.includes(term) ||
-                       phone.includes(term);
+                       phone.includes(searchDigits) ||
+                       phone.includes(searchDigitsNoZero) ||
+                       phoneNoZero.includes(searchDigits) ||
+                       phoneNoZero.includes(searchDigitsNoZero) ||
+                       (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) ||
+                       (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
             });
             
             renderCTVTable(filtered);
@@ -305,11 +380,25 @@ function renderReferrerList(searchTerm = '') {
     let filtered = (window.allCTV || []).filter(c => c.is_active !== false);
     
     if (term) {
+        // Extract digits only from search term for phone comparison
+        const searchDigits = searchTerm.replace(/\D/g, '');
+        const searchDigitsNoZero = searchDigits.replace(/^0+/, ''); // Remove leading zeros
+        
         filtered = filtered.filter(c => {
             const code = normalizeVietnamese(c.ma_ctv || '');
             const name = normalizeVietnamese(c.ten || '');
-            const phone = (c.sdt || '').toString();
-            return code.includes(term) || name.includes(term) || phone.includes(term);
+            const phone = (c.sdt || '').toString().replace(/\D/g, ''); // Extract digits from phone
+            const phoneNoZero = phone.replace(/^0+/, ''); // Remove leading zeros from stored phone
+            
+            // Match by code, name, or phone (with flexible phone matching)
+            return code.includes(term) || 
+                   name.includes(term) || 
+                   phone.includes(searchDigits) || 
+                   phone.includes(searchDigitsNoZero) ||
+                   phoneNoZero.includes(searchDigits) ||
+                   phoneNoZero.includes(searchDigitsNoZero) ||
+                   (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) || // Last 8 digits
+                   (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
         });
     }
 

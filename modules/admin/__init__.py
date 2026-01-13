@@ -9,6 +9,7 @@ from . import admins
 from . import clients
 from . import logs
 from . import export
+from . import registrations  # CTV signup approvals
 from . import debug  # TEMPORARY - DELETE WHEN DONE
 from . import sync   # Hard reset functionality
 

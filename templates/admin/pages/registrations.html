@@ -1,0 +1,296 @@
+<!-- CTV Registrations Page -->
+<div class="page-section" id="page-registrations">
+    <div class="header">
+        <h2 data-i18n="ctv_registrations">CTV Registrations</h2>
+        <div class="header-actions">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="pending" onclick="filterRegistrations('pending')">
+                    <span data-i18n="pending">Pending</span>
+                    <span class="badge" id="pendingCount">0</span>
+                </button>
+                <button class="filter-tab" data-status="approved" onclick="filterRegistrations('approved')">
+                    <span data-i18n="approved">Approved</span>
+                    <span class="badge" id="approvedCount">0</span>
+                </button>
+                <button class="filter-tab" data-status="rejected" onclick="filterRegistrations('rejected')">
+                    <span data-i18n="rejected">Rejected</span>
+                    <span class="badge" id="rejectedCount">0</span>
+                </button>
+                <button class="filter-tab" data-status="all" onclick="filterRegistrations('all')">
+                    <span data-i18n="all">All</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="table-container">
+                <table id="registrationsTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="id">ID</th>
+                            <th data-i18n="full_name">Full Name</th>
+                            <th data-i18n="phone_number">Phone</th>
+                            <th data-i18n="email">Email</th>
+                            <th data-i18n="referrer">Referrer</th>
+                            <th data-i18n="submitted_date">Submitted</th>
+                            <th data-i18n="status">Status</th>
+                            <th data-i18n="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <div class="loader"></div>
+                                <p data-i18n="loading">Loading...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Registration Modal -->
+<div id="approveModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 data-i18n="approve_registration">Approve Registration</h3>
+            <button class="close-btn" onclick="closeApproveModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="registration-details" id="approveDetails">
+                <!-- Details will be populated here -->
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="ctv_code">CTV Code *</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="approveCtVCode" placeholder="Enter CTV code" required>
+                    <button class="btn btn-secondary" onclick="generateCTVCodeForApproval()" style="white-space: nowrap;">
+                        <span data-i18n="generate">Generate</span>
+                    </button>
+                </div>
+                <small style="color: var(--text-secondary); font-size: 13px;" data-i18n="ctv_code_hint">
+                    Enter a unique CTV code or click Generate
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="level">Level</label>
+                <select id="approveLevel">
+                    <option value="Đồng">Đồng (Bronze)</option>
+                    <option value="Bạc">Bạc (Silver)</option>
+                    <option value="Vàng">Vàng (Gold)</option>
+                    <option value="Bạch Kim">Bạch Kim (Platinum)</option>
+                    <option value="Kim Cương">Kim Cương (Diamond)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeApproveModal()" data-i18n="cancel">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmApproval()" data-i18n="approve">Approve</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Registration Modal -->
+<div id="rejectModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 data-i18n="reject_registration">Reject Registration</h3>
+            <button class="close-btn" onclick="closeRejectModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="registration-details" id="rejectDetails">
+                <!-- Details will be populated here -->
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="rejection_reason">Reason for Rejection</label>
+                <textarea id="rejectReason" rows="4" placeholder="Enter reason for rejection (optional)" data-i18n-placeholder="rejection_reason_placeholder"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeRejectModal()" data-i18n="cancel">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmRejection()" data-i18n="reject">Reject</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div id="viewDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 data-i18n="registration_details">Registration Details</h3>
+            <button class="close-btn" onclick="closeViewDetailsModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="fullRegistrationDetails">
+                <!-- Full details will be populated here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeViewDetailsModal()" data-i18n="close">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-secondary);
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.filter-tab {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.filter-tab:hover {
+    background: white;
+    color: var(--text-primary);
+}
+
+.filter-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+.filter-tab .badge {
+    background: rgba(255,255,255,0.2);
+    color: inherit;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.filter-tab.active .badge {
+    background: rgba(255,255,255,0.3);
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.registration-details {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    color: var(--text-primary);
+    text-align: right;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons button {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-approve {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.btn-approve:hover {
+    background: #a7f3d0;
+}
+
+.btn-reject {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-reject:hover {
+    background: #fecaca;
+}
+
+.btn-view {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.btn-view:hover {
+    background: #bfdbfe;
+}
+
+.loader {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>

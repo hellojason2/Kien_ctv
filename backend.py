@@ -82,6 +82,11 @@ def index():
     # Now serving from templates to enable Jinja2 processing and cache busting
     return render_template('dashboard.html')
 
+@app.route('/ctv/signup')
+def ctv_signup_page():
+    """Serve the CTV signup page"""
+    return render_template('ctv_signup.html')
+
 @app.route('/api/check-duplicate', methods=['POST'])
 def check_duplicate():
     """

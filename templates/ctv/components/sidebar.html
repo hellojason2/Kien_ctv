@@ -1,14 +1,22 @@
 <!-- CTV Portal - Sidebar Component -->
 <aside class="sidebar">
-    <div class="sidebar-icon active" data-page="dashboard" data-i18n-title="overview">
-        <svg viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-        </svg>
-        <span data-i18n="overview"></span>
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="sidebar-logo-image">
+        </div>
+        <span class="sidebar-brand" data-i18n="ctv_portal">CTV Portal</span>
     </div>
+    
+    <div class="sidebar-menu">
+        <div class="sidebar-icon active" data-page="dashboard" data-i18n-title="overview">
+            <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+            <span data-i18n="overview"></span>
+        </div>
     <div class="sidebar-icon" data-page="earnings" data-i18n-title="earnings">
         <svg viewBox="0 0 24 24">
             <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -75,6 +83,7 @@
             <line x1="21" y1="12" x2="9" y2="12"></line>
         </svg>
         <span data-i18n="logout"></span>
+    </div>
     </div>
     
     <!-- Mobile Menu Button (only visible on mobile) -->

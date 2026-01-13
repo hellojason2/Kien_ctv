@@ -50,6 +50,41 @@
     </div>
 </div>
 
+<!-- Edit CTV Modal -->
+<div class="modal-overlay" id="editCTVModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 data-i18n="edit_ctv">Edit CTV</h3>
+            <button class="modal-close" onclick="closeModal('editCTVModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editCTVForm">
+                <input type="hidden" id="editCtvCode">
+                <div class="form-group">
+                    <label><span data-i18n="name">Name</span> *</label>
+                    <input type="text" id="editCtvName" data-i18n-placeholder="full_name" placeholder="Full name" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="phone">Phone</label>
+                    <input type="tel" id="editCtvPhone" placeholder="0912345678">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="email">Email</label>
+                    <input type="email" id="editCtvEmail" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="level">Level</label>
+                    <input type="text" id="editCtvLevel" list="levelOptions" data-i18n-placeholder="level_placeholder" placeholder="Select or type level">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('editCTVModal')" data-i18n="cancel">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEditCTV()" data-i18n="save">Save</button>
+        </div>
+    </div>
+</div>
+
 <!-- Change Password Modal -->
 <div class="modal-overlay" id="changePasswordModal">
     <div class="modal">

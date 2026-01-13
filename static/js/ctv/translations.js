@@ -21,6 +21,9 @@ const translations = {
         login_failed: 'Đăng nhập thất bại',
         logging_in: 'Đang đăng nhập...',
         
+        // Branding
+        ctv_portal: 'CTV Portal',
+        
         // Dashboard
         overview: 'Tổng Quan',
         page_overview: 'Tổng Quan',
@@ -224,6 +227,9 @@ const translations = {
         login_redirecting: 'Redirecting...',
         login_failed: 'Login failed',
         logging_in: 'Logging in...',
+        
+        // Branding
+        ctv_portal: 'CTV Portal',
         
         // Dashboard
         overview: 'Overview',

@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - CTV System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Modular CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
@@ -28,6 +34,7 @@
         <main class="main-content">
             {% include 'admin/pages/overview.html' %}
             {% include 'admin/pages/ctv-management.html' %}
+            {% include 'admin/pages/registrations.html' %}
             {% include 'admin/pages/hierarchy.html' %}
             {% include 'admin/pages/commissions.html' %}
             {% include 'admin/pages/settings.html' %}
@@ -47,6 +54,7 @@
     <script src="{{ url_for('static', filename='js/admin/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/overview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/registrations.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/commissions.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/clients.js') }}"></script>
