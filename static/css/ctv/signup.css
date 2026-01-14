@@ -3,6 +3,59 @@
  * Extends login.css with signup-specific styles
  */
 
+/* Close Button - Back to Main Page */
+.signup-close-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #374151;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.signup-close-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    color: #1a1a1a;
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.signup-close-btn:active {
+    transform: scale(0.95);
+}
+
+.signup-close-btn svg {
+    flex-shrink: 0;
+}
+
+/* Responsive - Adjust for mobile */
+@media (max-width: 768px) {
+    .signup-close-btn {
+        top: 12px;
+        left: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+    
+    .signup-close-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 .signup-box {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
