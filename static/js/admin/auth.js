@@ -9,11 +9,23 @@
  * Show the main dashboard
  */
 async function showDashboard() {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashboard').classList.add('active');
+    const loginPage = document.getElementById('loginPage');
+    const dashboard = document.getElementById('dashboard');
+    
+    console.log('showDashboard called', {loginPage, dashboard});
+    
+    if (loginPage) {
+        loginPage.style.display = 'none';
+    }
+    
+    if (dashboard) {
+        dashboard.classList.add('active');
+    }
+    
     // Hide language toggle when dashboard is active
     const langToggle = document.querySelector('.lang-toggle');
     if (langToggle) langToggle.style.display = 'none';
+    
     // Initialize overview page if it exists
     if (typeof initOverview === 'function') {
         initOverview();
