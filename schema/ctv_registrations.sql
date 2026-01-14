@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS ctv_registrations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP,
     reviewed_by VARCHAR(50),
+    signature_image TEXT, -- Base64 encoded signature image from signup form
     UNIQUE(phone, status) -- Prevent duplicate pending registrations
 );
 

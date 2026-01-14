@@ -84,7 +84,11 @@ function debounce(func, wait) {
  * @param {string} id - Modal element ID
  */
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
 }
 
 /**

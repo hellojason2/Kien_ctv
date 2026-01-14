@@ -4,6 +4,7 @@
  * 
  * Created: December 30, 2025
  * Updated: January 5, 2026 - Light/Glassy Theme
+ * Updated: January 14, 2026 - Fix modal z-index
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -99,34 +100,70 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   MODAL
+   MODAL - COMPLETELY REWRITTEN FOR RELIABILITY
    ═══════════════════════════════════════════════════════════════════ */
 
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 99999;
+    overflow: auto;
+    pointer-events: auto;
 }
 
-.modal-overlay.active {
-    display: flex;
+/* Ensure overlay doesn't block clicks on modal content */
+.modal-overlay.active,
+.modal-overlay[style*="display: flex"],
+.modal-overlay[style*="display:flex"],
+.modal-overlay[style*="display: flex;"],
+.modal-overlay[style*="display:flex;"] {
+    display: flex !important;
+    pointer-events: auto;
+}
+
+/* Allow clicks to pass through overlay to modal */
+.modal-overlay.active > .modal,
+.modal-overlay[style*="display: flex"] > .modal,
+.modal-overlay[style*="display:flex"] > .modal {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 100000;
+}
+
+/* Show modal when active class is present OR when display:flex is set inline */
+.modal-overlay.active,
+.modal-overlay[style*="display: flex"],
+.modal-overlay[style*="display:flex"],
+.modal-overlay[style*="display: flex;"],
+.modal-overlay[style*="display:flex;"] {
+    display: flex !important;
 }
 
 .modal {
-    background: white;
+    background: #ffffff;
     border-radius: 16px;
-    width: 100%;
+    width: 90%;
     max-width: 500px;
-    box-shadow: var(--shadow-lg);
-    animation: modalSlideIn 0.3s ease-out;
+    margin: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 100000;
+    max-height: 90vh;
+    overflow-y: auto;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
 }
 
 .modal-large {
@@ -139,7 +176,9 @@
     width: 100%;
     max-width: 500px;
     box-shadow: var(--shadow-lg);
-    animation: modalSlideIn 0.3s ease-out;
+    /* animation: modalSlideIn 0.3s ease-out; */
+    opacity: 1;
+    transform: none;
 }
 
 .modal-content.modal-large {
@@ -157,24 +196,63 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 100001;
+    pointer-events: auto;
+    background: #ffffff;
 }
 
 .modal-header h3 {
     font-size: 18px;
     font-weight: 600;
     margin: 0;
+    pointer-events: auto;
 }
 
-.modal-close {
+.modal-close,
+.close-btn {
     background: none;
     border: none;
     font-size: 24px;
     cursor: pointer;
     color: var(--text-secondary);
+    pointer-events: auto !important;
+    z-index: 100002;
+    position: relative;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.modal-close:hover,
+.close-btn:hover {
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
 .modal-body {
     padding: 24px;
+    position: relative;
+    z-index: 100001;
+    pointer-events: auto;
+    background: #ffffff;
+}
+
+.modal-body * {
+    pointer-events: auto !important;
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea,
+.modal-body button {
+    pointer-events: auto !important;
+    cursor: auto !important;
 }
 
 .modal-footer {
@@ -183,10 +261,28 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    position: relative;
+    z-index: 100001;
+    pointer-events: auto;
+    background: #ffffff;
 }
 
 .modal-footer .btn {
     width: auto;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 100003;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.modal-footer .btn:hover {
+    opacity: 0.9;
+}
+
+.modal-footer .btn:active {
+    transform: scale(0.98);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

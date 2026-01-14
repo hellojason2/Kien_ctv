@@ -38,7 +38,7 @@ async function loadRegistrations() {
             renderRegistrationsTable(registrations);
             updateRegistrationCounts();
         } else {
-            showNotification(response.message || 'Failed to load registrations', 'error');
+            alert(response.message || 'Failed to load registrations');
             // Show error in table
             const tbody = document.getElementById('registrationsTableBody');
             if (tbody) {
@@ -54,7 +54,7 @@ async function loadRegistrations() {
         }
     } catch (error) {
         console.error('Error loading registrations:', error);
-        showNotification('Error loading registrations', 'error');
+        alert('Error loading registrations');
         
         // Show error in table
         const tbody = document.getElementById('registrationsTableBody');
@@ -174,6 +174,31 @@ async function showApproveModal(registrationId) {
     
     if (!registration) return;
     
+    const modal = document.getElementById('approveModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+        modal.style.pointerEvents = 'auto';
+        const modalContent = modal.querySelector('.modal');
+        if (modalContent) {
+            modalContent.style.display = 'block';
+            modalContent.style.visibility = 'visible';
+            modalContent.style.opacity = '1';
+            modalContent.style.pointerEvents = 'auto';
+            modalContent.style.position = 'relative';
+            modalContent.style.zIndex = '100000';
+        }
+        // Ensure all buttons are clickable
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            btn.style.zIndex = '100003';
+            btn.style.position = 'relative';
+        });
+    }
+    
     const detailsHtml = `
         <div class="detail-row">
             <span class="detail-label" data-i18n="full_name">Full Name</span>
@@ -223,6 +248,9 @@ async function showApproveModal(registrationId) {
     
     document.getElementById('approveModal').style.display = 'flex';
     
+    // Ensure buttons are clickable
+    ensureModalButtonsClickable('approveModal');
+    
     if (window.translatePage) {
         translatePage();
     }
@@ -232,7 +260,11 @@ async function showApproveModal(registrationId) {
  * Close approve modal
  */
 function closeApproveModal() {
-    document.getElementById('approveModal').style.display = 'none';
+    const modal = document.getElementById('approveModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
     currentRegistrationId = null;
 }
 
@@ -248,11 +280,11 @@ async function generateCTVCodeForApproval() {
         if (response.status === 'success' && response.ctv_code) {
             document.getElementById('approveCtVCode').value = response.ctv_code;
         } else {
-            showNotification('Failed to generate CTV code', 'error');
+            alert('Failed to generate CTV code');
         }
     } catch (error) {
         console.error('Error generating code:', error);
-        showNotification('Error generating CTV code', 'error');
+        alert('Error generating CTV code');
     }
 }
 
@@ -260,13 +292,24 @@ async function generateCTVCodeForApproval() {
  * Confirm approval
  */
 async function confirmApproval() {
-    if (!currentRegistrationId) return;
+    if (!currentRegistrationId) {
+        alert('No registration selected');
+        return;
+    }
     
-    const ctvCode = document.getElementById('approveCtVCode').value.trim();
-    const level = document.getElementById('approveLevel').value;
+    const ctvCodeInput = document.getElementById('approveCtVCode');
+    const levelSelect = document.getElementById('approveLevel');
+    
+    if (!ctvCodeInput || !levelSelect) {
+        alert('Form elements not found');
+        return;
+    }
+    
+    const ctvCode = ctvCodeInput.value.trim();
+    const level = levelSelect.value;
     
     if (!ctvCode) {
-        showNotification('Please enter a CTV code', 'error');
+        alert('Please enter a CTV code');
         return;
     }
     
@@ -283,7 +326,7 @@ async function confirmApproval() {
         });
         
         if (response.status === 'success') {
-            showNotification(`Registration approved! CTV code: ${ctvCode}`, 'success');
+            alert(`Registration approved! CTV code: ${ctvCode}`);
             closeApproveModal();
             loadRegistrations();
             // Update sidebar badge
@@ -291,11 +334,11 @@ async function confirmApproval() {
                 initPendingRegistrationsBadge();
             }
         } else {
-            showNotification(response.message || 'Failed to approve registration', 'error');
+            alert(response.message || 'Failed to approve registration');
         }
     } catch (error) {
         console.error('Error approving registration:', error);
-        showNotification('Error approving registration', 'error');
+        alert('Error approving registration');
     }
 }
 
@@ -307,6 +350,31 @@ function showRejectModal(registrationId) {
     const registration = registrations.find(r => r.id === registrationId);
     
     if (!registration) return;
+    
+    const modal = document.getElementById('rejectModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+        modal.style.pointerEvents = 'auto';
+        const modalContent = modal.querySelector('.modal');
+        if (modalContent) {
+            modalContent.style.display = 'block';
+            modalContent.style.visibility = 'visible';
+            modalContent.style.opacity = '1';
+            modalContent.style.pointerEvents = 'auto';
+            modalContent.style.position = 'relative';
+            modalContent.style.zIndex = '100000';
+        }
+        // Ensure all buttons are clickable
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            btn.style.zIndex = '100003';
+            btn.style.position = 'relative';
+        });
+    }
     
     const detailsHtml = `
         <div class="detail-row">
@@ -337,6 +405,9 @@ function showRejectModal(registrationId) {
     document.getElementById('rejectReason').value = '';
     document.getElementById('rejectModal').style.display = 'flex';
     
+    // Ensure buttons are clickable
+    ensureModalButtonsClickable('rejectModal');
+    
     if (window.translatePage) {
         translatePage();
     }
@@ -346,7 +417,11 @@ function showRejectModal(registrationId) {
  * Close reject modal
  */
 function closeRejectModal() {
-    document.getElementById('rejectModal').style.display = 'none';
+    const modal = document.getElementById('rejectModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
     currentRegistrationId = null;
 }
 
@@ -370,7 +445,7 @@ async function confirmRejection() {
         });
         
         if (response.status === 'success') {
-            showNotification('Registration rejected', 'success');
+            alert('Registration rejected');
             closeRejectModal();
             loadRegistrations();
             // Update sidebar badge
@@ -378,11 +453,11 @@ async function confirmRejection() {
                 initPendingRegistrationsBadge();
             }
         } else {
-            showNotification(response.message || 'Failed to reject registration', 'error');
+            alert(response.message || 'Failed to reject registration');
         }
     } catch (error) {
         console.error('Error rejecting registration:', error);
-        showNotification('Error rejecting registration', 'error');
+        alert('Error rejecting registration');
     }
 }
 
@@ -393,6 +468,21 @@ function showViewDetailsModal(registrationId) {
     const registration = registrations.find(r => r.id === registrationId);
     
     if (!registration) return;
+    
+    const modal = document.getElementById('viewDetailsModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+        modal.style.pointerEvents = 'auto';
+        const modalContent = modal.querySelector('.modal');
+        if (modalContent) {
+            modalContent.style.display = 'block';
+            modalContent.style.visibility = 'visible';
+            modalContent.style.opacity = '1';
+            modalContent.style.pointerEvents = 'auto';
+        }
+    }
     
     const detailsHtml = `
         <div class="registration-details">
@@ -478,6 +568,9 @@ function showViewDetailsModal(registrationId) {
     document.getElementById('fullRegistrationDetails').innerHTML = detailsHtml;
     document.getElementById('viewDetailsModal').style.display = 'flex';
     
+    // Ensure buttons are clickable
+    ensureModalButtonsClickable('viewDetailsModal');
+    
     if (window.translatePage) {
         translatePage();
     }
@@ -487,7 +580,11 @@ function showViewDetailsModal(registrationId) {
  * Close view details modal
  */
 function closeViewDetailsModal() {
-    document.getElementById('viewDetailsModal').style.display = 'none';
+    const modal = document.getElementById('viewDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
 }
 
 /**
@@ -500,6 +597,39 @@ function escapeHtml(text) {
 }
 
 // Load registrations when page is shown
+// Ensure modal buttons are clickable after modal is shown
+function ensureModalButtonsClickable(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Force all buttons to be clickable
+    setTimeout(() => {
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            btn.style.zIndex = '100003';
+            btn.style.position = 'relative';
+            
+            // Remove any event blockers
+            btn.onclick = btn.onclick || (() => {});
+        });
+        
+        // Add click handler to overlay to close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                if (modalId === 'approveModal') {
+                    closeApproveModal();
+                } else if (modalId === 'rejectModal') {
+                    closeRejectModal();
+                } else if (modalId === 'viewDetailsModal') {
+                    closeViewDetailsModal();
+                }
+            }
+        });
+    }, 100);
+}
+
 document.addEventListener('pageChanged', (e) => {
     if (e.detail.page === 'registrations') {
         loadRegistrations();

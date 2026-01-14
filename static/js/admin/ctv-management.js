@@ -109,7 +109,30 @@ function populateCTVSelects(ctvList = null) {
  * Show create CTV modal
  */
 function showCreateCTVModal() {
-    document.getElementById('createCTVModal').classList.add('active');
+    const modal = document.getElementById('createCTVModal');
+    if (!modal) {
+        console.error('createCTVModal element not found!');
+        return;
+    }
+    
+    // Force show modal - multiple methods to ensure it works
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.style.zIndex = '99999';
+    modal.style.pointerEvents = 'auto';
+    
+    // Ensure modal content is visible
+    const modalContent = modal.querySelector('.modal');
+    if (modalContent) {
+        modalContent.style.display = 'block';
+        modalContent.style.visibility = 'visible';
+        modalContent.style.opacity = '1';
+        modalContent.style.pointerEvents = 'auto';
+        modalContent.style.zIndex = '100000';
+    }
+    
+    console.log('Modal shown:', modal.style.display, modal.classList.contains('active'));
+    
     // Re-apply translations to modal elements
     applyTranslations();
     
@@ -193,6 +216,21 @@ async function showEditCTVModal(ctvCode) {
     if (!ctv) {
         alert('CTV not found');
         return;
+    }
+    
+    const modal = document.getElementById('editCTVModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+        modal.style.pointerEvents = 'auto';
+        const modalContent = modal.querySelector('.modal');
+        if (modalContent) {
+            modalContent.style.display = 'block';
+            modalContent.style.visibility = 'visible';
+            modalContent.style.opacity = '1';
+            modalContent.style.pointerEvents = 'auto';
+        }
     }
     
     // Populate the form fields
@@ -482,7 +520,22 @@ function selectReferrer(ctvCode) {
 function showChangePasswordModal(ctvCode) {
     document.getElementById('changePasswordCtvCode').value = ctvCode;
     document.getElementById('newPassword').value = '';
-    document.getElementById('changePasswordModal').classList.add('active');
+    
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+        modal.style.pointerEvents = 'auto';
+        const modalContent = modal.querySelector('.modal');
+        if (modalContent) {
+            modalContent.style.display = 'block';
+            modalContent.style.visibility = 'visible';
+            modalContent.style.opacity = '1';
+            modalContent.style.pointerEvents = 'auto';
+        }
+    }
+    
     applyTranslations();
 }
 

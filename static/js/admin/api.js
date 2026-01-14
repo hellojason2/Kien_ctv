@@ -17,7 +17,8 @@ let authToken = localStorage.getItem('adminToken');
 async function api(endpoint, options = {}) {
     const headers = {
         'Content-Type': 'application/json',
-        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        // Only send Authorization header if token exists and is not the placeholder 'cookie-auth'
+        ...(authToken && authToken !== 'cookie-auth' && { 'Authorization': `Bearer ${authToken}` })
     };
     
     // Include credentials to send cookies (for session_token)

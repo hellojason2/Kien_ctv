@@ -2,7 +2,7 @@
 Admin CTV Registration Management
 Handles viewing and approving/rejecting CTV registration requests
 """
-from flask import jsonify, request
+from flask import jsonify, request, g
 from psycopg2.extras import RealDictCursor
 from psycopg2 import Error
 from .blueprint import admin_bp
@@ -113,7 +113,7 @@ def get_pending_registrations_count():
 def approve_registration(registration_id):
     """Approve a CTV registration and create the CTV account"""
     data = request.get_json() or {}
-    admin_username = request.admin_username  # From require_admin decorator
+    admin_username = g.current_user.get('username', 'admin') if hasattr(g, 'current_user') and g.current_user else 'admin'
     ctv_code = data.get('ctv_code')  # Optional: admin can specify CTV code
     level = data.get('level', 'Đồng')  # Default level
     
@@ -151,14 +151,13 @@ def approve_registration(registration_id):
         # Create CTV account
         cursor.execute("""
             INSERT INTO ctv 
-            (ma_ctv, ten, sdt, email, dia_chi, cap_bac, nguoi_gioi_thieu, password_hash, active, ngay_tao, signature_image)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE, NOW(), %s)
+            (ma_ctv, ten, sdt, email, cap_bac, nguoi_gioi_thieu, password_hash, is_active, created_at, signature_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, NOW(), %s)
         """, (
             ctv_code,
             registration['full_name'],
             registration['phone'],
             registration['email'],
-            registration['address'],
             level,
             registration['referrer_code'],
             registration['password_hash'],
@@ -196,7 +195,7 @@ def approve_registration(registration_id):
 def reject_registration(registration_id):
     """Reject a CTV registration"""
     data = request.get_json() or {}
-    admin_username = request.admin_username
+    admin_username = g.current_user.get('username', 'admin') if hasattr(g, 'current_user') and g.current_user else 'admin'
     reason = data.get('reason', 'No reason provided')
     
     connection = get_db_connection()

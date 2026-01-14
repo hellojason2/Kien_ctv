@@ -49,6 +49,7 @@ CREATE TABLE ctv (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    signature_image TEXT, -- Base64 encoded signature image from signup form
     FOREIGN KEY (nguoi_gioi_thieu) REFERENCES ctv(ma_ctv) ON DELETE SET NULL
 );
 

@@ -471,12 +471,11 @@ def get_commission_cache_status():
     except Exception:
         return None
 
-
 def get_active_levels(connection=None):
     """
-    DOES: Get set of active commission levels
+    DOES: Get list of active commission levels from database
     INPUTS: Optional connection (creates new if not provided)
-    OUTPUTS: Set of active level integers (e.g., {0, 1, 2, 3, 4})
+    OUTPUTS: List of active level numbers [0, 1, 2, ...]
     """
     should_close = False
     if connection is None:
@@ -484,8 +483,7 @@ def get_active_levels(connection=None):
         should_close = True
     
     if not connection:
-        # Default all levels active
-        return set(range(MAX_LEVEL + 1))
+        return list(range(MAX_LEVEL + 1))  # Return all levels as fallback
     
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
@@ -493,41 +491,39 @@ def get_active_levels(connection=None):
         # Try hoa_hong_config first
         cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
         if cursor.fetchone()['exists']:
-            cursor.execute("SELECT level, is_active FROM hoa_hong_config ORDER BY level")
+            cursor.execute("SELECT DISTINCT level FROM hoa_hong_config WHERE is_active = TRUE ORDER BY level")
             rows = cursor.fetchall()
-            
             if rows:
-                active = {int(row['level']) for row in rows if row.get('is_active', True)}
+                levels = [int(row['level']) for row in rows]
                 cursor.close()
                 if should_close:
                     return_db_connection(connection)
-                return active
+                return levels
         
         # Try commission_settings fallback
         cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'commission_settings')")
         if cursor.fetchone()['exists']:
-            cursor.execute("SELECT level, is_active FROM commission_settings ORDER BY level")
+            cursor.execute("SELECT DISTINCT level FROM commission_settings WHERE is_active = TRUE ORDER BY level")
             rows = cursor.fetchall()
-            
             if rows:
-                active = {int(row['level']) for row in rows if row.get('is_active', True)}
+                levels = [int(row['level']) for row in rows]
                 cursor.close()
                 if should_close:
                     return_db_connection(connection)
-                return active
+                return levels
         
         cursor.close()
         if should_close:
             return_db_connection(connection)
         
-        # Default all levels active
-        return set(range(MAX_LEVEL + 1))
+        # Fallback: return all levels up to MAX_LEVEL
+        return list(range(MAX_LEVEL + 1))
         
     except Error as e:
-        print(f"Error loading active levels: {e}")
+        print(f"Error getting active levels: {e}")
         if should_close and connection:
             return_db_connection(connection)
-        return set(range(MAX_LEVEL + 1))
+        return list(range(MAX_LEVEL + 1))  # Return all levels as fallback
 
 def remove_commissions_for_levels(levels, connection=None):
     """
