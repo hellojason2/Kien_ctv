@@ -87,6 +87,11 @@ def ctv_signup_page():
     """Serve the CTV signup page"""
     return render_template('ctv_signup.html')
 
+@app.route('/test-login')
+def test_login_page():
+    """Serve the test login page for troubleshooting"""
+    return render_template('test_login.html')
+
 @app.route('/api/check-duplicate', methods=['POST'])
 def check_duplicate():
     """
