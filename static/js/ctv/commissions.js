@@ -496,7 +496,7 @@ async function loadEarningsLifetimeStats() {
                     <tr>
                         <td>
                             <span class="level-badge" style="background:${getLevelColor(c.level)}20; color:${getLevelColor(c.level)}">
-                                LEVEL ${c.level}
+                                ${getCommissionLabel(c.level)}
                             </span>
                         </td>
                         <td class="col-revenue">${formatCurrency(c.total_revenue)}</td>

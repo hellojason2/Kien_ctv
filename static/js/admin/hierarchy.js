@@ -255,6 +255,9 @@ function renderTree(node) {
     const hasChildren = node.children && node.children.length > 0;
     const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
     
+    // Get custom label for this level
+    const levelLabel = getCommissionLabel(displayLevel);
+    
     // Commission rate display
     const commissionPercent = (node.commission_rate * 100).toFixed(2);
     
@@ -267,10 +270,10 @@ function renderTree(node) {
                  data-name="${node.ten || ''}" 
                  data-code="${node.ma_ctv || ''}"
                  onclick="toggleTreeNode(this)">
-                <span class="level-badge ${levelClass}">L${displayLevel}</span>
+                <span class="level-badge ${levelClass}">${levelLabel}</span>
                 <span class="node-name">${node.ten || 'Unknown'}</span>
                 <span class="node-code">${node.ma_ctv}</span>
-                <span class="node-rank">${node.cap_bac || 'Bronze'} | ${commissionPercent}%</span>
+                <span class="node-rank">${levelLabel} | ${commissionPercent}%</span>
                 ${cutoffBadge}
             </div>
     `;

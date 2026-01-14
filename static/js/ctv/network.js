@@ -104,16 +104,19 @@ function renderTree(node) {
     const hasChildren = node.children && node.children.length > 0;
     const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
     
+    // Get custom label for this level
+    const levelLabel = getCommissionLabel(displayLevel);
+    
     // Cut-off badge for level 4 (L4)
     const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
     
     let html = `
         <li>
             <div class="tree-node ${hasChildrenClass}" onclick="toggleTreeNode(this)">
-                <span class="level-badge ${levelClass}">L${displayLevel}</span>
+                <span class="level-badge ${levelClass}">${levelLabel}</span>
                 <span class="node-name">${node.ten || 'Unknown'}</span>
                 <span class="node-code">${node.ma_ctv}</span>
-                <span class="node-info">${node.cap_bac || 'Bronze'}</span>
+                <span class="node-info">${levelLabel}</span>
                 ${cutoffBadge}
             </div>
     `;

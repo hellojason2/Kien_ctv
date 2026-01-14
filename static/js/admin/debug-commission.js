@@ -220,7 +220,7 @@ async function loadCTVRightPanel(ctvCode, startDate = null, endDate = null) {
         
         if (data.breakdown && data.breakdown.length > 0) {
             breakdownHTML = data.breakdown.map(group => {
-                const levelLabel = group.closer_level === 0 ? 'Personal (L0)' : `Level ${group.closer_level}`;
+                const levelLabel = getCommissionLabel(group.closer_level);
                 const levelColor = getLevelColor(group.closer_level);
                 
                 return `
@@ -493,7 +493,7 @@ function renderCommissionsTable() {
                 <td>${c.id}</td>
                 <td>${c.ctv_code}</td>
                 <td>${c.ctv_name || '-'}</td>
-                <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
+                <td><span class="level-badge level-${c.level}">${getCommissionLabel(c.level)}</span></td>
                 <td>${c.source_name || '-'}</td>
                 <td class="money">${formatMoney(c.source_amount)}</td>
                 <td class="money">${formatMoney(c.commission_amount)}</td>
@@ -593,7 +593,7 @@ async function showCTVDetail(ctvCode, startDate = null, endDate = null) {
                             const match = Math.abs(expected - actual) < 100; // Allow small rounding diff
                             return `
                                 <tr onclick="showClientInfo(${index})" style="cursor: pointer;" title="Click to view client details">
-                                    <td><span class="level-badge level-${c.level}">L${c.level}</span></td>
+                                    <td><span class="level-badge level-${c.level}">${getCommissionLabel(c.level)}</span></td>
                                     <td>${c.source_name || '-'}</td>
                                     <td class="money">${formatMoney(c.source_amount)}</td>
                                     <td class="money">${formatMoney(actual)}</td>
@@ -647,7 +647,7 @@ async function showCTVDetail(ctvCode, startDate = null, endDate = null) {
                         <tbody>
                             ${data.downline.map(d => `
                                 <tr>
-                                    <td><span class="level-badge level-${d.level}">L${d.level}</span></td>
+                                    <td><span class="level-badge level-${d.level}">${getCommissionLabel(d.level)}</span></td>
                                     <td>${d.ma_ctv}</td>
                                     <td>${d.ten || '-'}</td>
                                     <td>${d.nguoi_gioi_thieu || '-'}</td>
@@ -709,7 +709,7 @@ function showClientInfo(index) {
                 </tr>
                 <tr>
                     <th>Commission Level</th>
-                    <td><span class="level-badge level-${c.level}">Level ${c.level}</span></td>
+                    <td><span class="level-badge level-${c.level}">${getCommissionLabel(c.level)}</span></td>
                 </tr>
             </table>
         </div>
