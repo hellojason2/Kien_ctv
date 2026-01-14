@@ -437,18 +437,17 @@
             position: absolute;
             left: calc(100% + 12px);
             bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             padding: 8px;
-            min-width: 140px;
+            min-width: 160px;
             opacity: 0;
             visibility: hidden;
             transform: translateX(-10px);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1100;
-            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
         .lang-popup.active {
@@ -457,8 +456,44 @@
             transform: translateX(0);
         }
 
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
         .lang-option:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: #f3f4f6;
+        }
+
+        .lang-option.active {
+            background-color: #ecfdf5;
+        }
+
+        .lang-option .lang-flag {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .lang-option .lang-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .lang-option .lang-check {
+            opacity: 0;
+            stroke: #10b981;
+            transition: opacity 0.15s;
+        }
+
+        .lang-option.active .lang-check {
+            opacity: 1;
         }
 
         /* Responsive */
@@ -498,19 +533,11 @@
                 bottom: 70px; /* Above the sidebar */
                 top: auto;
                 transform: translateX(-50%);
-                min-width: 160px;
+                min-width: 180px;
             }
             
-            .lang-popup::before {
-                /* Arrow pointing down */
-                right: 50%;
-                left: auto;
-                bottom: -12px;
-                transform: translateX(50%);
-                border-top-color: #ffffff;
-                border-right-color: transparent;
-                border-left-color: transparent;
-                border-bottom-color: transparent;
+            .lang-popup.active {
+                transform: translateX(-50%) translateY(0);
             }
 
             .main-content {
@@ -601,14 +628,19 @@
                     <span class="lang-current" id="currentLangLabel">VI</span>
                 </div>
                 <div class="lang-popup" id="langPopup">
-                    <div class="lang-popup-title" data-i18n="choose_language">Chon Ngon Ngu</div>
                     <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
-                        <span class="lang-flag">VN</span>
+                        <span class="lang-flag">🇻🇳</span>
                         <span class="lang-name">Tiếng Việt</span>
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                     <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
-                        <span class="lang-flag">US</span>
+                        <span class="lang-flag">🇺🇸</span>
                         <span class="lang-name">English</span>
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                 </div>
             </div>
