@@ -45,14 +45,16 @@ def get_commission_rates(connection=None):
         # Try hoa_hong_config first
         cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
         if cursor.fetchone()['exists']:
-            cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+            cursor.execute("SELECT level, percent, is_active FROM hoa_hong_config ORDER BY level")
             rows = cursor.fetchall()
             
             if rows:
                 rates = {}
                 for row in rows:
                     level = int(row['level'])
-                    rate = float(row['percent']) / 100
+                    is_active = row.get('is_active', True)
+                    # If level is inactive, set rate to 0 (no commission generated)
+                    rate = float(row['percent']) / 100 if is_active else 0
                     rates[level] = rate
                 
                 cursor.close()
@@ -65,14 +67,16 @@ def get_commission_rates(connection=None):
         # Try commission_settings fallback
         cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'commission_settings')")
         if cursor.fetchone()['exists']:
-            cursor.execute("SELECT level, rate FROM commission_settings ORDER BY level")
+            cursor.execute("SELECT level, rate, is_active FROM commission_settings ORDER BY level")
             rows = cursor.fetchall()
             
             if rows:
                 rates = {}
                 for row in rows:
                     level = int(row['level'])
-                    rate = float(row['rate'])
+                    is_active = row.get('is_active', True)
+                    # If level is inactive, set rate to 0 (no commission generated)
+                    rate = float(row['rate']) if is_active else 0
                     rates[level] = rate
                 
                 cursor.close()

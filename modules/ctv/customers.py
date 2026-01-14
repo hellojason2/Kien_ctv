@@ -23,9 +23,10 @@ def get_lifetime_stats():
         # Calculate lifetime stats by summing all commissions from network
         # This mirrors the logic in get_ctv_commission but without date filters
         
-        cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+        cursor.execute("SELECT level, percent, is_active FROM hoa_hong_config ORDER BY level")
         rates_rows = cursor.fetchall()
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
+        active_levels = {row['level'] for row in rates_rows if row.get('is_active', True)}
         
         # Level 0 (Personal Sales)
         level0_query_kh = """
@@ -51,8 +52,9 @@ def get_lifetime_stats():
         
         level0_revenue = float(level0_kh['total_revenue'] or 0) + float(level0_svc['total_revenue'] or 0)
         level0_count = int(level0_kh['transaction_count'] or 0) + int(level0_svc['transaction_count'] or 0)
-        level0_commission = level0_revenue * commission_rates.get(0, 0.25)
         level0_rate = commission_rates.get(0, 0.25)
+        # Only calculate commission if level 0 is active
+        level0_commission = level0_revenue * level0_rate if 0 in active_levels else 0
         
         total_commissions = level0_commission
         total_revenue = level0_revenue
@@ -128,7 +130,8 @@ def get_lifetime_stats():
                     
                     level_revenue = float(level_data_kh['total_revenue'] or 0) + float(level_data_svc['total_revenue'] or 0)
                     level_count = int(level_data_kh['transaction_count'] or 0) + int(level_data_svc['transaction_count'] or 0)
-                    level_commission = level_revenue * commission_rates.get(level, 0)
+                    # Only calculate commission if level is active
+                    level_commission = level_revenue * commission_rates.get(level, 0) if level in active_levels else 0
                     
                     total_commissions += level_commission
                     total_revenue += level_revenue
@@ -411,9 +414,10 @@ def get_ctv_commission():
                 except ValueError:
                     return jsonify({'status': 'error', 'message': 'Invalid month format'}), 400
         
-        cursor.execute("SELECT level, percent FROM hoa_hong_config ORDER BY level")
+        cursor.execute("SELECT level, percent, is_active FROM hoa_hong_config ORDER BY level")
         rates_rows = cursor.fetchall()
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
+        active_levels = {row['level'] for row in rates_rows if row.get('is_active', True)}
         
         level0_query_kh = """
             SELECT 
@@ -557,9 +561,12 @@ def get_ctv_commission():
                         'commission': level_commission
                     })
         
-        total_commission = sum(lc['commission'] for lc in level_commissions)
-        total_transactions = sum(lc['transaction_count'] for lc in level_commissions)
-        total_revenue = sum(lc['total_revenue'] for lc in level_commissions)
+        # Filter out inactive levels from the response
+        active_level_commissions = [lc for lc in level_commissions if lc['level'] in active_levels]
+        
+        total_commission = sum(lc['commission'] for lc in active_level_commissions)
+        total_transactions = sum(lc['transaction_count'] for lc in active_level_commissions)
+        total_revenue = sum(lc['total_revenue'] for lc in active_level_commissions)
         
         cursor.close()
         return_db_connection(connection)
@@ -570,7 +577,7 @@ def get_ctv_commission():
                 'from': from_date,
                 'to': to_date
             },
-            'by_level': level_commissions,
+            'by_level': active_level_commissions,
             'total': {
                 'commission': total_commission,
                 'transactions': total_transactions,

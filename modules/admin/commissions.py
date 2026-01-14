@@ -24,13 +24,14 @@ def get_settings():
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT level, rate, description, updated_at, updated_by
+            SELECT level, rate, description, updated_at, updated_by, is_active
             FROM commission_settings ORDER BY level
         """)
         settings = [dict(row) for row in cursor.fetchall()]
         
         for s in settings:
             s['rate'] = float(s['rate'])
+            s['is_active'] = s.get('is_active', True)  # Default to True if not set
             if s.get('updated_at'):
                 s['updated_at'] = s['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
         
@@ -70,6 +71,7 @@ def update_settings():
             level = setting.get('level')
             rate = setting.get('rate')
             description = setting.get('description')
+            is_active = setting.get('is_active', True)  # Default to True if not provided
             
             if level is None or rate is None:
                 continue
@@ -79,9 +81,9 @@ def update_settings():
             
             cursor.execute("""
                 UPDATE commission_settings 
-                SET rate = %s, description = %s, updated_by = %s
+                SET rate = %s, description = %s, updated_by = %s, is_active = %s
                 WHERE level = %s
-            """, (rate, description, admin_username, level))
+            """, (rate, description, admin_username, is_active, level))
             
             # Also update legacy table hoa_hong_config if it exists to keep them in sync
             # Note: hoa_hong_config stores percentage (e.g. 25.0) not rate (0.25)
@@ -91,9 +93,9 @@ def update_settings():
                 if cursor.fetchone()[0]:
                     cursor.execute("""
                         UPDATE hoa_hong_config 
-                        SET percent = %s, description = %s
+                        SET percent = %s, description = %s, is_active = %s
                         WHERE level = %s
-                    """, (percent, description, level))
+                    """, (percent, description, is_active, level))
             except Exception as e:
                 print(f"Warning: Could not update legacy hoa_hong_config: {e}")
         

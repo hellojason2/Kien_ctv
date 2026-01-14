@@ -293,6 +293,39 @@
 .commission-card.l3 .rate { color: var(--accent-pink); }
 .commission-card.l4 .rate { color: var(--accent-cyan); }
 
+/* Commission Card Header Row - for toggle switch */
+.commission-card .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.commission-card .card-header-row .level {
+    margin-bottom: 0;
+}
+
+/* Disabled Commission Card State */
+.commission-card.disabled {
+    opacity: 0.5;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.commission-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.commission-card.disabled .rate {
+    color: var(--text-secondary) !important;
+    text-decoration: line-through;
+}
+
+.commission-card.disabled input {
+    background: rgba(0, 0, 0, 0.05);
+    cursor: not-allowed;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    DATE FILTERS
    ═══════════════════════════════════════════════════════════════════ */
