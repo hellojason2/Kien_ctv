@@ -12,16 +12,36 @@ let currentTermsLanguage = 'vi';
  * Load signup terms by language
  */
 async function loadSignupTermsByLanguage() {
-    const language = document.getElementById('termsLanguageSelect').value;
+    console.log('loadSignupTermsByLanguage called');
+    
+    const languageSelect = document.getElementById('termsLanguageSelect');
+    if (!languageSelect) {
+        console.error('termsLanguageSelect element not found!');
+        return;
+    }
+    
+    const language = languageSelect.value || 'vi';
     currentTermsLanguage = language;
     
-    const result = await api(`/api/admin/signup-terms?language=${language}`);
-    if (result.status === 'success' && result.terms.length > 0) {
-        // Load the active term or the latest one
-        const activeTerm = result.terms.find(t => t.is_active) || result.terms[0];
-        loadSignupTermsIntoEditor(activeTerm);
-    } else {
-        // No terms found, clear editor
+    console.log(`Loading terms for language: ${language}`);
+    
+    try {
+        const result = await api(`/api/admin/signup-terms?language=${language}`);
+        console.log('API result:', result);
+        
+        if (result.status === 'success' && result.terms && result.terms.length > 0) {
+            console.log(`Found ${result.terms.length} terms`);
+            // Load the active term or the latest one
+            const activeTerm = result.terms.find(t => t.is_active) || result.terms[0];
+            console.log('Loading term:', activeTerm.id, activeTerm.title);
+            loadSignupTermsIntoEditor(activeTerm);
+        } else {
+            console.log('No terms found, clearing editor');
+            // No terms found, clear editor
+            clearTermsEditor();
+        }
+    } catch (error) {
+        console.error('Error loading signup terms:', error);
         clearTermsEditor();
     }
 }
@@ -30,23 +50,41 @@ async function loadSignupTermsByLanguage() {
  * Load terms into editor
  */
 function loadSignupTermsIntoEditor(term) {
+    console.log('loadSignupTermsIntoEditor called with term:', term.id);
     currentTermsId = term.id;
     
-    document.getElementById('termsTitle').value = term.title || '';
-    document.getElementById('termsContent').value = term.content || '';
+    const titleInput = document.getElementById('termsTitle');
+    const contentTextarea = document.getElementById('termsContent');
+    
+    if (!titleInput || !contentTextarea) {
+        console.error('Required form elements not found!', {titleInput, contentTextarea});
+        return;
+    }
+    
+    titleInput.value = term.title || '';
+    contentTextarea.value = term.content || '';
+    
+    console.log(`Loaded: title="${term.title?.substring(0, 30)}...", content length=${term.content?.length}`);
     
     // Update metadata
-    document.getElementById('currentVersion').textContent = term.version || '-';
-    document.getElementById('lastUpdated').textContent = term.updated_at 
+    const versionEl = document.getElementById('currentVersion');
+    const updatedEl = document.getElementById('lastUpdated');
+    const updatedByEl = document.getElementById('updatedBy');
+    
+    if (versionEl) versionEl.textContent = term.version || '-';
+    if (updatedEl) updatedEl.textContent = term.updated_at 
         ? new Date(term.updated_at).toLocaleString() 
         : '-';
-    document.getElementById('updatedBy').textContent = term.updated_by || '-';
+    if (updatedByEl) updatedByEl.textContent = term.updated_by || '-';
     
     // Update preview
     updateTermsPreview();
     
-    // Disable save button initially
-    document.getElementById('saveTermsBtn').disabled = false;
+    // Enable save button
+    const saveBtn = document.getElementById('saveTermsBtn');
+    if (saveBtn) saveBtn.disabled = false;
+    
+    console.log('Terms loaded into editor successfully');
 }
 
 /**
