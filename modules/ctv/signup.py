@@ -8,13 +8,134 @@ from psycopg2 import Error
 from .blueprint import ctv_bp
 from ..db_pool import get_db_connection, return_db_connection
 import hashlib
+import base64
+import json
+import os
 from datetime import datetime
+
+# Google Gemini AI for ID OCR
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+    print("Warning: google-generativeai not installed. ID scanning will be disabled.")
 
 @ctv_bp.route('/signup', methods=['GET'])
 def signup_page():
     """Serve the CTV signup page"""
     from flask import render_template
     return render_template('ctv_signup.html')
+
+
+@ctv_bp.route('/api/ctv/scan-id', methods=['POST'])
+def scan_id_card():
+    """
+    Scan Vietnamese ID card (CCCD/CMND) using Google Gemini Vision API
+    Extracts: full_name, dob, id_number, address
+    """
+    if not GEMINI_AVAILABLE:
+        return jsonify({
+            'status': 'error',
+            'message': 'ID scanning feature is not available. Please install google-generativeai.'
+        }), 503
+    
+    data = request.get_json()
+    
+    if not data or not data.get('image'):
+        return jsonify({
+            'status': 'error',
+            'message': 'No image provided'
+        }), 400
+    
+    image_data = data['image']
+    
+    # Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
+    if ',' in image_data:
+        image_data = image_data.split(',')[1]
+    
+    try:
+        # Decode base64 to verify it's valid
+        image_bytes = base64.b64decode(image_data)
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Invalid image data: {str(e)}'
+        }), 400
+    
+    # Get API key from environment or use provided key
+    api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyCw1q1cUo7enX0S3NMAdPKkKNMr1yVFf9A')
+    
+    try:
+        # Configure Gemini
+        genai.configure(api_key=api_key)
+        
+        # Use Gemini 2.0 Flash for fast processing
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Create image part for the API
+        image_part = {
+            'mime_type': 'image/jpeg',
+            'data': image_bytes
+        }
+        
+        # Prompt for Vietnamese ID card extraction
+        prompt = """Analyze this Vietnamese ID card (CCCD/CMND) image and extract the following information.
+Return ONLY a JSON object with these fields (use null if not found):
+
+{
+    "full_name": "Full name as shown on the card",
+    "last_name": "Family name (Họ)",
+    "first_name": "Given name (Tên)",
+    "dob": "Date of birth in YYYY-MM-DD format",
+    "id_number": "12-digit ID number (Số CCCD) or 9-digit CMND number",
+    "address": "Permanent address (Nơi thường trú)",
+    "gender": "Nam or Nữ",
+    "nationality": "Quốc tịch"
+}
+
+Important:
+- For Vietnamese names, the last_name is usually the first word(s) before the final name
+- Parse the date correctly to YYYY-MM-DD format
+- Extract the full 12-digit CCCD number or 9-digit CMND number
+- Return ONLY the JSON object, no other text"""
+
+        # Generate response
+        response = model.generate_content([prompt, image_part])
+        
+        # Parse the response
+        response_text = response.text.strip()
+        
+        # Try to extract JSON from the response
+        # Sometimes the model wraps it in markdown code blocks
+        if '```json' in response_text:
+            response_text = response_text.split('```json')[1].split('```')[0].strip()
+        elif '```' in response_text:
+            response_text = response_text.split('```')[1].split('```')[0].strip()
+        
+        # Parse JSON
+        extracted_data = json.loads(response_text)
+        
+        return jsonify({
+            'status': 'success',
+            'data': extracted_data
+        })
+        
+    except json.JSONDecodeError as e:
+        print(f"JSON Decode Error in ID Scanning: {str(e)}")
+        print(f"Raw Response: {response_text if 'response_text' in locals() else 'None'}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to parse extracted data: {str(e)}',
+            'raw_response': response_text if 'response_text' in locals() else None
+        }), 500
+    except Exception as e:
+        print(f"ID Scanning Failed: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'ID scanning failed: {str(e)}'
+        }), 500
+
 
 @ctv_bp.route('/api/ctv/check-referrer-phone', methods=['POST'])
 def check_referrer_phone():
@@ -130,6 +251,7 @@ def ctv_signup():
     dob = data.get('dob') if data.get('dob') else None
     id_number = data.get('id_number', '').strip() if data.get('id_number') else None
     referrer_code = data.get('referrer_code', '').strip() if data.get('referrer_code') else None
+    signature_image = data.get('signature_image')  # Get signature image base64
     password = data['password']
     
     # Clean phone number
@@ -201,10 +323,10 @@ def ctv_signup():
         # Insert registration request
         cursor.execute("""
             INSERT INTO ctv_registrations 
-            (full_name, phone, email, address, dob, id_number, referrer_code, password_hash, status, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', NOW())
+            (full_name, phone, email, address, dob, id_number, referrer_code, password_hash, status, created_at, signature_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', NOW(), %s)
             RETURNING id
-        """, (full_name, phone_digits, email, address, dob, id_number, referrer_id, password_hash))
+        """, (full_name, phone_digits, email, address, dob, id_number, referrer_id, password_hash, signature_image))
         
         registration_id = cursor.fetchone()['id']
         

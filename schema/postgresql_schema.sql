@@ -174,17 +174,19 @@ CREATE TABLE commission_settings (
     level INTEGER PRIMARY KEY,
     rate DECIMAL(5,4) NOT NULL,
     description VARCHAR(100),
+    label VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR(50)
 );
 
 -- Insert default commission settings
-INSERT INTO commission_settings (level, rate, description) VALUES 
-(0, 0.25, 'Doanh so ban than (Level 0)'),
-(1, 0.05, 'Doanh so Level 1'),
-(2, 0.025, 'Doanh so Level 2'),
-(3, 0.0125, 'Doanh so Level 3'),
-(4, 0.00625, 'Doanh so Level 4');
+INSERT INTO commission_settings (level, rate, description, label) VALUES 
+(0, 0.25, 'Doanh so ban than (Level 0)', 'Level 0'),
+(1, 0.05, 'Doanh so Level 1', 'Level 1'),
+(2, 0.025, 'Doanh so Level 2', 'Level 2'),
+(3, 0.0125, 'Doanh so Level 3', 'Level 3'),
+(4, 0.00625, 'Doanh so Level 4', 'Level 4');
 
 -- ══════════════════════════════════════════════════════════════════════════════
 -- 9. COMMISSIONS TABLE

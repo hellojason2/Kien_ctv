@@ -152,6 +152,11 @@ function initSidebarScrollCollapse() {
  * Initialize all event handlers and check auth
  */
 async function initializeApp() {
+    // Load commission labels first
+    if (typeof loadCommissionLabels === 'function') {
+        await loadCommissionLabels();
+    }
+    
     // Validate database schema first (10 second timeout)
     if (typeof initDatabaseValidation === 'function') {
         const dbValid = await initDatabaseValidation();
@@ -199,8 +204,10 @@ async function initializeApp() {
  * Initialize and update the pending registrations badge
  */
 async function initPendingRegistrationsBadge() {
-    const badge = document.getElementById('pendingRegistrationsBadge');
-    if (!badge) return;
+    const badges = [
+        document.getElementById('pendingRegistrationsBadge'),
+        document.getElementById('pendingRegistrationsBadge_nav')
+    ];
     
     try {
         // Fetch count from API
@@ -215,12 +222,17 @@ async function initPendingRegistrationsBadge() {
         const data = await response.json();
         if (data.status === 'success') {
             const count = data.count;
-            if (count > 0) {
-                badge.textContent = count;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
-            }
+            
+            badges.forEach(badge => {
+                if (!badge) return;
+                
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
         }
     } catch (error) {
         console.error('Error fetching pending registrations count:', error);

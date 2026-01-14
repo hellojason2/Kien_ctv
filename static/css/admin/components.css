@@ -129,6 +129,23 @@
     animation: modalSlideIn 0.3s ease-out;
 }
 
+.modal-large {
+    max-width: 900px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-content.modal-large {
+    max-width: 900px;
+}
+
 @keyframes modalSlideIn {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }

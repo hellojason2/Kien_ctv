@@ -124,6 +124,7 @@ def build_ancestor_chain(cursor, ctv_code, max_levels=MAX_LEVEL):
 def build_hierarchy_tree(root_ctv_code, connection=None):
     """
     DOES: Build complete hierarchy tree from a CTV's perspective
+    Only includes levels that are active (enabled) in commission settings
     """
     cached_tree = get_cached_hierarchy(root_ctv_code)
     if cached_tree:
@@ -138,7 +139,7 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
         return None
     
     try:
-        from .commissions import get_commission_rates
+        from .commissions import get_commission_rates, get_active_levels
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("SELECT ma_ctv, ten, sdt, email, cap_bac FROM ctv WHERE ma_ctv = %s", (root_ctv_code,))
@@ -151,6 +152,7 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
             return None
         
         rates = get_commission_rates(connection)
+        active_levels = get_active_levels(connection)
         
         cursor.execute("""
             WITH RECURSIVE hierarchy AS (
@@ -170,8 +172,11 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
         
         all_nodes = cursor.fetchall()
         
+        # Filter nodes to only include active levels
+        active_nodes = [node for node in all_nodes if node['level'] in active_levels]
+        
         nodes_by_code = {}
-        for node in all_nodes:
+        for node in active_nodes:
             node_data = {
                 'ma_ctv': node['ma_ctv'],
                 'ten': node['ten'],
@@ -180,11 +185,12 @@ def build_hierarchy_tree(root_ctv_code, connection=None):
                 'cap_bac': node['cap_bac'],
                 'level': node['level'],
                 'commission_rate': rates.get(node['level'], 0),
+                'is_active': node['level'] in active_levels,
                 'children': []
             }
             nodes_by_code[node['ma_ctv']] = node_data
         
-        for node in all_nodes:
+        for node in active_nodes:
             if node['nguoi_gioi_thieu'] and node['nguoi_gioi_thieu'] in nodes_by_code:
                 parent = nodes_by_code[node['nguoi_gioi_thieu']]
                 parent['children'].append(nodes_by_code[node['ma_ctv']])

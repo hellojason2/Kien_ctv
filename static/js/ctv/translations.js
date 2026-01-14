@@ -8,7 +8,7 @@
 const translations = {
     vi: {
         // Login
-        login_subtitle: 'Đăng nhập để xem hoa hồng và mạng lưới',
+        login_subtitle: 'Đăng nhập để xem hoa hồng và team',
         ctv_code: 'Tên đăng nhập',
         ctv_code_placeholder: 'Nhập mã CTV',
         password: 'Mật khẩu',
@@ -29,8 +29,8 @@ const translations = {
         page_overview: 'Tổng Quan',
         earnings: 'Hoa Hồng',
         page_earnings: 'Hoa Hồng',
-        network: 'Mạng Lưới',
-        page_network: 'Mạng Lưới',
+        network: 'Team',
+        page_network: 'Team',
         customers: 'Khách Hàng',
         page_customers: 'Khách Hàng',
         search: 'Tìm Kiếm',
@@ -45,7 +45,7 @@ const translations = {
         // Stats
         total_earnings: 'Tổng Thu Nhập',
         this_month: 'Thu Nhập Tháng Này',
-        network_size: 'Số Lượng Mạng Lưới',
+        network_size: 'Quy Mô Team',
         direct_referrals: 'Giới Thiệu Trực Tiếp',
         direct_level1: 'Trực Tiếp (Level 1)',
         services_this_month: 'Dịch Vụ Tháng Này',
@@ -125,7 +125,7 @@ const translations = {
         revenue: 'Doanh Thu',
         
         // Network
-        your_network: 'Mạng Lưới Của Bạn',
+        your_network: 'Team Của Bạn',
         direct_list: 'Danh Sách CTV Trực Tiếp',
         no_referrals: 'Bạn chưa giới thiệu ai',
         no_customers: 'Chưa có khách hàng nào',
@@ -209,13 +209,13 @@ const translations = {
         value: 'Giá Trị',
         total_commissions_earned: 'Tổng Hoa Hồng Đã Nhận',
         total_transactions: 'Tổng Số Giao Dịch',
-        total_network_members: 'Tổng Thành Viên Mạng Lưới',
+        total_network_members: 'Tổng Thành Viên Team',
         total_services_completed: 'Tổng Dịch Vụ Hoàn Thành',
         total_revenue_generated: 'Tổng Doanh Thu Tạo Ra'
     },
     en: {
         // Login
-        login_subtitle: 'Login to view commissions and network',
+        login_subtitle: 'Login to view commissions and team',
         ctv_code: 'CTV Code',
         ctv_code_placeholder: 'Enter CTV code',
         password: 'Password',
@@ -236,8 +236,8 @@ const translations = {
         page_overview: 'Overview',
         earnings: 'Earnings',
         page_earnings: 'Earnings',
-        network: 'Network',
-        page_network: 'Network',
+        network: 'Team',
+        page_network: 'Team',
         customers: 'Customers',
         page_customers: 'Customers',
         search: 'Search',
@@ -252,7 +252,7 @@ const translations = {
         // Stats
         total_earnings: 'Total Earnings',
         this_month: 'This Month',
-        network_size: 'Network Size',
+        network_size: 'Team Size',
         direct_referrals: 'Direct Referrals',
         direct_level1: 'Direct (Level 1)',
         services_this_month: 'Services This Month',
@@ -332,7 +332,7 @@ const translations = {
         revenue: 'Revenue',
         
         // Network
-        your_network: 'Your Network',
+        your_network: 'Your Team',
         direct_list: 'Direct Referrals List',
         no_referrals: 'No referrals yet',
         no_customers: 'No customers yet',
@@ -416,7 +416,7 @@ const translations = {
         value: 'Value',
         total_commissions_earned: 'Total Commissions Earned',
         total_transactions: 'Total Transactions',
-        total_network_members: 'Total Network Members',
+        total_network_members: 'Total Team Members',
         total_services_completed: 'Total Services Completed',
         total_revenue_generated: 'Total Revenue Generated'
     }

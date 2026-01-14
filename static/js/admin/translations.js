@@ -28,6 +28,7 @@ const translations = {
         commissions: 'Hoa Hồng',
         clients: 'Khách Hàng',
         settings: 'Cài Đặt',
+        signup_terms: 'Điều Khoản',
         activity_logs: 'Nhật Ký',
         logout: 'Đăng Xuất',
         
@@ -120,6 +121,7 @@ const translations = {
         reject_registration: 'Từ Chối Đơn Đăng Ký',
         registration_details: 'Chi Tiết Đơn Đăng Ký',
         ctv_code_hint: 'Nhập mã CTV duy nhất hoặc nhấn Tạo',
+        ctv_code_auto_hint: 'Mã CTV sẽ được đặt thành số điện thoại tự động',
         generate: 'Tạo',
         rejection_reason: 'Lý Do Từ Chối',
         rejection_reason_placeholder: 'Nhập lý do từ chối (tùy chọn)',
@@ -136,6 +138,17 @@ const translations = {
         commission_rates: 'Tỷ Lệ Hoa Hồng Theo Cấp',
         save_changes: 'Lưu Thay Đổi',
         settings_saved: 'Đã lưu cài đặt!',
+        
+        // Signup Terms
+        signup_terms_title: 'Điều Khoản Đăng Ký',
+        version_history: 'Lịch Sử Phiên Bản',
+        save_terms: 'Lưu Điều Khoản',
+        edit_terms: 'Chỉnh Sửa Điều Khoản',
+        terms_title_label: 'Tiêu Đề Điều Khoản',
+        terms_content_label: 'Nội Dung Điều Khoản (HTML)',
+        preview_label: 'Xem Trước',
+        version_history_title: 'Lịch Sử Phiên Bản Điều Khoản',
+        close: 'Đóng',
         
         // Hierarchy
         hierarchy_tree: 'Cây Cấp Bậc',
@@ -339,6 +352,7 @@ const translations = {
         reject_registration: 'Reject Registration',
         registration_details: 'Registration Details',
         ctv_code_hint: 'Enter a unique CTV code or click Generate',
+        ctv_code_auto_hint: 'CTV code will be set to the phone number automatically',
         generate: 'Generate',
         rejection_reason: 'Rejection Reason',
         rejection_reason_placeholder: 'Enter reason for rejection (optional)',
@@ -355,6 +369,17 @@ const translations = {
         commission_rates: 'Commission Rates by Level',
         save_changes: 'Save Changes',
         settings_saved: 'Settings saved!',
+        
+        // Signup Terms
+        signup_terms_title: 'Signup Agreement Terms',
+        version_history: 'Version History',
+        save_terms: 'Save Terms',
+        edit_terms: 'Edit Agreement Terms',
+        terms_title_label: 'Terms Title',
+        terms_content_label: 'Terms Content (HTML)',
+        preview_label: 'Live Preview',
+        version_history_title: 'Terms Version History',
+        close: 'Close',
         
         // Hierarchy
         hierarchy_tree: 'Hierarchy Tree',

@@ -39,6 +39,7 @@
             {% include 'admin/pages/hierarchy.html' %}
             {% include 'admin/pages/commissions.html' %}
             {% include 'admin/pages/settings.html' %}
+            {% include 'admin/pages/signup-terms.html' %}
             {% include 'admin/pages/clients.html' %}
             {% include 'admin/pages/activity-logs.html' %}
         </main>
@@ -47,6 +48,7 @@
     {% include 'admin/components/modals.html' %}
     
     <!-- Modular JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/commission-labels.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/api.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/db-validator.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/utils.js') }}"></script>
@@ -60,6 +62,7 @@
     <script src="{{ url_for('static', filename='js/admin/commissions.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/clients.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/signup-terms.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/main.js') }}"></script>

@@ -25,8 +25,10 @@ function navigateTo(page) {
         }
     }
     if (page === 'ctv') loadCTVList();
+    if (page === 'registrations') loadRegistrations();
     if (page === 'commissions') loadCommissions();
     if (page === 'settings') loadCommissionSettings();
+    if (page === 'signup-terms') loadSignupTermsByLanguage();
     if (page === 'clients') loadClientsWithServices();
     if (page === 'activity-logs') {
         loadActivityLogs(1);

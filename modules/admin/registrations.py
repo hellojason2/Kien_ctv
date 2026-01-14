@@ -151,8 +151,8 @@ def approve_registration(registration_id):
         # Create CTV account
         cursor.execute("""
             INSERT INTO ctv 
-            (ma_ctv, ten, sdt, email, dia_chi, cap_bac, nguoi_gioi_thieu, password_hash, active, ngay_tao)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE, NOW())
+            (ma_ctv, ten, sdt, email, dia_chi, cap_bac, nguoi_gioi_thieu, password_hash, active, ngay_tao, signature_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE, NOW(), %s)
         """, (
             ctv_code,
             registration['full_name'],
@@ -161,7 +161,8 @@ def approve_registration(registration_id):
             registration['address'],
             level,
             registration['referrer_code'],
-            registration['password_hash']
+            registration['password_hash'],
+            registration.get('signature_image')
         ))
         
         # Update registration status

@@ -305,6 +305,28 @@
     margin-bottom: 0;
 }
 
+/* Commission Card Label Input */
+.commission-card .level-label-input {
+    flex: 1;
+    margin: 0;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.commission-card .level-label-input:hover {
+    border-color: var(--border-color);
+}
+
+.commission-card .level-label-input:focus {
+    background: var(--bg-solid);
+    border-color: var(--accent-primary);
+}
+
 /* Disabled Commission Card State */
 .commission-card.disabled {
     opacity: 0.5;

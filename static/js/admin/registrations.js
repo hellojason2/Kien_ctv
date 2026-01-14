@@ -6,6 +6,23 @@
 let currentFilter = 'pending';
 let currentRegistrationId = null;
 let registrations = [];
+let availableLevels = [];
+
+/**
+ * Load available CTV levels from database
+ */
+async function loadCTVLevels() {
+    try {
+        const result = await api('/api/admin/ctv/levels');
+        if (result.status === 'success' && result.levels) {
+            availableLevels = result.levels;
+            return result.levels;
+        }
+    } catch (error) {
+        console.error('Error loading CTV levels:', error);
+    }
+    return [];
+}
 
 /**
  * Load registrations based on current filter
@@ -22,10 +39,35 @@ async function loadRegistrations() {
             updateRegistrationCounts();
         } else {
             showNotification(response.message || 'Failed to load registrations', 'error');
+            // Show error in table
+            const tbody = document.getElementById('registrationsTableBody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--accent-red);">
+                            <p>Error: ${response.message || 'Failed to load data'}</p>
+                            <button class="btn btn-secondary" onclick="loadRegistrations()" style="margin-top:10px">Retry</button>
+                        </td>
+                    </tr>
+                `;
+            }
         }
     } catch (error) {
         console.error('Error loading registrations:', error);
         showNotification('Error loading registrations', 'error');
+        
+        // Show error in table
+        const tbody = document.getElementById('registrationsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--accent-red);">
+                        <p>Connection Error</p>
+                        <button class="btn btn-secondary" onclick="loadRegistrations()" style="margin-top:10px">Retry</button>
+                    </td>
+                </tr>
+            `;
+        }
     }
 }
 
@@ -126,7 +168,7 @@ function filterRegistrations(status) {
 /**
  * Show approve modal
  */
-function showApproveModal(registrationId) {
+async function showApproveModal(registrationId) {
     currentRegistrationId = registrationId;
     const registration = registrations.find(r => r.id === registrationId);
     
@@ -153,11 +195,32 @@ function showApproveModal(registrationId) {
             <span class="detail-value">${registration.referrer_code} ${registration.referrer_name ? '(' + escapeHtml(registration.referrer_name) + ')' : ''}</span>
         </div>
         ` : ''}
+        ${registration.signature_image ? `
+        <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+            <span class="detail-label" data-i18n="signature">Signature</span>
+            <div style="background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; width: 100%; display: flex; justify-content: center;">
+                <img src="${registration.signature_image}" alt="Signature" style="max-width: 100%; max-height: 100px; object-fit: contain;">
+            </div>
+        </div>
+        ` : ''}
     `;
     
     document.getElementById('approveDetails').innerHTML = detailsHtml;
-    document.getElementById('approveCtVCode').value = '';
-    document.getElementById('approveLevel').value = 'Đồng';
+    // Auto-populate CTV code with phone number
+    document.getElementById('approveCtVCode').value = registration.phone;
+    
+    // Load and populate levels
+    const levels = availableLevels.length > 0 ? availableLevels : await loadCTVLevels();
+    const levelSelect = document.getElementById('approveLevel');
+    levelSelect.innerHTML = levels.map(level => 
+        `<option value="${level}">${level}</option>`
+    ).join('');
+    
+    // Set default value to first level if available
+    if (levels.length > 0) {
+        levelSelect.value = levels[0];
+    }
+    
     document.getElementById('approveModal').style.display = 'flex';
     
     if (window.translatePage) {
@@ -258,6 +321,14 @@ function showRejectModal(registrationId) {
         <div class="detail-row">
             <span class="detail-label" data-i18n="email">Email</span>
             <span class="detail-value">${escapeHtml(registration.email)}</span>
+        </div>
+        ` : ''}
+        ${registration.signature_image ? `
+        <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+            <span class="detail-label" data-i18n="signature">Signature</span>
+            <div style="background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; width: 100%; display: flex; justify-content: center;">
+                <img src="${registration.signature_image}" alt="Signature" style="max-width: 100%; max-height: 100px; object-fit: contain;">
+            </div>
         </div>
         ` : ''}
     `;
@@ -393,6 +464,14 @@ function showViewDetailsModal(registrationId) {
                 <span class="detail-value">${escapeHtml(registration.admin_notes)}</span>
             </div>
             ` : ''}
+            ${registration.signature_image ? `
+            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <span class="detail-label" data-i18n="signature">Signature</span>
+                <div style="background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; width: 100%; display: flex; justify-content: center;">
+                    <img src="${registration.signature_image}" alt="Signature" style="max-width: 100%; max-height: 150px; object-fit: contain;">
+                </div>
+            </div>
+            ` : ''}
         </div>
     `;
     
@@ -424,5 +503,6 @@ function escapeHtml(text) {
 document.addEventListener('pageChanged', (e) => {
     if (e.detail.page === 'registrations') {
         loadRegistrations();
+        loadCTVLevels(); // Preload levels for faster modal display
     }
 });

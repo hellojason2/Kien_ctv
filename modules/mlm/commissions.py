@@ -471,3 +471,105 @@ def get_commission_cache_status():
     except Exception:
         return None
 
+
+def get_active_levels(connection=None):
+    """
+    DOES: Get set of active commission levels
+    INPUTS: Optional connection (creates new if not provided)
+    OUTPUTS: Set of active level integers (e.g., {0, 1, 2, 3, 4})
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        # Default all levels active
+        return set(range(MAX_LEVEL + 1))
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Try hoa_hong_config first
+        cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
+        if cursor.fetchone()['exists']:
+            cursor.execute("SELECT level, is_active FROM hoa_hong_config ORDER BY level")
+            rows = cursor.fetchall()
+            
+            if rows:
+                active = {int(row['level']) for row in rows if row.get('is_active', True)}
+                cursor.close()
+                if should_close:
+                    return_db_connection(connection)
+                return active
+        
+        # Try commission_settings fallback
+        cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'commission_settings')")
+        if cursor.fetchone()['exists']:
+            cursor.execute("SELECT level, is_active FROM commission_settings ORDER BY level")
+            rows = cursor.fetchall()
+            
+            if rows:
+                active = {int(row['level']) for row in rows if row.get('is_active', True)}
+                cursor.close()
+                if should_close:
+                    return_db_connection(connection)
+                return active
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        # Default all levels active
+        return set(range(MAX_LEVEL + 1))
+        
+    except Error as e:
+        print(f"Error loading active levels: {e}")
+        if should_close and connection:
+            return_db_connection(connection)
+        return set(range(MAX_LEVEL + 1))
+
+def remove_commissions_for_levels(levels, connection=None):
+    """
+    DOES: Remove commission records for specific levels (used when levels are disabled)
+    INPUTS: List of level integers to remove
+    OUTPUTS: Dict with count of deleted records
+    """
+    if not levels:
+        return {'deleted': 0}
+    
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return {'deleted': 0, 'error': 'Database connection failed'}
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Delete commissions for the specified levels
+        cursor.execute(
+            "DELETE FROM commissions WHERE level = ANY(%s)",
+            (levels,)
+        )
+        deleted_count = cursor.rowcount
+        
+        connection.commit()
+        cursor.close()
+        
+        if should_close:
+            return_db_connection(connection)
+        
+        invalidate_commission_cache()
+        
+        return {'deleted': deleted_count}
+        
+    except Error as e:
+        print(f"Error removing commissions for levels {levels}: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return {'deleted': 0, 'error': str(e)}

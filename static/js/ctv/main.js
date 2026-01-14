@@ -95,6 +95,11 @@ function initPopupClose() {
 
 // Main initialization
 document.addEventListener('DOMContentLoaded', async function() {
+    // Load commission labels first
+    if (typeof loadCommissionLabels === 'function') {
+        await loadCommissionLabels();
+    }
+    
     // Validate database schema first (10 second timeout)
     if (typeof initDatabaseValidation === 'function') {
         const dbValid = await initDatabaseValidation();

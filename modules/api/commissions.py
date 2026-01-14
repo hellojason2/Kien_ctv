@@ -4,6 +4,37 @@ from psycopg2.extras import RealDictCursor
 from .blueprint import api_bp
 from ..db_pool import get_db_connection, return_db_connection
 
+@api_bp.route('/api/commission-labels', methods=['GET'])
+def get_commission_labels():
+    """Get commission level labels for frontend display (public endpoint)"""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'DB error'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT level, label, is_active
+            FROM commission_settings 
+            ORDER BY level
+        """)
+        settings = [dict(row) for row in cursor.fetchall()]
+        
+        # Build a dictionary of level -> label
+        labels = {}
+        for s in settings:
+            # Only include active levels
+            if s.get('is_active', True):
+                labels[s['level']] = s.get('label') or f"Level {s['level']}"
+        
+        cursor.close()
+        return_db_connection(connection)
+        return jsonify({'status': 'success', 'labels': labels})
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @api_bp.route('/api/commissions/transaction/<int:transaction_id>', methods=['GET'])
 def get_transaction_commissions(transaction_id):
     """Get all commissions for a specific transaction"""

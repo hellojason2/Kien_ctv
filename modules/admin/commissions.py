@@ -7,9 +7,10 @@ from ..db_pool import get_db_connection, return_db_connection
 from ..mlm_core import (
     recalculate_all_commissions,
     calculate_new_commissions_fast,
-    get_commission_cache_status
+    get_commission_cache_status,
+    remove_commissions_for_levels
 )
-from ..redis_cache import invalidate_commission_cache
+from ..redis_cache import invalidate_commission_cache, invalidate_all_hierarchies
 from ..activity_logger import log_commission_adjusted
 
 @admin_bp.route('/api/admin/commission-settings', methods=['GET'])
@@ -24,7 +25,7 @@ def get_settings():
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT level, rate, description, updated_at, updated_by, is_active
+            SELECT level, rate, description, label, updated_at, updated_by, is_active
             FROM commission_settings ORDER BY level
         """)
         settings = [dict(row) for row in cursor.fetchall()]
@@ -32,6 +33,7 @@ def get_settings():
         for s in settings:
             s['rate'] = float(s['rate'])
             s['is_active'] = s.get('is_active', True)  # Default to True if not set
+            s['label'] = s.get('label') or f"Level {s['level']}"  # Default to "Level X" if not set
             if s.get('updated_at'):
                 s['updated_at'] = s['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
         
@@ -52,7 +54,12 @@ def get_settings():
 @admin_bp.route('/api/admin/commission-settings', methods=['PUT'])
 @require_admin
 def update_settings():
-    """Update commission rate settings"""
+    """Update commission rate settings with intelligent recalculation logic.
+    
+    - If a level is disabled: only remove commissions for that level (no full recalc)
+    - If a rate is changed OR a level is enabled: trigger full recalculation
+    - If no meaningful change: do nothing
+    """
     data = request.get_json()
     
     if not data or 'settings' not in data:
@@ -63,15 +70,24 @@ def update_settings():
         return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
     
     try:
-        cursor = connection.cursor()
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Step 1: Fetch existing settings before applying updates
+        cursor.execute("SELECT level, rate, is_active, label FROM commission_settings ORDER BY level")
+        existing_settings = {row['level']: {'rate': float(row['rate']), 'is_active': row.get('is_active', True), 'label': row.get('label')} for row in cursor.fetchall()}
         
         admin_username = g.current_user.get('username', 'admin')
+        
+        # Step 2: Track what changed
+        needs_full_recalc = False
+        levels_to_disable = []
         
         for setting in data['settings']:
             level = setting.get('level')
             rate = setting.get('rate')
             description = setting.get('description')
-            is_active = setting.get('is_active', True)  # Default to True if not provided
+            label = setting.get('label')
+            new_is_active = setting.get('is_active', True)
             
             if level is None or rate is None:
                 continue
@@ -79,14 +95,30 @@ def update_settings():
             if level < 0 or level > 4:
                 continue
             
+            old_setting = existing_settings.get(level, {'rate': 0, 'is_active': True, 'label': None})
+            old_rate = old_setting['rate']
+            old_is_active = old_setting['is_active']
+            new_rate = float(rate)
+            
+            # Check what changed
+            rate_changed = abs(old_rate - new_rate) > 0.0000001  # Float comparison tolerance
+            level_enabled = not old_is_active and new_is_active  # False -> True
+            level_disabled = old_is_active and not new_is_active  # True -> False
+            
+            # Determine action needed
+            if rate_changed or level_enabled:
+                needs_full_recalc = True
+            elif level_disabled:
+                levels_to_disable.append(level)
+            
+            # Apply the update to database
             cursor.execute("""
                 UPDATE commission_settings 
-                SET rate = %s, description = %s, updated_by = %s, is_active = %s
+                SET rate = %s, description = %s, label = %s, updated_by = %s, is_active = %s
                 WHERE level = %s
-            """, (rate, description, admin_username, is_active, level))
+            """, (rate, description, label, admin_username, new_is_active, level))
             
             # Also update legacy table hoa_hong_config if it exists to keep them in sync
-            # Note: hoa_hong_config stores percentage (e.g. 25.0) not rate (0.25)
             try:
                 percent = float(rate) * 100
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
@@ -95,18 +127,31 @@ def update_settings():
                         UPDATE hoa_hong_config 
                         SET percent = %s, description = %s, is_active = %s
                         WHERE level = %s
-                    """, (percent, description, is_active, level))
+                    """, (percent, description, new_is_active, level))
             except Exception as e:
                 print(f"Warning: Could not update legacy hoa_hong_config: {e}")
         
         connection.commit()
         cursor.close()
         
-        # Invalidate cache to ensure new rates are used
+        # Invalidate caches to ensure new rates and active levels are used
         invalidate_commission_cache()
+        invalidate_all_hierarchies()  # Hierarchy trees depend on active levels
         
-        # Recalculate all commissions with new settings
-        stats = recalculate_all_commissions(connection)
+        # Step 3: Execute the appropriate action based on what changed
+        result_message = 'Commission settings updated'
+        stats = {}
+        
+        if needs_full_recalc:
+            # Rate changed or level enabled -> full recalculation needed
+            stats = recalculate_all_commissions(connection)
+            result_message = 'Commission settings updated and commissions recalculated'
+        elif levels_to_disable:
+            # Only levels disabled -> targeted deletion (no full recalc)
+            deletion_result = remove_commissions_for_levels(levels_to_disable, connection)
+            stats = {'levels_disabled': levels_to_disable, 'commissions_removed': deletion_result.get('deleted', 0)}
+            result_message = f'Commission settings updated. Removed commissions for disabled levels: {levels_to_disable}'
+        # else: no meaningful change, nothing to do
         
         return_db_connection(connection)
         
@@ -118,7 +163,7 @@ def update_settings():
         
         return jsonify({
             'status': 'success',
-            'message': 'Commission settings updated and commissions recalculated',
+            'message': result_message,
             'recalculation_stats': stats
         })
         

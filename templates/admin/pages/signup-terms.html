@@ -1,0 +1,251 @@
+<!-- Signup Terms Management Page -->
+<div class="page-section" id="page-signup-terms">
+    <div class="header">
+        <h2 data-i18n="signup_terms_title">Signup Agreement Terms</h2>
+        <div class="header-actions">
+            <select id="termsLanguageSelect" class="language-select" onchange="loadSignupTermsByLanguage()">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+            </select>
+            <button class="btn btn-secondary" onclick="showTermsVersionHistory()" data-i18n="version_history">Version History</button>
+            <button class="btn btn-primary" onclick="saveSignupTerms()" data-i18n="save_terms" id="saveTermsBtn">Save Terms</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="edit_terms">Edit Agreement Terms</h3>
+            <div class="terms-meta" id="termsMetadata">
+                <span class="meta-item"><strong>Version:</strong> <span id="currentVersion">-</span></span>
+                <span class="meta-item"><strong>Last Updated:</strong> <span id="lastUpdated">-</span></span>
+                <span class="meta-item"><strong>Updated By:</strong> <span id="updatedBy">-</span></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="termsTitle" data-i18n="terms_title_label">Terms Title</label>
+                <input type="text" id="termsTitle" class="form-control" placeholder="Enter title..." oninput="enableSaveButton()">
+            </div>
+            
+            <div class="form-group">
+                <label for="termsContent" data-i18n="terms_content_label">Terms Content (HTML)</label>
+                <div class="editor-toolbar">
+                    <button type="button" class="btn-toolbar" onclick="insertTermsTag('h4')" title="Heading 4">
+                        <strong>H4</strong>
+                    </button>
+                    <button type="button" class="btn-toolbar" onclick="insertTermsTag('p')" title="Paragraph">
+                        <strong>P</strong>
+                    </button>
+                    <button type="button" class="btn-toolbar" onclick="insertTermsTag('strong')" title="Bold">
+                        <strong>B</strong>
+                    </button>
+                    <button type="button" class="btn-toolbar" onclick="insertTermsTag('em')" title="Italic">
+                        <em>I</em>
+                    </button>
+                    <button type="button" class="btn-toolbar" onclick="formatTermsList()" title="List">
+                        • List
+                    </button>
+                </div>
+                <textarea id="termsContent" class="form-control terms-editor" rows="20" placeholder="Enter HTML content..." oninput="enableSaveButton(); updateTermsPreview()"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="preview_label">Live Preview</label>
+                <div class="terms-preview-box" id="termsPreview">
+                    <p class="preview-placeholder">Preview will appear here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version History Modal -->
+<div id="versionHistoryModal" class="modal" style="display: none;">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3 data-i18n="version_history_title">Terms Version History</h3>
+            <button class="modal-close" onclick="closeVersionHistoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="version-list" id="versionList">
+                <div class="loading">Loading versions...</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeVersionHistoryModal()" data-i18n="close">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Signup Terms Management Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal[style*="display: flex"] {
+    display: flex !important;
+}
+
+.language-select {
+    padding: 8px 12px;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.terms-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: #586069;
+}
+
+.meta-item {
+    display: flex;
+    gap: 5px;
+}
+
+.terms-editor {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 400px;
+    resize: vertical;
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px 6px 0 0;
+}
+
+.btn-toolbar {
+    padding: 5px 10px;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.btn-toolbar:hover {
+    background: #0366d6;
+    color: white;
+    border-color: #0366d6;
+}
+
+.terms-preview-box {
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 20px;
+    background: #f6f8fa;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.terms-preview-box h3 {
+    margin-top: 0;
+    color: #24292e;
+    font-size: 20px;
+}
+
+.terms-preview-box h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #0366d6;
+    font-size: 16px;
+}
+
+.terms-preview-box p {
+    margin: 8px 0;
+    line-height: 1.6;
+    color: #24292e;
+}
+
+.preview-placeholder {
+    color: #959da5;
+    font-style: italic;
+}
+
+.version-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.version-item {
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 15px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.version-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.version-item.active {
+    border-color: #0366d6;
+    background: #f1f8ff;
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.version-info {
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #586069;
+}
+
+.version-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #28a745;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.version-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.version-content {
+    padding-top: 10px;
+    border-top: 1px solid #e1e4e8;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 13px;
+}
+
+.modal-large {
+    max-width: 900px;
+}
+</style>

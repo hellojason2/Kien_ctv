@@ -412,7 +412,7 @@ function renderRatesTable() {
     }
     tbody.innerHTML = rawData.rates.map(r => `
         <tr>
-            <td><span class="level-badge level-${r.level}">Level ${r.level}</span></td>
+            <td><span class="level-badge level-${r.level}">${getCommissionLabel(r.level)}</span></td>
             <td>${(r.rate * 100).toFixed(1)}%</td>
             <td>${r.description || '-'}</td>
         </tr>

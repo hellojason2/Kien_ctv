@@ -433,7 +433,7 @@ async function loadRecentCommissions(fromDate = null, toDate = null) {
                         <tbody>
                             ${result.by_level.map(s => `
                                 <tr>
-                                    <td><span class="level-badge level-${s.level}">Level ${s.level}</span></td>
+                                    <td><span class="level-badge level-${s.level}">${getCommissionLabel(s.level)}</span></td>
                                     <td style="color:#22c55e;font-weight:600">${formatCurrency(s.total_revenue)}</td>
                                     <td>${s.rate.toFixed(1)}%</td>
                                     <td>${s.transaction_count}</td>
@@ -574,7 +574,7 @@ async function loadAllCommissions(fromDate = null, toDate = null) {
                     <tbody>
                         ${result.by_level.map(s => `
                             <tr>
-                                <td><span class="level-badge level-${s.level}">Level ${s.level}</span></td>
+                                <td><span class="level-badge level-${s.level}">${getCommissionLabel(s.level)}</span></td>
                                 <td style="color:#22c55e;font-weight:600">${formatCurrency(s.total_revenue)}</td>
                                 <td>${s.rate.toFixed(1)}%</td>
                                 <td>${s.transaction_count}</td>
