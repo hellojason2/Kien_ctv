@@ -10,7 +10,7 @@ const translations = {
         // Login
         login_subtitle: 'Đăng nhập để xem hoa hồng và team',
         ctv_code: 'Tên đăng nhập',
-        ctv_code_placeholder: 'Nhập mã CTV',
+        ctv_code_placeholder: 'Nhập số điện thoại',
         password: 'Mật khẩu',
         enter_password: 'Nhập mật khẩu',
         remember_me: 'Ghi nhớ đăng nhập',
@@ -245,7 +245,7 @@ const translations = {
         // Login
         login_subtitle: 'Login to view commissions and team',
         ctv_code: 'CTV Code',
-        ctv_code_placeholder: 'Enter CTV code',
+        ctv_code_placeholder: 'Enter phone number',
         password: 'Password',
         enter_password: 'Enter password',
         remember_me: 'Remember me',
