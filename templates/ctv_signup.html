@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTV Sign Up - Đăng Ký CTV</title>
+    <title>Tam Group - Đăng Ký CTV</title>
+    
+    <!-- Open Graph Meta Tags for Link Preview -->
+    <meta property="og:title" content="Tam Group - Đăng Ký CTV">
+    <meta property="og:description" content="Đăng ký làm Cộng Tác Viên - Tam Group">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tam Group">
+    <meta name="description" content="Đăng ký làm Cộng Tác Viên - Tam Group">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
@@ -64,19 +71,6 @@
             </div>
             <h1 data-i18n="signup_title">Đăng Ký CTV</h1>
             <p class="subtitle" data-i18n="signup_subtitle">Điền thông tin để đăng ký làm Cộng Tác Viên</p>
-            
-            <!-- ID Scan Button -->
-            <div class="id-scan-section">
-                <button type="button" class="btn-scan-id" onclick="openIdScanner()">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
-                    <span data-i18n="scan_id">📷 Quét CCCD/CMND</span>
-                </button>
-                <p class="scan-hint" data-i18n="scan_hint">Chụp ảnh CCCD để tự động điền thông tin</p>
-            </div>
             
             <form id="signupForm">
                 <!-- Họ và tên (split into two fields) -->
@@ -230,46 +224,6 @@
                 <div class="terms-modal-actions">
                     <button class="btn btn-primary" id="closeTermsBtn" data-i18n="close">Đóng</button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden file input for ID scan -->
-    <input type="file" id="idFileInput" accept="image/*" capture="environment" style="display: none;" onchange="handleIdImageSelected(event)">
-    
-    <!-- ID Scanner Modal -->
-    <div id="idScannerModal" class="id-scanner-modal">
-        <div class="id-scanner-content">
-            <div class="id-scanner-header">
-                <h3 data-i18n="scan_id_title">Quét CCCD/CMND</h3>
-                <button type="button" class="id-scanner-close" onclick="closeIdScanner()">&times;</button>
-            </div>
-            <div class="id-scanner-body">
-                <div class="id-scanner-preview" id="idPreview">
-                    <div class="id-scanner-placeholder">
-                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-                        <p data-i18n="id_preview_hint">Ảnh CCCD sẽ hiển thị ở đây</p>
-                    </div>
-                    <img id="idPreviewImage" style="display: none; max-width: 100%; border-radius: 8px;">
-                </div>
-                <div class="id-scanner-actions">
-                    <button type="button" class="btn-capture" onclick="document.getElementById('idFileInput').click()">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                            <circle cx="12" cy="13" r="4"></circle>
-                        </svg>
-                        <span data-i18n="take_photo">Chụp ảnh / Chọn ảnh</span>
-                    </button>
-                </div>
-                <div class="id-scanner-status" id="idScanStatus"></div>
-            </div>
-            <div class="id-scanner-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeIdScanner()" data-i18n="cancel">Hủy</button>
-                <button type="button" class="btn btn-primary" id="btnExtractId" onclick="extractIdData()" disabled data-i18n="extract_info">Trích xuất thông tin</button>
             </div>
         </div>
     </div>
