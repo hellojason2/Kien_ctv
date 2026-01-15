@@ -255,38 +255,61 @@ class GoogleSheetSync:
             cur.close()
             return False
 
+    def check_exact_record_exists(self, conn, sdt, ngay_nhap, dich_vu, source):
+        """
+        Check if an EXACT record exists (same phone + date + service).
+        This prevents duplicate entries while allowing multiple services per customer.
+        """
+        cur = conn.cursor()
+        try:
+            # Normalize service for comparison (trim whitespace)
+            dich_vu_clean = str(dich_vu).strip() if dich_vu else ''
+            
+            cur.execute("""
+                SELECT COUNT(*) FROM khach_hang 
+                WHERE sdt = %s 
+                AND ngay_nhap_don = %s 
+                AND TRIM(COALESCE(dich_vu, '')) = %s
+                AND source = %s
+            """, (sdt, ngay_nhap, dich_vu_clean, source))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count > 0
+        except Exception as e:
+            cur.close()
+            return False
+
     def bulk_insert_or_update_tham_my(self, conn, rows):
         """
-        For Tham My tab: Check if client exists, update if exists, insert if new.
-        Returns (inserted_count, updated_count)
+        For Tham My tab: Insert ALL rows as separate entries.
+        Only skip exact duplicates (same phone + date + service).
+        Each service visit should be a separate row!
+        Returns (inserted_count, skipped_count)
         """
         if not rows:
             return 0, 0
         
         inserted = 0
-        updated = 0
+        skipped = 0
         insert_batch = []
         
         for row in rows:
-            sdt = row[2]  # Phone number is at index 2
+            sdt = row[2]        # Phone number
+            ngay_nhap = row[0]  # Date
+            dich_vu = row[6]    # Service
             
-            # Check if client exists in any source
-            if self.check_client_exists(conn, sdt):
-                # Update existing client's most recent record
-                if self.update_existing_client(conn, sdt, row):
-                    updated += 1
-                else:
-                    # If update failed (shouldn't happen), insert as new
-                    insert_batch.append(row)
+            # Only skip if EXACT same record exists (phone + date + service)
+            if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'tham_my'):
+                skipped += 1
             else:
-                # New client - add to insert batch
+                # New service entry - add to insert batch
                 insert_batch.append(row)
         
-        # Bulk insert new clients
+        # Bulk insert all new service entries
         if insert_batch:
             inserted = self.bulk_insert_khach_hang(conn, insert_batch, 'tham_my')
         
-        return inserted, updated
+        return inserted, skipped
 
     def bulk_insert_khach_hang(self, conn, rows, tab_type):
         """Bulk insert rows into khach_hang table"""
@@ -520,7 +543,7 @@ class GoogleSheetSync:
                         updated += upd
                         processed += ins + upd
                     
-                    logger.info(f"    Batch: {processed} processed ({inserted} new, {updated} updated)")
+                    logger.info(f"    Batch: {processed} processed ({inserted} new, {updated} skipped duplicates)")
                     batch = []
                     ctv_phones = []
                     
@@ -559,37 +582,35 @@ class GoogleSheetSync:
 
     def bulk_insert_or_update_nha_khoa(self, conn, rows):
         """
-        For Nha Khoa tab: Check if client exists, update if exists, insert if new.
-        Uses phone + date matching to detect updates vs inserts.
-        Returns (inserted_count, updated_count)
+        For Nha Khoa tab: Insert ALL rows as separate entries.
+        Only skip exact duplicates (same phone + date + service).
+        Each service visit should be a separate row!
+        Returns (inserted_count, skipped_count)
         """
         if not rows:
             return 0, 0
         
         inserted = 0
-        updated = 0
+        skipped = 0
         insert_batch = []
         
         for row in rows:
-            sdt = row[2]  # Phone number is at index 2
-            ngay_nhap = row[0]  # Date at index 0
+            sdt = row[2]        # Phone number
+            ngay_nhap = row[0]  # Date
+            dich_vu = row[3]    # Service (index 3 for nha_khoa)
             
-            # Check if this specific record exists (same phone + same date + same source)
-            if self.check_record_exists(conn, sdt, ngay_nhap, 'nha_khoa'):
-                # Update existing record
-                if self.update_nha_khoa_record(conn, sdt, ngay_nhap, row):
-                    updated += 1
-                else:
-                    insert_batch.append(row)
+            # Only skip if EXACT same record exists (phone + date + service)
+            if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'nha_khoa'):
+                skipped += 1
             else:
-                # New record - add to insert batch
+                # New service entry - add to insert batch
                 insert_batch.append(row)
         
-        # Bulk insert new records
+        # Bulk insert all new service entries
         if insert_batch:
             inserted = self.bulk_insert_khach_hang(conn, insert_batch, 'nha_khoa')
         
-        return inserted, updated
+        return inserted, skipped
 
     def check_record_exists(self, conn, sdt, ngay_nhap, source):
         """Check if a specific record exists (same phone + date + source)"""
@@ -1198,11 +1219,11 @@ class GoogleSheetSync:
                     conn = self.ensure_connection(conn)
                     
                     if tab_type == 'tham_my':
-                        # For Tham My: check if client exists and update, or insert new
-                        inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
-                        processed += inserted + updated
+                        # For Tham My: insert all rows, skip exact duplicates
+                        inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
+                        processed += inserted + skipped
                         progress_pct = round((processed / new_rows_count) * 100, 1)
-                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%) - {inserted} new, {updated} updated", 'info')
+                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%) - {inserted} new, {skipped} skipped", 'info')
                     elif tab_type == 'nha_khoa':
                         inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                         processed += inserted
@@ -1231,10 +1252,10 @@ class GoogleSheetSync:
                 conn = self.ensure_connection(conn)
                 
                 if tab_type == 'tham_my':
-                    # For Tham My: check if client exists and update, or insert new
-                    inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
-                    processed += inserted + updated
-                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%) - {inserted} new, {updated} updated", 'info')
+                    # For Tham My: insert all rows, skip exact duplicates
+                    inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
+                    processed += inserted + skipped
+                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%) - {inserted} new, {skipped} skipped", 'info')
                 elif tab_type == 'nha_khoa':
                     inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                     processed += inserted
