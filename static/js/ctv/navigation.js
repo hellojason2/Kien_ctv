@@ -39,8 +39,17 @@ function navigateToPage(page) {
         if (typeof initEarnings === 'function') initEarnings();
     }
     if (page === 'network' && typeof loadNetwork === 'function') loadNetwork();
-    if (page === 'clients' && typeof switchToCardView === 'function') {
-        switchToCardView();
+    if (page === 'clients') {
+        if (typeof switchToCardView === 'function') {
+            switchToCardView();
+        }
+        // Initialize search when clients page is shown
+        if (typeof initClientSearch === 'function') {
+            initClientSearch();
+        }
+    }
+    if (page === 'booking' && typeof updateBookingReferrerPhone === 'function') {
+        updateBookingReferrerPhone();
     }
 }
 
@@ -55,6 +64,7 @@ function updatePageTitle(page) {
         'earnings': 'page_earnings',
         'network': 'page_network',
         'clients': 'page_customers',
+        'booking': 'page_booking',
         'settings': 'page_settings'
     };
     

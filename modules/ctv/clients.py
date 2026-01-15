@@ -26,19 +26,22 @@ def get_ctv_clients_with_services():
         limit = request.args.get('limit', 50, type=int)
         
         # Get distinct clients from BOTH khach_hang and services where CTV is the closer
+        # Prioritize consulting sources (nha_khoa, gioi_thieu) first
         client_query = """
             SELECT 
                 sdt,
                 ten_khach,
                 MIN(co_so) as co_so,
                 MIN(first_date) as first_visit_date,
-                COUNT(*) as service_count
+                COUNT(*) as service_count,
+                BOOL_OR(source IN ('nha_khoa', 'gioi_thieu')) as is_consulting
             FROM (
                 SELECT 
                     sdt,
                     ten_khach,
                     co_so,
-                    ngay_nhap_don as first_date
+                    ngay_nhap_don as first_date,
+                    source
                 FROM khach_hang
                 WHERE nguoi_chot = %s
                 AND sdt IS NOT NULL AND sdt != ''
@@ -49,7 +52,8 @@ def get_ctv_clients_with_services():
                     c.phone as sdt,
                     c.name as ten_khach,
                     NULL as co_so,
-                    s.date_entered as first_date
+                    s.date_entered as first_date,
+                    'nha_khoa' as source
                 FROM services s
                 JOIN customers c ON s.customer_id = c.id
                 WHERE COALESCE(s.nguoi_chot, s.ctv_code) = %s
@@ -64,9 +68,12 @@ def get_ctv_clients_with_services():
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
+        # Prioritize consulting clients (nha_khoa, gioi_thieu) first, then by date
         client_query += """
             GROUP BY sdt, ten_khach
-            ORDER BY MAX(first_date) DESC
+            ORDER BY 
+                CASE WHEN BOOL_OR(source IN ('nha_khoa', 'gioi_thieu')) THEN 0 ELSE 1 END,
+                MAX(first_date) DESC
             LIMIT %s
         """
         params.append(limit)
@@ -80,6 +87,7 @@ def get_ctv_clients_with_services():
             ten_khach = client_row['ten_khach']
             
             # Get services from BOTH tables for this client where CTV is the closer
+            # Prioritize consulting services (nha_khoa, gioi_thieu) first
             cursor.execute("""
                 SELECT 
                     id,
@@ -91,7 +99,8 @@ def get_ctv_clients_with_services():
                     ngay_nhap_don,
                     trang_thai,
                     nguoi_chot,
-                    source_type
+                    source_type,
+                    is_consulting
                 FROM (
                     SELECT 
                         id,
@@ -103,7 +112,8 @@ def get_ctv_clients_with_services():
                         ngay_nhap_don,
                         trang_thai,
                         nguoi_chot,
-                        'tham_my' as source_type
+                        source as source_type,
+                        (source IN ('nha_khoa', 'gioi_thieu')) as is_consulting
                     FROM khach_hang
                     WHERE sdt = %s AND nguoi_chot = %s
                     
@@ -119,12 +129,15 @@ def get_ctv_clients_with_services():
                         s.date_entered as ngay_nhap_don,
                         s.status as trang_thai,
                         COALESCE(s.nguoi_chot, s.ctv_code) as nguoi_chot,
-                        'nha_khoa' as source_type
+                        'nha_khoa' as source_type,
+                        true as is_consulting
                     FROM services s
                     JOIN customers c ON s.customer_id = c.id
                     WHERE c.phone = %s AND COALESCE(s.nguoi_chot, s.ctv_code) = %s
                 ) AS all_svc
-                ORDER BY ngay_nhap_don DESC
+                ORDER BY 
+                    CASE WHEN is_consulting THEN 0 ELSE 1 END,
+                    ngay_nhap_don DESC
                 LIMIT 5
             """, (sdt, ctv['ma_ctv'], sdt, ctv['ma_ctv']))
             
@@ -137,6 +150,8 @@ def get_ctv_clients_with_services():
                 phai_dong = float(svc['phai_dong'] or 0)
                 
                 deposit_status = 'Da coc' if tien_coc > 0 else 'Chua coc'
+                source_type = svc.get('source_type', 'tham_my')
+                is_consulting = svc.get('is_consulting', False) or source_type in ('nha_khoa', 'gioi_thieu')
                 
                 services.append({
                     'id': svc['id'],
@@ -149,7 +164,9 @@ def get_ctv_clients_with_services():
                     'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
                     'trang_thai': svc['trang_thai'] or '',
                     'deposit_status': deposit_status,
-                    'source_type': svc.get('source_type', 'tham_my')
+                    'source_type': source_type,
+                    'source': source_type,
+                    'is_consulting': is_consulting
                 })
             
             overall_status = services[0]['trang_thai'] if services else ''
@@ -180,6 +197,9 @@ def get_ctv_clients_with_services():
             except Error:
                 pass
             
+            # Check if client has any consulting services
+            client_is_consulting = client_row.get('is_consulting', False) or any(s.get('is_consulting', False) for s in services)
+            
             clients.append({
                 'ten_khach': ten_khach or '',
                 'sdt': sdt or '',
@@ -192,6 +212,7 @@ def get_ctv_clients_with_services():
                 'service_count': client_row['service_count'],
                 'overall_status': overall_status,
                 'overall_deposit': overall_deposit,
+                'is_consulting': client_is_consulting,
                 'services': services
             })
         

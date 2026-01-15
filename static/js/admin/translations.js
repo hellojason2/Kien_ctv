@@ -195,6 +195,7 @@ const translations = {
         // Status
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
+        consulting: 'Đang tư vấn',
         
         // Modal
         add_new_ctv: 'Thêm CTV Mới',
@@ -449,6 +450,7 @@ const translations = {
         // Status
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
+        consulting: 'Consulting',
         
         // Loading
         loading: 'Loading...',

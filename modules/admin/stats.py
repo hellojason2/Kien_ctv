@@ -1,4 +1,7 @@
 import datetime
+import os
+import logging
+from pathlib import Path
 from flask import jsonify, request
 from psycopg2.extras import RealDictCursor
 from psycopg2 import Error
@@ -6,6 +9,8 @@ from .blueprint import admin_bp
 from ..auth import require_admin
 from ..db_pool import get_db_connection, return_db_connection
 from ..mlm_core import calculate_new_commissions_fast
+
+logger = logging.getLogger(__name__)
 
 @admin_bp.route('/api/admin/stats', methods=['GET'])
 @require_admin
@@ -364,3 +369,107 @@ def get_date_ranges_with_data():
             return_db_connection(connection)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+@admin_bp.route('/api/admin/sync/row-counts', methods=['GET'])
+@require_admin
+def get_sync_row_counts():
+    """
+    Get row counts comparison between database and Google Sheets.
+    Returns counts for each source: tham_my, nha_khoa, gioi_thieu
+    """
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Get database counts for each source
+        db_counts = {}
+        for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+            cursor.execute("SELECT COUNT(*) as count FROM khach_hang WHERE source = %s", (source,))
+            db_counts[source] = cursor.fetchone()['count']
+        
+        cursor.close()
+        return_db_connection(connection)
+        
+        # Get Google Sheets counts
+        sheet_counts = {}
+        sheet_error = None
+        
+        try:
+            import gspread
+            from google.oauth2.service_account import Credentials
+            
+            BASE_DIR = Path(__file__).parent.parent.parent.absolute()
+            GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
+            CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
+            
+            if CREDENTIALS_FILE.exists():
+                scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+                credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
+                client = gspread.authorize(credentials)
+                spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+                
+                # Tab name variations for each source
+                tab_variations = {
+                    'tham_my': ['Khach hang Tham my', 'Khách hàng Thẩm mỹ', 'Tham My', 'Thẩm mỹ'],
+                    'nha_khoa': ['Khach hang Nha khoa', 'Khách hàng Nha khoa', 'Nha Khoa', 'Nha khoa'],
+                    'gioi_thieu': ['Khach gioi thieu', 'Khách giới thiệu', 'Gioi Thieu', 'Referral']
+                }
+                
+                worksheets = spreadsheet.worksheets()
+                
+                for source, variations in tab_variations.items():
+                    found = False
+                    for variation in variations:
+                        for ws in worksheets:
+                            if ws.title == variation or ws.title.lower() == variation.lower():
+                                # Get actual data rows by checking values
+                                try:
+                                    all_values = ws.get_all_values()
+                                    # Subtract 1 for header, count non-empty rows
+                                    data_rows = len([r for r in all_values[1:] if any(cell.strip() for cell in r)])
+                                    sheet_counts[source] = data_rows
+                                except Exception:
+                                    sheet_counts[source] = max(0, ws.row_count - 1)
+                                found = True
+                                break
+                        if found:
+                            break
+                    if not found:
+                        sheet_counts[source] = 0
+            else:
+                sheet_error = 'Google credentials file not found'
+                for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+                    sheet_counts[source] = None
+                    
+        except Exception as e:
+            logger.warning(f"Error fetching Google Sheets counts: {e}")
+            sheet_error = str(e)
+            for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+                sheet_counts[source] = None
+        
+        return jsonify({
+            'status': 'success',
+            'row_counts': {
+                'tham_my': {
+                    'db': db_counts.get('tham_my', 0),
+                    'sheet': sheet_counts.get('tham_my')
+                },
+                'nha_khoa': {
+                    'db': db_counts.get('nha_khoa', 0),
+                    'sheet': sheet_counts.get('nha_khoa')
+                },
+                'gioi_thieu': {
+                    'db': db_counts.get('gioi_thieu', 0),
+                    'sheet': sheet_counts.get('gioi_thieu')
+                }
+            },
+            'sheet_error': sheet_error
+        })
+        
+    except Error as e:
+        if connection:
+            return_db_connection(connection)
+        return jsonify({'status': 'error', 'message': str(e)}), 500

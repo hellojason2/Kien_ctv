@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initNavigation();
     initPhoneCheck();
     initClientSearch();
+    initBooking();
     
     // Initialize dashboard date filter
     if (typeof initDashboardDateFilter === 'function') {

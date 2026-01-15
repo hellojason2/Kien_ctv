@@ -33,6 +33,9 @@ function initOverview() {
     
     // Start the countdown timer
     startSyncCountdown();
+    
+    // Load row count indicators (DB vs Google Sheets)
+    loadRowCounts();
 }
 
 /**
@@ -376,6 +379,9 @@ async function loadStats() {
             if (result.system_status) {
                 updateSyncStatus(result.system_status);
             }
+            
+            // Refresh row count indicators
+            loadRowCounts();
         
             // Top earners with revenue and commission columns
             const topEarnersEl = document.getElementById('topEarnersTableBody');
@@ -577,6 +583,83 @@ function stopSyncCountdown() {
         clearInterval(syncStatus.countdownTimer);
         syncStatus.countdownTimer = null;
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ROW COUNT INDICATORS (DB vs Google Sheets)
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Load and display row counts comparing DB to Google Sheets
+ */
+async function loadRowCounts() {
+    try {
+        const result = await api('/api/admin/sync/row-counts');
+        
+        if (result.status === 'success' && result.row_counts) {
+            updateRowCountDisplay('TM', result.row_counts.tham_my);
+            updateRowCountDisplay('NK', result.row_counts.nha_khoa);
+            updateRowCountDisplay('GT', result.row_counts.gioi_thieu);
+        } else {
+            // Show error state
+            ['TM', 'NK', 'GT'].forEach(label => {
+                const valueEl = document.getElementById(`rowCount${label}Value`);
+                if (valueEl) valueEl.textContent = '-/-';
+            });
+        }
+    } catch (error) {
+        console.error('Error loading row counts:', error);
+        ['TM', 'NK', 'GT'].forEach(label => {
+            const valueEl = document.getElementById(`rowCount${label}Value`);
+            if (valueEl) valueEl.textContent = 'Error';
+        });
+    }
+}
+
+/**
+ * Update a single row count display box
+ */
+function updateRowCountDisplay(label, counts) {
+    const boxEl = document.getElementById(`rowCount${label}`);
+    const valueEl = document.getElementById(`rowCount${label}Value`);
+    
+    if (!valueEl || !boxEl) return;
+    
+    const dbCount = counts?.db ?? 0;
+    const sheetCount = counts?.sheet;
+    
+    // Format numbers with commas for readability
+    const formatNum = (n) => n != null ? n.toLocaleString() : '-';
+    
+    if (sheetCount != null) {
+        valueEl.textContent = `${formatNum(dbCount)}/${formatNum(sheetCount)}`;
+        
+        // Color coding based on sync status
+        boxEl.classList.remove('status-synced', 'status-missing', 'status-error');
+        
+        if (dbCount === sheetCount) {
+            // Fully synced - green
+            boxEl.classList.add('status-synced');
+        } else if (dbCount < sheetCount) {
+            // Missing rows - red/orange
+            boxEl.classList.add('status-missing');
+        } else {
+            // More in DB than sheet (unusual) - show as synced
+            boxEl.classList.add('status-synced');
+        }
+    } else {
+        // Sheet count unavailable
+        valueEl.textContent = `${formatNum(dbCount)}/-`;
+        boxEl.classList.remove('status-synced', 'status-missing');
+        boxEl.classList.add('status-error');
+    }
+}
+
+/**
+ * Refresh row counts (can be called manually)
+ */
+function refreshRowCounts() {
+    loadRowCounts();
 }
 
 /**

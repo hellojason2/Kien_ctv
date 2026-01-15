@@ -260,6 +260,118 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   ROW COUNT INDICATORS (DB vs Google Sheets)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.row-count-indicators {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.row-count-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: help;
+}
+
+.row-count-box:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.row-count-label {
+    color: var(--text-secondary, #6b7280);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.row-count-value {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    font-size: 12px;
+    color: var(--text-primary, #374151);
+    font-weight: 500;
+}
+
+/* Synced status - green */
+.row-count-box.status-synced {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.row-count-box.status-synced .row-count-label {
+    color: #16a34a;
+}
+
+.row-count-box.status-synced .row-count-value {
+    color: #15803d;
+}
+
+/* Missing rows status - orange/red */
+.row-count-box.status-missing {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    animation: missing-pulse 2s ease-in-out infinite;
+}
+
+.row-count-box.status-missing .row-count-label {
+    color: #dc2626;
+}
+
+.row-count-box.status-missing .row-count-value {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+@keyframes missing-pulse {
+    0%, 100% {
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(239, 68, 68, 0.35);
+    }
+}
+
+/* Error/unknown status - gray */
+.row-count-box.status-error {
+    background: rgba(156, 163, 175, 0.1);
+    border-color: rgba(156, 163, 175, 0.3);
+}
+
+.row-count-box.status-error .row-count-label {
+    color: #6b7280;
+}
+
+.row-count-box.status-error .row-count-value {
+    color: #9ca3af;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .row-count-indicators {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .row-count-indicators {
+        display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    HARD RESET PROGRESS MODAL
    ═══════════════════════════════════════════════════════════════════ */
 

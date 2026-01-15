@@ -177,6 +177,117 @@ class GoogleSheetSync:
         
         return (ngay_nhap, ten_khach, sdt, dich_vu, ghi_chu, khu_vuc, nguoi_chot), nguoi_chot
 
+    def update_existing_client(self, conn, sdt, row_data):
+        """
+        Find the most recent record for a client by phone and update it.
+        Returns True if updated, False if not found.
+        """
+        cur = conn.cursor()
+        try:
+            # Find the most recent record for this phone number
+            cur.execute("""
+                SELECT id FROM khach_hang 
+                WHERE sdt = %s 
+                ORDER BY ngay_nhap_don DESC NULLS LAST, id DESC 
+                LIMIT 1
+            """, (sdt,))
+            result = cur.fetchone()
+            
+            if not result:
+                cur.close()
+                return False
+            
+            record_id = result[0]
+            
+            # Update the most recent record with new service data
+            cur.execute("""
+                UPDATE khach_hang SET
+                    ngay_nhap_don = COALESCE(%s, ngay_nhap_don),
+                    ten_khach = COALESCE(%s, ten_khach),
+                    co_so = COALESCE(%s, co_so),
+                    ngay_hen_lam = COALESCE(%s, ngay_hen_lam),
+                    gio = COALESCE(%s, gio),
+                    dich_vu = COALESCE(%s, dich_vu),
+                    tong_tien = COALESCE(%s, tong_tien),
+                    tien_coc = COALESCE(%s, tien_coc),
+                    phai_dong = COALESCE(%s, phai_dong),
+                    nguoi_chot = COALESCE(%s, nguoi_chot),
+                    ghi_chu = COALESCE(%s, ghi_chu),
+                    trang_thai = COALESCE(%s, trang_thai),
+                    source = 'tham_my',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (
+                row_data[0],   # ngay_nhap_don
+                row_data[1],   # ten_khach
+                row_data[3],   # co_so
+                row_data[4],   # ngay_hen_lam
+                row_data[5],   # gio
+                row_data[6],   # dich_vu
+                row_data[7],   # tong_tien
+                row_data[8],   # tien_coc
+                row_data[9],   # phai_dong
+                row_data[10],  # nguoi_chot
+                row_data[11],  # ghi_chu
+                row_data[12],  # trang_thai
+                record_id
+            ))
+            conn.commit()
+            cur.close()
+            logger.info(f"  Updated existing client record (id={record_id}) for phone: {sdt}")
+            return True
+            
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            logger.error(f"  Error updating client {sdt}: {e}")
+            return False
+
+    def check_client_exists(self, conn, sdt):
+        """Check if a client with this phone number exists in any source"""
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE sdt = %s", (sdt,))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count > 0
+        except Exception as e:
+            cur.close()
+            return False
+
+    def bulk_insert_or_update_tham_my(self, conn, rows):
+        """
+        For Tham My tab: Check if client exists, update if exists, insert if new.
+        Returns (inserted_count, updated_count)
+        """
+        if not rows:
+            return 0, 0
+        
+        inserted = 0
+        updated = 0
+        insert_batch = []
+        
+        for row in rows:
+            sdt = row[2]  # Phone number is at index 2
+            
+            # Check if client exists in any source
+            if self.check_client_exists(conn, sdt):
+                # Update existing client's most recent record
+                if self.update_existing_client(conn, sdt, row):
+                    updated += 1
+                else:
+                    # If update failed (shouldn't happen), insert as new
+                    insert_batch.append(row)
+            else:
+                # New client - add to insert batch
+                insert_batch.append(row)
+        
+        # Bulk insert new clients
+        if insert_batch:
+            inserted = self.bulk_insert_khach_hang(conn, insert_batch, 'tham_my')
+        
+        return inserted, updated
+
     def bulk_insert_khach_hang(self, conn, rows, tab_type):
         """Bulk insert rows into khach_hang table"""
         if not rows:
@@ -273,6 +384,403 @@ class GoogleSheetSync:
         except Exception as e:
             logger.warning(f"Failed to update heartbeat: {e}")
 
+    def get_last_sync_time(self, conn):
+        """Get the last sync timestamp from the heartbeat"""
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT last_updated FROM commission_cache 
+                WHERE cache_key = 'sync_worker_heartbeat'
+            """)
+            result = cur.fetchone()
+            cur.close()
+            return result[0] if result else None
+        except Exception:
+            return None
+
+    def sync_tab_by_phone_matching(self, spreadsheet, conn, tab_type, timestamp_column=None):
+        """
+        Sync a tab from Google Sheets to database using phone matching.
+        This processes ALL rows and detects updates vs inserts by phone number.
+        
+        Args:
+            spreadsheet: Google Sheets spreadsheet object
+            conn: Database connection
+            tab_type: 'tham_my', 'nha_khoa', or 'gioi_thieu'
+            timestamp_column: Optional column name for last modified timestamp
+        
+        Returns:
+            (processed_count, error_count)
+        """
+        if tab_type == 'tham_my':
+            variations = ['Khach hang Tham my', 'Khách hàng Thẩm mỹ', 'Tham My', 'Thẩm mỹ']
+        elif tab_type == 'nha_khoa':
+            variations = ['Khach hang Nha khoa', 'Khách hàng Nha khoa', 'Nha Khoa', 'Nha khoa']
+        else:
+            variations = ['Khach gioi thieu', 'Khách giới thiệu', 'Gioi Thieu', 'Referral']
+        
+        worksheet = self.find_worksheet(spreadsheet, variations)
+        if not worksheet:
+            logger.warning(f"  Tab not found for {tab_type}")
+            return 0, 0
+        
+        logger.info(f"  Found worksheet: {worksheet.title}")
+        
+        try:
+            all_values = worksheet.get_all_values()
+        except Exception as e:
+            logger.error(f"  Error reading worksheet: {e}")
+            return 0, 0
+        
+        if len(all_values) < 2:
+            logger.info(f"  No data rows found")
+            return 0, 0
+        
+        headers = all_values[0]
+        normalized_headers = [self.normalize_header(h) for h in headers]
+        
+        # Check for timestamp column
+        timestamp_col_idx = None
+        if timestamp_column:
+            normalized_ts_col = self.normalize_header(timestamp_column)
+            for idx, h in enumerate(normalized_headers):
+                if h == normalized_ts_col:
+                    timestamp_col_idx = idx
+                    break
+        
+        # Get last sync time if using timestamp-based filtering
+        last_sync_time = None
+        if timestamp_col_idx is not None:
+            last_sync_time = self.get_last_sync_time(conn)
+            if last_sync_time:
+                logger.info(f"  Using timestamp filtering. Last sync: {last_sync_time}")
+        
+        sheet_count = len(all_values) - 1
+        data_rows = all_values[1:]  # Skip header row
+        
+        # Ensure connection is alive
+        conn = self.ensure_connection(conn)
+        
+        logger.info(f"  Processing ALL {sheet_count} rows with phone matching...")
+        
+        processed = 0
+        errors = 0
+        inserted = 0
+        updated = 0
+        skipped = 0
+        
+        # Process in batches for efficiency
+        batch = []
+        ctv_phones = []  # For gioi_thieu only
+        
+        for i, row in enumerate(data_rows):
+            if not row:
+                continue
+            
+            # If using timestamp filtering, skip rows that haven't changed
+            if timestamp_col_idx is not None and last_sync_time:
+                row_timestamp = self.parse_date(row[timestamp_col_idx]) if timestamp_col_idx < len(row) else None
+                if row_timestamp and row_timestamp < last_sync_time.date():
+                    skipped += 1
+                    continue
+            
+            row_data = {}
+            for j, header in enumerate(normalized_headers):
+                if j < len(row):
+                    row_data[header] = row[j]
+            
+            try:
+                if tab_type in ['tham_my', 'nha_khoa']:
+                    prepared = self.prepare_khach_hang_row(row_data, tab_type)
+                    if prepared:
+                        batch.append(prepared)
+                else:  # gioi_thieu
+                    prepared, ctv_phone = self.prepare_gioi_thieu_row(row_data)
+                    if prepared:
+                        batch.append(prepared)
+                        ctv_phones.append(ctv_phone)
+                
+                # Commit batch when full
+                if len(batch) >= BATCH_SIZE:
+                    conn = self.ensure_connection(conn)
+                    
+                    if tab_type == 'tham_my':
+                        ins, upd = self.bulk_insert_or_update_tham_my(conn, batch)
+                        inserted += ins
+                        updated += upd
+                        processed += ins + upd
+                    elif tab_type == 'nha_khoa':
+                        ins, upd = self.bulk_insert_or_update_nha_khoa(conn, batch)
+                        inserted += ins
+                        updated += upd
+                        processed += ins + upd
+                    else:
+                        ins, upd = self.bulk_insert_or_update_gioi_thieu(conn, batch, ctv_phones)
+                        inserted += ins
+                        updated += upd
+                        processed += ins + upd
+                    
+                    logger.info(f"    Batch: {processed} processed ({inserted} new, {updated} updated)")
+                    batch = []
+                    ctv_phones = []
+                    
+            except Exception as e:
+                logger.error(f"    Row {i + 2}: Error - {e}")
+                errors += 1
+        
+        # Commit remaining rows
+        if batch:
+            try:
+                conn = self.ensure_connection(conn)
+                
+                if tab_type == 'tham_my':
+                    ins, upd = self.bulk_insert_or_update_tham_my(conn, batch)
+                    inserted += ins
+                    updated += upd
+                    processed += ins + upd
+                elif tab_type == 'nha_khoa':
+                    ins, upd = self.bulk_insert_or_update_nha_khoa(conn, batch)
+                    inserted += ins
+                    updated += upd
+                    processed += ins + upd
+                else:
+                    ins, upd = self.bulk_insert_or_update_gioi_thieu(conn, batch, ctv_phones)
+                    inserted += ins
+                    updated += upd
+                    processed += ins + upd
+            except Exception as e:
+                logger.error(f"    Final batch error: {e}")
+                errors += len(batch)
+        
+        if skipped > 0:
+            logger.info(f"  Skipped {skipped} unchanged rows (timestamp filtering)")
+        logger.info(f"  Completed: {processed} processed ({inserted} new, {updated} updated), {errors} errors")
+        return processed, errors
+
+    def bulk_insert_or_update_nha_khoa(self, conn, rows):
+        """
+        For Nha Khoa tab: Check if client exists, update if exists, insert if new.
+        Uses phone + date matching to detect updates vs inserts.
+        Returns (inserted_count, updated_count)
+        """
+        if not rows:
+            return 0, 0
+        
+        inserted = 0
+        updated = 0
+        insert_batch = []
+        
+        for row in rows:
+            sdt = row[2]  # Phone number is at index 2
+            ngay_nhap = row[0]  # Date at index 0
+            
+            # Check if this specific record exists (same phone + same date + same source)
+            if self.check_record_exists(conn, sdt, ngay_nhap, 'nha_khoa'):
+                # Update existing record
+                if self.update_nha_khoa_record(conn, sdt, ngay_nhap, row):
+                    updated += 1
+                else:
+                    insert_batch.append(row)
+            else:
+                # New record - add to insert batch
+                insert_batch.append(row)
+        
+        # Bulk insert new records
+        if insert_batch:
+            inserted = self.bulk_insert_khach_hang(conn, insert_batch, 'nha_khoa')
+        
+        return inserted, updated
+
+    def check_record_exists(self, conn, sdt, ngay_nhap, source):
+        """Check if a specific record exists (same phone + date + source)"""
+        cur = conn.cursor()
+        try:
+            if ngay_nhap:
+                cur.execute("""
+                    SELECT COUNT(*) FROM khach_hang 
+                    WHERE sdt = %s AND ngay_nhap_don = %s AND source = %s
+                """, (sdt, ngay_nhap, source))
+            else:
+                cur.execute("""
+                    SELECT COUNT(*) FROM khach_hang 
+                    WHERE sdt = %s AND source = %s
+                """, (sdt, source))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count > 0
+        except Exception:
+            cur.close()
+            return False
+
+    def update_nha_khoa_record(self, conn, sdt, ngay_nhap, row_data):
+        """Update an existing Nha Khoa record"""
+        cur = conn.cursor()
+        try:
+            if ngay_nhap:
+                cur.execute("""
+                    UPDATE khach_hang SET
+                        ten_khach = COALESCE(%s, ten_khach),
+                        co_so = COALESCE(%s, co_so),
+                        ngay_hen_lam = COALESCE(%s, ngay_hen_lam),
+                        gio = COALESCE(%s, gio),
+                        dich_vu = COALESCE(%s, dich_vu),
+                        tong_tien = COALESCE(%s, tong_tien),
+                        tien_coc = COALESCE(%s, tien_coc),
+                        phai_dong = COALESCE(%s, phai_dong),
+                        nguoi_chot = COALESCE(%s, nguoi_chot),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE sdt = %s AND ngay_nhap_don = %s AND source = 'nha_khoa'
+                """, (
+                    row_data[1],   # ten_khach
+                    row_data[3],   # co_so
+                    row_data[4],   # ngay_hen_lam
+                    row_data[5],   # gio
+                    row_data[6],   # dich_vu
+                    row_data[7],   # tong_tien
+                    row_data[8],   # tien_coc
+                    row_data[9],   # phai_dong
+                    row_data[10],  # nguoi_chot
+                    sdt,
+                    ngay_nhap
+                ))
+            else:
+                cur.execute("""
+                    UPDATE khach_hang SET
+                        ten_khach = COALESCE(%s, ten_khach),
+                        co_so = COALESCE(%s, co_so),
+                        ngay_hen_lam = COALESCE(%s, ngay_hen_lam),
+                        gio = COALESCE(%s, gio),
+                        dich_vu = COALESCE(%s, dich_vu),
+                        tong_tien = COALESCE(%s, tong_tien),
+                        tien_coc = COALESCE(%s, tien_coc),
+                        phai_dong = COALESCE(%s, phai_dong),
+                        nguoi_chot = COALESCE(%s, nguoi_chot),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE sdt = %s AND source = 'nha_khoa'
+                    AND id = (SELECT id FROM khach_hang WHERE sdt = %s AND source = 'nha_khoa' 
+                              ORDER BY ngay_nhap_don DESC NULLS LAST LIMIT 1)
+                """, (
+                    row_data[1], row_data[3], row_data[4], row_data[5],
+                    row_data[6], row_data[7], row_data[8], row_data[9], row_data[10],
+                    sdt, sdt
+                ))
+            conn.commit()
+            cur.close()
+            return True
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            logger.error(f"  Error updating nha_khoa record {sdt}: {e}")
+            return False
+
+    def bulk_insert_or_update_gioi_thieu(self, conn, rows, ctv_phones):
+        """
+        For Gioi Thieu tab: Check if client exists, update if exists, insert if new.
+        Uses phone + referrer matching to detect updates vs inserts.
+        Returns (inserted_count, updated_count)
+        """
+        if not rows:
+            return 0, 0
+        
+        # First, create any missing CTVs
+        cur = conn.cursor()
+        unique_ctvs = set(p for p in ctv_phones if p)
+        if unique_ctvs:
+            cur.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = ANY(%s)", (list(unique_ctvs),))
+            existing = set(row[0] for row in cur.fetchall())
+            
+            new_ctvs = unique_ctvs - existing
+            if new_ctvs:
+                import hashlib
+                import secrets
+                ctv_rows = []
+                for phone in new_ctvs:
+                    salt = secrets.token_hex(16)
+                    password = 'ctv123'
+                    hash_obj = hashlib.sha256((salt + password).encode())
+                    password_hash = f"{salt}:{hash_obj.hexdigest()}"
+                    ctv_rows.append((phone, phone, password_hash, True))
+                
+                execute_values(cur, 
+                    "INSERT INTO ctv (ma_ctv, ten, password_hash, is_active) VALUES %s ON CONFLICT DO NOTHING",
+                    ctv_rows)
+                logger.info(f"  Created {len(new_ctvs)} new CTV accounts")
+        cur.close()
+        
+        inserted = 0
+        updated = 0
+        insert_batch = []
+        insert_ctv_phones = []
+        
+        for idx, row in enumerate(rows):
+            sdt = row[2]  # Phone number is at index 2
+            nguoi_chot = row[6]  # Referrer phone at index 6
+            
+            # Check if this referral record exists (same customer phone + referrer)
+            if self.check_gioi_thieu_exists(conn, sdt, nguoi_chot):
+                # Update existing record
+                if self.update_gioi_thieu_record(conn, sdt, nguoi_chot, row):
+                    updated += 1
+                else:
+                    insert_batch.append(row)
+                    insert_ctv_phones.append(ctv_phones[idx] if idx < len(ctv_phones) else None)
+            else:
+                # New record
+                insert_batch.append(row)
+                insert_ctv_phones.append(ctv_phones[idx] if idx < len(ctv_phones) else None)
+        
+        # Bulk insert new records
+        if insert_batch:
+            inserted = self.bulk_insert_gioi_thieu(conn, insert_batch, insert_ctv_phones)
+        
+        return inserted, updated
+
+    def check_gioi_thieu_exists(self, conn, sdt, nguoi_chot):
+        """Check if a gioi_thieu record exists (same customer phone + referrer)"""
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT COUNT(*) FROM khach_hang 
+                WHERE sdt = %s AND nguoi_chot = %s AND source = 'gioi_thieu'
+            """, (sdt, nguoi_chot))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count > 0
+        except Exception:
+            cur.close()
+            return False
+
+    def update_gioi_thieu_record(self, conn, sdt, nguoi_chot, row_data):
+        """Update an existing Gioi Thieu record"""
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                UPDATE khach_hang SET
+                    ngay_nhap_don = COALESCE(%s, ngay_nhap_don),
+                    ten_khach = COALESCE(%s, ten_khach),
+                    dich_vu = COALESCE(%s, dich_vu),
+                    ghi_chu = COALESCE(%s, ghi_chu),
+                    khu_vuc = COALESCE(%s, khu_vuc),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE sdt = %s AND nguoi_chot = %s AND source = 'gioi_thieu'
+            """, (
+                row_data[0],  # ngay_nhap_don
+                row_data[1],  # ten_khach
+                row_data[3],  # dich_vu
+                row_data[4],  # ghi_chu
+                row_data[5],  # khu_vuc
+                sdt,
+                nguoi_chot
+            ))
+            conn.commit()
+            cur.close()
+            return True
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            logger.error(f"  Error updating gioi_thieu record {sdt}: {e}")
+            return False
+
     def sync_tab_by_count(self, spreadsheet, conn, tab_type, hard_reset=False):
         """Sync a tab from Google Sheets to database with batch processing"""
         if tab_type == 'tham_my':
@@ -360,13 +868,19 @@ class GoogleSheetSync:
                     # Ensure connection before batch insert
                     conn = self.ensure_connection(conn)
                     
-                    if tab_type in ['tham_my', 'nha_khoa']:
+                    if tab_type == 'tham_my':
+                        # For Tham My: check if client exists and update, or insert new
+                        inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                        processed += inserted + updated
+                        logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
+                    elif tab_type == 'nha_khoa':
                         inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                        processed += inserted
+                        logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed")
                     else:
                         inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
-                    
-                    processed += inserted
-                    logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed")
+                        processed += inserted
+                        logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed")
                     batch = []
                     ctv_phones = []
                     
@@ -379,18 +893,24 @@ class GoogleSheetSync:
             try:
                 conn = self.ensure_connection(conn)
                 
-                if tab_type in ['tham_my', 'nha_khoa']:
+                if tab_type == 'tham_my':
+                    # For Tham My: check if client exists and update, or insert new
+                    inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                    processed += inserted + updated
+                    logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
+                elif tab_type == 'nha_khoa':
                     inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                    processed += inserted
+                    logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed")
                 else:
                     inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
-                
-                processed += inserted
-                logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed")
+                    processed += inserted
+                    logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed")
             except Exception as e:
                 logger.error(f"    Final batch error: {e}")
                 errors += len(batch)
         
-        logger.info(f"  Completed: {processed} inserted, {errors} errors")
+        logger.info(f"  Completed: {processed} processed, {errors} errors")
         return processed, errors
 
     def hard_reset(self):
@@ -677,14 +1197,22 @@ class GoogleSheetSync:
                     batch_num += 1
                     conn = self.ensure_connection(conn)
                     
-                    if tab_type in ['tham_my', 'nha_khoa']:
+                    if tab_type == 'tham_my':
+                        # For Tham My: check if client exists and update, or insert new
+                        inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                        processed += inserted + updated
+                        progress_pct = round((processed / new_rows_count) * 100, 1)
+                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%) - {inserted} new, {updated} updated", 'info')
+                    elif tab_type == 'nha_khoa':
                         inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                        processed += inserted
+                        progress_pct = round((processed / new_rows_count) * 100, 1)
+                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%)", 'info')
                     else:
                         inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
-                    
-                    processed += inserted
-                    progress_pct = round((processed / new_rows_count) * 100, 1)
-                    add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%)", 'info')
+                        processed += inserted
+                        progress_pct = round((processed / new_rows_count) * 100, 1)
+                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%)", 'info')
                     batch = []
                     ctv_phones = []
                     
@@ -702,13 +1230,19 @@ class GoogleSheetSync:
                 batch_num += 1
                 conn = self.ensure_connection(conn)
                 
-                if tab_type in ['tham_my', 'nha_khoa']:
+                if tab_type == 'tham_my':
+                    # For Tham My: check if client exists and update, or insert new
+                    inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                    processed += inserted + updated
+                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%) - {inserted} new, {updated} updated", 'info')
+                elif tab_type == 'nha_khoa':
                     inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                    processed += inserted
+                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%)", 'info')
                 else:
                     inserted = self.bulk_insert_gioi_thieu(conn, batch, ctv_phones)
-                
-                processed += inserted
-                add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%)", 'info')
+                    processed += inserted
+                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%)", 'info')
             except Exception as e:
                 add_log(f"✗ Final batch error: {e}", 'error')
                 errors += len(batch)
@@ -717,6 +1251,6 @@ class GoogleSheetSync:
         if errors > 5:
             add_log(f"... and {errors - 5} more errors", 'warning')
         
-        add_log(f"Completed: {processed:,} inserted, {errors} errors", 'success' if errors == 0 else 'warning')
+        add_log(f"Completed: {processed:,} processed, {errors} errors", 'success' if errors == 0 else 'warning')
         
         return processed, errors, logs

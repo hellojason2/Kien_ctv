@@ -51,6 +51,30 @@ function updateClientsPagination(pagination) {
 }
 
 /**
+ * Sort services to prioritize consulting sources first
+ * @param {Array} services - Services array
+ * @returns {Array} - Sorted services array
+ */
+function sortServicesConsultingFirst(services) {
+    if (!services || services.length === 0) return services;
+    
+    return [...services].sort((a, b) => {
+        // Consulting sources (nha_khoa, gioi_thieu) should come first
+        const aIsConsulting = a.is_consulting || a.source === 'nha_khoa' || a.source === 'gioi_thieu';
+        const bIsConsulting = b.is_consulting || b.source === 'nha_khoa' || b.source === 'gioi_thieu';
+        
+        // Also check if service name contains "consulting" keyword
+        const aHasConsultingKeyword = (a.dich_vu || '').toLowerCase().includes('consulting');
+        const bHasConsultingKeyword = (b.dich_vu || '').toLowerCase().includes('consulting');
+        
+        const aScore = (aIsConsulting ? 0 : 1) + (aHasConsultingKeyword ? 0 : 0.5);
+        const bScore = (bIsConsulting ? 0 : 1) + (bHasConsultingKeyword ? 0 : 0.5);
+        
+        return aScore - bScore;
+    });
+}
+
+/**
  * Render client cards
  * @param {Array} clients - Client array
  */
@@ -70,7 +94,13 @@ function renderClientCards(clients) {
         return;
     }
     
-    grid.innerHTML = clients.map(client => renderClientCard(client)).join('');
+    // Sort services within each client to show consulting services first
+    const processedClients = clients.map(client => ({
+        ...client,
+        services: sortServicesConsultingFirst(client.services)
+    }));
+    
+    grid.innerHTML = processedClients.map(client => renderClientCard(client)).join('');
 }
 
 /**
@@ -83,14 +113,23 @@ function renderClientCard(client) {
     const depositClass = client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
     const depositText = client.overall_deposit === 'Da coc' ? t('da_coc') : t('chua_coc');
     
+    // Check if client has any consulting services
+    const hasConsultingServices = client.is_consulting || 
+        (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu'));
+    const consultingClientBadge = hasConsultingServices 
+        ? `<span class="client-consulting-badge" style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 8px;">${t('consulting')}</span>` 
+        : '';
+    
     const servicesHTML = client.services.map((svc, idx) => renderServiceCard(svc, idx)).join('');
     
     return `
-        <div class="client-card">
+        <div class="client-card${hasConsultingServices ? ' consulting-client' : ''}">
             <div class="client-card-header">
                 <div class="client-avatar">${initials}</div>
                 <div class="client-main-info">
-                    <div class="client-name" onclick="showCommissionReport('${escapeHtml(client.sdt)}', '${escapeHtml(client.ten_khach)}')" style="cursor: pointer;">${escapeHtml(client.ten_khach)}</div>
+                    <div class="client-name" onclick="showCommissionReport('${escapeHtml(client.sdt)}', '${escapeHtml(client.ten_khach)}')" style="cursor: pointer;">
+                        ${escapeHtml(client.ten_khach)}${consultingClientBadge}
+                    </div>
                     <div class="client-phone">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -135,6 +174,12 @@ function renderServiceCard(service, index) {
     const depositClass = service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
     const depositText = service.deposit_status === 'Da coc' ? t('da_coc') : t('chua_coc');
     
+    // Check if this is a consulting service
+    const isConsulting = service.is_consulting || service.source === 'nha_khoa' || service.source === 'gioi_thieu';
+    const consultingBadge = isConsulting 
+        ? `<span class="service-consulting-badge" style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;">${t('consulting') || 'Consulting'}</span>` 
+        : '';
+    
     const datesHTML = `
         ${service.ngay_nhap_don 
             ? `<div class="service-appointment">
@@ -163,10 +208,13 @@ function renderServiceCard(service, index) {
     `;
     
     return `
-        <div class="service-card">
+        <div class="service-card${isConsulting ? ' consulting' : ''}">
             <div class="service-card-header">
                 <div class="service-number">${service.service_number}</div>
-                <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    ${consultingBadge}
+                    <span class="service-deposit-status ${depositClass}">${depositText}</span>
+                </div>
             </div>
             <div class="service-name">${escapeHtml(service.dich_vu || t('unknown_service'))}</div>
             <div class="service-details">
@@ -240,17 +288,31 @@ function renderClientTable(clients) {
         return;
     }
     
-    tbody.innerHTML = clients.map(client => {
-        const servicesList = client.services.map(s => s.dich_vu).join(', ');
+    // Sort services within each client to show consulting services first
+    const processedClients = clients.map(client => ({
+        ...client,
+        services: sortServicesConsultingFirst(client.services)
+    }));
+    
+    tbody.innerHTML = processedClients.map(client => {
+        const sortedServices = sortServicesConsultingFirst(client.services);
+        const servicesList = sortedServices.map(s => s.dich_vu).join(', ');
+        
+        // Check if client has any consulting services
+        const hasConsultingServices = client.is_consulting || 
+            (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu'));
+        const consultingBadge = hasConsultingServices 
+            ? `<span style="background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 6px;">${t('consulting')}</span>` 
+            : '';
         
         return `
-            <tr>
+            <tr class="${hasConsultingServices ? 'consulting-row' : ''}">
                 <td>
                     <div class="client-name-badge" 
                          title="${escapeHtml(client.ten_khach)}" 
                          onclick="showCommissionReport('${escapeHtml(client.sdt)}', '${escapeHtml(client.ten_khach)}')"
                          style="cursor: pointer;">
-                        ${escapeHtml(client.ten_khach)}
+                        ${escapeHtml(client.ten_khach)}${consultingBadge}
                     </div>
                 </td>
                 <td><div class="cell-phone">${escapeHtml(client.sdt)}</div></td>

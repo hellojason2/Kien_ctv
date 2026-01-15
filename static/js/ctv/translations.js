@@ -155,6 +155,33 @@ const translations = {
         password_mismatch: 'Mật khẩu mới không khớp',
         password_too_short: 'Mật khẩu mới phải có ít nhất 6 ký tự',
         
+        // Booking Appointments
+        booking_appointments: 'Đặt Lịch Hẹn',
+        page_booking: 'Đặt Lịch Hẹn',
+        booking_form_title: 'Thông Tin Khách Hàng',
+        booking_form_subtitle: 'Bạn vui lòng nhập thông tin khách hàng tại đây',
+        customer_name: 'Tên khách hàng',
+        customer_name_placeholder: 'Nhập tên khách hàng',
+        customer_phone: 'Số điện thoại',
+        customer_phone_placeholder: 'Nhập số điện thoại',
+        service_interest: 'Dịch vụ Quan tâm',
+        service_interest_placeholder: 'Nhập dịch vụ quan tâm',
+        notes: 'Ghi chú',
+        notes_placeholder: 'Nhập ghi chú (tùy chọn)',
+        customer_region: 'Khu vực của khách hàng',
+        select_region: '-- Chọn khu vực --',
+        region_north: 'Miền Bắc',
+        region_south: 'Miền Nam',
+        region_central: 'Miền Trung',
+        referrer_phone: 'SDT người giới thiệu',
+        submit_booking: 'Gửi Thông Tin',
+        submitting: 'Đang gửi...',
+        booking_success: 'Thông tin khách hàng đã được gửi thành công!',
+        booking_failed: 'Gửi thông tin thất bại',
+        customer_name_required: 'Tên khách hàng là bắt buộc',
+        customer_phone_required: 'Số điện thoại là bắt buộc',
+        service_interest_required: 'Dịch vụ quan tâm là bắt buộc',
+        
         // Phone Check
         phone_check_title: 'Kiểm Tra Trùng Lặp Số Điện Thoại',
         phone_check_placeholder: 'Nhập số điện thoại...',
@@ -171,6 +198,7 @@ const translations = {
         pending: 'Chờ xác nhận',
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
+        consulting: 'Đang tư vấn',
         
         // Loading
         loading: 'Đang tải...',
@@ -362,6 +390,33 @@ const translations = {
         password_mismatch: 'New passwords do not match',
         password_too_short: 'New password must be at least 6 characters',
         
+        // Booking Appointments
+        booking_appointments: 'Book Appointments',
+        page_booking: 'Book Appointments',
+        booking_form_title: 'Customer Information',
+        booking_form_subtitle: 'Please enter customer information here',
+        customer_name: 'Customer Name',
+        customer_name_placeholder: 'Enter customer name',
+        customer_phone: 'Phone Number',
+        customer_phone_placeholder: 'Enter phone number',
+        service_interest: 'Service of Interest',
+        service_interest_placeholder: 'Enter service of interest',
+        notes: 'Notes',
+        notes_placeholder: 'Enter notes (optional)',
+        customer_region: 'Customer Region',
+        select_region: '-- Select region --',
+        region_north: 'Northern Region',
+        region_south: 'Southern Region',
+        region_central: 'Central Region',
+        referrer_phone: 'Referrer Phone Number',
+        submit_booking: 'Submit Information',
+        submitting: 'Submitting...',
+        booking_success: 'Customer information submitted successfully!',
+        booking_failed: 'Failed to submit information',
+        customer_name_required: 'Customer name is required',
+        customer_phone_required: 'Phone number is required',
+        service_interest_required: 'Service of interest is required',
+        
         // Phone Check
         phone_check_title: 'Phone Number Check',
         phone_check_placeholder: 'Enter phone number...',
@@ -378,6 +433,7 @@ const translations = {
         pending: 'Pending',
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
+        consulting: 'Consulting',
         
         // Loading
         loading: 'Loading...',

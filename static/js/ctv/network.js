@@ -68,28 +68,30 @@ async function loadNetwork() {
             container.innerHTML = `<div class="empty-state">${t('no_referrals')}</div>`;
         } else {
             container.innerHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>${t('ctv_code_col')}</th>
-                            <th>${t('name_col')}</th>
-                            <th>${t('email_col')}</th>
-                            <th>${t('phone_col')}</th>
-                            <th>${t('rank_col')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${downlineResult.downline.map(d => `
+                <div class="direct-downline-table-wrapper">
+                    <table class="direct-downline-table">
+                        <thead>
                             <tr>
-                                <td>${d.ma_ctv}</td>
-                                <td>${d.ten}</td>
-                                <td>${d.email || '-'}</td>
-                                <td>${d.sdt || '-'}</td>
-                                <td>${d.cap_bac || 'Bronze'}</td>
+                                <th>${t('ctv_code_col')}</th>
+                                <th>${t('name_col')}</th>
+                                <th>${t('email_col')}</th>
+                                <th>${t('phone_col')}</th>
+                                <th>${t('rank_col')}</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${downlineResult.downline.map(d => `
+                                <tr>
+                                    <td>${d.ma_ctv || '-'}</td>
+                                    <td>${d.ten || '-'}</td>
+                                    <td>${d.email || '-'}</td>
+                                    <td>${d.sdt || '-'}</td>
+                                    <td><span class="rank-badge">${d.cap_bac || 'Cộng Tác Viên'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
         }
     }

@@ -1201,6 +1201,133 @@
             color: #1a1a1a;
         }
 
+        /* Direct Downline Table - Enhanced Styling */
+        .direct-downline-table-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-top: 16px;
+        }
+
+        .direct-downline-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .direct-downline-table thead {
+            background: linear-gradient(135deg, rgba(79, 125, 243, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-bottom: 2px solid rgba(79, 125, 243, 0.15);
+        }
+
+        .direct-downline-table thead th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .direct-downline-table thead th:first-child {
+            padding-left: 24px;
+        }
+
+        .direct-downline-table thead th:last-child {
+            padding-right: 24px;
+        }
+
+        .direct-downline-table tbody tr {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .direct-downline-table tbody tr:hover {
+            background: rgba(79, 125, 243, 0.04);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .direct-downline-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .direct-downline-table tbody td {
+            padding: 18px 20px;
+            font-size: 14px;
+            color: #1a1a1a;
+            vertical-align: middle;
+        }
+
+        .direct-downline-table tbody td:first-child {
+            padding-left: 24px;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .direct-downline-table tbody td:last-child {
+            padding-right: 24px;
+        }
+
+        .direct-downline-table tbody td:nth-child(2) {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .direct-downline-table tbody td:nth-child(3),
+        .direct-downline-table tbody td:nth-child(4) {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .direct-downline-table tbody td:nth-child(5) {
+            font-weight: 600;
+        }
+
+        /* Rank Badge Styling */
+        .rank-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(79, 125, 243, 0.1);
+            color: #3b82f6;
+        }
+
+        /* Responsive Table */
+        @media (max-width: 768px) {
+            .direct-downline-table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .direct-downline-table {
+                min-width: 600px;
+            }
+
+            .direct-downline-table thead th,
+            .direct-downline-table tbody td {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .direct-downline-table thead th:first-child,
+            .direct-downline-table tbody td:first-child {
+                padding-left: 16px;
+            }
+
+            .direct-downline-table thead th:last-child,
+            .direct-downline-table tbody td:last-child {
+                padding-right: 16px;
+            }
+        }
+
         /* Commission Items */
         .commission-item {
             display: flex;
@@ -2642,6 +2769,52 @@
                     </div>
                 </div>
 
+                <!-- Booking Appointments Page -->
+                <div class="page-section" id="page-booking">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 data-i18n="booking_form_title">Thông Tin Khách Hàng</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="color:#666;margin-bottom:24px;font-size:14px;" data-i18n="booking_form_subtitle">Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+                            <form id="bookingForm" style="max-width:600px;">
+                                <div class="form-group">
+                                    <label data-i18n="customer_name">Tên khách hàng <span style="color:#e53e3e;">*</span></label>
+                                    <input type="text" id="bookingCustomerName" data-i18n-placeholder="customer_name_placeholder" placeholder="Nhập tên khách hàng" required>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="customer_phone">Số điện thoại <span style="color:#e53e3e;">*</span></label>
+                                    <input type="tel" id="bookingCustomerPhone" data-i18n-placeholder="customer_phone_placeholder" placeholder="Nhập số điện thoại" required>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="service_interest">Dịch vụ Quan tâm <span style="color:#e53e3e;">*</span></label>
+                                    <input type="text" id="bookingServiceInterest" data-i18n-placeholder="service_interest_placeholder" placeholder="Nhập dịch vụ quan tâm" required>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="notes">Ghi chú</label>
+                                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="customer_region">Khu vực của khách hàng</label>
+                                    <select id="bookingRegion">
+                                        <option value="" data-i18n="select_region">-- Chọn khu vực --</option>
+                                        <option value="Miền Bắc" data-i18n="region_north">Miền Bắc</option>
+                                        <option value="Miền Nam" data-i18n="region_south">Miền Nam</option>
+                                        <option value="Miền Trung" data-i18n="region_central">Miền Trung</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-i18n="referrer_phone">SDT người giới thiệu</label>
+                                    <input type="tel" id="bookingReferrerPhone" readonly style="background:#f0f0f0;cursor:not-allowed;">
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn" data-i18n="submit_booking">Gửi Thông Tin</button>
+                                <div class="error-msg" id="bookingError" style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
+                                <div class="success-msg" id="bookingSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Settings Page -->
                 <div class="page-section" id="page-settings">
                     <div class="card">
@@ -2697,12 +2870,16 @@
         // Remember me - load saved credentials on page load
         const savedMaCTV = localStorage.getItem('ctv_remember_ma_ctv');
         const savedPassword = localStorage.getItem('ctv_remember_password');
-        if (savedMaCTV) {
-            document.getElementById('maCTV').value = savedMaCTV;
+        const rememberChecked = localStorage.getItem('ctv_remember_checked');
+        
+        if (rememberChecked === 'true') {
             document.getElementById('rememberMe').checked = true;
-        }
-        if (savedPassword) {
-            document.getElementById('password').value = savedPassword;
+            if (savedMaCTV) {
+                document.getElementById('maCTV').value = savedMaCTV;
+            }
+            if (savedPassword) {
+                document.getElementById('password').value = savedPassword;
+            }
         }
 
         // Login
@@ -2715,15 +2892,6 @@
             const loginError = document.getElementById('loginError');
             const loginForm = document.getElementById('loginForm');
             const loginSuccess = document.getElementById('loginSuccess');
-            
-            // Save or remove credentials based on remember me checkbox
-            if (rememberMe) {
-                localStorage.setItem('ctv_remember_ma_ctv', maCTV);
-                localStorage.setItem('ctv_remember_password', password);
-            } else {
-                localStorage.removeItem('ctv_remember_ma_ctv');
-                localStorage.removeItem('ctv_remember_password');
-            }
             
             loginBtn.disabled = true;
             loginBtn.textContent = 'Đang đăng nhập...';
@@ -2738,6 +2906,17 @@
                 authToken = result.token;
                 localStorage.setItem('ctvToken', authToken);
                 currentUser = result.ctv;
+                
+                // Save credentials ONLY after successful login
+                if (rememberMe) {
+                    localStorage.setItem('ctv_remember_ma_ctv', maCTV);
+                    localStorage.setItem('ctv_remember_password', password);
+                    localStorage.setItem('ctv_remember_checked', 'true');
+                } else {
+                    localStorage.removeItem('ctv_remember_ma_ctv');
+                    localStorage.removeItem('ctv_remember_password');
+                    localStorage.removeItem('ctv_remember_checked');
+                }
                 
                 // Show success animation
                 loginForm.style.display = 'none';
@@ -2822,6 +3001,75 @@
             submitBtn.textContent = 'Đổi Mật Khẩu';
         });
 
+        // Booking Form Handler
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customerName = document.getElementById('bookingCustomerName').value.trim();
+            const customerPhone = document.getElementById('bookingCustomerPhone').value.trim();
+            const serviceInterest = document.getElementById('bookingServiceInterest').value.trim();
+            const notes = document.getElementById('bookingNotes').value.trim();
+            const region = document.getElementById('bookingRegion').value;
+            
+            const submitBtn = document.getElementById('bookingSubmitBtn');
+            const errorEl = document.getElementById('bookingError');
+            const successEl = document.getElementById('bookingSuccess');
+            
+            // Clear previous messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            
+            // Validate required fields
+            if (!customerName) {
+                errorEl.textContent = t('customer_name_required') || 'Tên khách hàng là bắt buộc';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (!customerPhone) {
+                errorEl.textContent = t('customer_phone_required') || 'Số điện thoại là bắt buộc';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (!serviceInterest) {
+                errorEl.textContent = t('service_interest_required') || 'Dịch vụ quan tâm là bắt buộc';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = t('submitting') || 'Đang gửi...';
+            
+            const result = await api('/api/ctv/booking', {
+                method: 'POST',
+                body: JSON.stringify({
+                    customer_name: customerName,
+                    customer_phone: customerPhone,
+                    service_interest: serviceInterest,
+                    notes: notes,
+                    region: region
+                })
+            });
+            
+            if (result.status === 'success') {
+                successEl.textContent = t('booking_success') || 'Thông tin khách hàng đã được gửi thành công!';
+                successEl.style.display = 'block';
+                // Clear form
+                document.getElementById('bookingForm').reset();
+                // Re-populate referrer phone
+                if (currentUser) {
+                    document.getElementById('bookingReferrerPhone').value = currentUser.ma_ctv || currentUser.sdt || '';
+                }
+            } else {
+                errorEl.textContent = result.message || t('booking_failed') || 'Gửi thông tin thất bại';
+                errorEl.style.display = 'block';
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = t('submit_booking') || 'Gửi Thông Tin';
+        });
+
         // Show Portal
         async function showPortal() {
             document.getElementById('loginPage').style.display = 'none';
@@ -2860,6 +3108,12 @@
                 document.getElementById('statMonthlyEarnings').textContent = formatCurrency(result.stats.monthly_earnings);
                 document.getElementById('statNetworkSize').textContent = result.stats.network_size;
                 document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
+                
+                // Pre-fill referrer phone in booking form
+                const referrerPhoneInput = document.getElementById('bookingReferrerPhone');
+                if (referrerPhoneInput) {
+                    referrerPhoneInput.value = result.profile.ma_ctv || result.profile.sdt || '';
+                }
             }
         }
 
@@ -3085,28 +3339,30 @@
                     container.innerHTML = `<div class="empty-state">${t('no_referrals')}</div>`;
                 } else {
                     container.innerHTML = `
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>${t('ctv_code_col')}</th>
-                                    <th>${t('name_col')}</th>
-                                    <th>${t('email_col')}</th>
-                                    <th>${t('phone_col')}</th>
-                                    <th>${t('rank_col')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${downlineResult.downline.map(d => `
+                        <div class="direct-downline-table-wrapper">
+                            <table class="direct-downline-table">
+                                <thead>
                                     <tr>
-                                        <td>${d.ma_ctv}</td>
-                                        <td>${d.ten}</td>
-                                        <td>${d.email || '-'}</td>
-                                        <td>${d.sdt || '-'}</td>
-                                        <td>${d.cap_bac || 'Bronze'}</td>
+                                        <th>${t('ctv_code_col')}</th>
+                                        <th>${t('name_col')}</th>
+                                        <th>${t('email_col')}</th>
+                                        <th>${t('phone_col')}</th>
+                                        <th>${t('rank_col')}</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${downlineResult.downline.map(d => `
+                                        <tr>
+                                            <td>${d.ma_ctv || '-'}</td>
+                                            <td>${d.ten || '-'}</td>
+                                            <td>${d.email || '-'}</td>
+                                            <td>${d.sdt || '-'}</td>
+                                            <td><span class="rank-badge">${d.cap_bac || 'Cộng Tác Viên'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     `;
                 }
             }
@@ -3593,11 +3849,6 @@
             };
         }
 
-        // Client search event
-        document.getElementById('ctvClientSearch')?.addEventListener('input', debounceCTV(() => {
-            loadCtvClientsWithServices();
-        }, 300));
-
         // ═══════════════════════════════════════════════════════════════════
         // LANGUAGE SYSTEM
         // ═══════════════════════════════════════════════════════════════════
@@ -3627,10 +3878,18 @@
                 earnings: 'Hoa Hồng',
                 network: 'Mạng Lưới',
                 search: 'Tìm Kiếm',
-                settings: 'Cài Dat',
+                settings: 'Cài Đặt',
+                customers: 'Khách Hàng',
                 logout: 'Đăng Xuất',
-                language: 'Ngon Ngu',
-                choose_language: 'Chon Ngon Ngu',
+                language: 'Ngôn Ngữ',
+                choose_language: 'Chọn Ngôn Ngữ',
+                
+                // Page Titles
+                page_overview: 'Tổng Quan',
+                page_earnings: 'Hoa Hồng',
+                page_network: 'Mạng Lưới',
+                page_customers: 'Khách Hàng',
+                page_settings: 'Cài Đặt',
                 
                 // Stats
                 total_earnings: 'Tổng Thu Nhập',
@@ -3698,6 +3957,33 @@
                 password_mismatch: 'Mật khẩu mới không khớp',
                 password_too_short: 'Mật khẩu mới phải có ít nhất 6 ký tự',
                 
+                // Booking Appointments
+                booking_appointments: 'Đặt Lịch Hẹn',
+                page_booking: 'Đặt Lịch Hẹn',
+                booking_form_title: 'Thông Tin Khách Hàng',
+                booking_form_subtitle: 'Bạn vui lòng nhập thông tin khách hàng tại đây',
+                customer_name: 'Tên khách hàng',
+                customer_name_placeholder: 'Nhập tên khách hàng',
+                customer_phone: 'Số điện thoại',
+                customer_phone_placeholder: 'Nhập số điện thoại',
+                service_interest: 'Dịch vụ Quan tâm',
+                service_interest_placeholder: 'Nhập dịch vụ quan tâm',
+                notes: 'Ghi chú',
+                notes_placeholder: 'Nhập ghi chú (tùy chọn)',
+                customer_region: 'Khu vực của khách hàng',
+                select_region: '-- Chọn khu vực --',
+                region_north: 'Miền Bắc',
+                region_south: 'Miền Nam',
+                region_central: 'Miền Trung',
+                referrer_phone: 'SDT người giới thiệu',
+                submit_booking: 'Gửi Thông Tin',
+                submitting: 'Đang gửi...',
+                booking_success: 'Thông tin khách hàng đã được gửi thành công!',
+                booking_failed: 'Gửi thông tin thất bại',
+                customer_name_required: 'Tên khách hàng là bắt buộc',
+                customer_phone_required: 'Số điện thoại là bắt buộc',
+                service_interest_required: 'Dịch vụ quan tâm là bắt buộc',
+                
                 // Phone Check
                 phone_check_title: 'Kiểm Tra Trùng Lặp Số Điện Thoại',
                 phone_check_placeholder: 'Nhập số điện thoại...',
@@ -3756,9 +4042,17 @@
                 earnings: 'Earnings',
                 network: 'Network',
                 settings: 'Settings',
+                customers: 'Customers',
                 logout: 'Logout',
                 language: 'Language',
                 choose_language: 'Choose Language',
+                
+                // Page Titles
+                page_overview: 'Overview',
+                page_earnings: 'Earnings',
+                page_network: 'Network',
+                page_customers: 'Customers',
+                page_settings: 'Settings',
                 
                 // Stats
                 total_earnings: 'Total Earnings',
@@ -3824,6 +4118,33 @@
                 password_changed: 'Password changed successfully!',
                 password_mismatch: 'New passwords do not match',
                 password_too_short: 'New password must be at least 6 characters',
+                
+                // Booking Appointments
+                booking_appointments: 'Book Appointments',
+                page_booking: 'Book Appointments',
+                booking_form_title: 'Customer Information',
+                booking_form_subtitle: 'Please enter customer information here',
+                customer_name: 'Customer Name',
+                customer_name_placeholder: 'Enter customer name',
+                customer_phone: 'Phone Number',
+                customer_phone_placeholder: 'Enter phone number',
+                service_interest: 'Service of Interest',
+                service_interest_placeholder: 'Enter service of interest',
+                notes: 'Notes',
+                notes_placeholder: 'Enter notes (optional)',
+                customer_region: 'Customer Region',
+                select_region: '-- Select region --',
+                region_north: 'Northern Region',
+                region_south: 'Southern Region',
+                region_central: 'Central Region',
+                referrer_phone: 'Referrer Phone Number',
+                submit_booking: 'Submit Information',
+                submitting: 'Submitting...',
+                booking_success: 'Customer information submitted successfully!',
+                booking_failed: 'Failed to submit information',
+                customer_name_required: 'Customer name is required',
+                customer_phone_required: 'Phone number is required',
+                service_interest_required: 'Service of interest is required',
                 
                 // Phone Check
                 phone_check_title: 'Phone Number Check',

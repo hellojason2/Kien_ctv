@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Google Sheets Live Sync Worker (Count-Based)
+Google Sheets Live Sync Worker (Hybrid Mode)
 - Syncs data from Google Sheets to PostgreSQL database
-- Logic: Appends new rows only (Sheet Count > DB Count)
-- Ignores "update" status column
+- For Tham My: Uses phone matching to detect updates AND new rows (catches mid-sheet edits)
+- For Nha Khoa & Gioi Thieu: Uses phone matching for full sync
 - Runs every 30 seconds
 """
 
@@ -25,6 +25,14 @@ GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5h
 BASE_DIR = Path(__file__).parent.absolute()
 CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
 
+# Use phone matching sync (processes ALL rows, detects updates)
+# Set to 'false' to use old count-based sync (only appends new rows at end)
+USE_PHONE_MATCHING = os.getenv('SYNC_USE_PHONE_MATCHING', 'true').lower() == 'true'
+
+# Optional: timestamp column name for detecting changed rows
+# If set, only rows with timestamp > last_sync will be processed
+TIMESTAMP_COLUMN = os.getenv('SYNC_TIMESTAMP_COLUMN', None)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -33,7 +41,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def run_sync(syncer):
+def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
     stats = {
         'tham_my': {'processed': 0, 'errors': 0},
         'nha_khoa': {'processed': 0, 'errors': 0},
@@ -48,16 +56,30 @@ def run_sync(syncer):
         logger.info("Connecting to database...")
         conn = syncer.get_db_connection()
         
+        sync_mode = "phone matching" if use_phone_matching else "count-based"
+        logger.info(f"Sync mode: {sync_mode}")
+        if timestamp_column:
+            logger.info(f"Timestamp column: {timestamp_column}")
+        
         logger.info("\n--- Processing Tham My ---")
-        p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'tham_my')
+        if use_phone_matching:
+            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my', timestamp_column)
+        else:
+            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'tham_my')
         stats['tham_my'] = {'processed': p, 'errors': e}
         
         logger.info("\n--- Processing Nha Khoa ---")
-        p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'nha_khoa')
+        if use_phone_matching:
+            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa', timestamp_column)
+        else:
+            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'nha_khoa')
         stats['nha_khoa'] = {'processed': p, 'errors': e}
         
         logger.info("\n--- Processing Gioi Thieu ---")
-        p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu')
+        if use_phone_matching:
+            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu', timestamp_column)
+        else:
+            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu')
         stats['gioi_thieu'] = {'processed': p, 'errors': e}
         
         if sum(s['processed'] for s in stats.values()) > 0:
@@ -80,8 +102,11 @@ def run_sync(syncer):
 
 def main():
     logger.info("=" * 60)
-    logger.info("Google Sheets Live Sync Worker (Count-Based)")
+    logger.info("Google Sheets Live Sync Worker (Hybrid Mode)")
     logger.info(f"Sheet ID: {GOOGLE_SHEET_ID}")
+    logger.info(f"Phone Matching: {'enabled' if USE_PHONE_MATCHING else 'disabled (count-based)'}")
+    if TIMESTAMP_COLUMN:
+        logger.info(f"Timestamp Column: {TIMESTAMP_COLUMN}")
     logger.info("=" * 60)
     
     if not CREDENTIALS_FILE.exists():
@@ -97,7 +122,7 @@ def main():
         logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info("=" * 60)
         
-        stats = run_sync(syncer)
+        stats = run_sync(syncer, use_phone_matching=USE_PHONE_MATCHING, timestamp_column=TIMESTAMP_COLUMN)
         
         total_processed = sum(s['processed'] for s in stats.values())
         total_errors = sum(s['errors'] for s in stats.values())

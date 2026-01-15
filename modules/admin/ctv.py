@@ -27,22 +27,17 @@ def get_ctv_levels():
         
         levels = [row[0] for row in cursor.fetchall()]
         
-        # Add default levels if they don't exist
-        defaults = ['Đã đặt cọc', 'Đã đến làm']
-        for d in defaults:
-            if d not in levels:
-                levels.append(d)
-        
-        # Sort levels alphabetically or by some custom logic
-        # For now, just sort alphabetically
-        levels.sort()
+        # Filter out "Bronze" and set specific levels for registration approval
+        # Only include: "Cộng Tác Viên", "Đã đặt cọc", "Đã đến làm"
+        # Order: "Cộng Tác Viên" first (default), then the other two
+        registration_levels = ['Cộng Tác Viên', 'Đã đặt cọc', 'Đã đến làm']
         
         cursor.close()
         return_db_connection(connection)
         
         return jsonify({
             'status': 'success',
-            'levels': levels
+            'levels': registration_levels
         })
         
     except Error as e:

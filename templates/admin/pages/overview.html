@@ -9,6 +9,22 @@
             <span class="sync-badge" id="syncBadge" style="display: none;">0</span>
         </div>
         
+        <!-- Row Count Indicators -->
+        <div class="row-count-indicators" id="rowCountIndicators">
+            <div class="row-count-box" id="rowCountTM" title="Thẩm Mỹ (Beauty) - DB / Sheet">
+                <span class="row-count-label">TM</span>
+                <span class="row-count-value" id="rowCountTMValue">-/-</span>
+            </div>
+            <div class="row-count-box" id="rowCountNK" title="Nha Khoa (Dental) - DB / Sheet">
+                <span class="row-count-label">NK</span>
+                <span class="row-count-value" id="rowCountNKValue">-/-</span>
+            </div>
+            <div class="row-count-box" id="rowCountGT" title="Giới Thiệu (Referral) - DB / Sheet">
+                <span class="row-count-label">GT</span>
+                <span class="row-count-value" id="rowCountGTValue">-/-</span>
+            </div>
+        </div>
+        
         <!-- Hard Reset Button -->
         <button id="hardResetBtn" onclick="confirmHardReset()" style="margin-left: auto; padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
             <span style="font-weight: bold;">↻</span> <span data-i18n="hard_reset">Hard Reset</span>

@@ -194,6 +194,11 @@ async function loadProfile(fromDate = null, toDate = null) {
         document.getElementById('statMonthlyEarnings').textContent = formatCurrency(result.stats.monthly_earnings);
         document.getElementById('statNetworkSize').textContent = result.stats.network_size;
         document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
+        
+        // Update booking referrer phone if booking form exists
+        if (typeof updateBookingReferrerPhone === 'function') {
+            updateBookingReferrerPhone();
+        }
     }
 }
 

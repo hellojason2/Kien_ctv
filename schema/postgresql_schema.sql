@@ -216,6 +216,7 @@ CREATE INDEX idx_commissions_created ON commissions(created_at);
 CREATE TABLE IF NOT EXISTS commission_cache (
     id SERIAL PRIMARY KEY,
     cache_key VARCHAR(50) UNIQUE NOT NULL,
+    cache_value TEXT DEFAULT '0',  -- Used for storing heartbeat count and other values
     last_kh_max_id INTEGER DEFAULT 0,
     last_svc_max_id INTEGER DEFAULT 0,
     total_kh_processed INTEGER DEFAULT 0,

@@ -121,9 +121,7 @@ body {
 ::-webkit-scrollbar-thumb {
     background: #d1d5db;
     border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
+}::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
 }/* Utility Classes */
 .text-green { color: var(--accent-green); }

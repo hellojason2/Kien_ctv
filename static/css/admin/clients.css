@@ -629,9 +629,7 @@
 
 .step-amount {
     text-align: right;
-}
-
-.commission-value {
+}.commission-value {
     font-weight: 700;
     color: #4a7c23;
     font-size: 0.9375rem;

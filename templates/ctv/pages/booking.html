@@ -1,0 +1,45 @@
+<!-- CTV Portal - Booking Page -->
+<div class="page-section" id="page-booking">
+    <div class="card">
+        <div class="card-header">
+            <h3 data-i18n="booking_form_title">Thông Tin Khách Hàng</h3>
+        </div>
+        <div class="card-body">
+            <p style="color:#666;margin-bottom:24px;font-size:14px;text-align:center;" data-i18n="booking_form_subtitle">Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+            <form id="bookingForm" style="max-width:600px;margin:0 auto;">
+                <div class="form-group">
+                    <label data-i18n="customer_name">Tên khách hàng <span style="color:#e53e3e;">*</span></label>
+                    <input type="text" id="bookingCustomerName" data-i18n-placeholder="customer_name_placeholder" placeholder="Nhập tên khách hàng" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="customer_phone">Số điện thoại <span style="color:#e53e3e;">*</span></label>
+                    <input type="tel" id="bookingCustomerPhone" data-i18n-placeholder="customer_phone_placeholder" placeholder="Nhập số điện thoại" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="service_interest">Dịch vụ Quan tâm <span style="color:#e53e3e;">*</span></label>
+                    <input type="text" id="bookingServiceInterest" data-i18n-placeholder="service_interest_placeholder" placeholder="Nhập dịch vụ quan tâm" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="notes">Ghi chú</label>
+                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="customer_region">Khu vực của khách hàng</label>
+                    <select id="bookingRegion">
+                        <option value="" data-i18n="select_region">-- Chọn khu vực --</option>
+                        <option value="Miền Bắc" data-i18n="region_north">Miền Bắc</option>
+                        <option value="Miền Nam" data-i18n="region_south">Miền Nam</option>
+                        <option value="Miền Trung" data-i18n="region_central">Miền Trung</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="referrer_phone">SDT người giới thiệu</label>
+                    <input type="tel" id="bookingReferrerPhone" readonly>
+                </div>
+                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn" data-i18n="submit_booking">Gửi Thông Tin</button>
+                <div class="error-msg" id="bookingError" style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
+                <div class="success-msg" id="bookingSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+            </form>
+        </div>
+    </div>
+</div>

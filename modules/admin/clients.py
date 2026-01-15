@@ -42,6 +42,8 @@ def get_clients_with_services():
         elif status_filter == 'not_deposited':
             base_where += " AND (tien_coc = 0 OR tien_coc IS NULL)"
         
+        # Query with consulting sources prioritized first
+        # Consulting sources (nha_khoa, gioi_thieu) should appear before tham_my
         client_query = f"""
             SELECT 
                 sdt,
@@ -50,11 +52,14 @@ def get_clients_with_services():
                 MIN(ngay_nhap_don) as first_visit_date,
                 MAX(ngay_nhap_don) as last_visit_date,
                 MIN(nguoi_chot) as nguoi_chot,
-                COUNT(*) as service_count
+                COUNT(*) as service_count,
+                BOOL_OR(source IN ('nha_khoa', 'gioi_thieu')) as is_consulting
             FROM khach_hang
             {base_where}
             GROUP BY sdt, ten_khach
-            ORDER BY MAX(ngay_nhap_don) DESC
+            ORDER BY 
+                CASE WHEN BOOL_OR(source IN ('nha_khoa', 'gioi_thieu')) THEN 0 ELSE 1 END,
+                MAX(ngay_nhap_don) DESC
             LIMIT %s OFFSET %s
         """
         
@@ -93,6 +98,7 @@ def get_clients_with_services():
                 'service_count': row['service_count'],
                 'overall_status': '',
                 'overall_deposit': 'Chua coc',
+                'is_consulting': row.get('is_consulting', False),
                 'services': [],
                 '_order': len(client_keys)
             }
@@ -104,6 +110,7 @@ def get_clients_with_services():
                 or_conditions.append('(sdt = %s AND ten_khach = %s)')
                 flat_keys.extend([sdt, ten_khach])
             
+            # Include source to prioritize consulting services at the top
             services_query = f"""
                 SELECT * FROM (
                     SELECT 
@@ -118,7 +125,13 @@ def get_clients_with_services():
                         ngay_nhap_don,
                         trang_thai,
                         nguoi_chot,
-                        ROW_NUMBER() OVER (PARTITION BY sdt, ten_khach ORDER BY ngay_nhap_don DESC) as rn
+                        source,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY sdt, ten_khach 
+                            ORDER BY 
+                                CASE WHEN source IN ('nha_khoa', 'gioi_thieu') THEN 0 ELSE 1 END,
+                                ngay_nhap_don DESC
+                        ) as rn
                     FROM khach_hang
                     WHERE {' OR '.join(or_conditions)}
                 ) ranked
@@ -149,7 +162,9 @@ def get_clients_with_services():
                     'ngay_nhap_don': svc['ngay_nhap_don'].strftime('%d/%m/%Y') if svc['ngay_nhap_don'] else None,
                     'ngay_hen_lam': svc['ngay_hen_lam'].strftime('%d/%m/%Y') if svc['ngay_hen_lam'] else None,
                     'trang_thai': svc['trang_thai'] or '',
-                    'deposit_status': deposit_status
+                    'deposit_status': deposit_status,
+                    'source': svc.get('source', ''),
+                    'is_consulting': svc.get('source', '') in ('nha_khoa', 'gioi_thieu')
                 }
                 
                 clients_dict[key]['services'].append(service)

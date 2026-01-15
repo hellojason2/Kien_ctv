@@ -10,15 +10,20 @@
 function loadSavedCredentials() {
     const savedMaCTV = localStorage.getItem('ctv_remember_ma_ctv');
     const savedPassword = localStorage.getItem('ctv_remember_password');
-    if (savedMaCTV) {
-        const maCTVInput = document.getElementById('maCTV');
+    const rememberChecked = localStorage.getItem('ctv_remember_checked');
+    
+    if (rememberChecked === 'true') {
         const rememberMeCheck = document.getElementById('rememberMe');
-        if (maCTVInput) maCTVInput.value = savedMaCTV;
         if (rememberMeCheck) rememberMeCheck.checked = true;
-    }
-    if (savedPassword) {
-        const passwordInput = document.getElementById('password');
-        if (passwordInput) passwordInput.value = savedPassword;
+        
+        if (savedMaCTV) {
+            const maCTVInput = document.getElementById('maCTV');
+            if (maCTVInput) maCTVInput.value = savedMaCTV;
+        }
+        if (savedPassword) {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) passwordInput.value = savedPassword;
+        }
     }
 }
 
@@ -33,15 +38,6 @@ async function handleLogin(e) {
     const loginForm = document.getElementById('loginForm');
     const loginSuccess = document.getElementById('loginSuccess');
     
-    // Save or remove credentials based on remember me checkbox
-    if (rememberMe) {
-        localStorage.setItem('ctv_remember_ma_ctv', maCTV);
-        localStorage.setItem('ctv_remember_password', password);
-    } else {
-        localStorage.removeItem('ctv_remember_ma_ctv');
-        localStorage.removeItem('ctv_remember_password');
-    }
-    
     loginBtn.disabled = true;
     loginBtn.textContent = t('logging_in');
     loginError.classList.remove('show');
@@ -55,6 +51,17 @@ async function handleLogin(e) {
         setAuthToken(result.token);
         localStorage.setItem('ctvToken', result.token);
         setCurrentUser(result.ctv);
+        
+        // Save credentials ONLY after successful login
+        if (rememberMe) {
+            localStorage.setItem('ctv_remember_ma_ctv', maCTV);
+            localStorage.setItem('ctv_remember_password', password);
+            localStorage.setItem('ctv_remember_checked', 'true');
+        } else {
+            localStorage.removeItem('ctv_remember_ma_ctv');
+            localStorage.removeItem('ctv_remember_password');
+            localStorage.removeItem('ctv_remember_checked');
+        }
         
         // Show success animation
         loginForm.style.display = 'none';

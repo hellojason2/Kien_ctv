@@ -2,7 +2,7 @@
 <header class="header">
     <div class="header-left">
         <div class="header-logo">
-            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm Thẩm Mỹ Viện" class="logo-image">
+            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm Thẩm Mỹ Viện" class="logo-image" onerror="this.onerror=null; this.src=this.src.replace('.png', '.svg');">
         </div>
         <span class="header-title">CTV Portal</span>
         <span class="header-page-title" id="headerPageTitle"></span>
