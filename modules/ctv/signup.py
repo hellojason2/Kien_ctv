@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2 import Error
 from .blueprint import ctv_bp
 from ..db_pool import get_db_connection, return_db_connection
-import hashlib
+from ..auth import hash_password
 import base64
 import json
 import os
@@ -262,8 +262,8 @@ def ctv_signup():
             'message': 'Invalid phone number'
         }), 400
     
-    # Hash password (using sha256 for compatibility)
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    # Hash password using proper hash_password function (salt:hash format)
+    password_hash = hash_password(password)
     
     connection = get_db_connection()
     if not connection:

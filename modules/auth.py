@@ -94,16 +94,36 @@ def hash_password(password):
 def verify_password(password, stored_hash):
     """
     DOES: Verify password against stored hash
-    INPUTS: password - plain text to verify, stored_hash - "salt:hash" from database
+    INPUTS: password - plain text to verify, stored_hash - "salt:hash" from database or legacy plain hash
     OUTPUTS: True if password matches, False otherwise
+    
+    BACKWARD COMPATIBILITY: Supports both:
+    - New format: "salt:hash" (salted SHA256)
+    - Legacy format: plain SHA256 hash (no salt) for old registrations
     """
-    if not stored_hash or ':' not in stored_hash:
+    if not stored_hash:
         return False
     
     try:
-        salt, expected_hash = stored_hash.split(':', 1)
-        actual_hash = hashlib.sha256((salt + password).encode()).hexdigest()
-        return actual_hash == expected_hash
+        # New format: salt:hash
+        if ':' in stored_hash:
+            salt, expected_hash = stored_hash.split(':', 1)
+            actual_hash = hashlib.sha256((salt + password).encode()).hexdigest()
+            return actual_hash == expected_hash
+        
+        # Legacy format: plain SHA256 hash (no salt)
+        # This handles old registrations that were created before salt was added
+        else:
+            # Try common legacy password hashing methods
+            # Method 1: Plain SHA256 of password
+            plain_hash = hashlib.sha256(password.encode()).hexdigest()
+            if plain_hash == stored_hash:
+                return True
+            
+            # Method 2: SHA256 with common salts that might have been used
+            # (Add any other legacy formats if needed)
+            
+            return False
     except Exception:
         return False
 

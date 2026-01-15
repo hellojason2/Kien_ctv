@@ -148,6 +148,14 @@ def approve_registration(registration_id):
             return_db_connection(connection)
             return jsonify({'status': 'error', 'message': f'CTV code {ctv_code} already exists'}), 400
         
+        # Check password hash format and warn if it's legacy format (no salt)
+        password_hash = registration['password_hash']
+        is_legacy_format = password_hash and ':' not in password_hash
+        warning_message = ''
+        
+        if is_legacy_format:
+            warning_message = ' (Warning: Using legacy password format - user can still login)'
+        
         # Create CTV account
         cursor.execute("""
             INSERT INTO ctv 
@@ -160,7 +168,7 @@ def approve_registration(registration_id):
             registration['email'],
             level,
             registration['referrer_code'],
-            registration['password_hash'],
+            password_hash,
             registration.get('signature_image')
         ))
         
@@ -172,16 +180,21 @@ def approve_registration(registration_id):
                 reviewed_by = %s,
                 admin_notes = %s
             WHERE id = %s
-        """, (admin_username, f'Approved as {ctv_code}', registration_id))
+        """, (admin_username, f'Approved as {ctv_code}{warning_message}', registration_id))
         
         connection.commit()
         cursor.close()
         return_db_connection(connection)
         
+        success_msg = f'Registration approved. CTV account {ctv_code} created.'
+        if warning_message:
+            success_msg += warning_message
+        
         return jsonify({
             'status': 'success',
-            'message': f'Registration approved. CTV account {ctv_code} created.',
-            'ctv_code': ctv_code
+            'message': success_msg,
+            'ctv_code': ctv_code,
+            'has_legacy_password': is_legacy_format
         })
         
     except Error as e:

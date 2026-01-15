@@ -122,7 +122,8 @@ def update_settings():
             try:
                 percent = float(rate) * 100
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hoa_hong_config')")
-                if cursor.fetchone()[0]:
+                table_exists = cursor.fetchone()['exists']
+                if table_exists:
                     cursor.execute("""
                         UPDATE hoa_hong_config 
                         SET percent = %s, description = %s, is_active = %s

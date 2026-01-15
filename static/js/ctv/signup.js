@@ -61,8 +61,8 @@ const translations = {
         id_placeholder: 'Nhập số CCCD/CMND',
         referrer_code: 'Mã CTV người giới thiệu',
         referrer_placeholder: 'Nhập mã CTV người giới thiệu (nếu có)',
-        referrer_phone: '☎️ CTV Người giới thiệu (nếu có)',
-        referrer_phone_placeholder: 'Nhập số điện thoại CTV người giới thiệu (nếu có)',
+        referrer_phone: '☎️ Người giới thiệu (nếu có)',
+        referrer_phone_placeholder: 'Nhập số điện thoại người giới thiệu (nếu có)',
         checking: 'Đang kiểm tra...',
         referrer_found: 'Người giới thiệu',
         referrer_not_found: 'Không tìm thấy CTV với số này',
@@ -79,6 +79,8 @@ const translations = {
         clear_signature: 'Xóa chữ ký',
         signature_date: 'Ngày:',
         accept_sign: 'Chấp nhận và Ký',
+        close: 'Đóng',
+        read_terms: 'Xem',
         cancel: 'Hủy',
         signup_button: 'Đăng Ký',
         have_account: 'Đã có tài khoản? Đăng nhập',
@@ -121,8 +123,8 @@ const translations = {
         id_placeholder: 'Enter ID number',
         referrer_code: 'Referrer Code',
         referrer_placeholder: 'Enter referrer CTV code (if any)',
-        referrer_phone: '☎️ Referrer CTV (optional)',
-        referrer_phone_placeholder: 'Enter referrer CTV phone number (if any)',
+        referrer_phone: '☎️ Referrer (optional)',
+        referrer_phone_placeholder: 'Enter referrer phone number (if any)',
         checking: 'Checking...',
         referrer_found: 'Referrer',
         referrer_not_found: 'CTV not found with this phone',
@@ -139,6 +141,8 @@ const translations = {
         clear_signature: 'Clear Signature',
         signature_date: 'Date:',
         accept_sign: 'Accept and Sign',
+        close: 'Close',
+        read_terms: 'Read',
         cancel: 'Cancel',
         signup_button: 'Sign Up',
         have_account: 'Already have an account? Login',
@@ -297,139 +301,7 @@ async function checkReferrerPhone(phone) {
 const debouncedCheckReferrer = debounce(checkReferrerPhone, 500);
 
 // Terms and Conditions Modal
-let termsAccepted = false;
-let signatureData = null;
-
-// Signature Pad Setup
-let canvas, ctx, isDrawing = false;
-let lastX = 0, lastY = 0;
-
-function initSignaturePad() {
-    canvas = document.getElementById('signatureCanvas');
-    if (!canvas) {
-        console.error('Signature canvas not found');
-        return;
-    }
-    
-    ctx = canvas.getContext('2d');
-    
-    // Set canvas size to match display size
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr; // Use device pixel ratio
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    
-    // Set drawing styles
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    // Mouse events
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
-    
-    // Touch events (important for mobile)
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', stopDrawing);
-    canvas.addEventListener('touchcancel', stopDrawing);
-}
-
-function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
-}
-
-function getTouchPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-    };
-}
-
-function startDrawing(e) {
-    isDrawing = true;
-    const pos = getMousePos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-    hidePlaceholder();
-}
-
-function handleTouchStart(e) {
-    e.preventDefault();
-    isDrawing = true;
-    const pos = getTouchPos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-    hidePlaceholder();
-}
-
-function draw(e) {
-    if (!isDrawing) return;
-    
-    const pos = getMousePos(e);
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    
-    lastX = pos.x;
-    lastY = pos.y;
-}
-
-function handleTouchMove(e) {
-    e.preventDefault();
-    if (!isDrawing) return;
-    
-    const pos = getTouchPos(e);
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    
-    lastX = pos.x;
-    lastY = pos.y;
-}
-
-function stopDrawing() {
-    isDrawing = false;
-}
-
-function clearSignature() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    showPlaceholder();
-    signatureData = null;
-}
-
-function hidePlaceholder() {
-    const placeholder = document.getElementById('signaturePlaceholder');
-    if (placeholder) {
-        placeholder.classList.add('hidden');
-    }
-}
-
-function showPlaceholder() {
-    const placeholder = document.getElementById('signaturePlaceholder');
-    if (placeholder) {
-        placeholder.classList.remove('hidden');
-    }
-}
-
-function isCanvasBlank() {
-    const pixelBuffer = new Uint32Array(
-        ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-    );
-    return !pixelBuffer.some(color => color !== 0);
-}
+let termsShown = false; // Track if terms have been shown
 
 // Make functions global for HTML onclick access
 window.openTermsModal = function(event) {
@@ -441,23 +313,11 @@ window.openTermsModal = function(event) {
     console.log('Global openTermsModal called');
 
     const modal = document.getElementById('termsModal');
-    const dateElement = document.getElementById('currentDate');
     
     if (!modal) {
         console.error('Terms modal not found');
         alert('Lỗi: Không tìm thấy khung điều khoản. Vui lòng tải lại trang.');
         return;
-    }
-    
-    // Set current date
-    const today = new Date();
-    const dateString = today.toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    if (dateElement) {
-        dateElement.textContent = dateString;
     }
     
     // FORCE SHOW MODAL - Direct Style Manipulation
@@ -469,16 +329,6 @@ window.openTermsModal = function(event) {
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.top = '0';
-    
-    // Initialize canvas with delay
-    setTimeout(() => {
-        initSignaturePad();
-        // Force redraw of canvas
-        if (canvas) {
-            canvas.width = canvas.width; 
-            initSignaturePad(); 
-        }
-    }, 200);
     
     return false;
 };
@@ -501,46 +351,6 @@ window.closeTermsModal = function() {
     document.body.style.position = '';
     document.body.style.width = '';
     document.body.style.top = '';
-    
-    // Clear signature if terms not accepted
-    if (!termsAccepted && typeof clearSignature === 'function') {
-        clearSignature();
-    }
-};
-
-window.acceptTerms = function() {
-    // Check if signature is drawn
-    if (isCanvasBlank()) {
-        alert(t('signature_required'));
-        return;
-    }
-    
-    // Save signature as data URL
-    signatureData = canvas.toDataURL('image/png');
-    
-    // Mark terms as accepted
-    termsAccepted = true;
-    
-    // Check the checkbox
-    const termsCheckbox = document.getElementById('termsCheckbox');
-    if (termsCheckbox) {
-        termsCheckbox.checked = true;
-        
-        // Trigger change event manually so the listener fires
-        const event = new Event('change');
-        termsCheckbox.dispatchEvent(event);
-        
-        // Also manually enable button just in case listener fails
-        const signupBtn = document.getElementById('signupBtn');
-        if (signupBtn) {
-            signupBtn.disabled = false;
-            signupBtn.style.opacity = '1';
-            signupBtn.style.cursor = 'pointer';
-        }
-    }
-    
-    // Close modal
-    window.closeTermsModal();
 };
 
 // Signup form submission
@@ -595,14 +405,6 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         return;
     }
     
-    // Check if terms are accepted
-    const termsCheckbox = document.getElementById('termsCheckbox');
-    if (!termsCheckbox.checked || !termsAccepted) {
-        errorMsg.textContent = t('terms_required');
-        errorMsg.style.display = 'block';
-        return;
-    }
-    
     // Disable button and show loading
     submitBtn.disabled = true;
     submitBtn.textContent = t('submitting');
@@ -621,8 +423,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
                 dob: dob || null,
                 id_number: idNumber || null,
                 referrer_code: referrerCode || null,
-                password: password,
-                signature_image: signatureData // Send the signature data
+                password: password
             })
         });
         
@@ -864,33 +665,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLang);
     loadSignupTerms(); // Load terms from database
     
-    // Disable signup button initially
-    const signupBtn = document.getElementById('signupBtn');
-    const termsCheckbox = document.getElementById('termsCheckbox');
-    
-    if (signupBtn && termsCheckbox) {
-        signupBtn.disabled = true;
-        signupBtn.style.opacity = '0.5';
-        signupBtn.style.cursor = 'not-allowed';
-        
-        // Enable/disable signup button based on checkbox
-        termsCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked && termsAccepted) {
-                signupBtn.disabled = false;
-                signupBtn.style.opacity = '1';
-                signupBtn.style.cursor = 'pointer';
-            } else {
-                signupBtn.disabled = true;
-                signupBtn.style.opacity = '0.5';
-                signupBtn.style.cursor = 'not-allowed';
-                
-                // If unchecked, reset terms acceptance
-                if (!e.target.checked) {
-                    termsAccepted = false;
-                    signatureData = null;
-                }
-            }
-        });
+    // Auto-show terms modal on first visit
+    if (!termsShown) {
+        termsShown = true;
+        // Show modal after a brief delay to ensure page is loaded
+        setTimeout(() => {
+            window.openTermsModal();
+            
+            // Auto-close after 3 seconds
+            setTimeout(() => {
+                window.closeTermsModal();
+            }, 3000);
+        }, 500);
     }
     
     // Attach real-time validation to referrer code input
@@ -902,29 +688,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Terms modal event listeners
-    const viewTermsLink = document.getElementById('viewTermsLink');
     const closeTermsModal_btn = document.getElementById('closeTermsModal');
-    const cancelTermsBtn = document.getElementById('cancelTermsBtn');
-    const acceptTermsBtn = document.getElementById('acceptTermsBtn');
-    const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+    const closeTermsBtn = document.getElementById('closeTermsBtn');
     const termsModal = document.getElementById('termsModal');
-    
-    // Note: viewTermsLink now uses inline onclick="openTermsModal(event)"
     
     if (closeTermsModal_btn) {
         closeTermsModal_btn.addEventListener('click', window.closeTermsModal);
     }
     
-    if (cancelTermsBtn) {
-        cancelTermsBtn.addEventListener('click', window.closeTermsModal);
-    }
-    
-    if (acceptTermsBtn) {
-        acceptTermsBtn.addEventListener('click', window.acceptTerms);
-    }
-    
-    if (clearSignatureBtn) {
-        clearSignatureBtn.addEventListener('click', clearSignature);
+    if (closeTermsBtn) {
+        closeTermsBtn.addEventListener('click', window.closeTermsModal);
     }
     
     // Close modal when clicking outside

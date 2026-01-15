@@ -123,8 +123,8 @@
 
                 <!-- Người giới thiệu -->
                 <div class="form-group">
-                    <label data-i18n="referrer_phone">☎️ CTV Người giới thiệu (nếu có)</label>
-                    <input type="tel" id="referrerCode" data-i18n-placeholder="referrer_phone_placeholder" placeholder="Nhập số điện thoại CTV người giới thiệu (nếu có)">
+                    <label data-i18n="referrer_phone">☎️ Người giới thiệu (nếu có)</label>
+                    <input type="tel" id="referrerCode" data-i18n-placeholder="referrer_phone_placeholder" placeholder="Nhập số điện thoại người giới thiệu (nếu có)">
                 </div>
 
                 <!-- Mật khẩu -->
@@ -140,15 +140,11 @@
                 </div>
 
                 <!-- Terms and Conditions -->
-                <div class="form-group terms-group">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="termsCheckbox" required>
-                        <span class="checkmark"></span>
-                        <span class="terms-text">
-                            <span data-i18n="agree_terms">Tôi đồng ý với</span> 
-                            <a href="javascript:void(0)" onclick="openTermsModal(event)" id="viewTermsLink" data-i18n="terms_link" style="position: relative; z-index: 10;">Điều khoản và Điều kiện</a> *
-                        </span>
-                    </label>
+                <div class="form-group terms-group" style="text-align: center;">
+                    <span class="terms-text">
+                        <span data-i18n="read_terms">Xem</span> 
+                        <a href="javascript:void(0)" onclick="openTermsModal(event)" id="viewTermsLink" data-i18n="terms_link" style="position: relative; z-index: 10;">Điều khoản và Điều kiện</a>
+                    </span>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="signupBtn" data-i18n="signup_button">Đăng Ký</button>
@@ -231,23 +227,8 @@
                 </div>
             </div>
             <div class="terms-modal-footer">
-                <div class="signature-section">
-                    <p class="signature-text" data-i18n="signature_agreement">Bằng cách ký tên bên dưới, tôi xác nhận đã đọc, hiểu và đồng ý với tất cả các điều khoản và điều kiện trên.</p>
-                    <div class="signature-input-group">
-                        <label data-i18n="signature_label">Chữ ký điện tử *</label>
-                        <div class="signature-pad-container">
-                            <canvas id="signatureCanvas" width="400" height="120"></canvas>
-                            <div class="signature-pad-placeholder" id="signaturePlaceholder" data-i18n="signature_placeholder">Vẽ chữ ký của bạn ở đây</div>
-                        </div>
-                        <button type="button" class="btn-clear-signature" id="clearSignatureBtn" data-i18n="clear_signature">Xóa chữ ký</button>
-                    </div>
-                    <div class="signature-date">
-                        <span data-i18n="signature_date">Ngày:</span> <span id="currentDate"></span>
-                    </div>
-                </div>
                 <div class="terms-modal-actions">
-                    <button class="btn btn-secondary" id="cancelTermsBtn" data-i18n="cancel">Hủy</button>
-                    <button class="btn btn-primary" id="acceptTermsBtn" data-i18n="accept_sign">Chấp nhận và Ký</button>
+                    <button class="btn btn-primary" id="closeTermsBtn" data-i18n="close">Đóng</button>
                 </div>
             </div>
         </div>
