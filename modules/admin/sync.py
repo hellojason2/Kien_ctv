@@ -318,6 +318,67 @@ def manual_sync():
         return jsonify({'status': 'error', 'message': str(e), 'logs': logs if 'logs' in dir() else []}), 500
 
 
+@admin_bp.route('/api/admin/sync/tab/<tab_type>', methods=['POST'])
+@require_admin
+def sync_single_tab(tab_type):
+    """
+    Sync a single tab from Google Sheets.
+    Used for step-by-step sync progress.
+    
+    Args:
+        tab_type: 'tham_my', 'nha_khoa', or 'gioi_thieu'
+    """
+    if tab_type not in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+        return jsonify({'status': 'error', 'message': 'Invalid tab type'}), 400
+    
+    try:
+        logger.info(f"SYNC TAB: Starting {tab_type}")
+        
+        syncer = GoogleSheetSync()
+        client = syncer.get_google_client()
+        spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+        conn = syncer.get_db_connection()
+        
+        # Get count before
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (tab_type,))
+        before_count = cur.fetchone()[0]
+        cur.close()
+        
+        # Sync using phone matching
+        inserted, skipped = syncer.sync_tab_by_phone_matching(spreadsheet, conn, tab_type)
+        
+        # Get count after
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (tab_type,))
+        after_count = cur.fetchone()[0]
+        cur.close()
+        
+        # Update heartbeat
+        syncer.update_heartbeat(conn, inserted)
+        
+        conn.close()
+        
+        logger.info(f"SYNC TAB: {tab_type} complete - {inserted} inserted, {skipped} skipped")
+        
+        return jsonify({
+            'status': 'success',
+            'tab': tab_type,
+            'stats': {
+                'inserted': inserted,
+                'skipped': skipped
+            },
+            'before_count': before_count,
+            'after_count': after_count
+        })
+        
+    except Exception as e:
+        logger.error(f"SYNC TAB ERROR ({tab_type}): {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @admin_bp.route('/api/admin/sync/diagnose', methods=['GET'])
 @require_admin
 def diagnose_phone():

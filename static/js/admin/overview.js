@@ -663,7 +663,7 @@ function refreshRowCounts() {
 }
 
 /**
- * Manual Sync - Pull new records from Google Sheets
+ * Manual Sync - Pull new records from Google Sheets (Step by Step)
  */
 async function manualSync() {
     const syncBtn = document.getElementById('syncNowBtn');
@@ -681,7 +681,6 @@ async function manualSync() {
         logEntries.innerHTML = '';
         statusDisplay.style.display = 'block';
         summary.style.display = 'none';
-        currentStep.textContent = 'Connecting to Google Sheets...';
     }
     
     // Disable button
@@ -692,80 +691,159 @@ async function manualSync() {
     
     function addSyncLog(message, level = 'info') {
         if (logEntries) {
+            const time = new Date().toLocaleTimeString();
             const entry = document.createElement('div');
             entry.className = `sync-log-entry ${level}`;
-            entry.textContent = message;
+            entry.innerHTML = `<span style="color:#9ca3af;margin-right:8px;">[${time}]</span>${message}`;
             logEntries.appendChild(entry);
             logEntries.scrollTop = logEntries.scrollHeight;
         }
     }
     
+    function updateStep(text) {
+        if (currentStep) currentStep.textContent = text;
+    }
+    
+    const stats = {
+        tham_my: { inserted: 0, skipped: 0 },
+        nha_khoa: { inserted: 0, skipped: 0 },
+        gioi_thieu: { inserted: 0, skipped: 0 }
+    };
+    const beforeCounts = {};
+    const afterCounts = {};
+    
     try {
-        addSyncLog('Starting manual sync...');
-        currentStep.textContent = 'Syncing data...';
+        // Step 1: Get current database counts
+        updateStep('Step 1/5: Reading database...');
+        addSyncLog('📊 Reading current database counts...');
         
-        const result = await api('/api/admin/sync/manual', { method: 'POST' });
-        
-        // Display all logs from server
-        if (result.logs && Array.isArray(result.logs)) {
-            result.logs.forEach(log => {
-                addSyncLog(log.message, log.level);
-            });
+        const previewResult = await api('/api/admin/reset-data/preview');
+        if (previewResult.status === 'success') {
+            beforeCounts.tham_my = previewResult.counts?.tham_my || 0;
+            beforeCounts.nha_khoa = previewResult.counts?.nha_khoa || 0;
+            beforeCounts.gioi_thieu = previewResult.counts?.gioi_thieu || 0;
+            addSyncLog(`✓ Database: TM=${beforeCounts.tham_my.toLocaleString()}, NK=${beforeCounts.nha_khoa.toLocaleString()}, GT=${beforeCounts.gioi_thieu.toLocaleString()}`, 'success');
         }
         
-        if (result.status === 'success') {
-            // Hide spinner, show summary
-            statusDisplay.style.display = 'none';
-            summary.style.display = 'block';
-            
-            // Build summary stats
-            const summaryStats = document.getElementById('syncSummaryStats');
-            if (summaryStats) {
-                const stats = result.stats || {};
-                const before = result.before_counts || {};
-                const after = result.after_counts || {};
-                
-                summaryStats.innerHTML = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
-                        <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Thẩm Mỹ</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.tham_my?.inserted || 0}</div>
-                            <div style="font-size: 11px; color: #6b7280;">${before.tham_my?.toLocaleString() || 0} → ${after.tham_my?.toLocaleString() || 0}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Nha Khoa</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.nha_khoa?.inserted || 0}</div>
-                            <div style="font-size: 11px; color: #6b7280;">${before.nha_khoa?.toLocaleString() || 0} → ${after.nha_khoa?.toLocaleString() || 0}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Giới Thiệu</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.gioi_thieu?.inserted || 0}</div>
-                            <div style="font-size: 11px; color: #6b7280;">${before.gioi_thieu?.toLocaleString() || 0} → ${after.gioi_thieu?.toLocaleString() || 0}</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbf7d0; text-align: center;">
-                        <strong>Total: ${result.total_new || 0} new records</strong>
-                    </div>
-                `;
-            }
-            
-            // Refresh the row counts display
-            loadRowCounts();
-            
-            // Refresh stats
-            loadOverviewStats();
+        // Step 2: Sync Tham My
+        updateStep('Step 2/5: Syncing Thẩm Mỹ (Beauty)...');
+        addSyncLog('');
+        addSyncLog('═══ Syncing Thẩm Mỹ (Beauty) ═══');
+        addSyncLog('📥 Connecting to Google Sheets...');
+        addSyncLog('📖 Reading all rows from sheet...');
+        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        
+        const tmResult = await api('/api/admin/sync/tab/tham_my', { method: 'POST' });
+        if (tmResult.status === 'success') {
+            stats.tham_my = tmResult.stats || { inserted: 0, skipped: 0 };
+            addSyncLog(`✓ Thẩm Mỹ: +${stats.tham_my.inserted} new, ${stats.tham_my.skipped} skipped`, 'success');
         } else {
-            addSyncLog('ERROR: ' + (result.message || 'Unknown error'), 'error');
-            statusDisplay.innerHTML = `
-                <div style="color: #b91c1c; font-size: 48px; margin-bottom: 12px;">✗</div>
-                <div style="color: #b91c1c; font-weight: 600;">Sync Failed</div>
-                <div style="color: #6b7280; margin-top: 8px;">${result.message || 'Unknown error'}</div>
-                <button onclick="closeSyncModal()" style="margin-top: 16px; background: #fee2e2; color: #b91c1c; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer;">Close</button>
+            addSyncLog(`✗ Thẩm Mỹ failed: ${tmResult.message}`, 'error');
+        }
+        
+        // Step 3: Sync Nha Khoa
+        updateStep('Step 3/5: Syncing Nha Khoa (Dental)...');
+        addSyncLog('');
+        addSyncLog('═══ Syncing Nha Khoa (Dental) ═══');
+        addSyncLog('📥 Connecting to Google Sheets...');
+        addSyncLog('📖 Reading all rows from sheet...');
+        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        
+        const nkResult = await api('/api/admin/sync/tab/nha_khoa', { method: 'POST' });
+        if (nkResult.status === 'success') {
+            stats.nha_khoa = nkResult.stats || { inserted: 0, skipped: 0 };
+            addSyncLog(`✓ Nha Khoa: +${stats.nha_khoa.inserted} new, ${stats.nha_khoa.skipped} skipped`, 'success');
+        } else {
+            addSyncLog(`✗ Nha Khoa failed: ${nkResult.message}`, 'error');
+        }
+        
+        // Step 4: Sync Gioi Thieu
+        updateStep('Step 4/5: Syncing Giới Thiệu (Referral)...');
+        addSyncLog('');
+        addSyncLog('═══ Syncing Giới Thiệu (Referral) ═══');
+        addSyncLog('📥 Connecting to Google Sheets...');
+        addSyncLog('📖 Reading all rows from sheet...');
+        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        
+        const gtResult = await api('/api/admin/sync/tab/gioi_thieu', { method: 'POST' });
+        if (gtResult.status === 'success') {
+            stats.gioi_thieu = gtResult.stats || { inserted: 0, skipped: 0 };
+            addSyncLog(`✓ Giới Thiệu: +${stats.gioi_thieu.inserted} new, ${stats.gioi_thieu.skipped} skipped`, 'success');
+        } else {
+            addSyncLog(`✗ Giới Thiệu failed: ${gtResult.message}`, 'error');
+        }
+        
+        // Step 5: Calculate commissions if needed
+        const totalNew = stats.tham_my.inserted + stats.nha_khoa.inserted + stats.gioi_thieu.inserted;
+        
+        if (totalNew > 0) {
+            updateStep('Step 5/5: Calculating commissions...');
+            addSyncLog('');
+            addSyncLog('═══ Calculating Commissions ═══');
+            addSyncLog('💰 Recalculating commission levels...');
+            
+            const commResult = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
+            if (commResult.status === 'success') {
+                addSyncLog(`✓ Commissions updated`, 'success');
+            }
+        } else {
+            updateStep('Step 5/5: No new records, skipping...');
+            addSyncLog('');
+            addSyncLog('ℹ️ No new records found - skipping commission calculation');
+        }
+        
+        // Get final counts
+        const finalPreview = await api('/api/admin/reset-data/preview');
+        if (finalPreview.status === 'success') {
+            afterCounts.tham_my = finalPreview.counts?.tham_my || 0;
+            afterCounts.nha_khoa = finalPreview.counts?.nha_khoa || 0;
+            afterCounts.gioi_thieu = finalPreview.counts?.gioi_thieu || 0;
+        }
+        
+        addSyncLog('');
+        addSyncLog(`✅ SYNC COMPLETE! ${totalNew} new records added.`, 'success');
+        
+        // Hide spinner, show summary
+        statusDisplay.style.display = 'none';
+        summary.style.display = 'block';
+        
+        // Build summary stats
+        const summaryStats = document.getElementById('syncSummaryStats');
+        if (summaryStats) {
+            summaryStats.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Thẩm Mỹ</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.tham_my.inserted}</div>
+                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.tham_my || 0).toLocaleString()} → ${(afterCounts.tham_my || 0).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Nha Khoa</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.nha_khoa.inserted}</div>
+                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.nha_khoa || 0).toLocaleString()} → ${(afterCounts.nha_khoa || 0).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Giới Thiệu</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.gioi_thieu.inserted}</div>
+                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.gioi_thieu || 0).toLocaleString()} → ${(afterCounts.gioi_thieu || 0).toLocaleString()}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbf7d0; text-align: center;">
+                    <strong>Total: ${totalNew} new records</strong>
+                </div>
             `;
         }
+        
+        // Refresh the row counts display
+        loadRowCounts();
+        
+        // Refresh stats
+        loadOverviewStats();
+        
     } catch (error) {
         console.error('Manual sync error:', error);
-        addSyncLog('ERROR: ' + error.message, 'error');
+        addSyncLog('');
+        addSyncLog('✗ ERROR: ' + error.message, 'error');
         if (statusDisplay) {
             statusDisplay.innerHTML = `
                 <div style="color: #b91c1c; font-size: 48px; margin-bottom: 12px;">✗</div>
