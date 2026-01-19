@@ -398,17 +398,33 @@ def get_sync_row_counts():
         sheet_error = None
         
         try:
+            import json
             import gspread
             from google.oauth2.service_account import Credentials
             
             BASE_DIR = Path(__file__).parent.parent.parent.absolute()
             GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
             CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
+            GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
             
-            if CREDENTIALS_FILE.exists():
-                scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+            scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+            client = None
+            
+            # Try environment variable first (for Railway/production)
+            if GOOGLE_CREDENTIALS_JSON:
+                try:
+                    creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
+                    credentials = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+                    client = gspread.authorize(credentials)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
+            
+            # Fall back to file (for local development)
+            if not client and CREDENTIALS_FILE.exists():
                 credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
                 client = gspread.authorize(credentials)
+            
+            if client:
                 spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
                 
                 # Tab name variations for each source
@@ -440,7 +456,7 @@ def get_sync_row_counts():
                     if not found:
                         sheet_counts[source] = 0
             else:
-                sheet_error = 'Google credentials file not found'
+                sheet_error = 'Google credentials not found (set GOOGLE_CREDENTIALS_JSON env var or add google_credentials.json file)'
                 for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
                     sheet_counts[source] = None
                     
