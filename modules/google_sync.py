@@ -610,6 +610,11 @@ class GoogleSheetSync:
         Only skip exact duplicates (same phone + date + service).
         Each service visit should be a separate row!
         Returns (inserted_count, skipped_count)
+        
+        Row tuple indices from prepare_khach_hang_row:
+        0: ngay_nhap, 1: ten_khach, 2: sdt, 3: co_so, 4: ngay_lam, 5: gio,
+        6: dich_vu, 7: tong_tien, 8: tien_coc, 9: phai_dong, 10: nguoi_chot, 
+        11: ghi_chu, 12: trang_thai, 13: tab_type
         """
         if not rows:
             return 0, 0
@@ -621,7 +626,7 @@ class GoogleSheetSync:
         for row in rows:
             sdt = row[2]        # Phone number
             ngay_nhap = row[0]  # Date
-            dich_vu = row[3]    # Service (index 3 for nha_khoa)
+            dich_vu = row[6]    # Service (index 6, NOT 3!)
             
             # Only skip if EXACT same record exists (phone + date + service)
             if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'nha_khoa'):

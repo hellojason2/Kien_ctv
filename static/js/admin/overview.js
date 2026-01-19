@@ -669,23 +669,84 @@ async function manualSync() {
     const syncBtn = document.getElementById('syncNowBtn');
     if (!syncBtn) return;
     
-    // Disable button and show loading state
+    // Show the sync modal
+    const modal = document.getElementById('syncModal');
+    const logEntries = document.getElementById('syncLogEntries');
+    const statusDisplay = document.getElementById('syncStatusDisplay');
+    const summary = document.getElementById('syncSummary');
+    const currentStep = document.getElementById('syncCurrentStep');
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        logEntries.innerHTML = '';
+        statusDisplay.style.display = 'block';
+        summary.style.display = 'none';
+        currentStep.textContent = 'Connecting to Google Sheets...';
+    }
+    
+    // Disable button
     syncBtn.disabled = true;
     const originalText = syncBtn.innerHTML;
     syncBtn.innerHTML = '<span style="font-weight: bold;">⟳</span> <span>Syncing...</span>';
     syncBtn.style.opacity = '0.7';
     
+    function addSyncLog(message, level = 'info') {
+        if (logEntries) {
+            const entry = document.createElement('div');
+            entry.className = `sync-log-entry ${level}`;
+            entry.textContent = message;
+            logEntries.appendChild(entry);
+            logEntries.scrollTop = logEntries.scrollHeight;
+        }
+    }
+    
     try {
+        addSyncLog('Starting manual sync...');
+        currentStep.textContent = 'Syncing data...';
+        
         const result = await api('/api/admin/sync/manual', { method: 'POST' });
         
+        // Display all logs from server
+        if (result.logs && Array.isArray(result.logs)) {
+            result.logs.forEach(log => {
+                addSyncLog(log.message, log.level);
+            });
+        }
+        
         if (result.status === 'success') {
-            const total = result.total_processed || 0;
+            // Hide spinner, show summary
+            statusDisplay.style.display = 'none';
+            summary.style.display = 'block';
             
-            // Show success message
-            if (total > 0) {
-                alert(`Sync complete!\n\nNew records added:\n- Beauty (TM): ${result.stats?.tham_my?.processed || 0}\n- Dental (NK): ${result.stats?.nha_khoa?.processed || 0}\n- Referral (GT): ${result.stats?.gioi_thieu?.processed || 0}\n\nTotal: ${total} records`);
-            } else {
-                alert('Sync complete!\n\nNo new records found. Database is up to date.');
+            // Build summary stats
+            const summaryStats = document.getElementById('syncSummaryStats');
+            if (summaryStats) {
+                const stats = result.stats || {};
+                const before = result.before_counts || {};
+                const after = result.after_counts || {};
+                
+                summaryStats.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Thẩm Mỹ</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.tham_my?.inserted || 0}</div>
+                            <div style="font-size: 11px; color: #6b7280;">${before.tham_my?.toLocaleString() || 0} → ${after.tham_my?.toLocaleString() || 0}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Nha Khoa</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.nha_khoa?.inserted || 0}</div>
+                            <div style="font-size: 11px; color: #6b7280;">${before.nha_khoa?.toLocaleString() || 0} → ${after.nha_khoa?.toLocaleString() || 0}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Giới Thiệu</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.gioi_thieu?.inserted || 0}</div>
+                            <div style="font-size: 11px; color: #6b7280;">${before.gioi_thieu?.toLocaleString() || 0} → ${after.gioi_thieu?.toLocaleString() || 0}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbf7d0; text-align: center;">
+                        <strong>Total: ${result.total_new || 0} new records</strong>
+                    </div>
+                `;
             }
             
             // Refresh the row counts display
@@ -694,16 +755,40 @@ async function manualSync() {
             // Refresh stats
             loadOverviewStats();
         } else {
-            alert('Sync failed: ' + (result.message || 'Unknown error'));
+            addSyncLog('ERROR: ' + (result.message || 'Unknown error'), 'error');
+            statusDisplay.innerHTML = `
+                <div style="color: #b91c1c; font-size: 48px; margin-bottom: 12px;">✗</div>
+                <div style="color: #b91c1c; font-weight: 600;">Sync Failed</div>
+                <div style="color: #6b7280; margin-top: 8px;">${result.message || 'Unknown error'}</div>
+                <button onclick="closeSyncModal()" style="margin-top: 16px; background: #fee2e2; color: #b91c1c; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer;">Close</button>
+            `;
         }
     } catch (error) {
         console.error('Manual sync error:', error);
-        alert('Sync failed: ' + error.message);
+        addSyncLog('ERROR: ' + error.message, 'error');
+        if (statusDisplay) {
+            statusDisplay.innerHTML = `
+                <div style="color: #b91c1c; font-size: 48px; margin-bottom: 12px;">✗</div>
+                <div style="color: #b91c1c; font-weight: 600;">Sync Failed</div>
+                <div style="color: #6b7280; margin-top: 8px;">${error.message}</div>
+                <button onclick="closeSyncModal()" style="margin-top: 16px; background: #fee2e2; color: #b91c1c; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer;">Close</button>
+            `;
+        }
     } finally {
         // Restore button state
         syncBtn.disabled = false;
         syncBtn.innerHTML = originalText;
         syncBtn.style.opacity = '1';
+    }
+}
+
+/**
+ * Close the sync modal
+ */
+function closeSyncModal() {
+    const modal = document.getElementById('syncModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 

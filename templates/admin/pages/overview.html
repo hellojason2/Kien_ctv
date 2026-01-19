@@ -282,3 +282,54 @@
         </div>
     </div>
 </div>
+
+<!-- Sync Progress Modal -->
+<div id="syncModal" class="progress-modal-overlay" style="display: none;">
+    <div class="progress-modal" style="max-width: 550px;">
+        <div class="progress-modal-header">
+            <div class="progress-modal-icon" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+            </div>
+            <h3 data-i18n="sync_progress">Sync In Progress</h3>
+            <p class="progress-modal-subtitle">Pulling new records from Google Sheets...</p>
+        </div>
+        
+        <!-- Sync Status -->
+        <div class="sync-status-display" id="syncStatusDisplay" style="padding: 20px; text-align: center;">
+            <div class="sync-spinner" style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #22c55e; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+            <div id="syncCurrentStep" style="font-weight: 600; color: #374151;">Connecting...</div>
+        </div>
+        
+        <!-- Sync Log -->
+        <div class="sync-log-panel" style="max-height: 300px; overflow-y: auto; margin: 0 20px; padding: 12px; background: #f9fafb; border-radius: 8px; font-family: monospace; font-size: 12px;">
+            <div id="syncLogEntries"></div>
+        </div>
+        
+        <!-- Summary (shown when complete) -->
+        <div class="sync-summary" id="syncSummary" style="display: none; padding: 20px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 12px;">✓</div>
+            <h4 style="margin: 0 0 16px; color: #166534;">Sync Complete!</h4>
+            <div id="syncSummaryStats" style="text-align: left; background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 16px;"></div>
+            <button class="btn-close-modal" onclick="closeSyncModal()" style="background: #22c55e; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.sync-log-entry {
+    padding: 4px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+.sync-log-entry:last-child {
+    border-bottom: none;
+}
+.sync-log-entry.info { color: #374151; }
+.sync-log-entry.success { color: #166534; }
+.sync-log-entry.warning { color: #b45309; }
+.sync-log-entry.error { color: #b91c1c; }
+</style>

@@ -204,65 +204,118 @@ def reset_step_commissions():
 def manual_sync():
     """
     Manually trigger a sync to pull new records from Google Sheets.
-    This uses phone matching to find and add new/updated records.
+    Returns detailed logs for progress display.
     """
     try:
         from ..mlm_core import calculate_new_commissions_fast
         
-        logger.info("=" * 60)
-        logger.info("MANUAL SYNC TRIGGERED")
-        logger.info("=" * 60)
+        logs = []
+        def add_log(message, level='info'):
+            logs.append({'message': message, 'level': level, 'timestamp': datetime.now().isoformat()})
+            logger.info(f"[SYNC {level.upper()}] {message}")
+        
+        from datetime import datetime
+        
+        add_log("Manual sync initiated")
+        add_log("Connecting to Google Sheets...")
         
         syncer = GoogleSheetSync()
         client = syncer.get_google_client()
         spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+        
+        add_log("Connected to Google Sheets ✓")
+        add_log("Connecting to database...")
+        
         conn = syncer.get_db_connection()
+        add_log("Connected to database ✓")
         
         stats = {
-            'tham_my': {'processed': 0, 'errors': 0},
-            'nha_khoa': {'processed': 0, 'errors': 0},
-            'gioi_thieu': {'processed': 0, 'errors': 0}
+            'tham_my': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
+            'nha_khoa': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
+            'gioi_thieu': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0}
         }
         
-        # Sync each tab using phone matching
-        logger.info("Processing Tham My...")
-        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my')
-        stats['tham_my'] = {'processed': p, 'errors': e}
+        # Get DB counts before sync
+        cur = conn.cursor()
+        before_counts = {}
+        for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (source,))
+            before_counts[source] = cur.fetchone()[0]
+        cur.close()
         
-        logger.info("Processing Nha Khoa...")
-        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa')
-        stats['nha_khoa'] = {'processed': p, 'errors': e}
+        add_log(f"Database before: TM={before_counts['tham_my']:,}, NK={before_counts['nha_khoa']:,}, GT={before_counts['gioi_thieu']:,}")
         
-        logger.info("Processing Gioi Thieu...")
-        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu')
-        stats['gioi_thieu'] = {'processed': p, 'errors': e}
+        # --- Sync Tham My ---
+        add_log("")
+        add_log("═══ Processing Thẩm Mỹ (Beauty) ═══")
+        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my')
+        stats['tham_my']['inserted'] = ins
+        stats['tham_my']['updated'] = upd
+        add_log(f"Thẩm Mỹ: {ins} new, {upd} updated")
+        
+        # --- Sync Nha Khoa ---
+        add_log("")
+        add_log("═══ Processing Nha Khoa (Dental) ═══")
+        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa')
+        stats['nha_khoa']['inserted'] = ins
+        stats['nha_khoa']['updated'] = upd
+        add_log(f"Nha Khoa: {ins} new, {upd} updated")
+        
+        # --- Sync Gioi Thieu ---
+        add_log("")
+        add_log("═══ Processing Giới Thiệu (Referral) ═══")
+        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu')
+        stats['gioi_thieu']['inserted'] = ins
+        stats['gioi_thieu']['updated'] = upd
+        add_log(f"Giới Thiệu: {ins} new, {upd} updated")
+        
+        # Get DB counts after sync
+        cur = conn.cursor()
+        after_counts = {}
+        for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (source,))
+            after_counts[source] = cur.fetchone()[0]
+        cur.close()
+        
+        add_log("")
+        add_log(f"Database after: TM={after_counts['tham_my']:,}, NK={after_counts['nha_khoa']:,}, GT={after_counts['gioi_thieu']:,}")
+        
+        # Calculate total changes
+        total_new = sum(s['inserted'] for s in stats.values())
+        total_updated = sum(s['updated'] for s in stats.values())
         
         # Calculate commissions if there were any changes
-        total_processed = sum(s['processed'] for s in stats.values())
         commission_stats = None
-        if total_processed > 0:
-            logger.info("Calculating commissions...")
+        if total_new > 0:
+            add_log("")
+            add_log("═══ Calculating Commissions ═══")
             commission_stats = calculate_new_commissions_fast(connection=conn)
+            add_log(f"Commissions calculated: {commission_stats}")
         
         # Update heartbeat
-        syncer.update_heartbeat(conn, total_processed)
+        syncer.update_heartbeat(conn, total_new)
         
         conn.close()
         
-        logger.info(f"Manual sync complete: {total_processed} records processed")
+        add_log("")
+        add_log(f"✓ Sync complete! {total_new} new records, {total_updated} updated")
         
         return jsonify({
             'status': 'success',
             'stats': stats,
-            'total_processed': total_processed,
-            'commission_stats': commission_stats
+            'before_counts': before_counts,
+            'after_counts': after_counts,
+            'total_new': total_new,
+            'total_updated': total_updated,
+            'commission_stats': commission_stats,
+            'logs': logs
         })
         
     except Exception as e:
         logger.error(f"MANUAL SYNC ERROR: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e), 'logs': logs if 'logs' in dir() else []}), 500
 
 
 @admin_bp.route('/api/admin/sync/diagnose', methods=['GET'])
