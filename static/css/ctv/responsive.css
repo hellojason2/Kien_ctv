@@ -120,37 +120,60 @@
 
 /* Mobile Breakpoint */
 @media (max-width: 768px) {
-    /* Sidebar adjustments for Mobile */
+    /* Sidebar adjustments for Mobile - TOP NAVIGATION */
     .sidebar {
         position: fixed;
-        bottom: 0;
+        top: 0;
         left: 0;
         right: 0;
-        top: auto;
+        bottom: auto;
         width: 100%;
-        height: 64px;
+        height: 60px;
         flex-direction: row;
-        justify-content: space-between; /* Changed from space-around for better edge placement */
-        padding: 0 16px; /* Increased padding */
-        border-top: 1px solid var(--glass-border);
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--glass-border);
+        border-top: none;
         border-radius: 0;
         z-index: 1000;
-        background: var(--glass-bg);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
     
-    /* Reorder items: Menu on Left, Language on Right */
+    /* Reorder items: Menu on Left, Logo Center, Language on Right */
     .mobile-menu-btn {
         display: flex !important;
-        order: -1; /* First item */
-        margin-right: auto; /* Push others to right/center if needed, or rely on space-between */
+        order: 1;
+        flex-shrink: 0;
+    }
+
+    /* Show logo/brand in center on mobile */
+    .sidebar-header {
+        display: flex !important;
+        order: 2;
+        flex: 1;
+        justify-content: center;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .sidebar-logo {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .sidebar-brand {
+        display: none;
     }
 
     .sidebar-lang {
-        display: block !important; /* Show language toggle */
-        order: 10; /* Last item */
-        margin-left: auto; /* Push to right edge */
+        display: block !important;
+        order: 3;
+        flex-shrink: 0;
     }
 
     /* Hide text/extra elements in lang toggle on mobile bar */
@@ -177,43 +200,32 @@
         color: var(--text-secondary);
     }
 
-    /* Position Language Popup for Bottom Bar */
+    /* Position Language Popup for Top Bar */
     .sidebar-lang .lang-popup {
-        bottom: 100%;
+        top: 100%;
+        bottom: auto;
         left: auto;
         right: 0;
-        top: auto;
-        transform: translateY(-10px);
-        margin-bottom: 10px;
+        transform: translateY(10px);
+        margin-top: 10px;
         width: 160px;
         min-width: 160px;
     }
     
     .sidebar-lang .lang-popup::before {
         right: 18px;
-        top: 100%;
-        bottom: auto;
+        bottom: 100%;
+        top: auto;
         left: auto;
         border-color: transparent;
-        border-top-color: #ffffff;
+        border-bottom-color: #ffffff;
     }
 
-    /* Center the navigation icons - Hidden on mobile to prevent overcrowding, use Menu instead */
-    .sidebar-icon[data-page] {
+    /* Hide navigation icons on mobile - use the popup menu instead */
+    .sidebar-icon[data-page],
+    .sidebar-referral,
+    .sidebar-menu {
         display: none !important;
-    }
-
-    /* Ensure specific buttons are visible */
-    .mobile-menu-btn {
-        display: flex !important;
-        order: -1;
-        margin-right: auto;
-    }
-
-    .sidebar-lang {
-        display: block !important;
-        order: 10;
-        margin-left: auto;
     }
 
     
@@ -279,19 +291,21 @@
     
     .mobile-menu-content {
         position: absolute;
-        bottom: 0;
+        top: 0;
         left: 0;
         right: 0;
-        background: var(--glass-bg);
+        bottom: auto;
+        background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-        max-height: 80vh;
+        border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+        max-height: 85vh;
         overflow-y: auto;
-        transform: translateY(100%);
+        transform: translateY(-100%);
         transition: transform 0.3s ease;
         border: 1px solid var(--glass-border);
-        border-bottom: none;
+        border-top: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     }
     
     .mobile-menu-popup.active .mobile-menu-content {
@@ -442,10 +456,10 @@
         margin-bottom: 4px;
     }
     
-    /* Main wrapper adjustments */
+    /* Main wrapper adjustments - top nav needs top padding */
     .main-wrapper {
         margin-left: 0 !important;
-        padding: 0 0 80px 0 !important; /* Reset padding, keep bottom for nav */
+        padding: 70px 0 20px 0 !important; /* Top padding for fixed nav */
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
