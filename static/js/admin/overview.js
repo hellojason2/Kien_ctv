@@ -1001,123 +1001,128 @@ async function confirmHardReset() {
         // Small delay before starting
         await new Promise(r => setTimeout(r, 500));
         
-        addLogEntry('Starting data deletion and re-import process...', 'info');
-        addLogEntry('This may take several minutes for large datasets...', 'warning');
+        addLogEntry('Starting step-by-step data reset process...', 'info');
         
-        // Set all steps to "Processing" state - NO FAKE ANIMATIONS
-        updateStepProgress('delete', 'active', null, 'Processing... Please wait');
+        // Initialize all steps
+        updateStepProgress('delete', 'pending', null, 'Waiting...');
         updateStepProgress('beauty', 'pending', null, 'Waiting...');
         updateStepProgress('dental', 'pending', null, 'Waiting...');
         updateStepProgress('referral', 'pending', null, 'Waiting...');
         updateStepProgress('commission', 'pending', null, 'Waiting...');
         
-        // Show processing indicator
-        const statusText = document.getElementById('step-delete-status');
-        if (statusText) statusText.textContent = 'Processing...';
+        const stats = {
+            tham_my: { processed: 0, errors: 0 },
+            nha_khoa: { processed: 0, errors: 0 },
+            gioi_thieu: { processed: 0, errors: 0 }
+        };
         
-        addLogEntry('Sending request to server...', 'info');
-        addLogEntry('Server is now processing. This may take several minutes for large datasets.', 'info');
-        addLogEntry('Steps will update when complete.', 'info');
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 1: Delete all records
+        // ═══════════════════════════════════════════════════════════════
+        addLogEntry('', 'info');
+        addLogEntry('--- STEP 1: Deleting existing records ---', 'info');
+        updateStepProgress('delete', 'active', null, 'Deleting records...');
         
-        // Make the actual API call with extended timeout (5 minutes)
-        // Using apiLong for long-running operations
-        const response = await apiLong('/api/admin/reset-data', { method: 'POST' }, 300000);
+        const deleteResponse = await api('/api/admin/reset-data/step/delete', { method: 'POST' });
         
-        // Stop all animations
-        Object.keys(resetProgress.progressIntervals).forEach(key => {
-            clearInterval(resetProgress.progressIntervals[key]);
-        });
+        if (deleteResponse.status !== 'success') {
+            throw new Error(deleteResponse.message || 'Failed to delete records');
+        }
         
-        // Process and display backend logs step by step
+        addLogEntry(`✓ Deleted ${deleteResponse.deleted_khach_hang?.toLocaleString() || 0} client records`, 'success');
+        addLogEntry(`✓ Deleted ${deleteResponse.deleted_commissions?.toLocaleString() || 0} commission records`, 'success');
+        updateStepProgress('delete', 'complete', 100, `✓ Deleted ${(deleteResponse.deleted_khach_hang || 0).toLocaleString()} records`);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 2: Import Thẩm Mỹ (Beauty)
+        // ═══════════════════════════════════════════════════════════════
+        addLogEntry('', 'info');
+        addLogEntry('--- STEP 2: Importing Thẩm Mỹ (Beauty) ---', 'info');
+        updateStepProgress('beauty', 'active', null, 'Importing...');
+        
+        const beautyResponse = await apiLong('/api/admin/reset-data/step/import/tham_my', { method: 'POST' }, 180000);
+        
+        if (beautyResponse.status !== 'success') {
+            throw new Error(beautyResponse.message || 'Failed to import beauty data');
+        }
+        
+        stats.tham_my = { processed: beautyResponse.processed || 0, errors: beautyResponse.errors || 0 };
+        addLogEntry(`✓ Imported ${stats.tham_my.processed.toLocaleString()} beauty records`, 'success');
+        if (stats.tham_my.errors > 0) addLogEntry(`⚠ ${stats.tham_my.errors} errors`, 'warning');
+        updateStepProgress('beauty', 'complete', 100, `✓ ${stats.tham_my.processed.toLocaleString()} records`);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 3: Import Nha Khoa (Dental)
+        // ═══════════════════════════════════════════════════════════════
+        addLogEntry('', 'info');
+        addLogEntry('--- STEP 3: Importing Nha Khoa (Dental) ---', 'info');
+        updateStepProgress('dental', 'active', null, 'Importing...');
+        
+        const dentalResponse = await apiLong('/api/admin/reset-data/step/import/nha_khoa', { method: 'POST' }, 180000);
+        
+        if (dentalResponse.status !== 'success') {
+            throw new Error(dentalResponse.message || 'Failed to import dental data');
+        }
+        
+        stats.nha_khoa = { processed: dentalResponse.processed || 0, errors: dentalResponse.errors || 0 };
+        addLogEntry(`✓ Imported ${stats.nha_khoa.processed.toLocaleString()} dental records`, 'success');
+        if (stats.nha_khoa.errors > 0) addLogEntry(`⚠ ${stats.nha_khoa.errors} errors`, 'warning');
+        updateStepProgress('dental', 'complete', 100, `✓ ${stats.nha_khoa.processed.toLocaleString()} records`);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 4: Import Giới Thiệu (Referral)
+        // ═══════════════════════════════════════════════════════════════
+        addLogEntry('', 'info');
+        addLogEntry('--- STEP 4: Importing Giới Thiệu (Referral) ---', 'info');
+        updateStepProgress('referral', 'active', null, 'Importing...');
+        
+        const referralResponse = await apiLong('/api/admin/reset-data/step/import/gioi_thieu', { method: 'POST' }, 180000);
+        
+        if (referralResponse.status !== 'success') {
+            throw new Error(referralResponse.message || 'Failed to import referral data');
+        }
+        
+        stats.gioi_thieu = { processed: referralResponse.processed || 0, errors: referralResponse.errors || 0 };
+        addLogEntry(`✓ Imported ${stats.gioi_thieu.processed.toLocaleString()} referral records`, 'success');
+        if (stats.gioi_thieu.errors > 0) addLogEntry(`⚠ ${stats.gioi_thieu.errors} errors`, 'warning');
+        updateStepProgress('referral', 'complete', 100, `✓ ${stats.gioi_thieu.processed.toLocaleString()} records`);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 5: Recalculate Commissions
+        // ═══════════════════════════════════════════════════════════════
+        addLogEntry('', 'info');
+        addLogEntry('--- STEP 5: Recalculating Commissions ---', 'info');
+        updateStepProgress('commission', 'active', null, 'Calculating...');
+        
+        const commissionResponse = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
+        
+        if (commissionResponse.status !== 'success') {
+            addLogEntry(`⚠ Commission calculation warning: ${commissionResponse.message}`, 'warning');
+        } else {
+            addLogEntry('✓ Commission calculation complete', 'success');
+        }
+        updateStepProgress('commission', 'complete', 100, '✓ Commissions calculated');
+        
+        // ═══════════════════════════════════════════════════════════════
+        // COMPLETE
+        // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('═══════════════════════════════════════', 'info');
-        addLogEntry('SERVER PROCESSING COMPLETE', 'success');
+        addLogEntry('HARD RESET COMPLETE', 'success');
         addLogEntry('═══════════════════════════════════════', 'info');
         
-        if (response.logs && response.logs.length > 0) {
-            // Track which steps have been logged
-            let currentStep = null;
-            
-            response.logs.forEach(log => {
-                if (!log.message || !log.message.trim()) return;
-                
-                const msg = log.message;
-                const type = log.type || 'info';
-                const step = log.step;
-                
-                // Update step status based on log step
-                if (step && step !== currentStep) {
-                    currentStep = step;
-                    
-                    // Mark previous steps as complete, current as active
-                    if (step === 'delete') {
-                        updateStepProgress('delete', 'active', null, 'Processing...');
-                    } else if (step === 'beauty' || step === 'tham_my') {
-                        updateStepProgress('delete', 'complete', 100, `Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
-                        updateStepProgress('beauty', 'active', null, 'Importing...');
-                    } else if (step === 'dental' || step === 'nha_khoa') {
-                        updateStepProgress('beauty', 'complete', 100, 'Import complete');
-                        updateStepProgress('dental', 'active', null, 'Importing...');
-                    } else if (step === 'referral' || step === 'gioi_thieu') {
-                        updateStepProgress('dental', 'complete', 100, 'Import complete');
-                        updateStepProgress('referral', 'active', null, 'Importing...');
-                    } else if (step === 'commission') {
-                        updateStepProgress('referral', 'complete', 100, 'Import complete');
-                        updateStepProgress('commission', 'active', null, 'Calculating...');
-                    }
-                }
-                
-                // Add to log panel
-                addLogEntry(msg, type);
-            });
+        const totalImported = stats.tham_my.processed + stats.nha_khoa.processed + stats.gioi_thieu.processed;
+        const totalErrors = stats.tham_my.errors + stats.nha_khoa.errors + stats.gioi_thieu.errors;
+        
+        addLogEntry(`Total imported: ${totalImported.toLocaleString()} records`, 'success');
+        if (totalErrors > 0) {
+            addLogEntry(`Total errors: ${totalErrors}`, 'warning');
         }
         
-        if (response.status === 'success') {
-            const stats = response.stats;
-            
-            // Mark all steps as complete with actual data
-            updateStepProgress('delete', 'complete', 100, `✓ Deleted ${resetProgress.dbCounts?.total?.toLocaleString() || 0} records`);
-            
-            const beautyCount = stats.tham_my?.processed || 0;
-            const beautyErrors = stats.tham_my?.errors || 0;
-            updateStepProgress('beauty', beautyErrors > 0 ? 'error' : 'complete', 100, 
-                `✓ Imported ${beautyCount.toLocaleString()} records${beautyErrors > 0 ? ` (${beautyErrors} errors)` : ''}`);
-            
-            const dentalCount = stats.nha_khoa?.processed || 0;
-            const dentalErrors = stats.nha_khoa?.errors || 0;
-            updateStepProgress('dental', dentalErrors > 0 ? 'error' : 'complete', 100,
-                `✓ Imported ${dentalCount.toLocaleString()} records${dentalErrors > 0 ? ` (${dentalErrors} errors)` : ''}`);
-            
-            const referralCount = stats.gioi_thieu?.processed || 0;
-            const referralErrors = stats.gioi_thieu?.errors || 0;
-            updateStepProgress('referral', referralErrors > 0 ? 'error' : 'complete', 100,
-                `✓ Imported ${referralCount.toLocaleString()} records${referralErrors > 0 ? ` (${referralErrors} errors)` : ''}`);
-            
-            updateStepProgress('commission', 'complete', 100, '✓ Commissions recalculated');
-            
-            // Final summary in log
-            const totalImported = beautyCount + dentalCount + referralCount;
-            const totalErrors = beautyErrors + dentalErrors + referralErrors;
-            
-            addLogEntry('', 'info');
-            addLogEntry('═══════════════════════════════════════', 'info');
-            addLogEntry(`TOTAL IMPORTED: ${totalImported.toLocaleString()} records`, 'success');
-            if (totalErrors > 0) {
-                addLogEntry(`TOTAL ERRORS: ${totalErrors}`, 'warning');
-            }
-            addLogEntry('═══════════════════════════════════════', 'info');
-            
-            // Short delay then show summary
-            setTimeout(() => {
-                showResetSummary(response.stats);
-            }, 800);
-            
-        } else {
-            // Handle error
-            addLogEntry('', 'error');
-            addLogEntry(`✗ FAILED: ${response.message || 'Unknown error'}`, 'error');
-            throw new Error(response.message || 'Unknown error');
-        }
+        // Show summary after short delay
+        setTimeout(() => {
+            showResetSummary(stats);
+        }, 800);
         
     } catch (error) {
         console.error('Hard reset error:', error);

@@ -55,12 +55,8 @@ def reset_data_preview():
 @require_admin
 def reset_data():
     """
-    Hard reset client service data:
-    1. Clear khach_hang table for tham_my, nha_khoa, gioi_thieu
-    2. Re-import all rows from Google Sheets
-    3. Recalculate commissions
-    
-    Returns detailed logs for frontend display.
+    Hard reset client service data (legacy - single call).
+    For large datasets, use the step-by-step endpoints instead.
     """
     try:
         logger.info("=" * 60)
@@ -98,6 +94,109 @@ def reset_data():
             'message': str(e),
             'logs': [{'type': 'error', 'message': str(e), 'step': 'exception'}]
         }), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STEP-BY-STEP HARD RESET (for large datasets / avoiding timeouts)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/api/admin/reset-data/step/delete', methods=['POST'])
+@require_admin
+def reset_step_delete():
+    """Step 1: Delete all records from khach_hang and commissions"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Delete khach_hang records
+        cur.execute("""
+            DELETE FROM khach_hang 
+            WHERE source IN ('tham_my', 'nha_khoa', 'gioi_thieu')
+        """)
+        deleted_khach_hang = cur.rowcount
+        
+        # Delete commissions
+        cur.execute("DELETE FROM commissions WHERE level >= 0")
+        deleted_commissions = cur.rowcount
+        
+        conn.commit()
+        cur.close()
+        return_db_connection(conn)
+        
+        logger.info(f"RESET STEP 1: Deleted {deleted_khach_hang} khach_hang, {deleted_commissions} commissions")
+        
+        return jsonify({
+            'status': 'success',
+            'step': 'delete',
+            'deleted_khach_hang': deleted_khach_hang,
+            'deleted_commissions': deleted_commissions
+        })
+        
+    except Exception as e:
+        logger.error(f"RESET STEP 1 ERROR: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/reset-data/step/import/<tab_type>', methods=['POST'])
+@require_admin  
+def reset_step_import(tab_type):
+    """Step 2-4: Import a specific tab (tham_my, nha_khoa, gioi_thieu)"""
+    if tab_type not in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+        return jsonify({'status': 'error', 'message': 'Invalid tab type'}), 400
+    
+    try:
+        syncer = GoogleSheetSync()
+        client = syncer.get_google_client()
+        spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+        conn = syncer.get_db_connection()
+        
+        logger.info(f"RESET STEP IMPORT: Starting {tab_type}")
+        
+        # Use sync_tab_with_logs with hard_reset=True for fast import
+        processed, errors, logs = syncer.sync_tab_with_logs(spreadsheet, conn, tab_type, hard_reset=True)
+        
+        conn.close()
+        
+        logger.info(f"RESET STEP IMPORT: {tab_type} - {processed} processed, {errors} errors")
+        
+        return jsonify({
+            'status': 'success',
+            'step': f'import_{tab_type}',
+            'tab': tab_type,
+            'processed': processed,
+            'errors': errors,
+            'logs': logs
+        })
+        
+    except Exception as e:
+        logger.error(f"RESET STEP IMPORT ERROR ({tab_type}): {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/admin/reset-data/step/commissions', methods=['POST'])
+@require_admin
+def reset_step_commissions():
+    """Step 5: Recalculate all commissions"""
+    try:
+        from modules.mlm_core import calculate_new_commissions_fast
+        
+        conn = get_db_connection()
+        stats = calculate_new_commissions_fast(connection=conn)
+        return_db_connection(conn)
+        
+        logger.info(f"RESET STEP COMMISSIONS: {stats}")
+        
+        return jsonify({
+            'status': 'success',
+            'step': 'commissions',
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"RESET STEP COMMISSIONS ERROR: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @admin_bp.route('/api/admin/sync/diagnose', methods=['GET'])
