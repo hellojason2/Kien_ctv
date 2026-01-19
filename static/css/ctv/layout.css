@@ -301,11 +301,320 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding: 24px 32px;
+    padding: 90px 32px 24px 32px; /* Extra top padding for floating header */
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   HEADER - Reference Design (Search Bar Style)
+   FLOATING HEADER - Modern Glass Design
+   ═══════════════════════════════════════════════════════════════════ */
+
+.floating-header {
+    position: fixed;
+    top: 16px;
+    left: 266px; /* sidebar width + gap */
+    right: 16px;
+    z-index: 1001;
+    padding: 0;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 
+        0 4px 24px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-header:hover {
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.floating-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    gap: 16px;
+}
+
+/* Header Left - Menu & Logo */
+.floating-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.header-menu-btn {
+    display: none; /* Hidden on desktop, shown on mobile */
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(79, 125, 243, 0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.header-menu-btn:hover {
+    background: rgba(79, 125, 243, 0.15);
+    transform: scale(1.05);
+}
+
+.header-menu-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-secondary);
+}
+
+.floating-header .header-logo {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.floating-header .header-logo .logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
+}
+
+.header-brand {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+/* Header Center - Action Buttons */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.header-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.header-action-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Sign Up / Share Link Button - Primary Orange Gradient */
+.action-signup {
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 50%, #e85d26 100%);
+    color: #ffffff;
+    box-shadow: 
+        0 4px 16px rgba(255, 107, 53, 0.35),
+        0 2px 4px rgba(255, 107, 53, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.action-signup:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 8px 24px rgba(255, 107, 53, 0.4),
+        0 4px 8px rgba(255, 107, 53, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.action-signup:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.action-signup svg {
+    stroke: #ffffff;
+}
+
+/* Book Appointment Button - Soft Glass */
+.action-booking {
+    background: rgba(79, 125, 243, 0.1);
+    color: var(--primary-blue);
+    border: 1px solid rgba(79, 125, 243, 0.2);
+}
+
+.action-booking:hover {
+    background: linear-gradient(135deg, #4f7df3 0%, #6366f1 100%);
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 8px 24px rgba(79, 125, 243, 0.35),
+        0 4px 8px rgba(79, 125, 243, 0.2);
+}
+
+.action-booking:hover svg {
+    stroke: #ffffff;
+}
+
+.action-booking svg {
+    stroke: var(--primary-blue);
+}
+
+/* Header Right - User Info & Language */
+.floating-header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+}
+
+.floating-header .user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+    letter-spacing: -0.2px;
+}
+
+.floating-header .user-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Language Button */
+.header-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.header-lang-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.header-lang-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text-secondary);
+}
+
+.header-lang-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Language Dropdown */
+.header-lang-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 160px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1100;
+}
+
+.header-lang-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.header-lang-dropdown .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.header-lang-dropdown .lang-option:hover {
+    background: #f1f5f9;
+}
+
+.header-lang-dropdown .lang-option.active {
+    background: #e0f2fe;
+}
+
+.header-lang-dropdown .lang-flag {
+    font-size: 10px;
+    font-weight: 700;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e8f0;
+    border-radius: 50%;
+    color: #64748b;
+}
+
+.header-lang-dropdown .lang-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    flex: 1;
+}
+
+.header-lang-dropdown .lang-check {
+    opacity: 0;
+    color: var(--primary-blue);
+}
+
+.header-lang-dropdown .lang-option.active .lang-check {
+    opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LEGACY HEADER (Hidden)
    ═══════════════════════════════════════════════════════════════════ */
 
 .header {

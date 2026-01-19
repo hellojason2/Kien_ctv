@@ -16,8 +16,30 @@
 
     .main-wrapper {
         margin-left: 80px;
-        padding: 24px;
+        padding: 90px 24px 24px 24px;
         width: calc(100% - 80px);
+    }
+
+    /* Floating Header Tablet Adjustments */
+    .floating-header {
+        left: 96px; /* sidebar + gap */
+        right: 16px;
+    }
+    
+    .header-brand {
+        display: none;
+    }
+    
+    .header-action-btn span {
+        display: none;
+    }
+    
+    .header-action-btn {
+        padding: 10px 14px;
+    }
+    
+    .header-user {
+        display: none;
     }
 
     /* Hide sidebar text labels */
@@ -120,143 +142,114 @@
 
 /* Mobile Breakpoint */
 @media (max-width: 768px) {
-    /* Sidebar adjustments for Mobile - TOP NAVIGATION */
+    /* Hide Desktop Sidebar */
     .sidebar {
+        display: none !important;
+    }
+    
+    /* Floating Header becomes the main navigation on mobile */
+    .floating-header {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        bottom: auto;
-        width: 100%;
-        height: 60px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 16px;
-        border-bottom: 1px solid var(--glass-border);
-        border-top: none;
         border-radius: 0;
-        z-index: 1000;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* Reorder items: Menu on Left, Logo Center, Language on Right */
-    .mobile-menu-btn {
-        display: flex !important;
-        order: 1;
-        flex-shrink: 0;
-    }
-
-    /* Show logo/brand in center on mobile */
-    .sidebar-header {
-        display: flex !important;
-        order: 2;
-        flex: 1;
-        justify-content: center;
         border: none;
-        padding: 0;
-        margin: 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        z-index: 1001;
+        background: rgba(255, 255, 255, 0.95);
     }
     
-    .sidebar-logo {
+    .floating-header-inner {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+    
+    /* Show menu button on mobile */
+    .header-menu-btn {
+        display: flex !important;
         width: 36px;
         height: 36px;
     }
     
-    .sidebar-brand {
-        display: none;
-    }
-
-    .sidebar-lang {
-        display: block !important;
-        order: 3;
-        flex-shrink: 0;
-    }
-
-    /* Hide text/extra elements in lang toggle on mobile bar */
-    .sidebar-lang .sidebar-icon {
-        width: 44px;
-        height: 44px;
-        padding: 0;
-        justify-content: center;
-        margin-bottom: 0;
-        background: transparent !important; /* Remove active bg if any */
-        box-shadow: none !important;
-        border: none !important;
-    }
-
-    .sidebar-lang .sidebar-icon span,
-    .sidebar-lang .lang-current {
-        display: none;
+    .floating-header .header-logo {
+        width: 32px;
+        height: 32px;
     }
     
-    .sidebar-lang .sidebar-icon svg {
-        width: 24px;
-        height: 24px;
-        margin: 0;
-        color: var(--text-secondary);
-    }
-
-    /* Position Language Popup for Top Bar */
-    .sidebar-lang .lang-popup {
-        top: 100%;
-        bottom: auto;
-        left: auto;
-        right: 0;
-        transform: translateY(10px);
-        margin-top: 10px;
-        width: 160px;
-        min-width: 160px;
+    /* Show brand name on mobile - compact */
+    .header-brand {
+        display: inline;
+        font-size: 13px;
+        font-weight: 700;
     }
     
-    .sidebar-lang .lang-popup::before {
-        right: 18px;
-        bottom: 100%;
-        top: auto;
-        left: auto;
-        border-color: transparent;
-        border-bottom-color: #ffffff;
+    /* Show action buttons on mobile - icons only */
+    .header-actions {
+        display: flex;
+        gap: 4px;
+        flex: 0;
     }
-
-    /* Hide navigation icons on mobile - use the popup menu instead */
-    .sidebar-icon[data-page],
-    .sidebar-referral,
-    .sidebar-menu {
-        display: none !important;
-    }
-
     
-    .sidebar-logout {
+    .header-action-btn {
+        padding: 8px;
+        border-radius: 10px;
+    }
+    
+    .header-action-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .header-action-btn span {
         display: none;
     }
     
-    /* Mobile Menu Button - Glass Design */
-    .mobile-menu-btn {
+    /* Hide booking button on mobile, keep only share link */
+    .header-action-btn.action-booking {
+        display: none;
+    }
+    
+    /* Show user info in header on mobile - compact inline style */
+    .header-user {
         display: flex !important;
         align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        background: rgba(79, 125, 243, 0.08);
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        transition: all 0.2s ease;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 10px;
     }
     
-    .mobile-menu-btn:hover {
-        background: rgba(79, 125, 243, 0.15);
+    .floating-header .user-name {
+        font-size: 12px;
+        font-weight: 600;
+        max-width: 70px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     
-    .mobile-menu-btn svg {
-        width: 20px;
-        height: 20px;
-        stroke: var(--text-secondary);
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+    .floating-header .user-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .header-lang-btn {
+        padding: 6px 8px;
+    }
+    
+    .header-lang-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .header-lang-label {
+        display: none;
     }
     
     /* Mobile Menu Popup - Glass Design */
@@ -402,6 +395,17 @@
         flex: 1;
     }
     
+    /* Special styling for referral button in mobile menu */
+    .mobile-menu-item.mobile-referral {
+        background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+    
+    .mobile-menu-item.mobile-referral svg {
+        stroke: #ffffff;
+    }
+    
     .mobile-menu-item.mobile-menu-logout {
         color: var(--danger);
     }
@@ -420,9 +424,9 @@
         margin: 8px 16px;
     }
     
-    /* Mobile Language Toggle - Hidden since we moved it to the bar */
+    /* Mobile Language Toggle */
     .mobile-menu-lang {
-        display: none !important;
+        display: block !important;
     }
     
     .mobile-lang-current {
@@ -456,26 +460,18 @@
         margin-bottom: 4px;
     }
     
-    /* Main wrapper adjustments - top nav needs top padding */
+    /* Main wrapper adjustments - floating header needs top padding */
     .main-wrapper {
         margin-left: 0 !important;
-        padding: 70px 0 20px 0 !important; /* Top padding for fixed nav */
+        padding: 70px 0 20px 0 !important; /* Top padding for floating header */
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
     }
 
-    /* Header adjustments */
+    /* Legacy header hidden */
     .header {
-        padding: 12px 16px;
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .header-left,
-    .header-right {
-        width: 100%;
-        justify-content: center;
+        display: none !important;
     }
 
     /* Content padding */
@@ -573,8 +569,92 @@
     }
 }
 
+/* Larger mobile screens - show more user info */
+@media (min-width: 480px) and (max-width: 768px) {
+    .floating-header .user-name {
+        max-width: 90px;
+        font-size: 13px;
+    }
+    
+    .floating-header .user-badge {
+        max-width: 110px;
+        font-size: 9px;
+    }
+    
+    .header-lang-label {
+        display: inline;
+        font-size: 10px;
+    }
+}
+
 /* Small Mobile */
 @media (max-width: 480px) {
+    /* Floating header adjustments for small mobile */
+    .floating-header-inner {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+    
+    .header-menu-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .header-menu-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .floating-header .header-logo {
+        width: 28px;
+        height: 28px;
+    }
+    
+    /* Hide brand text on very small screens */
+    .header-brand {
+        display: none;
+    }
+    
+    /* Compact action buttons */
+    .header-action-btn {
+        padding: 6px;
+    }
+    
+    .header-action-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Compact user info on small mobile */
+    .header-user {
+        padding: 3px 6px;
+        gap: 4px;
+    }
+    
+    .floating-header .user-name {
+        font-size: 11px;
+        max-width: 50px;
+    }
+    
+    .floating-header .user-badge {
+        font-size: 8px;
+        padding: 2px 4px;
+        max-width: 70px;
+    }
+    
+    .header-lang-btn {
+        padding: 4px 6px;
+    }
+    
+    .header-lang-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .main-wrapper {
+        padding-top: 55px !important;
+    }
+    
     .login-box {
         padding: 32px 24px;
     }
@@ -631,21 +711,27 @@
 
 /* Landscape Mobile */
 @media (max-height: 500px) and (orientation: landscape) {
-    .sidebar {
-        height: 50px;
+    .floating-header-inner {
+        padding: 4px 10px;
     }
     
-    .sidebar-icon {
-        padding: 6px;
+    .floating-header .header-logo {
+        width: 28px;
+        height: 28px;
     }
     
-    .sidebar-icon svg {
-        width: 18px;
-        height: 18px;
+    .header-menu-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .header-action-btn {
+        padding: 6px 10px;
     }
     
     .main-wrapper {
-        padding-bottom: 60px;
+        padding-top: 50px !important;
+        padding-bottom: 20px !important;
     }
 }
 

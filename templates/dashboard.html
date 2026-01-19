@@ -122,6 +122,10 @@
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             margin-top: auto;
+            flex-direction: column;
+            gap: 2px;
+            height: 60px;
+            padding: 6px 0;
         }
 
         .sidebar-icon.ctv-signup:hover {
@@ -132,6 +136,16 @@
         .sidebar-icon.ctv-signup svg {
             stroke: #ffffff;
             color: #ffffff;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-icon.ctv-signup .ctv-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* CTV Portal Button */
@@ -575,6 +589,19 @@
 
             .sidebar-icon.ctv-signup {
                 margin-top: 0;
+                height: auto;
+                padding: 8px 12px;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .sidebar-icon.ctv-signup svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .sidebar-icon.ctv-signup .ctv-label {
+                font-size: 8px;
             }
         }
 
@@ -611,6 +638,7 @@
                 box-sizing: border-box !important;
             }
         }
+
     </style>
 </head>
 
@@ -671,6 +699,7 @@
                     <line x1="20" y1="8" x2="20" y2="14"></line>
                     <line x1="23" y1="11" x2="17" y2="11"></line>
                 </svg>
+                <span class="ctv-label">CTV</span>
             </div>
 
             <!-- CTV Portal Button -->
@@ -698,10 +727,10 @@
                 </div>
                 <div id="phoneCheckResult" class="phone-check-result"></div>
                 
-                <!-- Book Appointment Button -->
-                <a href="https://forms.gle/QXYGaJ4zHQmxcg1F8" target="_blank" class="book-appointment-btn" data-i18n="book_appointment">
+                <!-- Book Appointment Button - Now floating, hidden here -->
+                <!-- <a href="https://forms.gle/QXYGaJ4zHQmxcg1F8" target="_blank" class="book-appointment-btn" data-i18n="book_appointment">
                     Đặt Lịch Hẹn
-                </a>
+                </a> -->
             </div>
         </main>
     </div>
@@ -1105,6 +1134,7 @@
             });
         });
     </script>
+
 </body>
 
 </html>

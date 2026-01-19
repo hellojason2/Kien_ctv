@@ -748,3 +748,73 @@
         transform: translateX(0) translateY(0);
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FLOATING BOOK APPOINTMENT BUTTON
+   ═══════════════════════════════════════════════════════════════════ */
+
+.floating-book-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: floatPulse 3s ease-in-out infinite;
+}
+
+.floating-book-btn:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: #ffffff;
+}
+
+.floating-book-btn:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+.floating-book-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: #ffffff;
+    stroke-width: 2;
+    fill: none;
+}
+
+@keyframes floatPulse {
+    0%, 100% { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1); }
+    50% { box-shadow: 0 8px 28px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.12); }
+}
+
+@media (max-width: 768px) {
+    .floating-book-btn {
+        bottom: 20px;
+        right: 16px;
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .floating-book-btn {
+        bottom: 16px;
+        right: 12px;
+        padding: 14px;
+        border-radius: 50%;
+    }
+    
+    .floating-book-btn span {
+        display: none;
+    }
+}

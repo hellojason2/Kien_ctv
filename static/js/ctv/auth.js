@@ -39,7 +39,13 @@ async function handleLogin(e) {
     const loginSuccess = document.getElementById('loginSuccess');
     
     loginBtn.disabled = true;
-    loginBtn.textContent = t('logging_in');
+    loginBtn.classList.add('loading');
+    const btnText = loginBtn.querySelector('.btn-text');
+    if (btnText) {
+        btnText.textContent = t('logging_in');
+    } else {
+        loginBtn.textContent = t('logging_in');
+    }
     loginError.classList.remove('show');
     
     const result = await api('/ctv/login', {
@@ -69,7 +75,13 @@ async function handleLogin(e) {
         loginError.textContent = result.message || t('login_failed');
         loginError.classList.add('show');
         loginBtn.disabled = false;
-        loginBtn.textContent = t('login');
+        loginBtn.classList.remove('loading');
+        const btnTextError = loginBtn.querySelector('.btn-text');
+        if (btnTextError) {
+            btnTextError.textContent = t('login');
+        } else {
+            loginBtn.textContent = t('login');
+        }
     }
 }
 

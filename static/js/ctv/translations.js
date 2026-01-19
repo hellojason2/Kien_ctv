@@ -62,14 +62,14 @@ const translations = {
         earnings_period_custom: 'Thu Nhập Khoảng Thời Gian',
         
         // Total Revenue Period Labels
-        total_revenue_today: 'Tổng Thu Nhập Hôm Nay',
-        total_revenue_3days: 'Tổng Thu Nhập 3 Ngày Qua',
-        total_revenue_week: 'Tổng Thu Nhập Tuần Này',
-        total_revenue_month: 'Tổng Thu Nhập Tháng Này',
-        total_revenue_lastmonth: 'Tổng Thu Nhập Tháng Trước',
-        total_revenue_3months: 'Tổng Thu Nhập 3 Tháng',
-        total_revenue_year: 'Tổng Thu Nhập Năm Nay',
-        total_revenue_custom: 'Tổng Thu Nhập Khoảng Thời Gian',
+        total_revenue_today: 'Tổng Doanh Thu Hôm Nay',
+        total_revenue_3days: 'Tổng Doanh Thu 3 Ngày Qua',
+        total_revenue_week: 'Tổng Doanh Thu Tuần Này',
+        total_revenue_month: 'Tổng Doanh Thu Tháng Này',
+        total_revenue_lastmonth: 'Tổng Doanh Thu Tháng Trước',
+        total_revenue_3months: 'Tổng Doanh Thu 3 Tháng',
+        total_revenue_year: 'Tổng Doanh Thu Năm Nay',
+        total_revenue_custom: 'Tổng Doanh Thu Khoảng Thời Gian',
         
         // Commission Period Labels
         commission_period_today: 'Hoa Hồng Hôm Nay',
@@ -302,14 +302,14 @@ const translations = {
         earnings_period_custom: 'Earnings Period',
         
         // Total Revenue Period Labels
-        total_revenue_today: 'Total Earnings Today',
-        total_revenue_3days: 'Total Earnings Last 3 Days',
-        total_revenue_week: 'Total Earnings This Week',
-        total_revenue_month: 'Total Earnings This Month',
-        total_revenue_lastmonth: 'Total Earnings Last Month',
-        total_revenue_3months: 'Total Earnings Last 3 Months',
-        total_revenue_year: 'Total Earnings This Year',
-        total_revenue_custom: 'Total Earnings Period',
+        total_revenue_today: 'Total Revenue Today',
+        total_revenue_3days: 'Total Revenue Last 3 Days',
+        total_revenue_week: 'Total Revenue This Week',
+        total_revenue_month: 'Total Revenue This Month',
+        total_revenue_lastmonth: 'Total Revenue Last Month',
+        total_revenue_3months: 'Total Revenue Last 3 Months',
+        total_revenue_year: 'Total Revenue This Year',
+        total_revenue_custom: 'Total Revenue Period',
         
         // Commission Period Labels
         commission_period_today: 'Commission Today',
@@ -573,7 +573,7 @@ function setLanguage(lang) {
         }
     });
     
-    // Update current language labels (sidebar, mobile menu, and login page)
+    // Update current language labels (sidebar, mobile menu, header, and login page)
     const langLabel = document.getElementById('currentLangLabel');
     if (langLabel) {
         langLabel.textContent = lang.toUpperCase();
@@ -586,10 +586,20 @@ function setLanguage(lang) {
     if (loginLangLabel) {
         loginLangLabel.textContent = lang.toUpperCase();
     }
+    // Update floating header language label
+    const headerLangLabel = document.getElementById('headerLangLabel');
+    if (headerLangLabel) {
+        headerLangLabel.textContent = lang.toUpperCase();
+    }
     
     // Close any open popups
     const loginToggle = document.getElementById('loginLangToggle');
     if (loginToggle) loginToggle.classList.remove('active');
+    
+    // Update header language label if function exists
+    if (typeof updateHeaderLangLabel === 'function') {
+        updateHeaderLangLabel();
+    }
     
     // Update page title in header
     const activePage = document.querySelector('.page-section.active');

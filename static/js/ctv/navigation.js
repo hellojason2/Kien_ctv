@@ -96,7 +96,21 @@ function initNavigation() {
         });
     });
     
-    // Mobile menu button
+    // Header action buttons (booking button in floating header)
+    document.querySelectorAll('.header-action-btn[data-page]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = btn.dataset.page;
+            navigateToPage(page);
+        });
+    });
+    
+    // Header menu button (mobile)
+    const headerMenuBtn = document.getElementById('headerMenuBtn');
+    if (headerMenuBtn) {
+        headerMenuBtn.addEventListener('click', openMobileMenu);
+    }
+    
+    // Mobile menu button (legacy)
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', openMobileMenu);
@@ -137,12 +151,58 @@ function initNavigation() {
         });
     }
     
+    // Close header language dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const langDropdown = document.getElementById('headerLangDropdown');
+        const langBtn = document.getElementById('headerLangBtn');
+        if (langDropdown && langBtn && !langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+            langDropdown.classList.remove('active');
+        }
+    });
+    
     // Set initial active state
     const activePage = document.querySelector('.page-section.active');
     if (activePage) {
         const pageId = activePage.id.replace('page-', '');
         navigateToPage(pageId);
     }
+    
+    // Update header language label on init
+    updateHeaderLangLabel();
+}
+
+// Toggle header language dropdown
+function toggleHeaderLang(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('headerLangDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('active');
+    }
+}
+
+// Close header language dropdown
+function closeHeaderLang() {
+    const dropdown = document.getElementById('headerLangDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('active');
+    }
+}
+
+// Update header language label
+function updateHeaderLangLabel() {
+    const label = document.getElementById('headerLangLabel');
+    if (label && typeof currentLang !== 'undefined') {
+        label.textContent = currentLang.toUpperCase();
+    }
+    
+    // Update active state on language options
+    document.querySelectorAll('.header-lang-dropdown .lang-option').forEach(opt => {
+        if (opt.dataset.lang === currentLang) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
 }
 
 // Open mobile menu
