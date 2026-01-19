@@ -255,3 +255,83 @@
     border-color: var(--primary-blue);
 }
 
+.phone-check-row .result {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 120px;
+    text-align: center;
+}
+
+.phone-check-row .result.trung {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.phone-check-row .result.khong-trung {
+    background: #dcfce7;
+    color: #22c55e;
+}
+
+/* Booking Page Phone Input Row */
+.phone-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.phone-input-row input {
+    flex: 1;
+    min-width: 150px;
+}
+
+.btn-check-phone {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-check-phone:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.phone-check-result {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    min-width: 100px;
+}
+
+.phone-check-result.trung {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.phone-check-result.khong-trung {
+    background: #dcfce7;
+    color: #22c55e;
+}
+
+.phone-check-result.warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.phone-check-result.checking {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+

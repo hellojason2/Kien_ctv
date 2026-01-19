@@ -514,6 +514,25 @@
         width: 100%;
     }
     
+    /* Booking phone input row */
+    .phone-input-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .phone-input-row input {
+        width: 100%;
+    }
+    
+    .phone-input-row .btn-check-phone {
+        width: 100%;
+    }
+    
+    .phone-input-row .phone-check-result {
+        width: 100%;
+        text-align: center;
+    }
+    
     /* Date filters */
     .date-filter {
         flex-direction: column;

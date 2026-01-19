@@ -92,6 +92,27 @@ def test_login_page():
     """Serve the test login page for troubleshooting"""
     return render_template('test_login.html')
 
+@app.route('/catalogue')
+def catalogue_page():
+    """Serve the service catalogue page (TMV + NK)"""
+    return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'index.html'))
+
+# Catalogue asset routes - serve pages and images for the React catalogue app
+@app.route('/pages/<path:filename>')
+def catalogue_pages(filename):
+    """Serve catalogue page images"""
+    return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'pages', filename))
+
+@app.route('/images/<path:filename>')
+def catalogue_images(filename):
+    """Serve catalogue images"""
+    return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'images', filename))
+
+@app.route('/assets/<path:filename>')
+def catalogue_assets(filename):
+    """Serve catalogue JS/CSS assets"""
+    return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'assets', filename))
+
 @app.route('/api/check-duplicate', methods=['POST'])
 def check_duplicate():
     """

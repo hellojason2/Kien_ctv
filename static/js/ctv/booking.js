@@ -5,6 +5,44 @@
  * OUTPUTS: API calls to submit booking data
  */
 
+// Check phone duplicate on booking page
+async function checkBookingPhone() {
+    const input = document.getElementById('bookingCustomerPhone');
+    const result = document.getElementById('bookingPhoneResult');
+    const phone = input.value.trim();
+    
+    if (!phone || phone.length < 8) {
+        result.textContent = t('phone_short') || 'Số điện thoại quá ngắn';
+        result.className = 'phone-check-result warning';
+        result.style.display = 'inline-block';
+        return;
+    }
+    
+    result.textContent = t('checking') || 'Đang kiểm tra...';
+    result.className = 'phone-check-result checking';
+    result.style.display = 'inline-block';
+    
+    try {
+        const response = await api('/api/ctv/check-phone', {
+            method: 'POST',
+            body: JSON.stringify({ phone })
+        });
+        
+        if (response.is_duplicate) {
+            result.textContent = t('duplicate') || 'TRÙNG';
+            result.className = 'phone-check-result trung';
+        } else {
+            result.textContent = t('not_duplicate') || 'KHÔNG TRÙNG';
+            result.className = 'phone-check-result khong-trung';
+        }
+        result.style.display = 'inline-block';
+    } catch (error) {
+        result.textContent = 'Error';
+        result.className = 'phone-check-result warning';
+        result.style.display = 'inline-block';
+    }
+}
+
 // Initialize booking form handler
 function initBooking() {
     const bookingForm = document.getElementById('bookingForm');
@@ -83,6 +121,16 @@ function initBooking() {
     
     // Pre-fill referrer phone when page loads
     updateBookingReferrerPhone();
+    
+    // Add enter key listener for phone check
+    const phoneInput = document.getElementById('bookingCustomerPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('keyup', (e) => {
+            // Hide result when user types
+            const result = document.getElementById('bookingPhoneResult');
+            if (result) result.style.display = 'none';
+        });
+    }
 }
 
 // Update referrer phone field with current user's CTV code or phone

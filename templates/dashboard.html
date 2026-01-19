@@ -165,6 +165,22 @@
             color: #ffffff;
         }
 
+        /* Catalogue Button */
+        .sidebar-icon.catalogue-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .sidebar-icon.catalogue-btn:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        .sidebar-icon.catalogue-btn svg {
+            stroke: #ffffff;
+            color: #ffffff;
+        }
+
         /* ═══════════════════════════════════════════════════════════════════
            PHONE CHECK UI - Glass Card Style
            ═══════════════════════════════════════════════════════════════════ */
@@ -660,6 +676,17 @@
                 </svg>
             </div>
 
+            <!-- Catalogue Button -->
+            <div class="sidebar-icon catalogue-btn" onclick="window.location.href='/catalogue'" data-i18n-tooltip="catalogue">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                    <line x1="8" y1="10" x2="16" y2="10"></line>
+                    <line x1="8" y1="14" x2="12" y2="14"></line>
+                </svg>
+            </div>
+
             <!-- Language Toggle -->
             <div class="sidebar-lang" id="langSwitcher">
                 <div class="sidebar-icon" onclick="toggleLangPopup(event)" data-i18n-tooltip="language">
@@ -774,6 +801,7 @@
                 ctv_portal: 'Cong CTV',
                 language: 'Ngon Ngu',
                 choose_language: 'Chon Ngon Ngu',
+                catalogue: 'Bảng Giá Dịch Vụ',
 
                 // Phone check
                 phone_placeholder: 'Nhập SDT Cần Kiểm Tra',
@@ -810,6 +838,7 @@
                 ctv_portal: 'CTV Portal',
                 language: 'Language',
                 choose_language: 'Choose Language',
+                catalogue: 'Service Catalogue',
 
                 // Phone check
                 phone_placeholder: 'Check Phone Number...',

@@ -158,6 +158,9 @@ const translations = {
         // Booking Appointments
         booking_appointments: 'Đặt Lịch Hẹn',
         page_booking: 'Đặt Lịch Hẹn',
+        
+        // Catalogue
+        catalogue: 'Bảng Giá Dịch Vụ',
         booking_form_title: 'Thông Tin Khách Hàng',
         booking_form_subtitle: 'Bạn vui lòng nhập thông tin khách hàng tại đây',
         customer_name: 'Tên khách hàng',
@@ -398,6 +401,9 @@ const translations = {
         // Booking Appointments
         booking_appointments: 'Book Appointments',
         page_booking: 'Book Appointments',
+        
+        // Catalogue
+        catalogue: 'Service Catalogue',
         booking_form_title: 'Customer Information',
         booking_form_subtitle: 'Please enter customer information here',
         customer_name: 'Customer Name',
