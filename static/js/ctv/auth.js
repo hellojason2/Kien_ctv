@@ -6,24 +6,25 @@
  * FLOW: login -> showPortal / checkAuth -> showPortal
  */
 
-// Remember me - load saved credentials
+// Auto-load saved credentials from localStorage
 function loadSavedCredentials() {
-    const savedMaCTV = localStorage.getItem('ctv_remember_ma_ctv');
-    const savedPassword = localStorage.getItem('ctv_remember_password');
-    const rememberChecked = localStorage.getItem('ctv_remember_checked');
+    const savedMaCTV = localStorage.getItem('ctv_saved_phone');
+    const savedPassword = localStorage.getItem('ctv_saved_password');
     
-    if (rememberChecked === 'true') {
-        const rememberMeCheck = document.getElementById('rememberMe');
-        if (rememberMeCheck) rememberMeCheck.checked = true;
-        
-        if (savedMaCTV) {
-            const maCTVInput = document.getElementById('maCTV');
-            if (maCTVInput) maCTVInput.value = savedMaCTV;
-        }
-        if (savedPassword) {
-            const passwordInput = document.getElementById('password');
-            if (passwordInput) passwordInput.value = savedPassword;
-        }
+    // Always load saved credentials if they exist
+    if (savedMaCTV) {
+        const maCTVInput = document.getElementById('maCTV');
+        if (maCTVInput) maCTVInput.value = savedMaCTV;
+    }
+    if (savedPassword) {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) passwordInput.value = savedPassword;
+    }
+    
+    // Check the remember me box by default if credentials exist
+    const rememberMeCheck = document.getElementById('rememberMe');
+    if (rememberMeCheck && (savedMaCTV || savedPassword)) {
+        rememberMeCheck.checked = true;
     }
 }
 
@@ -32,7 +33,6 @@ async function handleLogin(e) {
     e.preventDefault();
     const maCTV = document.getElementById('maCTV').value;
     const password = document.getElementById('password').value;
-    const rememberMe = document.getElementById('rememberMe').checked;
     const loginBtn = document.getElementById('loginBtn');
     const loginError = document.getElementById('loginError');
     const loginForm = document.getElementById('loginForm');
@@ -52,16 +52,10 @@ async function handleLogin(e) {
         localStorage.setItem('ctvToken', result.token);
         setCurrentUser(result.ctv);
         
-        // Save credentials ONLY after successful login
-        if (rememberMe) {
-            localStorage.setItem('ctv_remember_ma_ctv', maCTV);
-            localStorage.setItem('ctv_remember_password', password);
-            localStorage.setItem('ctv_remember_checked', 'true');
-        } else {
-            localStorage.removeItem('ctv_remember_ma_ctv');
-            localStorage.removeItem('ctv_remember_password');
-            localStorage.removeItem('ctv_remember_checked');
-        }
+        // Always save credentials after successful login for convenience
+        // This auto-fills the form next time user visits
+        localStorage.setItem('ctv_saved_phone', maCTV);
+        localStorage.setItem('ctv_saved_password', password);
         
         // Show success animation
         loginForm.style.display = 'none';
