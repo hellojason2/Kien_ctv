@@ -25,8 +25,13 @@
             </div>
         </div>
         
+        <!-- Sync Button -->
+        <button id="syncNowBtn" onclick="manualSync()" style="margin-left: auto; padding: 6px 12px; font-size: 13px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+            <span style="font-weight: bold;">⟳</span> <span data-i18n="sync_now">Sync Now</span>
+        </button>
+        
         <!-- Hard Reset Button -->
-        <button id="hardResetBtn" onclick="confirmHardReset()" style="margin-left: auto; padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+        <button id="hardResetBtn" onclick="confirmHardReset()" style="padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
             <span style="font-weight: bold;">↻</span> <span data-i18n="hard_reset">Hard Reset</span>
         </button>
     </div>

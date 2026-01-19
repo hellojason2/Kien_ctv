@@ -663,6 +663,51 @@ function refreshRowCounts() {
 }
 
 /**
+ * Manual Sync - Pull new records from Google Sheets
+ */
+async function manualSync() {
+    const syncBtn = document.getElementById('syncNowBtn');
+    if (!syncBtn) return;
+    
+    // Disable button and show loading state
+    syncBtn.disabled = true;
+    const originalText = syncBtn.innerHTML;
+    syncBtn.innerHTML = '<span style="font-weight: bold;">⟳</span> <span>Syncing...</span>';
+    syncBtn.style.opacity = '0.7';
+    
+    try {
+        const result = await api('/api/admin/sync/manual', { method: 'POST' });
+        
+        if (result.status === 'success') {
+            const total = result.total_processed || 0;
+            
+            // Show success message
+            if (total > 0) {
+                alert(`Sync complete!\n\nNew records added:\n- Beauty (TM): ${result.stats?.tham_my?.processed || 0}\n- Dental (NK): ${result.stats?.nha_khoa?.processed || 0}\n- Referral (GT): ${result.stats?.gioi_thieu?.processed || 0}\n\nTotal: ${total} records`);
+            } else {
+                alert('Sync complete!\n\nNo new records found. Database is up to date.');
+            }
+            
+            // Refresh the row counts display
+            loadRowCounts();
+            
+            // Refresh stats
+            loadOverviewStats();
+        } else {
+            alert('Sync failed: ' + (result.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Manual sync error:', error);
+        alert('Sync failed: ' + error.message);
+    } finally {
+        // Restore button state
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = originalText;
+        syncBtn.style.opacity = '1';
+    }
+}
+
+/**
  * Hard Reset Progress Controller
  */
 const resetProgress = {

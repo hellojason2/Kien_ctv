@@ -24,6 +24,8 @@ SYNC_INTERVAL = 30
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
 BASE_DIR = Path(__file__).parent.absolute()
 CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
+# Environment variable for credentials (JSON string) - used in production
+GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
 
 # Use phone matching sync (processes ALL rows, detects updates)
 # Set to 'false' to use old count-based sync (only appends new rows at end)
@@ -109,9 +111,16 @@ def main():
         logger.info(f"Timestamp Column: {TIMESTAMP_COLUMN}")
     logger.info("=" * 60)
     
-    if not CREDENTIALS_FILE.exists():
-        logger.error(f"Credentials file not found: {CREDENTIALS_FILE}")
+    # Check for credentials (either env var or file)
+    if not GOOGLE_CREDENTIALS_JSON and not CREDENTIALS_FILE.exists():
+        logger.error("Google credentials not found!")
+        logger.error("Please set GOOGLE_CREDENTIALS_JSON env var or add google_credentials.json file")
         sys.exit(1)
+    
+    if GOOGLE_CREDENTIALS_JSON:
+        logger.info("Using Google credentials from environment variable")
+    else:
+        logger.info(f"Using Google credentials from file: {CREDENTIALS_FILE}")
     
     syncer = GoogleSheetSync()
     

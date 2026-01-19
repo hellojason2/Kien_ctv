@@ -199,6 +199,72 @@ def reset_step_commissions():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@admin_bp.route('/api/admin/sync/manual', methods=['POST'])
+@require_admin
+def manual_sync():
+    """
+    Manually trigger a sync to pull new records from Google Sheets.
+    This uses phone matching to find and add new/updated records.
+    """
+    try:
+        from ..mlm_core import calculate_new_commissions_fast
+        
+        logger.info("=" * 60)
+        logger.info("MANUAL SYNC TRIGGERED")
+        logger.info("=" * 60)
+        
+        syncer = GoogleSheetSync()
+        client = syncer.get_google_client()
+        spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+        conn = syncer.get_db_connection()
+        
+        stats = {
+            'tham_my': {'processed': 0, 'errors': 0},
+            'nha_khoa': {'processed': 0, 'errors': 0},
+            'gioi_thieu': {'processed': 0, 'errors': 0}
+        }
+        
+        # Sync each tab using phone matching
+        logger.info("Processing Tham My...")
+        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my')
+        stats['tham_my'] = {'processed': p, 'errors': e}
+        
+        logger.info("Processing Nha Khoa...")
+        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa')
+        stats['nha_khoa'] = {'processed': p, 'errors': e}
+        
+        logger.info("Processing Gioi Thieu...")
+        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu')
+        stats['gioi_thieu'] = {'processed': p, 'errors': e}
+        
+        # Calculate commissions if there were any changes
+        total_processed = sum(s['processed'] for s in stats.values())
+        commission_stats = None
+        if total_processed > 0:
+            logger.info("Calculating commissions...")
+            commission_stats = calculate_new_commissions_fast(connection=conn)
+        
+        # Update heartbeat
+        syncer.update_heartbeat(conn, total_processed)
+        
+        conn.close()
+        
+        logger.info(f"Manual sync complete: {total_processed} records processed")
+        
+        return jsonify({
+            'status': 'success',
+            'stats': stats,
+            'total_processed': total_processed,
+            'commission_stats': commission_stats
+        })
+        
+    except Exception as e:
+        logger.error(f"MANUAL SYNC ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @admin_bp.route('/api/admin/sync/diagnose', methods=['GET'])
 @require_admin
 def diagnose_phone():
