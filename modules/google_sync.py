@@ -890,10 +890,16 @@ class GoogleSheetSync:
                     conn = self.ensure_connection(conn)
                     
                     if tab_type == 'tham_my':
-                        # For Tham My: check if client exists and update, or insert new
-                        inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
-                        processed += inserted + updated
-                        logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
+                        if hard_reset:
+                            # Hard reset: Fast bulk insert without duplicate checking
+                            inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                            processed += inserted
+                            logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed")
+                        else:
+                            # Normal sync: check for duplicates
+                            inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                            processed += inserted + updated
+                            logger.info(f"    Batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
                     elif tab_type == 'nha_khoa':
                         inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                         processed += inserted
@@ -915,10 +921,16 @@ class GoogleSheetSync:
                 conn = self.ensure_connection(conn)
                 
                 if tab_type == 'tham_my':
-                    # For Tham My: check if client exists and update, or insert new
-                    inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
-                    processed += inserted + updated
-                    logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
+                    if hard_reset:
+                        # Hard reset: Fast bulk insert without duplicate checking
+                        inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                        processed += inserted
+                        logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed")
+                    else:
+                        # Normal sync: check for duplicates
+                        inserted, updated = self.bulk_insert_or_update_tham_my(conn, batch)
+                        processed += inserted + updated
+                        logger.info(f"    Final batch committed: {processed}/{new_rows_count} rows processed ({inserted} new, {updated} updated)")
                 elif tab_type == 'nha_khoa':
                     inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                     processed += inserted
@@ -1124,7 +1136,11 @@ class GoogleSheetSync:
             return False, stats, logs
 
     def sync_tab_with_logs(self, spreadsheet, conn, tab_type, hard_reset=False):
-        """Sync a tab from Google Sheets to database with batch processing and logging"""
+        """Sync a tab from Google Sheets to database with batch processing and logging
+        
+        When hard_reset=True, uses fast bulk insert without duplicate checking
+        since all records were already deleted.
+        """
         logs = []
         
         def add_log(message, log_type='info'):
@@ -1219,11 +1235,19 @@ class GoogleSheetSync:
                     conn = self.ensure_connection(conn)
                     
                     if tab_type == 'tham_my':
-                        # For Tham My: insert all rows, skip exact duplicates
-                        inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
-                        processed += inserted + skipped
-                        progress_pct = round((processed / new_rows_count) * 100, 1)
-                        add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%) - {inserted} new, {skipped} skipped", 'info')
+                        if hard_reset:
+                            # Hard reset: Fast bulk insert without duplicate checking
+                            # (all records were deleted, so no duplicates possible)
+                            inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                            processed += inserted
+                            progress_pct = round((processed / new_rows_count) * 100, 1)
+                            add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%)", 'info')
+                        else:
+                            # Normal sync: check for duplicates
+                            inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
+                            processed += inserted + skipped
+                            progress_pct = round((processed / new_rows_count) * 100, 1)
+                            add_log(f"Batch {batch_num}: {processed:,}/{new_rows_count:,} ({progress_pct}%) - {inserted} new, {skipped} skipped", 'info')
                     elif tab_type == 'nha_khoa':
                         inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                         processed += inserted
@@ -1252,10 +1276,16 @@ class GoogleSheetSync:
                 conn = self.ensure_connection(conn)
                 
                 if tab_type == 'tham_my':
-                    # For Tham My: insert all rows, skip exact duplicates
-                    inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
-                    processed += inserted + skipped
-                    add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%) - {inserted} new, {skipped} skipped", 'info')
+                    if hard_reset:
+                        # Hard reset: Fast bulk insert without duplicate checking
+                        inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
+                        processed += inserted
+                        add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%)", 'info')
+                    else:
+                        # Normal sync: check for duplicates
+                        inserted, skipped = self.bulk_insert_or_update_tham_my(conn, batch)
+                        processed += inserted + skipped
+                        add_log(f"Final batch {batch_num}: {processed:,}/{new_rows_count:,} (100%) - {inserted} new, {skipped} skipped", 'info')
                 elif tab_type == 'nha_khoa':
                     inserted = self.bulk_insert_khach_hang(conn, batch, tab_type)
                     processed += inserted

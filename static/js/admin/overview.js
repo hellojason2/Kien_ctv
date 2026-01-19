@@ -1016,10 +1016,12 @@ async function confirmHardReset() {
         if (statusText) statusText.textContent = 'Processing...';
         
         addLogEntry('Sending request to server...', 'info');
-        addLogEntry('Server is now processing. Steps will update when complete.', 'info');
+        addLogEntry('Server is now processing. This may take several minutes for large datasets.', 'info');
+        addLogEntry('Steps will update when complete.', 'info');
         
-        // Make the actual API call - wait for real results
-        const response = await api('/api/admin/reset-data', { method: 'POST' });
+        // Make the actual API call with extended timeout (5 minutes)
+        // Using apiLong for long-running operations
+        const response = await apiLong('/api/admin/reset-data', { method: 'POST' }, 300000);
         
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {

@@ -51,6 +51,59 @@ async function api(endpoint, options = {}) {
 }
 
 /**
+ * API Helper for long-running operations with extended timeout
+ * @param {string} endpoint - API endpoint
+ * @param {object} options - Fetch options
+ * @param {number} timeoutMs - Timeout in milliseconds (default: 5 minutes)
+ * @returns {Promise} - Response JSON
+ */
+async function apiLong(endpoint, options = {}, timeoutMs = 300000) {
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(authToken && authToken !== 'cookie-auth' && { 'Authorization': `Bearer ${authToken}` })
+    };
+    
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    const fetchOptions = {
+        ...options,
+        headers,
+        credentials: 'include',
+        signal: controller.signal
+    };
+    
+    try {
+        const response = await fetch(endpoint, fetchOptions);
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch {
+                errorData = { status: 'error', message: `HTTP ${response.status}: ${response.statusText}` };
+            }
+            return errorData;
+        }
+        
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        console.error('API Long Error:', error);
+        
+        if (error.name === 'AbortError') {
+            return { 
+                status: 'error', 
+                message: 'Request timed out. The operation may still be running on the server. Please wait a moment and refresh the page to check the results.' 
+            };
+        }
+        return { status: 'error', message: error.message || 'Network error' };
+    }
+}
+
+/**
  * Set auth token
  * @param {string} token - Auth token
  */
