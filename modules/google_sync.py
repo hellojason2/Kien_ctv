@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import logging
 from datetime import datetime
@@ -14,6 +15,8 @@ from psycopg2.extras import execute_values
 BASE_DIR = Path(__file__).parent.parent.absolute()
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
 CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
+# Environment variable for credentials (JSON string) - used in production
+GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
 
 # Batch size for bulk inserts - process this many rows before committing
 BATCH_SIZE = 500
@@ -58,8 +61,29 @@ class GoogleSheetSync:
 
     def get_google_client(self):
         scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
-        return gspread.authorize(credentials)
+        
+        # Try environment variable first (for production/Railway)
+        if GOOGLE_CREDENTIALS_JSON:
+            try:
+                creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
+                credentials = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+                logger.info("Using Google credentials from environment variable")
+                return gspread.authorize(credentials)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
+                raise ValueError("Invalid JSON in GOOGLE_CREDENTIALS_JSON environment variable")
+        
+        # Fall back to file (for local development)
+        if CREDENTIALS_FILE.exists():
+            credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
+            logger.info("Using Google credentials from file")
+            return gspread.authorize(credentials)
+        
+        raise FileNotFoundError(
+            "Google credentials not found. Please either:\n"
+            "1. Set GOOGLE_CREDENTIALS_JSON environment variable with the JSON content, or\n"
+            "2. Place google_credentials.json file in the project root"
+        )
 
     def get_db_connection(self):
         """Get a fresh database connection with keepalive settings"""
