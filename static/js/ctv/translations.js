@@ -239,7 +239,12 @@ const translations = {
         total_transactions: 'Tổng Số Giao Dịch',
         total_network_members: 'Tổng Thành Viên Team',
         total_services_completed: 'Tổng Dịch Vụ Hoàn Thành',
-        total_revenue_generated: 'Tổng Doanh Thu Tạo Ra'
+        total_revenue_generated: 'Tổng Doanh Thu Tạo Ra',
+        
+        // Referral Link
+        share_referral: 'Chia Sẻ Link',
+        referral_link_copied: 'Đã sao chép link giới thiệu!',
+        copy_link: 'Sao Chép Link'
     },
     en: {
         // Login
@@ -474,7 +479,12 @@ const translations = {
         total_transactions: 'Total Transactions',
         total_network_members: 'Total Team Members',
         total_services_completed: 'Total Services Completed',
-        total_revenue_generated: 'Total Revenue Generated'
+        total_revenue_generated: 'Total Revenue Generated',
+        
+        // Referral Link
+        share_referral: 'Share Link',
+        referral_link_copied: 'Referral link copied!',
+        copy_link: 'Copy Link'
     }
 };
 

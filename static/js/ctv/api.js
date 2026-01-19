@@ -37,5 +37,10 @@ function getCurrentUser() {
 
 function setCurrentUser(user) {
     currentUser = user;
+    // Store phone number for referral link feature
+    if (user && user.sdt) {
+        window.ctvPhone = user.sdt;
+        localStorage.setItem('ctv_phone', user.sdt);
+    }
 }
 

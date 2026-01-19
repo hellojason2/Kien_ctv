@@ -660,3 +660,91 @@
         font-size: 13px;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.referral-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 14px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.referral-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.referral-toast-success {
+    border-left: 4px solid var(--success, #22c55e);
+}
+
+.referral-toast-success svg {
+    color: var(--success, #22c55e);
+}
+
+.referral-toast-error {
+    border-left: 4px solid var(--danger, #ef4444);
+}
+
+.referral-toast-error svg {
+    color: var(--danger, #ef4444);
+}
+
+.referral-toast span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #1a1a1a);
+}
+
+/* Referral Button Highlight */
+.sidebar-referral,
+.mobile-referral {
+    position: relative;
+}
+
+.sidebar-referral::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: var(--success, #22c55e);
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    50% { opacity: 0.5; transform: translateY(-50%) scale(1.2); }
+}
+
+@media (max-width: 768px) {
+    .referral-toast {
+        bottom: 80px;
+        left: 16px;
+        right: 16px;
+        transform: translateX(0) translateY(100px);
+    }
+    
+    .referral-toast.show {
+        transform: translateX(0) translateY(0);
+    }
+}

@@ -135,3 +135,77 @@ document.addEventListener('DOMContentLoaded', async function() {
     checkAuth();
 });
 
+/**
+ * Copy referral link to clipboard
+ * Generates a signup link with the CTV's phone number as referrer
+ */
+function copyReferralLink() {
+    // Get the CTV's phone number from state
+    const ctvPhone = window.ctvPhone || localStorage.getItem('ctv_phone');
+    
+    if (!ctvPhone) {
+        showToast(t('login_failed') || 'Please login first', 'error');
+        return;
+    }
+    
+    // Generate the referral link
+    const baseUrl = window.location.origin;
+    const referralLink = `${baseUrl}/ctv/signup?ref=${encodeURIComponent(ctvPhone)}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(referralLink).then(() => {
+        showToast(t('referral_link_copied') || 'Referral link copied!', 'success');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = referralLink;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast(t('referral_link_copied') || 'Referral link copied!', 'success');
+        } catch (e) {
+            showToast('Failed to copy link', 'error');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'info') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.referral-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `referral-toast referral-toast-${type}`;
+    toast.innerHTML = `
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            ${type === 'success' 
+                ? '<path d="M20 6L9 17l-5-5"></path>' 
+                : '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+            }
+        </svg>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+

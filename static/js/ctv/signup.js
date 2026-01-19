@@ -453,6 +453,21 @@ document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLang);
     loadSignupTerms(); // Load terms from database
     
+    // Check for referral link parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const refPhone = urlParams.get('ref');
+    
+    const referrerInput = document.getElementById('referrerCode');
+    if (refPhone && referrerInput) {
+        // Pre-fill the referrer phone number from URL
+        referrerInput.value = refPhone;
+        // Trigger validation to show referrer name
+        debouncedCheckReferrer(refPhone);
+        // Add visual indicator that this was auto-filled
+        referrerInput.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+        referrerInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+    }
+    
     // Auto-show terms modal on first visit
     if (!termsShown) {
         termsShown = true;
@@ -468,10 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Attach real-time validation to referrer code input
-    const referrerInput = document.getElementById('referrerCode');
     if (referrerInput) {
         referrerInput.addEventListener('input', (e) => {
             debouncedCheckReferrer(e.target.value);
+            // Reset styling if user manually changes
+            e.target.style.backgroundColor = '';
+            e.target.style.borderColor = '';
         });
     }
     
