@@ -97,6 +97,11 @@ def catalogue_page():
     """Serve the service catalogue page (TMV + NK)"""
     return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'index.html'))
 
+@app.route('/bang-gia')
+def pricing_page():
+    """Serve the TMV pricing page"""
+    return render_template('pricing.html')
+
 # Catalogue asset routes - serve pages and images for the React catalogue app
 @app.route('/pages/<path:filename>')
 def catalogue_pages(filename):
