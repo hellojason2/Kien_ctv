@@ -1,0 +1,849 @@
+/**
+ * TMV Tam Pricing Page - Styles
+ * Beautiful Pastel Gradient Theme
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Pastel Gradient Colors */
+    --gradient-start: #e8d5f2;
+    --gradient-mid1: #f5d5e0;
+    --gradient-mid2: #fde5d4;
+    --gradient-end: #d4f5e0;
+    
+    /* Card Colors */
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-bg-hover: rgba(255, 255, 255, 0.95);
+    --card-border: rgba(255, 255, 255, 0.6);
+    
+    /* Sidebar */
+    --sidebar-bg: rgba(255, 255, 255, 0.3);
+    --sidebar-item-bg: transparent;
+    --sidebar-item-active: rgba(99, 102, 241, 0.9);
+    
+    /* Accent Colors */
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --gold: #f59e0b;
+    --gold-light: #fbbf24;
+    
+    /* Text Colors */
+    --text-dark: #1e293b;
+    --text-medium: #475569;
+    --text-light: #64748b;
+    --text-white: #ffffff;
+    
+    /* Status Colors */
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+    --success-border: rgba(16, 185, 129, 0.3);
+    --premium-bg: rgba(99, 102, 241, 0.15);
+    --premium-border: rgba(99, 102, 241, 0.3);
+    
+    /* Sizing */
+    --header-height: 0px;
+    --sidebar-width: 60px;
+    
+    /* Border Radius */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s ease;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, 
+        var(--gradient-start) 0%, 
+        var(--gradient-mid1) 25%,
+        var(--gradient-mid2) 50%,
+        var(--gradient-mid1) 75%,
+        var(--gradient-end) 100%);
+    background-attachment: fixed;
+    color: var(--text-dark);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ========================================
+   TOP NAVIGATION
+======================================== */
+.top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--card-border);
+    z-index: 150;
+    display: flex;
+    align-items: center;
+}
+
+.top-nav-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px 0 80px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-btn,
+.page-title-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+}
+
+.back-btn {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.back-btn svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.page-title-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: 1px solid var(--primary);
+    color: white;
+    margin: 0;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* ========================================
+   SIDEBAR
+======================================== */
+.pricing-sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: var(--sidebar-width);
+    height: calc(100vh - 60px);
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    gap: 8px;
+}
+
+.sidebar-title {
+    display: none;
+}
+
+.category-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.category-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-medium);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    position: relative;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.category-link:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--primary);
+}
+
+.category-link.active {
+    background: var(--sidebar-item-active);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.category-link span:not(.category-icon) {
+    display: none;
+}
+
+.category-icon {
+    font-size: 1.2rem;
+}
+
+/* Tooltip on hover */
+.category-link::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text-dark);
+    color: white;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+    pointer-events: none;
+    z-index: 200;
+}
+
+.category-link:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ========================================
+   HEADER (Minimal)
+======================================== */
+.pricing-header {
+    display: none;
+}
+
+/* ========================================
+   MOBILE CATEGORY TOGGLE
+======================================== */
+.mobile-category-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 28px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    transition: all var(--transition-normal);
+    pointer-events: auto;
+}
+
+.mobile-category-toggle:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 25px rgba(99, 102, 241, 0.5);
+}
+
+.mobile-category-toggle:active {
+    transform: translateX(-50%) translateY(0);
+}
+
+.mobile-category-toggle svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* ========================================
+   CONTAINER LAYOUT
+======================================== */
+.pricing-container {
+    display: flex;
+    min-height: 100vh;
+    padding-left: var(--sidebar-width);
+    padding-top: 60px;
+}
+
+/* ========================================
+   MAIN CONTENT
+======================================== */
+.pricing-content {
+    flex: 1;
+    padding: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Page Title */
+.page-title {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.page-title h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.page-title p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   PRICING SECTIONS
+======================================== */
+.pricing-section {
+    margin-bottom: 40px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    pointer-events: auto;
+    user-select: none;
+}
+
+.section-header:hover {
+    background: var(--card-bg-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.section-icon {
+    font-size: 1.4rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    border-radius: var(--radius-sm);
+}
+
+.collapse-icon {
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform var(--transition-normal);
+}
+
+.section-header.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    transition: all var(--transition-normal);
+}
+
+.section-content.collapsed {
+    display: none;
+}
+
+/* ========================================
+   PRICING GRID & CARDS
+======================================== */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.pricing-card {
+    position: relative;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all var(--transition-normal);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.pricing-card:hover {
+    background: var(--card-bg-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-light);
+}
+
+.pricing-card.has-bonus {
+    border-color: var(--success-border);
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(16, 185, 129, 0.08) 100%);
+}
+
+.pricing-card.has-bonus:hover {
+    border-color: var(--success);
+}
+
+.pricing-card.premium {
+    border-color: var(--premium-border);
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(99, 102, 241, 0.08) 100%);
+}
+
+.pricing-card.premium:hover {
+    border-color: var(--primary);
+}
+
+.card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.card-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    padding-right: 70px;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    word-spacing: 2px;
+}
+
+.pricing-card:not(.premium):not(.has-bonus) .card-name {
+    padding-right: 0;
+}
+
+.card-price {
+    font-size: 1.6rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.card-bonus {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: #047857;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    word-spacing: 3px;
+}
+
+.card-note {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* ========================================
+   SCROLL TO TOP BUTTON
+======================================== */
+.scroll-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 50px;
+    height: 50px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    z-index: 200;
+    pointer-events: auto;
+}
+
+.scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.scroll-top:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.scroll-top:active {
+    transform: translateY(-2px);
+}
+
+.scroll-top svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ========================================
+   SIDEBAR OVERLAY (Mobile)
+======================================== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    z-index: 95;
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+    pointer-events: none;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+======================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .pricing-content {
+        padding: 32px;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px;
+    }
+    
+    .top-nav-content {
+        padding: 0 16px;
+    }
+    
+    .back-btn span {
+        display: none;
+    }
+    
+    .back-btn {
+        padding: 10px 12px;
+    }
+    
+    .page-title-header {
+        font-size: 0.85rem;
+        padding: 10px 16px;
+    }
+    
+    .mobile-category-toggle {
+        display: flex;
+        align-items: center;
+    }
+    
+    .pricing-sidebar {
+        position: fixed;
+        left: -280px;
+        width: 280px;
+        top: 0;
+        height: 100vh;
+        padding: 80px 16px 24px;
+        transition: left var(--transition-normal);
+        z-index: 100;
+    }
+    
+    .pricing-sidebar.open {
+        left: 0;
+    }
+    
+    .pricing-sidebar.open .category-link {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    
+    .pricing-sidebar.open .category-link span:not(.category-icon) {
+        display: inline;
+    }
+    
+    .pricing-sidebar.open .category-link::after {
+        display: none;
+    }
+    
+    .pricing-sidebar.open .sidebar-title {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-light);
+        padding: 0 16px 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        margin-bottom: 16px;
+    }
+    
+    .sidebar-overlay {
+        display: block;
+    }
+    
+    .pricing-content {
+        padding: 24px 16px 100px;
+    }
+    
+    .page-title h1 {
+        font-size: 1.8rem;
+    }
+    
+    .pricing-section {
+        margin-bottom: 24px;
+    }
+    
+    .section-header {
+        padding: 16px 20px;
+        margin-bottom: 16px;
+    }
+    
+    .section-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .pricing-card {
+        padding: 20px;
+    }
+    
+    .card-price {
+        font-size: 1.4rem;
+    }
+    
+    .scroll-top {
+        bottom: 90px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .page-title h1 {
+        font-size: 1.5rem;
+    }
+    
+    .page-title p {
+        font-size: 0.95rem;
+    }
+    
+    .mobile-category-toggle {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========================================
+   ANIMATIONS
+======================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.pricing-section {
+    animation: fadeInUp 0.5s ease backwards;
+}
+
+.pricing-card {
+    animation: fadeInUp 0.4s ease backwards;
+}
+
+.pricing-grid .pricing-card:nth-child(1) { animation-delay: 0.05s; }
+.pricing-grid .pricing-card:nth-child(2) { animation-delay: 0.1s; }
+.pricing-grid .pricing-card:nth-child(3) { animation-delay: 0.15s; }
+.pricing-grid .pricing-card:nth-child(4) { animation-delay: 0.2s; }
+.pricing-grid .pricing-card:nth-child(5) { animation-delay: 0.25s; }
+.pricing-grid .pricing-card:nth-child(6) { animation-delay: 0.3s; }
+.pricing-grid .pricing-card:nth-child(7) { animation-delay: 0.35s; }
+.pricing-grid .pricing-card:nth-child(8) { animation-delay: 0.4s; }
+
+/* ========================================
+   SEARCH BAR (Optional - for future)
+======================================== */
+.search-container {
+    max-width: 600px;
+    margin: 0 auto 48px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 50px;
+    padding: 8px 8px 8px 24px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    transition: all var(--transition-normal);
+}
+
+.search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.15);
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text-dark);
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: var(--text-light);
+}
+
+.search-box button {
+    padding: 12px 24px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.search-box button:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+}
