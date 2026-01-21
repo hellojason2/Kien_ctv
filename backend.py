@@ -183,6 +183,86 @@ def check_duplicate():
         return jsonify({'status': 'error', 'message': f'Error checking duplicate: {str(e)}'}), 500
 
 # ══════════════════════════════════════════════════════════════════════════════
+# ADMIN UTILITIES
+# ══════════════════════════════════════════════════════════════════════════════
+
+import json
+import time
+from flask import Response, stream_with_context
+
+@app.route('/api/admin/remove-duplicates', methods=['POST'])
+def api_admin_remove_duplicates():
+    # Helper to clean phone numbers for log safety
+    def safe_phone(ph):
+        if not ph: return "N/A"
+        return f"{ph[:3]}***{ph[-3:]}" if len(ph) > 6 else ph
+
+    def generate_logs():
+        conn = None
+        try:
+            yield f"data: {json.dumps({'message': 'Initializing duplicate scan...', 'type': 'info'})}\n\n"
+            
+            conn = get_db_connection()
+            cur = conn.cursor()
+            
+            # Count duplicates based on User criteria: Phone, Date, Service, Time, Name, Source
+            yield f"data: {json.dumps({'message': 'Scanning database for duplicates (Phone + Date + Time + Name + Service)...', 'type': 'info'})}\n\n"
+            time.sleep(0.5)
+            
+            # Find duplicates
+            cur.execute("""
+                SELECT sdt, ngay_nhap_don, gio, dich_vu, ten_khach, source, COUNT(*) 
+                FROM khach_hang 
+                GROUP BY sdt, ngay_nhap_don, gio, dich_vu, ten_khach, source
+                HAVING COUNT(*) > 1
+                ORDER BY COUNT(*) DESC
+            """)
+            
+            rows = cur.fetchall()
+            duplicate_groups = len(rows)
+            yield f"data: {json.dumps({'message': f'Found {duplicate_groups} groups of duplicates matching criteria.', 'type': 'warning' if duplicate_groups > 0 else 'success'})}\n\n"
+            
+            total_deleted = 0
+            
+            if duplicate_groups > 0:
+                yield f"data: {json.dumps({'message': 'Starting cleanup process...', 'type': 'info'})}\n\n"
+                
+                # Delete logic: Keep the one with MIN(id) (oldest imported)
+                cur.execute("""
+                    DELETE FROM khach_hang a USING (
+                        SELECT MIN(id) as id, sdt, ngay_nhap_don, gio, dich_vu, ten_khach, source
+                        FROM khach_hang 
+                        GROUP BY sdt, ngay_nhap_don, gio, dich_vu, ten_khach, source
+                        HAVING COUNT(*) > 1
+                    ) b
+                    WHERE a.sdt = b.sdt 
+                    AND (a.ngay_nhap_don = b.ngay_nhap_don OR (a.ngay_nhap_don IS NULL AND b.ngay_nhap_don IS NULL))
+                    AND (a.gio = b.gio OR (a.gio IS NULL AND b.gio IS NULL))
+                    AND (a.dich_vu = b.dich_vu OR (a.dich_vu IS NULL AND b.dich_vu IS NULL))
+                    AND (a.ten_khach = b.ten_khach OR (a.ten_khach IS NULL AND b.ten_khach IS NULL))
+                    AND a.source = b.source 
+                    AND a.id <> b.id;
+                """)
+                
+                total_deleted = cur.rowcount
+                conn.commit()
+                
+                yield f"data: {json.dumps({'message': f'Successfully removed {total_deleted} redundant rows.', 'type': 'success'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'message': 'No duplicates found. Database is clean.', 'type': 'success'})}\n\n"
+            
+            # Final integrity check
+            yield f"data: {json.dumps({'message': 'Clean up process finished.', 'type': 'success', 'done': True, 'count': total_deleted})}\n\n"
+            
+        except Exception as e:
+            if conn: conn.rollback()
+            yield f"data: {json.dumps({'message': f'Error: {str(e)}', 'type': 'error'})}\n\n"
+        finally:
+            if conn: conn.close()
+            
+    return Response(stream_with_context(generate_logs()), mimetype='text/event-stream')
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN STARTUP
 # ══════════════════════════════════════════════════════════════════════════════
 

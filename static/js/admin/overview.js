@@ -27,13 +27,13 @@ let syncStatus = {
 function initOverview() {
     // Set default to current month
     applyOverviewPreset('month');
-    
+
     // Check which date ranges have data and show red dot indicators
     checkOverviewDateRangesWithData();
-    
+
     // Start the countdown timer
     startSyncCountdown();
-    
+
     // Load row count indicators (DB vs Google Sheets)
     loadRowCounts();
 }
@@ -45,13 +45,13 @@ async function checkOverviewDateRangesWithData() {
     try {
         // Wait a bit for the page to be fully rendered
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         const result = await api('/api/admin/date-ranges-with-data');
-        
+
         if (result.status === 'success' && result.ranges_with_data) {
             const overviewPage = document.getElementById('page-overview');
             if (!overviewPage) return;
-            
+
             // Update each button based on data availability
             Object.keys(result.ranges_with_data).forEach(preset => {
                 const button = overviewPage.querySelector(`.quick-filter-btn[data-preset="${preset}"]`);
@@ -75,12 +75,12 @@ async function checkOverviewDateRangesWithData() {
 function applyOverviewPreset(preset) {
     const today = new Date();
     let fromDate, toDate;
-    
+
     // Ensure translations are applied first
     if (typeof applyTranslations === 'function') {
         applyTranslations();
     }
-    
+
     // Reset all buttons to default text first, then update active button
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
@@ -99,7 +99,7 @@ function applyOverviewPreset(preset) {
                         translatedText = translations[currentLang][translationKey];
                     }
                 }
-                
+
                 // Only update if we got a valid translation (not the key itself)
                 if (translatedText && translatedText !== translationKey) {
                     // Save indicator before clearing
@@ -116,14 +116,14 @@ function applyOverviewPreset(preset) {
             btn.removeAttribute('data-date-range');
         });
     }
-    
+
     // Hide custom date filter if not custom
     if (preset !== 'custom') {
         const customFilter = document.getElementById('overviewCustomDateFilter');
         if (customFilter) customFilter.style.display = 'none';
     }
-    
-    switch(preset) {
+
+    switch (preset) {
         case 'today':
             fromDate = new Date(today);
             fromDate.setHours(0, 0, 0, 0);
@@ -177,11 +177,11 @@ function applyOverviewPreset(preset) {
         default:
             return;
     }
-    
+
     overviewDateFilter.preset = preset;
     overviewDateFilter.fromDate = fromDate.toISOString().split('T')[0];
     overviewDateFilter.toDate = toDate.toISOString().split('T')[0];
-    
+
     // Update button text with date range for active button
     if (overviewPage) {
         const activeButton = overviewPage.querySelector(`.quick-filter-btn[data-preset="${preset}"]`);
@@ -189,7 +189,7 @@ function applyOverviewPreset(preset) {
             activeButton.classList.add('active');
             const dateRange = formatDateRangeForButton(fromDate, toDate);
             const translationKey = activeButton.getAttribute('data-i18n');
-            
+
             // Get translation - ensure we get the actual translated text, not the key
             let translatedText = translationKey;
             if (typeof t === 'function') {
@@ -200,14 +200,14 @@ function applyOverviewPreset(preset) {
                     translatedText = translations[currentLang][translationKey];
                 }
             }
-            
+
             // Only proceed if we have a valid translation (not the key itself)
             if (translatedText && translatedText !== translationKey) {
                 const indicator = activeButton.querySelector('.data-indicator');
-                
+
                 // Store date range in data attribute for translation preservation
                 activeButton.setAttribute('data-date-range', dateRange);
-                
+
                 // Update button text: show translation + date range
                 activeButton.innerHTML = '';
                 activeButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
@@ -217,10 +217,10 @@ function applyOverviewPreset(preset) {
             }
         }
     }
-    
+
     // Show loading state immediately
     showOverviewLoading();
-    
+
     loadStats();
 }
 
@@ -230,7 +230,7 @@ function applyOverviewPreset(preset) {
 function toggleOverviewCustomDateFilter() {
     const customFilter = document.getElementById('overviewCustomDateFilter');
     if (!customFilter) return;
-    
+
     if (customFilter.style.display === 'none' || !customFilter.style.display) {
         customFilter.style.display = 'block';
         overviewDateFilter.preset = 'custom';
@@ -245,21 +245,21 @@ function toggleOverviewCustomDateFilter() {
 function applyOverviewCustomDateFilter() {
     const fromDateInput = document.getElementById('overviewFromDate');
     const toDateInput = document.getElementById('overviewToDate');
-    
+
     if (!fromDateInput || !toDateInput || !fromDateInput.value || !toDateInput.value) {
         alert(t('please_select_both_dates') || 'Please select both start and end dates');
         return;
     }
-    
+
     if (new Date(fromDateInput.value) > new Date(toDateInput.value)) {
         alert(t('date_from_must_be_before_date_to') || 'Start date must be before end date');
         return;
     }
-    
+
     overviewDateFilter.preset = 'custom';
     overviewDateFilter.fromDate = fromDateInput.value;
     overviewDateFilter.toDate = toDateInput.value;
-    
+
     // Update active button and show date range
     const overviewPage = document.getElementById('page-overview');
     if (overviewPage) {
@@ -269,7 +269,7 @@ function applyOverviewCustomDateFilter() {
                 btn.classList.add('active');
             }
         });
-        
+
         // Update button text with date range for custom button
         const customButton = overviewPage.querySelector('.quick-filter-btn[data-preset="custom"]');
         if (customButton && typeof formatDateRangeForButton === 'function') {
@@ -279,7 +279,7 @@ function applyOverviewCustomDateFilter() {
             const translationKey = customButton.getAttribute('data-i18n');
             const translatedText = typeof t === 'function' ? t(translationKey) : translationKey;
             const indicator = customButton.querySelector('.data-indicator');
-            
+
             // Update button text
             customButton.innerHTML = '';
             customButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
@@ -288,10 +288,10 @@ function applyOverviewCustomDateFilter() {
             }
         }
     }
-    
+
     // Show loading state immediately
     showOverviewLoading();
-    
+
     loadStats();
 }
 
@@ -306,7 +306,7 @@ function showOverviewLoading() {
             el.innerHTML = '<div class="skeleton-loader medium"></div>';
         }
     });
-    
+
     const topEarnersEl = document.getElementById('topEarnersTableBody');
     if (topEarnersEl) {
         topEarnersEl.innerHTML = `
@@ -317,7 +317,7 @@ function showOverviewLoading() {
             </tr>
         `;
     }
-    
+
     // Disable filter buttons during loading
     document.querySelectorAll('.quick-filter-btn').forEach(btn => {
         btn.disabled = true;
@@ -332,10 +332,10 @@ function showOverviewLoading() {
 async function loadStats() {
     // Show loading state immediately
     showOverviewLoading();
-    
+
     // Build query parameters
     const params = new URLSearchParams();
-    
+
     if (overviewDateFilter.fromDate && overviewDateFilter.toDate) {
         params.append('from_date', overviewDateFilter.fromDate);
         params.append('to_date', overviewDateFilter.toDate);
@@ -346,48 +346,48 @@ async function loadStats() {
         const month = String(now.getMonth() + 1).padStart(2, '0');
         params.append('month', `${year}-${month}`);
     }
-    
+
     try {
         const url = '/api/admin/stats' + (params.toString() ? '?' + params.toString() : '');
         console.log('Loading stats with URL:', url);
         console.log('Date filter:', overviewDateFilter);
-        
+
         const result = await api(url);
         console.log('Stats API result:', result);
         console.log('Result status:', result?.status);
         console.log('Result stats:', result?.stats);
-        
+
         // Re-enable buttons after loading
         document.querySelectorAll('.quick-filter-btn').forEach(btn => {
             btn.disabled = false;
         });
         const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
         if (applyBtn) applyBtn.disabled = false;
-        
+
         if (!result) {
             throw new Error('No response from API');
         }
-        
+
         if (result.status === 'success' && result.stats) {
             const s = result.stats;
             document.getElementById('statTotalCTV').textContent = s.total_ctv || 0;
             document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission || 0);
             document.getElementById('statMonthlyTx').textContent = s.monthly_transactions || 0;
             document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue || 0);
-            
+
             // Update sync worker status
             if (result.system_status) {
                 updateSyncStatus(result.system_status);
             }
-            
+
             // Refresh row count indicators
             loadRowCounts();
-        
+
             // Top earners with revenue and commission columns
             const topEarnersEl = document.getElementById('topEarnersTableBody');
             console.log('Top earners data:', s.top_earners);
             if (s.top_earners && Array.isArray(s.top_earners) && s.top_earners.length > 0) {
-            topEarnersEl.innerHTML = s.top_earners.map((e, index) => `
+                topEarnersEl.innerHTML = s.top_earners.map((e, index) => `
                 <tr>
                     <td style="font-weight: 500;">
                         ${index < 3 ? `
@@ -415,20 +415,20 @@ async function loadStats() {
                     <td style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
                 </tr>
             `).join('');
-            
-            // Apply translations to dynamically added elements
-            if (typeof applyTranslations === 'function') {
-                applyTranslations();
-            }
-        } else {
-            topEarnersEl.innerHTML = `
+
+                // Apply translations to dynamically added elements
+                if (typeof applyTranslations === 'function') {
+                    applyTranslations();
+                }
+            } else {
+                topEarnersEl.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         <div style="font-style: italic;">${t('no_earnings') || 'No earnings found'}</div>
                     </td>
                 </tr>
             `;
-        }
+            }
         } else {
             console.error('Stats API Error:', result);
             const errorMsg = result?.message || result?.error || 'Unknown error';
@@ -458,7 +458,7 @@ async function loadStats() {
         });
         const applyBtn = document.querySelector('#overviewCustomDateFilter .btn-filter');
         if (applyBtn) applyBtn.disabled = false;
-        
+
         // Show error state
         const statCards = ['statTotalCTV', 'statMonthlyCommission', 'statMonthlyTx', 'statMonthlyRevenue'];
         statCards.forEach(id => {
@@ -489,12 +489,12 @@ function updateSyncStatus(systemStatus) {
     const dot = document.getElementById('syncStatusDot');
     const text = document.getElementById('syncStatusText');
     const badge = document.getElementById('syncBadge');
-    
+
     if (!dot || !text) return;
-    
+
     // Always show as online with countdown
     syncStatus.interval = systemStatus?.sync_interval || 30;
-    
+
     // If we have a last run time, use it; otherwise start fresh
     if (systemStatus?.sync_worker_last_run) {
         syncStatus.lastRun = new Date(systemStatus.sync_worker_last_run);
@@ -502,10 +502,10 @@ function updateSyncStatus(systemStatus) {
         // Start countdown from now if no heartbeat exists yet
         syncStatus.lastRun = new Date();
     }
-    
+
     // Update new records count
     syncStatus.newRecords = systemStatus?.new_records || 0;
-    
+
     // Update badge display
     if (badge) {
         if (syncStatus.newRecords > 0) {
@@ -515,11 +515,11 @@ function updateSyncStatus(systemStatus) {
             badge.style.display = 'none';
         }
     }
-    
+
     // Always show as online
     dot.className = 'sync-status-dot status-online';
     text.className = 'sync-status-text status-online';
-    
+
     // Update countdown text
     updateSyncCountdownText();
 }
@@ -530,23 +530,23 @@ function updateSyncStatus(systemStatus) {
 function updateSyncCountdownText() {
     const text = document.getElementById('syncStatusText');
     const dot = document.getElementById('syncStatusDot');
-    
+
     if (!text) return;
-    
+
     // If no lastRun set yet, initialize it
     if (!syncStatus.lastRun) {
         syncStatus.lastRun = new Date();
     }
-    
+
     const now = new Date();
     const elapsed = Math.floor((now - syncStatus.lastRun) / 1000);
-    
+
     // Calculate countdown to next sync (cycles every 30 seconds)
     const nextSyncIn = Math.max(0, syncStatus.interval - (elapsed % syncStatus.interval));
-    
+
     // Show "Online" with countdown
     text.textContent = `Online • ${nextSyncIn}s`;
-    
+
     // Keep status as online
     if (dot) dot.className = 'sync-status-dot status-online';
     text.className = 'sync-status-text status-online';
@@ -560,15 +560,15 @@ function startSyncCountdown() {
     if (syncStatus.countdownTimer) {
         clearInterval(syncStatus.countdownTimer);
     }
-    
+
     // Initialize lastRun if not set
     if (!syncStatus.lastRun) {
         syncStatus.lastRun = new Date();
     }
-    
+
     // Update immediately
     updateSyncCountdownText();
-    
+
     // Update every second
     syncStatus.countdownTimer = setInterval(() => {
         updateSyncCountdownText();
@@ -595,7 +595,7 @@ function stopSyncCountdown() {
 async function loadRowCounts() {
     try {
         const result = await api('/api/admin/sync/row-counts');
-        
+
         if (result.status === 'success' && result.row_counts) {
             updateRowCountDisplay('TM', result.row_counts.tham_my);
             updateRowCountDisplay('NK', result.row_counts.nha_khoa);
@@ -622,29 +622,42 @@ async function loadRowCounts() {
 function updateRowCountDisplay(label, counts) {
     const boxEl = document.getElementById(`rowCount${label}`);
     const valueEl = document.getElementById(`rowCount${label}Value`);
-    
+
     if (!valueEl || !boxEl) return;
-    
+
     const dbCount = counts?.db ?? 0;
     const sheetCount = counts?.sheet;
-    
+
     // Format numbers with commas for readability
     const formatNum = (n) => n != null ? n.toLocaleString() : '-';
-    
+
     if (sheetCount != null) {
-        valueEl.textContent = `${formatNum(dbCount)}/${formatNum(sheetCount)}`;
-        
+        const diff = sheetCount - dbCount;
+
+        // Format: DB / Sheet (-Diff)
+        if (diff > 0) {
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; opacity: 0.8; color: #d97706;">(-${formatNum(diff)})</span>`;
+        } else if (diff < 0) {
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; opacity: 0.8; color: #b91c1c;">(+${formatNum(Math.abs(diff))})</span>`;
+        } else {
+            valueEl.textContent = `${formatNum(dbCount)} / ${formatNum(sheetCount)}`;
+        }
+
         // Color coding based on sync status
         boxEl.classList.remove('status-synced', 'status-missing', 'status-error');
-        
+
         if (dbCount === sheetCount) {
             // Fully synced - green
             boxEl.classList.add('status-synced');
         } else if (dbCount < sheetCount) {
-            // Missing rows - red/orange
-            boxEl.classList.add('status-missing');
+            // Missing rows (usually duplicates in sheet) - show as semi-synced/warning
+            // We'll keep it green-ish if it's just duplicates, but strictly it's 'missing' matches
+            // User wants to know "Sheet - Empty/Dup = DB". 
+            // Let's rely on the text to explain the diff.
+            boxEl.classList.add('status-synced'); // Keep it green as this is "normal" behavior now
+            boxEl.style.borderColor = '#fbbf24'; // Add a yellow tint border
         } else {
-            // More in DB than sheet (unusual) - show as synced
+            // More in DB than sheet (unusual)
             boxEl.classList.add('status-synced');
         }
     } else {
@@ -668,27 +681,27 @@ function refreshRowCounts() {
 async function manualSync() {
     const syncBtn = document.getElementById('syncNowBtn');
     if (!syncBtn) return;
-    
+
     // Show the sync modal
     const modal = document.getElementById('syncModal');
     const logEntries = document.getElementById('syncLogEntries');
     const statusDisplay = document.getElementById('syncStatusDisplay');
     const summary = document.getElementById('syncSummary');
     const currentStep = document.getElementById('syncCurrentStep');
-    
+
     if (modal) {
         modal.style.display = 'flex';
         logEntries.innerHTML = '';
         statusDisplay.style.display = 'block';
         summary.style.display = 'none';
     }
-    
+
     // Disable button
     syncBtn.disabled = true;
     const originalText = syncBtn.innerHTML;
     syncBtn.innerHTML = '<span style="font-weight: bold;">⟳</span> <span>Syncing...</span>';
     syncBtn.style.opacity = '0.7';
-    
+
     function addSyncLog(message, level = 'info') {
         if (logEntries) {
             const time = new Date().toLocaleTimeString();
@@ -699,11 +712,11 @@ async function manualSync() {
             logEntries.scrollTop = logEntries.scrollHeight;
         }
     }
-    
+
     function updateStep(text) {
         if (currentStep) currentStep.textContent = text;
     }
-    
+
     const stats = {
         tham_my: { inserted: 0, skipped: 0 },
         nha_khoa: { inserted: 0, skipped: 0 },
@@ -711,12 +724,12 @@ async function manualSync() {
     };
     const beforeCounts = {};
     const afterCounts = {};
-    
+
     try {
         // Step 1: Get current database counts
         updateStep('Step 1/5: Reading database...');
         addSyncLog('📊 Reading current database counts...');
-        
+
         const previewResult = await api('/api/admin/reset-data/preview');
         if (previewResult.status === 'success') {
             beforeCounts.tham_my = previewResult.counts?.tham_my || 0;
@@ -724,7 +737,7 @@ async function manualSync() {
             beforeCounts.gioi_thieu = previewResult.counts?.gioi_thieu || 0;
             addSyncLog(`✓ Database: TM=${beforeCounts.tham_my.toLocaleString()}, NK=${beforeCounts.nha_khoa.toLocaleString()}, GT=${beforeCounts.gioi_thieu.toLocaleString()}`, 'success');
         }
-        
+
         // Step 2: Sync Tham My
         updateStep('Step 2/5: Syncing Thẩm Mỹ (Beauty)...');
         addSyncLog('');
@@ -732,7 +745,7 @@ async function manualSync() {
         addSyncLog('📥 Connecting to Google Sheets...');
         addSyncLog('📖 Reading all rows from sheet...');
         addSyncLog('🔍 Comparing with database (checking duplicates)...');
-        
+
         const tmResult = await api('/api/admin/sync/tab/tham_my', { method: 'POST' });
         if (tmResult.status === 'success') {
             stats.tham_my = tmResult.stats || { inserted: 0, skipped: 0 };
@@ -740,7 +753,7 @@ async function manualSync() {
         } else {
             addSyncLog(`✗ Thẩm Mỹ failed: ${tmResult.message}`, 'error');
         }
-        
+
         // Step 3: Sync Nha Khoa
         updateStep('Step 3/5: Syncing Nha Khoa (Dental)...');
         addSyncLog('');
@@ -748,7 +761,7 @@ async function manualSync() {
         addSyncLog('📥 Connecting to Google Sheets...');
         addSyncLog('📖 Reading all rows from sheet...');
         addSyncLog('🔍 Comparing with database (checking duplicates)...');
-        
+
         const nkResult = await api('/api/admin/sync/tab/nha_khoa', { method: 'POST' });
         if (nkResult.status === 'success') {
             stats.nha_khoa = nkResult.stats || { inserted: 0, skipped: 0 };
@@ -756,7 +769,7 @@ async function manualSync() {
         } else {
             addSyncLog(`✗ Nha Khoa failed: ${nkResult.message}`, 'error');
         }
-        
+
         // Step 4: Sync Gioi Thieu
         updateStep('Step 4/5: Syncing Giới Thiệu (Referral)...');
         addSyncLog('');
@@ -764,7 +777,7 @@ async function manualSync() {
         addSyncLog('📥 Connecting to Google Sheets...');
         addSyncLog('📖 Reading all rows from sheet...');
         addSyncLog('🔍 Comparing with database (checking duplicates)...');
-        
+
         const gtResult = await api('/api/admin/sync/tab/gioi_thieu', { method: 'POST' });
         if (gtResult.status === 'success') {
             stats.gioi_thieu = gtResult.stats || { inserted: 0, skipped: 0 };
@@ -772,16 +785,16 @@ async function manualSync() {
         } else {
             addSyncLog(`✗ Giới Thiệu failed: ${gtResult.message}`, 'error');
         }
-        
+
         // Step 5: Calculate commissions if needed
         const totalNew = stats.tham_my.inserted + stats.nha_khoa.inserted + stats.gioi_thieu.inserted;
-        
+
         if (totalNew > 0) {
             updateStep('Step 5/5: Calculating commissions...');
             addSyncLog('');
             addSyncLog('═══ Calculating Commissions ═══');
             addSyncLog('💰 Recalculating commission levels...');
-            
+
             const commResult = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
             if (commResult.status === 'success') {
                 addSyncLog(`✓ Commissions updated`, 'success');
@@ -791,7 +804,7 @@ async function manualSync() {
             addSyncLog('');
             addSyncLog('ℹ️ No new records found - skipping commission calculation');
         }
-        
+
         // Get final counts
         const finalPreview = await api('/api/admin/reset-data/preview');
         if (finalPreview.status === 'success') {
@@ -799,14 +812,14 @@ async function manualSync() {
             afterCounts.nha_khoa = finalPreview.counts?.nha_khoa || 0;
             afterCounts.gioi_thieu = finalPreview.counts?.gioi_thieu || 0;
         }
-        
+
         addSyncLog('');
         addSyncLog(`✅ SYNC COMPLETE! ${totalNew} new records added.`, 'success');
-        
+
         // Hide spinner, show summary
         statusDisplay.style.display = 'none';
         summary.style.display = 'block';
-        
+
         // Build summary stats
         const summaryStats = document.getElementById('syncSummaryStats');
         if (summaryStats) {
@@ -833,13 +846,13 @@ async function manualSync() {
                 </div>
             `;
         }
-        
+
         // Refresh the row counts display
         loadRowCounts();
-        
+
         // Refresh stats
         loadOverviewStats();
-        
+
     } catch (error) {
         console.error('Manual sync error:', error);
         addSyncLog('');
@@ -887,9 +900,9 @@ const resetProgress = {
 function addLogEntry(message, type = 'info') {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-    
+
     resetProgress.logs.push({ time: timeStr, message, type });
-    
+
     const logEntries = document.getElementById('logEntries');
     if (logEntries) {
         const entry = document.createElement('div');
@@ -898,7 +911,7 @@ function addLogEntry(message, type = 'info') {
         logEntries.appendChild(entry);
         logEntries.scrollTop = logEntries.scrollHeight;
     }
-    
+
     // Also log to console
     console.log(`[HardReset ${type.toUpperCase()}] ${message}`);
 }
@@ -923,16 +936,16 @@ function showHardResetModal() {
     const modal = document.getElementById('hardResetModal');
     if (modal) {
         modal.style.display = 'flex';
-        
+
         // Clear previous logs
         resetProgress.logs = [];
         const logEntries = document.getElementById('logEntries');
         if (logEntries) logEntries.innerHTML = '';
-        
+
         // Hide database counts
         const dbCounts = document.getElementById('dbCounts');
         if (dbCounts) dbCounts.style.display = 'none';
-        
+
         // Reset all steps to initial state
         resetProgress.steps.forEach(step => {
             const stepEl = document.getElementById(`step-${step}`);
@@ -948,7 +961,7 @@ function showHardResetModal() {
                 status.textContent = 'Waiting...';
             }
         });
-        
+
         // Reset detail texts
         document.getElementById('step-read-detail').textContent = 'Counting existing records...';
         document.getElementById('step-delete-detail').textContent = 'Preparing to delete existing records...';
@@ -956,25 +969,25 @@ function showHardResetModal() {
         document.getElementById('step-dental-detail').textContent = 'Extracting from Nha Khoa sheet...';
         document.getElementById('step-referral-detail').textContent = 'Extracting from Giới Thiệu sheet...';
         document.getElementById('step-commission-detail').textContent = 'Recalculating all commission levels...';
-        
+
         // Hide summary
         const summary = document.getElementById('progressSummary');
         if (summary) {
             summary.style.display = 'none';
         }
-        
+
         // Show progress steps
         const steps = document.querySelector('.progress-steps');
         if (steps) {
             steps.style.display = 'flex';
         }
-        
+
         // Show log panel
         const logPanel = document.querySelector('.progress-log-panel');
         if (logPanel) {
             logPanel.style.display = 'block';
         }
-        
+
         // Reset modal header
         const icon = document.querySelector('.progress-modal-icon');
         if (icon) {
@@ -1005,7 +1018,7 @@ function closeHardResetModal() {
         clearInterval(resetProgress.progressIntervals[key]);
     });
     resetProgress.progressIntervals = {};
-    
+
     // Reload page to refresh data
     window.location.reload();
 }
@@ -1018,7 +1031,7 @@ function updateStepProgress(stepId, status, progress, detail) {
     const progressBar = document.getElementById(`step-${stepId}-progress`);
     const statusEl = document.getElementById(`step-${stepId}-status`);
     const detailEl = document.getElementById(`step-${stepId}-detail`);
-    
+
     if (stepEl) {
         stepEl.classList.remove('active', 'complete', 'error', 'pending');
         if (status === 'active') stepEl.classList.add('active');
@@ -1026,7 +1039,7 @@ function updateStepProgress(stepId, status, progress, detail) {
         else if (status === 'error') stepEl.classList.add('error');
         else if (status === 'pending') stepEl.classList.add('pending');
     }
-    
+
     if (progressBar) {
         if (progress !== undefined && progress !== null) {
             progressBar.style.width = `${progress}%`;
@@ -1042,7 +1055,7 @@ function updateStepProgress(stepId, status, progress, detail) {
             progressBar.classList.remove('indeterminate');
         }
     }
-    
+
     if (statusEl) {
         if (status === 'active') {
             statusEl.textContent = progress !== null ? `${Math.round(progress)}%` : 'Processing...';
@@ -1056,7 +1069,7 @@ function updateStepProgress(stepId, status, progress, detail) {
             statusEl.textContent = 'Waiting...';
         }
     }
-    
+
     if (detailEl && detail) {
         detailEl.textContent = detail;
     }
@@ -1069,27 +1082,27 @@ function animateStepProgress(stepId, duration, detailMessages) {
     return new Promise((resolve) => {
         const startTime = Date.now();
         let messageIndex = 0;
-        
+
         updateStepProgress(stepId, 'active', 0, detailMessages[0]);
-        
+
         const interval = setInterval(() => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / duration) * 100, 95);
-            
+
             const newMessageIndex = Math.floor((progress / 100) * detailMessages.length);
             if (newMessageIndex !== messageIndex && newMessageIndex < detailMessages.length) {
                 messageIndex = newMessageIndex;
                 addLogEntry(detailMessages[messageIndex]);
             }
-            
+
             updateStepProgress(stepId, 'active', progress, detailMessages[messageIndex]);
-            
+
             if (progress >= 95) {
                 clearInterval(interval);
                 resolve();
             }
         }, 100);
-        
+
         resetProgress.progressIntervals[stepId] = interval;
     });
 }
@@ -1103,7 +1116,7 @@ function showResetSummary(stats) {
     if (steps) {
         steps.style.display = 'none';
     }
-    
+
     // Stop the spinning icon
     const icon = document.querySelector('.progress-modal-icon');
     if (icon) {
@@ -1114,7 +1127,7 @@ function showResetSummary(stats) {
         icon.style.background = 'linear-gradient(135deg, #dcfce7, #bbf7d0)';
         icon.querySelector('svg').style.stroke = '#16a34a';
     }
-    
+
     // Update header
     const header = document.querySelector('.progress-modal-header h3');
     if (header) {
@@ -1124,14 +1137,14 @@ function showResetSummary(stats) {
     if (subtitle) {
         subtitle.textContent = t('data_synced_successfully') || 'All data has been synced successfully.';
     }
-    
+
     // Show summary with before/after comparison
     const summary = document.getElementById('progressSummary');
     const summaryStats = document.getElementById('summaryStats');
     if (summary && summaryStats) {
         const beforeTotal = resetProgress.dbCounts?.total || 0;
         const afterTotal = (stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0);
-        
+
         summaryStats.innerHTML = `
             <div class="summary-stat">
                 <div class="summary-stat-value">${stats.tham_my?.processed || 0}</div>
@@ -1148,7 +1161,7 @@ function showResetSummary(stats) {
         `;
         summary.style.display = 'block';
     }
-    
+
     addLogEntry(`Reset complete! Imported ${(stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0)} total records.`, 'success');
 }
 
@@ -1159,158 +1172,158 @@ async function confirmHardReset() {
     if (!confirm(t('confirm_hard_reset') || 'WARNING: This will DELETE all Client Service data (Beauty, Dental, Referral) and re-import everything from Google Sheets.\n\nThis process may take a minute. Are you sure you want to proceed?')) {
         return;
     }
-    
+
     const btn = document.getElementById('hardResetBtn');
     const originalText = btn.innerHTML;
-    
+
     // Disable button
     btn.disabled = true;
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span style="font-weight: bold;">↻</span> In Progress...';
-    
+
     // Show progress modal
     showHardResetModal();
-    
+
     addLogEntry('Hard Reset initiated by user', 'info');
     addLogEntry('Starting database analysis...', 'info');
-    
+
     // STEP 0: Read database counts first
     updateStepProgress('read', 'active', 10, 'Connecting to database...');
-    
+
     try {
         // Fetch current database counts
         addLogEntry('Fetching current record counts from database...', 'info');
         const previewResponse = await api('/api/admin/reset-data/preview');
-        
+
         if (previewResponse.status === 'success') {
             resetProgress.dbCounts = previewResponse.counts;
-            
+
             // Update the counts display
             document.getElementById('count-tham-my').textContent = previewResponse.counts.tham_my.toLocaleString();
             document.getElementById('count-nha-khoa').textContent = previewResponse.counts.nha_khoa.toLocaleString();
             document.getElementById('count-gioi-thieu').textContent = previewResponse.counts.gioi_thieu.toLocaleString();
             document.getElementById('count-commissions').textContent = previewResponse.counts.commissions.toLocaleString();
             document.getElementById('count-total').textContent = previewResponse.counts.total.toLocaleString();
-            
+
             // Show the counts panel
             document.getElementById('dbCounts').style.display = 'block';
-            
+
             addLogEntry(`Found ${previewResponse.counts.tham_my.toLocaleString()} Beauty records`, 'info');
             addLogEntry(`Found ${previewResponse.counts.nha_khoa.toLocaleString()} Dental records`, 'info');
             addLogEntry(`Found ${previewResponse.counts.gioi_thieu.toLocaleString()} Referral records`, 'info');
             addLogEntry(`Found ${previewResponse.counts.commissions.toLocaleString()} Commission records`, 'info');
             addLogEntry(`TOTAL: ${previewResponse.counts.total.toLocaleString()} records will be deleted`, 'warning');
-            
+
             updateStepProgress('read', 'complete', 100, `Found ${previewResponse.counts.total.toLocaleString()} records`);
         } else {
             throw new Error('Failed to get database counts');
         }
-        
+
         // Small delay before starting
         await new Promise(r => setTimeout(r, 500));
-        
+
         addLogEntry('Starting step-by-step data reset process...', 'info');
-        
+
         // Initialize all steps
         updateStepProgress('delete', 'pending', null, 'Waiting...');
         updateStepProgress('beauty', 'pending', null, 'Waiting...');
         updateStepProgress('dental', 'pending', null, 'Waiting...');
         updateStepProgress('referral', 'pending', null, 'Waiting...');
         updateStepProgress('commission', 'pending', null, 'Waiting...');
-        
+
         const stats = {
             tham_my: { processed: 0, errors: 0 },
             nha_khoa: { processed: 0, errors: 0 },
             gioi_thieu: { processed: 0, errors: 0 }
         };
-        
+
         // ═══════════════════════════════════════════════════════════════
         // STEP 1: Delete all records
         // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('--- STEP 1: Deleting existing records ---', 'info');
         updateStepProgress('delete', 'active', null, 'Deleting records...');
-        
+
         const deleteResponse = await api('/api/admin/reset-data/step/delete', { method: 'POST' });
-        
+
         if (deleteResponse.status !== 'success') {
             throw new Error(deleteResponse.message || 'Failed to delete records');
         }
-        
+
         addLogEntry(`✓ Deleted ${deleteResponse.deleted_khach_hang?.toLocaleString() || 0} client records`, 'success');
         addLogEntry(`✓ Deleted ${deleteResponse.deleted_commissions?.toLocaleString() || 0} commission records`, 'success');
         updateStepProgress('delete', 'complete', 100, `✓ Deleted ${(deleteResponse.deleted_khach_hang || 0).toLocaleString()} records`);
-        
+
         // ═══════════════════════════════════════════════════════════════
         // STEP 2: Import Thẩm Mỹ (Beauty)
         // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('--- STEP 2: Importing Thẩm Mỹ (Beauty) ---', 'info');
         updateStepProgress('beauty', 'active', null, 'Importing...');
-        
+
         const beautyResponse = await apiLong('/api/admin/reset-data/step/import/tham_my', { method: 'POST' }, 180000);
-        
+
         if (beautyResponse.status !== 'success') {
             throw new Error(beautyResponse.message || 'Failed to import beauty data');
         }
-        
+
         stats.tham_my = { processed: beautyResponse.processed || 0, errors: beautyResponse.errors || 0 };
         addLogEntry(`✓ Imported ${stats.tham_my.processed.toLocaleString()} beauty records`, 'success');
         if (stats.tham_my.errors > 0) addLogEntry(`⚠ ${stats.tham_my.errors} errors`, 'warning');
         updateStepProgress('beauty', 'complete', 100, `✓ ${stats.tham_my.processed.toLocaleString()} records`);
-        
+
         // ═══════════════════════════════════════════════════════════════
         // STEP 3: Import Nha Khoa (Dental)
         // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('--- STEP 3: Importing Nha Khoa (Dental) ---', 'info');
         updateStepProgress('dental', 'active', null, 'Importing...');
-        
+
         const dentalResponse = await apiLong('/api/admin/reset-data/step/import/nha_khoa', { method: 'POST' }, 180000);
-        
+
         if (dentalResponse.status !== 'success') {
             throw new Error(dentalResponse.message || 'Failed to import dental data');
         }
-        
+
         stats.nha_khoa = { processed: dentalResponse.processed || 0, errors: dentalResponse.errors || 0 };
         addLogEntry(`✓ Imported ${stats.nha_khoa.processed.toLocaleString()} dental records`, 'success');
         if (stats.nha_khoa.errors > 0) addLogEntry(`⚠ ${stats.nha_khoa.errors} errors`, 'warning');
         updateStepProgress('dental', 'complete', 100, `✓ ${stats.nha_khoa.processed.toLocaleString()} records`);
-        
+
         // ═══════════════════════════════════════════════════════════════
         // STEP 4: Import Giới Thiệu (Referral)
         // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('--- STEP 4: Importing Giới Thiệu (Referral) ---', 'info');
         updateStepProgress('referral', 'active', null, 'Importing...');
-        
+
         const referralResponse = await apiLong('/api/admin/reset-data/step/import/gioi_thieu', { method: 'POST' }, 180000);
-        
+
         if (referralResponse.status !== 'success') {
             throw new Error(referralResponse.message || 'Failed to import referral data');
         }
-        
+
         stats.gioi_thieu = { processed: referralResponse.processed || 0, errors: referralResponse.errors || 0 };
         addLogEntry(`✓ Imported ${stats.gioi_thieu.processed.toLocaleString()} referral records`, 'success');
         if (stats.gioi_thieu.errors > 0) addLogEntry(`⚠ ${stats.gioi_thieu.errors} errors`, 'warning');
         updateStepProgress('referral', 'complete', 100, `✓ ${stats.gioi_thieu.processed.toLocaleString()} records`);
-        
+
         // ═══════════════════════════════════════════════════════════════
         // STEP 5: Recalculate Commissions
         // ═══════════════════════════════════════════════════════════════
         addLogEntry('', 'info');
         addLogEntry('--- STEP 5: Recalculating Commissions ---', 'info');
         updateStepProgress('commission', 'active', null, 'Calculating...');
-        
+
         const commissionResponse = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
-        
+
         if (commissionResponse.status !== 'success') {
             addLogEntry(`⚠ Commission calculation warning: ${commissionResponse.message}`, 'warning');
         } else {
             addLogEntry('✓ Commission calculation complete', 'success');
         }
         updateStepProgress('commission', 'complete', 100, '✓ Commissions calculated');
-        
+
         // ═══════════════════════════════════════════════════════════════
         // COMPLETE
         // ═══════════════════════════════════════════════════════════════
@@ -1318,29 +1331,29 @@ async function confirmHardReset() {
         addLogEntry('═══════════════════════════════════════', 'info');
         addLogEntry('HARD RESET COMPLETE', 'success');
         addLogEntry('═══════════════════════════════════════', 'info');
-        
+
         const totalImported = stats.tham_my.processed + stats.nha_khoa.processed + stats.gioi_thieu.processed;
         const totalErrors = stats.tham_my.errors + stats.nha_khoa.errors + stats.gioi_thieu.errors;
-        
+
         addLogEntry(`Total imported: ${totalImported.toLocaleString()} records`, 'success');
         if (totalErrors > 0) {
             addLogEntry(`Total errors: ${totalErrors}`, 'warning');
         }
-        
+
         // Show summary after short delay
         setTimeout(() => {
             showResetSummary(stats);
         }, 800);
-        
+
     } catch (error) {
         console.error('Hard reset error:', error);
         addLogEntry(`✗ ERROR: ${error.message}`, 'error');
-        
+
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {
             clearInterval(resetProgress.progressIntervals[key]);
         });
-        
+
         // Mark current step as error
         const currentActiveStep = resetProgress.steps.find(step => {
             const el = document.getElementById(`step-${step}`);
@@ -1349,10 +1362,10 @@ async function confirmHardReset() {
         if (currentActiveStep) {
             updateStepProgress(currentActiveStep, 'error', 0, `Error: ${error.message}`);
         }
-        
+
         addLogEntry('Hard reset failed. Check logs above for details.', 'error');
         addLogEntry('You may need to restart the server and try again.', 'warning');
-        
+
         // Re-enable button after delay
         setTimeout(() => {
             btn.disabled = false;
@@ -1368,22 +1381,22 @@ async function confirmHardReset() {
 async function resetSyncCounter() {
     // Only reset if there are new records
     if (syncStatus.newRecords === 0) return;
-    
+
     try {
         const result = await api('/api/admin/sync/reset-counter', {
             method: 'POST'
         });
-        
+
         if (result.status === 'success') {
             // Reset local state
             syncStatus.newRecords = 0;
-            
+
             // Hide badge
             const badge = document.getElementById('syncBadge');
             if (badge) {
                 badge.style.display = 'none';
             }
-            
+
             // Reload stats to refresh data
             loadStats();
         }

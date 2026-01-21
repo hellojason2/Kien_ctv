@@ -292,7 +292,7 @@ class GoogleSheetSync:
             cur.execute("""
                 SELECT COUNT(*) FROM khach_hang 
                 WHERE sdt = %s 
-                AND ngay_nhap_don = %s 
+                AND ngay_nhap_don IS NOT DISTINCT FROM %s 
                 AND TRIM(COALESCE(dich_vu, '')) = %s
                 AND source = %s
             """, (sdt, ngay_nhap, dich_vu_clean, source))
