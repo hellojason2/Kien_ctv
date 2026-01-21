@@ -161,6 +161,7 @@ const translations = {
         
         // Catalogue
         catalogue: 'Bảng Giá Dịch Vụ',
+        pricing: 'Bảng Giá TMV',
         booking_form_title: 'Thông Tin Khách Hàng',
         booking_form_subtitle: 'Bạn vui lòng nhập thông tin khách hàng tại đây',
         customer_name: 'Tên khách hàng',
@@ -404,6 +405,7 @@ const translations = {
         
         // Catalogue
         catalogue: 'Service Catalogue',
+        pricing: 'TMV Pricing',
         booking_form_title: 'Customer Information',
         booking_form_subtitle: 'Please enter customer information here',
         customer_name: 'Customer Name',
