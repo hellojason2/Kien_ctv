@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tam Group - Đặt Lịch Hẹn</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #e8eaf6 50%, #fff3e0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .booking-container {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .booking-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .booking-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .booking-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #999;
+        }
+
+        .phone-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .phone-input-row input {
+            flex: 1;
+        }
+
+        .btn-check-phone {
+            padding: 14px 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-check-phone:hover {
+            background: #4f46e5;
+        }
+
+        .phone-check-result {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .phone-check-result.duplicate {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .phone-check-result.not-duplicate {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-msg {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .success-msg {
+            color: #16a34a;
+            font-size: 14px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .close-btn:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        .close-btn svg {
+            color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .booking-container {
+                padding: 24px;
+            }
+
+            .phone-input-row {
+                flex-direction: column;
+            }
+
+            .btn-check-phone {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Close Button -->
+    <a href="/" class="close-btn" title="Quay lại">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </a>
+
+    <div class="booking-container">
+        <div class="booking-header">
+            <h1>Thông Tin Khách Hàng</h1>
+            <p>Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+        </div>
+
+        <form id="bookingForm">
+            <div class="form-group">
+                <label>Tên Khách Hàng <span style="color:#e53e3e;">*</span></label>
+                <input type="text" id="customerName" placeholder="Nhập tên khách hàng" required>
+            </div>
+
+            <div class="form-group">
+                <label>Số Điện Thoại <span style="color:#e53e3e;">*</span></label>
+                <div class="phone-input-row">
+                    <input type="tel" id="customerPhone" placeholder="Nhập số điện thoại" required>
+                    <button type="button" class="btn-check-phone" onclick="checkPhone()">Kiểm Tra</button>
+                </div>
+                <div class="phone-check-result" id="phoneResult" style="display:none;margin-top:10px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Dịch Vụ Quan Tâm <span style="color:#e53e3e;">*</span></label>
+                <input type="text" id="serviceInterest" placeholder="Nhập dịch vụ quan tâm" required>
+            </div>
+
+            <div class="form-group">
+                <label>Ghi Chú</label>
+                <textarea id="notes" rows="3" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Khu Vực Của Khách Hàng</label>
+                <select id="region">
+                    <option value="">-- Chọn khu vực --</option>
+                    <option value="Miền Bắc">Miền Bắc</option>
+                    <option value="Miền Nam">Miền Nam</option>
+                    <option value="Miền Trung">Miền Trung</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>SDT Người Giới Thiệu</label>
+                <input type="tel" id="referrerPhone" placeholder="Nhập SDT người giới thiệu">
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">Gửi Thông Tin</button>
+            
+            <div class="error-msg" id="errorMsg" style="display:none;"></div>
+            <div class="success-msg" id="successMsg" style="display:none;"></div>
+        </form>
+    </div>
+
+    <script>
+        // Check phone for duplicates
+        async function checkPhone() {
+            const phone = document.getElementById('customerPhone').value.trim();
+            const result = document.getElementById('phoneResult');
+            
+            if (!phone) {
+                result.style.display = 'block';
+                result.className = 'phone-check-result duplicate';
+                result.textContent = 'Vui lòng nhập số điện thoại';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/check-phone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+                
+                const data = await response.json();
+                result.style.display = 'block';
+                
+                if (data.duplicate) {
+                    result.className = 'phone-check-result duplicate';
+                    result.textContent = 'TRÙNG - Số điện thoại đã tồn tại';
+                } else {
+                    result.className = 'phone-check-result not-duplicate';
+                    result.textContent = 'KHÔNG TRÙNG - Có thể tiếp tục';
+                }
+            } catch (error) {
+                result.style.display = 'block';
+                result.className = 'phone-check-result duplicate';
+                result.textContent = 'Lỗi kiểm tra';
+            }
+        }
+
+        // Form submission
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            
+            // Reset messages
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            // Get form data
+            const data = {
+                customer_name: document.getElementById('customerName').value.trim(),
+                customer_phone: document.getElementById('customerPhone').value.trim(),
+                service_interest: document.getElementById('serviceInterest').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                region: document.getElementById('region').value,
+                referrer_phone: document.getElementById('referrerPhone').value.trim()
+            };
+            
+            // Validate
+            if (!data.customer_name) {
+                errorMsg.textContent = 'Vui lòng nhập tên khách hàng';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            if (!data.customer_phone) {
+                errorMsg.textContent = 'Vui lòng nhập số điện thoại';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            if (!data.service_interest) {
+                errorMsg.textContent = 'Vui lòng nhập dịch vụ quan tâm';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            // Submit
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Đang gửi...';
+            
+            try {
+                const response = await fetch('/api/public/booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    successMsg.textContent = 'Thông tin khách hàng đã được gửi thành công!';
+                    successMsg.style.display = 'block';
+                    
+                    // Reset form
+                    document.getElementById('bookingForm').reset();
+                    document.getElementById('phoneResult').style.display = 'none';
+                } else {
+                    errorMsg.textContent = result.message || 'Gửi thông tin thất bại';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gửi Thông Tin';
+            }
+        });
+    </script>
+</body>
+</html>

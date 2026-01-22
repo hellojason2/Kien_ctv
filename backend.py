@@ -96,6 +96,11 @@ def ctv_signup_page():
     """Serve the CTV signup page"""
     return render_template('ctv_signup.html')
 
+@app.route('/booking')
+def booking_page():
+    """Serve the public booking/appointment page"""
+    return render_template('booking.html')
+
 @app.route('/test-login')
 def test_login_page():
     """Serve the test login page for troubleshooting"""
