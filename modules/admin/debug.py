@@ -211,8 +211,14 @@ def get_ctv_detail(ctv_code):
                         SELECT c.ma_ctv, n.level + 1 FROM ctv c JOIN net n ON c.nguoi_gioi_thieu = n.ma_ctv WHERE n.level < 4
                     )
                     SELECT * FROM net
-                ) network ON kh.nguoi_chot = network.ma_ctv
-                LEFT JOIN ctv ON ctv.ma_ctv = kh.nguoi_chot
+                ) network ON (
+                    kh.nguoi_chot = network.ma_ctv
+                    OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(network.ma_ctv, '[^0-9]', '', 'g'), 9)
+                )
+                LEFT JOIN ctv ON (
+                    ctv.ma_ctv = kh.nguoi_chot
+                    OR RIGHT(REGEXP_REPLACE(ctv.ma_ctv, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9)
+                )
                 WHERE (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
                 {date_filter_kh}
                 
@@ -238,8 +244,14 @@ def get_ctv_detail(ctv_code):
                         SELECT c.ma_ctv, n.level + 1 FROM ctv c JOIN net n ON c.nguoi_gioi_thieu = n.ma_ctv WHERE n.level < 4
                     )
                     SELECT * FROM net
-                ) network ON COALESCE(s.nguoi_chot, s.ctv_code) = network.ma_ctv
-                LEFT JOIN ctv ON ctv.ma_ctv = COALESCE(s.nguoi_chot, s.ctv_code)
+                ) network ON (
+                    COALESCE(s.nguoi_chot, s.ctv_code) = network.ma_ctv
+                    OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(network.ma_ctv, '[^0-9]', '', 'g'), 9)
+                )
+                LEFT JOIN ctv ON (
+                    ctv.ma_ctv = COALESCE(s.nguoi_chot, s.ctv_code)
+                    OR RIGHT(REGEXP_REPLACE(ctv.ma_ctv, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9)
+                )
                 WHERE 1=1
                 {date_filter_svc}
             ) AS all_transactions
@@ -398,7 +410,10 @@ def get_raw_data():
                 kh.nguoi_chot,
                 ctv.ten as ctv_name
             FROM khach_hang kh
-            LEFT JOIN ctv ON ctv.ma_ctv = kh.nguoi_chot
+            LEFT JOIN ctv ON (
+                ctv.ma_ctv = kh.nguoi_chot
+                OR RIGHT(REGEXP_REPLACE(ctv.ma_ctv, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9)
+            )
             ORDER BY kh.nguoi_chot, kh.ten_khach, kh.id
         """)
         clients = cursor.fetchall()

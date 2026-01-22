@@ -377,11 +377,15 @@ def calculate_new_commissions_fast(connection=None):
         max_kh_id = cache_row['last_kh_max_id']
         max_svc_id = cache_row['last_svc_max_id']
         
-        # New khach_hang records - ONLY where nguoi_chot exists in ctv table (case-insensitive)
+        # New khach_hang records - ONLY where nguoi_chot exists in ctv table
+        # Use phone normalization to handle leading zero variations (972020881 vs 0972020881)
         cursor.execute("""
             SELECT kh.id, kh.tong_tien, c.ma_ctv as nguoi_chot
             FROM khach_hang kh
-            JOIN ctv c ON LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
+            JOIN ctv c ON (
+                LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
             WHERE kh.id > %s
             AND kh.tong_tien > 0
             AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
@@ -399,11 +403,15 @@ def calculate_new_commissions_fast(connection=None):
             except Exception as e:
                 print(f"Error processing khach_hang {kh['id']}: {e}")
             
-        # New service records - ONLY where ctv_code exists in ctv table (case-insensitive)
+        # New service records - ONLY where ctv_code exists in ctv table
+        # Use phone normalization to handle leading zero variations (972020881 vs 0972020881)
         cursor.execute("""
             SELECT s.id, s.tong_tien, c.ma_ctv as ctv_code
             FROM services s
-            JOIN ctv c ON LOWER(COALESCE(s.nguoi_chot, s.ctv_code)) = LOWER(c.ma_ctv)
+            JOIN ctv c ON (
+                LOWER(COALESCE(s.nguoi_chot, s.ctv_code)) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
             WHERE s.id > %s
             AND s.tong_tien > 0
             ORDER BY s.id ASC

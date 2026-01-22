@@ -23,9 +23,9 @@
     <meta name="twitter:image" content="{{ url_for('static', filename='images/tam-og-image.png', _external=True) }}">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/base.css') }}">
@@ -72,12 +72,7 @@
     <div class="login-container">
         <div class="signup-box">
             <div class="login-logo">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3" fill="none"/>
-                    <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3"/>
-                    <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3"/>
-                    <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3"/>
-                </svg>
+                <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
             </div>
             <h1 data-i18n="signup_title">Đăng Ký CTV</h1>
             <p class="subtitle" data-i18n="signup_subtitle">Điền thông tin để đăng ký làm Cộng Tác Viên</p>

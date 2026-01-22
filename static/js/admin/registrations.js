@@ -9,6 +9,49 @@ let registrations = [];
 let availableLevels = [];
 
 /**
+ * Format referrer as a nice badge with phone icon
+ * @param {string} code - Referrer phone/code
+ * @param {string} name - Referrer name (optional)
+ * @returns {string} - HTML string for the badge
+ */
+function formatReferrerBadgeReg(code, name) {
+    if (!code) return '-';
+    
+    const phoneIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
+    
+    // Format the phone number nicely (add spaces for readability)
+    const formattedCode = formatPhoneDisplayReg(code);
+    
+    if (name) {
+        return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}<span class="badge-referrer-name">(${escapeHtml(name)})</span></span>`;
+    }
+    
+    return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}</span>`;
+}
+
+/**
+ * Format phone number for display (add spaces for readability)
+ * @param {string} phone - Phone number
+ * @returns {string} - Formatted phone number
+ */
+function formatPhoneDisplayReg(phone) {
+    if (!phone) return '';
+    // Remove non-digit characters
+    const digits = phone.toString().replace(/\D/g, '');
+    
+    // Format Vietnamese phone (10 digits): 0xxx xxx xxx
+    if (digits.length === 10 && digits.startsWith('0')) {
+        return digits.slice(0, 4) + ' ' + digits.slice(4, 7) + ' ' + digits.slice(7);
+    }
+    // Format 9-digit number (without leading 0): xxx xxx xxx
+    if (digits.length === 9) {
+        return digits.slice(0, 3) + ' ' + digits.slice(3, 6) + ' ' + digits.slice(6);
+    }
+    // Return as-is for other formats
+    return phone;
+}
+
+/**
  * Load available CTV levels from database
  */
 async function loadCTVLevels() {
@@ -123,7 +166,7 @@ function renderRegistrationsTable(data) {
                 <td>${escapeHtml(reg.full_name)}</td>
                 <td>${escapeHtml(reg.phone)}</td>
                 <td>${reg.email ? escapeHtml(reg.email) : '-'}</td>
-                <td>${reg.referrer_code ? `${reg.referrer_code} ${reg.referrer_name ? '(' + escapeHtml(reg.referrer_name) + ')' : ''}` : '-'}</td>
+                <td>${formatReferrerBadgeReg(reg.referrer_code, reg.referrer_name)}</td>
                 <td>${reg.created_at || '-'}</td>
                 <td><span class="status-badge ${statusClass}" data-i18n="${reg.status}">${statusText}</span></td>
                 <td>
@@ -217,7 +260,7 @@ async function showApproveModal(registrationId) {
         ${registration.referrer_code ? `
         <div class="detail-row">
             <span class="detail-label" data-i18n="referrer">Referrer</span>
-            <span class="detail-value">${registration.referrer_code} ${registration.referrer_name ? '(' + escapeHtml(registration.referrer_name) + ')' : ''}</span>
+            <span class="detail-value">${formatReferrerBadgeReg(registration.referrer_code, registration.referrer_name)}</span>
         </div>
         ` : ''}
         ${registration.signature_image ? `
@@ -525,7 +568,7 @@ function showViewDetailsModal(registrationId) {
             ${registration.referrer_code ? `
             <div class="detail-row">
                 <span class="detail-label" data-i18n="referrer">Referrer</span>
-                <span class="detail-value">${registration.referrer_code} ${registration.referrer_name ? '(' + escapeHtml(registration.referrer_name) + ')' : ''}</span>
+                <span class="detail-value">${formatReferrerBadgeReg(registration.referrer_code, registration.referrer_name)}</span>
             </div>
             ` : ''}
             <div class="detail-row">

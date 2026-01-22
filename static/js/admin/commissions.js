@@ -259,24 +259,24 @@ function updateTotalRevenueLabel() {
     const labelEl = document.getElementById('totalRevenueLabel');
     if (!labelEl) return;
     
-    let labelText = t('total_revenue_for_period') || 'Tổng Dịch Vụ';
+    let labelText = t('total_revenue_for_period') || 'Doanh số cá nhân';
     
     if (currentFilterType === 'quick' && currentFilterName) {
         switch(currentFilterName) {
             case 'day':
-                labelText = t('total_revenue_for_today') || 'Tổng Dịch Vụ Hôm Nay';
+                labelText = t('total_revenue_for_today') || 'Doanh số cá nhân Hôm Nay';
                 break;
             case 'week':
-                labelText = t('total_revenue_for_week') || 'Tổng Dịch Vụ Tuần Này';
+                labelText = t('total_revenue_for_week') || 'Doanh số cá nhân Tuần Này';
                 break;
             case 'month':
-                labelText = t('total_revenue_for_month') || 'Tổng Dịch Vụ Tháng Này';
+                labelText = t('total_revenue_for_month') || 'Doanh số cá nhân Tháng Này';
                 break;
             default:
-                labelText = t('total_revenue_for_period') || 'Tổng Dịch Vụ';
+                labelText = t('total_revenue_for_period') || 'Doanh số cá nhân';
         }
     } else if (currentFilterType === 'custom') {
-        labelText = t('total_revenue_for_custom') || 'Tổng Dịch Vụ';
+        labelText = t('total_revenue_for_custom') || 'Doanh số cá nhân';
     }
     
     labelEl.textContent = labelText;

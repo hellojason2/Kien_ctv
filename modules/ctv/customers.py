@@ -7,6 +7,89 @@ from ..auth import require_ctv
 from ..db_pool import get_db_connection, return_db_connection
 from ..mlm_core import get_all_descendants, calculate_new_commissions_fast
 
+
+def normalize_phone(phone):
+    """
+    Normalize phone number for comparison.
+    Removes leading zeros and non-digit characters.
+    Returns the last 9 digits (Vietnamese phone numbers without country code).
+    
+    Examples:
+        0972020908 -> 972020908
+        972020908 -> 972020908
+        84972020908 -> 972020908
+    """
+    if not phone:
+        return ''
+    # Keep only digits
+    digits = ''.join(c for c in str(phone) if c.isdigit())
+    if not digits:
+        return ''
+    # Remove leading zeros
+    digits = digits.lstrip('0')
+    # If it's a Vietnamese phone with country code (84), remove it
+    if digits.startswith('84') and len(digits) > 10:
+        digits = digits[2:]
+    # Return last 9 digits (standard VN phone length without leading 0)
+    return digits[-9:] if len(digits) >= 9 else digits
+
+
+def build_phone_match_condition(column_name, phone_value, param_list):
+    """
+    Build SQL condition for flexible phone matching.
+    Handles cases where phone may have leading zero or not.
+    
+    Args:
+        column_name: SQL column name (e.g., 'nguoi_chot')
+        phone_value: Phone number to match
+        param_list: List to append parameters to
+        
+    Returns:
+        SQL condition string
+    """
+    normalized = normalize_phone(phone_value)
+    if not normalized:
+        param_list.append(phone_value)
+        return f"{column_name} = %s"
+    
+    # Match using RIGHT() to compare last 9 digits
+    param_list.append(normalized)
+    param_list.append(normalized)
+    return f"(RIGHT(REGEXP_REPLACE({column_name}, '[^0-9]', '', 'g'), 9) = %s OR RIGHT(REGEXP_REPLACE({column_name}, '[^0-9]', '', 'g'), 9) = LPAD(%s, 9, '0'))"
+
+
+def build_phone_in_condition(column_name, phone_list):
+    """
+    Build SQL condition for matching column against list of phones with normalization.
+    
+    Args:
+        column_name: SQL column name (e.g., 'nguoi_chot')
+        phone_list: List of phone numbers
+        
+    Returns:
+        Tuple of (SQL condition string, parameters list)
+    """
+    if not phone_list:
+        return "FALSE", []
+    
+    # Normalize all phones in the list
+    normalized_phones = [normalize_phone(p) for p in phone_list]
+    # Also keep originals for exact match
+    all_variants = set()
+    for p in phone_list:
+        all_variants.add(str(p))
+        norm = normalize_phone(p)
+        if norm:
+            all_variants.add(norm)
+            # Add with leading zero
+            all_variants.add('0' + norm)
+    
+    all_variants = list(all_variants)
+    placeholders = ','.join(['%s'] * len(all_variants))
+    
+    # Match either exact or normalized
+    return f"({column_name} IN ({placeholders}) OR RIGHT(REGEXP_REPLACE({column_name}, '[^0-9]', '', 'g'), 9) IN ({placeholders}))", all_variants + [normalize_phone(p) for p in phone_list]
+
 @ctv_bp.route('/api/ctv/lifetime-stats', methods=['GET'])
 @require_ctv
 def get_lifetime_stats():
@@ -28,16 +111,22 @@ def get_lifetime_stats():
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
         active_levels = {row['level'] for row in rates_rows if row.get('is_active', True)}
         
-        # Level 0 (Personal Sales)
+        # Normalize CTV code for matching (handles 0972020908 vs 972020908)
+        ctv_code = ctv['ma_ctv']
+        ctv_code_normalized = normalize_phone(ctv_code)
+        ctv_code_with_zero = '0' + ctv_code_normalized if ctv_code_normalized else ctv_code
+        
+        # Level 0 (Personal Sales) - Use normalized phone matching for nguoi_chot
         level0_query_kh = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM khach_hang
-            WHERE nguoi_chot = %s
+            WHERE (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s
+                   OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
             AND trang_thai IN ('Da den lam', 'Đã đến làm')
         """
-        cursor.execute(level0_query_kh, (ctv['ma_ctv'],))
+        cursor.execute(level0_query_kh, (ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized))
         level0_kh = cursor.fetchone()
         
         level0_query_svc = """
@@ -45,9 +134,12 @@ def get_lifetime_stats():
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM services
-            WHERE COALESCE(nguoi_chot, ctv_code) = %s
+            WHERE (COALESCE(nguoi_chot, ctv_code) = %s 
+                   OR COALESCE(nguoi_chot, ctv_code) = %s 
+                   OR COALESCE(nguoi_chot, ctv_code) = %s
+                   OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) = %s)
         """
-        cursor.execute(level0_query_svc, (ctv['ma_ctv'],))
+        cursor.execute(level0_query_svc, (ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized))
         level0_svc = cursor.fetchone()
         
         level0_revenue = float(level0_kh['total_revenue'] or 0) + float(level0_svc['total_revenue'] or 0)
@@ -105,17 +197,32 @@ def get_lifetime_stats():
                 level_ctv_list = ctvs_by_level.get(level, [])
                 
                 if level_ctv_list:
-                    placeholders = ','.join(['%s'] * len(level_ctv_list))
+                    # Build normalized phone matching for nguoi_chot
+                    # Include both original and normalized versions of each CTV code
+                    all_code_variants = set()
+                    normalized_codes = []
+                    for code in level_ctv_list:
+                        all_code_variants.add(code)
+                        norm = normalize_phone(code)
+                        if norm:
+                            all_code_variants.add(norm)
+                            all_code_variants.add('0' + norm)
+                            normalized_codes.append(norm)
+                    
+                    all_code_variants = list(all_code_variants)
+                    placeholders = ','.join(['%s'] * len(all_code_variants))
+                    norm_placeholders = ','.join(['%s'] * len(normalized_codes)) if normalized_codes else "''"
                     
                     level_query_kh = f"""
                         SELECT 
                             COALESCE(SUM(tong_tien), 0) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM khach_hang
-                        WHERE nguoi_chot IN ({placeholders})
+                        WHERE (nguoi_chot IN ({placeholders})
+                               OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                         AND trang_thai IN ('Da den lam', 'Đã đến làm')
                     """
-                    cursor.execute(level_query_kh, list(level_ctv_list))
+                    cursor.execute(level_query_kh, all_code_variants + normalized_codes)
                     level_data_kh = cursor.fetchone()
                     
                     level_query_svc = f"""
@@ -123,9 +230,10 @@ def get_lifetime_stats():
                             COALESCE(SUM(tong_tien), 0) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM services
-                        WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                        WHERE (COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                               OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                     """
-                    cursor.execute(level_query_svc, list(level_ctv_list))
+                    cursor.execute(level_query_svc, all_code_variants + normalized_codes)
                     level_data_svc = cursor.fetchone()
                     
                     level_revenue = float(level_data_kh['total_revenue'] or 0) + float(level_data_svc['total_revenue'] or 0)
@@ -186,11 +294,17 @@ def get_ctv_customers():
         from_date = request.args.get('from')
         to_date = request.args.get('to')
         
+        # Normalize CTV code for matching (handles 0972020908 vs 972020908)
+        ctv_code = ctv['ma_ctv']
+        ctv_code_normalized = normalize_phone(ctv_code)
+        ctv_code_with_zero = '0' + ctv_code_normalized if ctv_code_normalized else ctv_code
+        
         # Build date filters
         date_filter_kh = ""
         date_filter_svc = ""
-        params_kh = [ctv['ma_ctv'], ctv['ma_ctv']]
-        params_svc = [ctv['ma_ctv']]
+        # Parameters for normalized nguoi_chot matching
+        params_kh = [ctv_code, ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized]
+        params_svc = [ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized]
         
         if status:
             date_filter_kh += " AND kh.trang_thai = %s"
@@ -209,7 +323,7 @@ def get_ctv_customers():
             params_kh.append(to_date)
             params_svc.append(to_date)
         
-        # UNION query combining both tables
+        # UNION query combining both tables with normalized nguoi_chot matching
         query = f"""
             SELECT * FROM (
                 SELECT 
@@ -232,7 +346,8 @@ def get_ctv_customers():
                     'tham_my' as source_type
                 FROM khach_hang kh
                 LEFT JOIN commissions c ON c.transaction_id = -ABS(kh.id) AND c.ctv_code = %s AND c.level = 0
-                WHERE kh.nguoi_chot = %s
+                WHERE (kh.nguoi_chot = %s OR kh.nguoi_chot = %s OR kh.nguoi_chot = %s
+                       OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
                 {date_filter_kh}
                 
                 UNION ALL
@@ -258,7 +373,10 @@ def get_ctv_customers():
                 FROM services s
                 LEFT JOIN customers cust ON s.customer_id = cust.id
                 LEFT JOIN commissions c ON c.transaction_id = s.id AND c.ctv_code = COALESCE(s.nguoi_chot, s.ctv_code) AND c.level = 0
-                WHERE COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                WHERE (COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                       OR COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                       OR COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                       OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = %s)
                 {date_filter_svc}
             ) AS all_transactions
             ORDER BY ngay_hen_lam DESC, id DESC
@@ -280,7 +398,7 @@ def get_ctv_customers():
             c['phai_dong'] = float(c['phai_dong'] or 0)
             c['commission_amount'] = float(c.get('commission_amount') or 0)
         
-        # Summary from both tables
+        # Summary from both tables with normalized phone matching
         cursor.execute("""
             SELECT 
                 COALESCE(kh.total_count, 0) + COALESCE(svc.total_count, 0) as total_count,
@@ -294,7 +412,8 @@ def get_ctv_customers():
                     SUM(CASE WHEN trang_thai IN ('Da den lam', 'Đã đến làm') THEN tong_tien ELSE 0 END) as total_revenue,
                     SUM(CASE WHEN trang_thai IN ('Da coc', 'Đã cọc') THEN 1 ELSE 0 END) as pending_count
                 FROM khach_hang
-                WHERE nguoi_chot = %s
+                WHERE (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s
+                       OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
             ) kh,
             (
                 SELECT 
@@ -302,9 +421,13 @@ def get_ctv_customers():
                     COUNT(*) as completed_count,
                     SUM(tong_tien) as total_revenue
                 FROM services
-                WHERE COALESCE(nguoi_chot, ctv_code) = %s
+                WHERE (COALESCE(nguoi_chot, ctv_code) = %s 
+                       OR COALESCE(nguoi_chot, ctv_code) = %s 
+                       OR COALESCE(nguoi_chot, ctv_code) = %s
+                       OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) = %s)
             ) svc
-        """, (ctv['ma_ctv'], ctv['ma_ctv']))
+        """, (ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized,
+              ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized))
         
         summary = cursor.fetchone()
         
@@ -419,15 +542,22 @@ def get_ctv_commission():
         commission_rates = {row['level']: float(row['percent']) / 100 for row in rates_rows}
         active_levels = {row['level'] for row in rates_rows if row.get('is_active', True)}
         
+        # Normalize CTV code for matching (handles 0972020908 vs 972020908)
+        ctv_code = ctv['ma_ctv']
+        ctv_code_normalized = normalize_phone(ctv_code)
+        ctv_code_with_zero = '0' + ctv_code_normalized if ctv_code_normalized else ctv_code
+        
+        # Level 0 query with normalized phone matching for nguoi_chot
         level0_query_kh = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM khach_hang
-            WHERE nguoi_chot = %s
+            WHERE (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s
+                   OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
             AND trang_thai IN ('Da den lam', 'Đã đến làm')
         """
-        level0_params_kh = [ctv['ma_ctv']]
+        level0_params_kh = [ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized]
         
         if from_date:
             level0_query_kh += " AND ngay_hen_lam >= %s"
@@ -439,15 +569,18 @@ def get_ctv_commission():
         cursor.execute(level0_query_kh, level0_params_kh)
         level0_kh = cursor.fetchone()
         
-        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
+        # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer) with normalized matching
         level0_query_svc = """
             SELECT 
                 SUM(tong_tien) as total_revenue,
                 COUNT(*) as transaction_count
             FROM services
-            WHERE COALESCE(nguoi_chot, ctv_code) = %s
+            WHERE (COALESCE(nguoi_chot, ctv_code) = %s 
+                   OR COALESCE(nguoi_chot, ctv_code) = %s 
+                   OR COALESCE(nguoi_chot, ctv_code) = %s
+                   OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) = %s)
         """
-        level0_params_svc = [ctv['ma_ctv']]
+        level0_params_svc = [ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized]
         
         if from_date:
             level0_query_svc += " AND date_entered >= %s"
@@ -506,17 +639,32 @@ def get_ctv_commission():
                 level_ctv_list = ctvs_by_level.get(level, [])
                 
                 if level_ctv_list:
-                    placeholders = ','.join(['%s'] * len(level_ctv_list))
+                    # Build normalized phone matching for nguoi_chot
+                    # Include both original and normalized versions of each CTV code
+                    all_code_variants = set()
+                    normalized_codes = []
+                    for code in level_ctv_list:
+                        all_code_variants.add(code)
+                        norm = normalize_phone(code)
+                        if norm:
+                            all_code_variants.add(norm)
+                            all_code_variants.add('0' + norm)
+                            normalized_codes.append(norm)
+                    
+                    all_code_variants = list(all_code_variants)
+                    placeholders = ','.join(['%s'] * len(all_code_variants))
+                    norm_placeholders = ','.join(['%s'] * len(normalized_codes)) if normalized_codes else "''"
                     
                     level_query_kh = f"""
                         SELECT 
                             COALESCE(SUM(tong_tien), 0) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM khach_hang
-                        WHERE nguoi_chot IN ({placeholders})
+                        WHERE (nguoi_chot IN ({placeholders})
+                               OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                         AND trang_thai IN ('Da den lam', 'Đã đến làm')
                     """
-                    level_params_kh = list(level_ctv_list)
+                    level_params_kh = all_code_variants + normalized_codes
                     
                     if from_date:
                         level_query_kh += " AND ngay_hen_lam >= %s"
@@ -528,15 +676,16 @@ def get_ctv_commission():
                     cursor.execute(level_query_kh, level_params_kh)
                     level_data_kh = cursor.fetchone()
                     
-                    # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
+                    # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer) with normalized matching
                     level_query_svc = f"""
                         SELECT 
                             COALESCE(SUM(tong_tien), 0) as total_revenue,
                             COUNT(*) as transaction_count
                         FROM services
-                        WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                        WHERE (COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                               OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                     """
-                    level_params_svc = list(level_ctv_list)
+                    level_params_svc = all_code_variants + normalized_codes
                     
                     if from_date:
                         level_query_svc += " AND date_entered >= %s"
@@ -611,7 +760,21 @@ def get_date_ranges_with_data():
         my_network = get_all_descendants(ctv['ma_ctv'], connection)
         my_network_excluding_self = [c for c in my_network if c != ctv['ma_ctv']]
         all_ctvs = [ctv['ma_ctv']] + my_network_excluding_self
-        placeholders = ','.join(['%s'] * len(all_ctvs))
+        
+        # Build normalized phone matching for nguoi_chot
+        all_code_variants = set()
+        normalized_codes = []
+        for code in all_ctvs:
+            all_code_variants.add(code)
+            norm = normalize_phone(code)
+            if norm:
+                all_code_variants.add(norm)
+                all_code_variants.add('0' + norm)
+                normalized_codes.append(norm)
+        
+        all_code_variants = list(all_code_variants)
+        placeholders = ','.join(['%s'] * len(all_code_variants))
+        norm_placeholders = ','.join(['%s'] * len(normalized_codes)) if normalized_codes else "''"
 
         days_since_sunday = (today.weekday() + 1) % 7
         week_start = today - datetime.timedelta(days=days_since_sunday)
@@ -634,27 +797,28 @@ def get_date_ranges_with_data():
         }
 
         for preset, (from_date, to_date) in date_ranges.items():
-            # Check for ANY records in date range (removed status filter)
-            # This ensures the dot appears if there is any data, even if pending/unconfirmed
+            # Check for ANY records in date range with normalized phone matching
             query_kh = f"""
                 SELECT COUNT(*) as count
                 FROM khach_hang
-                WHERE nguoi_chot IN ({placeholders})
+                WHERE (nguoi_chot IN ({placeholders})
+                       OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                 AND ngay_hen_lam >= %s
                 AND ngay_hen_lam <= %s
             """
-            cursor.execute(query_kh, all_ctvs + [from_date, to_date])
+            cursor.execute(query_kh, all_code_variants + normalized_codes + [from_date, to_date])
             kh_count = cursor.fetchone()['count']
 
-            # Use COALESCE(nguoi_chot, ctv_code) to get closer (not referrer)
+            # Use COALESCE(nguoi_chot, ctv_code) to get closer with normalized matching
             query_svc = f"""
                 SELECT COUNT(*) as count
                 FROM services
-                WHERE COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                WHERE (COALESCE(nguoi_chot, ctv_code) IN ({placeholders})
+                       OR RIGHT(REGEXP_REPLACE(COALESCE(nguoi_chot, ctv_code), '[^0-9]', '', 'g'), 9) IN ({norm_placeholders}))
                 AND date_entered >= %s
                 AND date_entered <= %s
             """
-            cursor.execute(query_svc, all_ctvs + [from_date, to_date])
+            cursor.execute(query_svc, all_code_variants + normalized_codes + [from_date, to_date])
             svc_count = cursor.fetchone()['count']
 
             ranges_with_data[preset] = (kh_count > 0) or (svc_count > 0)
@@ -708,7 +872,7 @@ def calculate_level_simple_v2(ancestor_code, descendant_code, cursor):
 @ctv_bp.route('/api/ctv/check-phone', methods=['POST'])
 @require_ctv
 def check_phone():
-    """CTV can check phone duplicate"""
+    """CTV can check phone duplicate - handles phone numbers with or without leading zeros"""
     data = request.get_json()
     
     if not data or not data.get('phone'):
@@ -720,8 +884,10 @@ def check_phone():
     if len(phone) < 8:
         return jsonify({'status': 'error', 'message': 'Invalid phone number'}), 400
     
-    # Extract last 8 digits for fuzzy matching (handles leading zero variations and 8-digit DB entries)
-    phone_suffix = phone[-8:]
+    # Normalize phone for comparison (handles leading zero variations)
+    normalized = normalize_phone(phone)
+    # Also create variant with leading zero for matching
+    phone_with_zero = '0' + normalized if normalized and not normalized.startswith('0') else normalized
     
     connection = get_db_connection()
     if not connection:
@@ -730,20 +896,28 @@ def check_phone():
     try:
         cursor = connection.cursor()
         
-        # Use LIKE with suffix pattern to match phone numbers regardless of leading zeros
+        # Use multiple matching strategies:
+        # 1. Exact match
+        # 2. Match by last 9 digits (normalized comparison)
+        # 3. Match with/without leading zero
         cursor.execute("""
             SELECT EXISTS(
                 SELECT 1 FROM khach_hang
-                WHERE sdt LIKE %s
-                  AND (
+                WHERE (
+                    -- Exact match
+                    sdt = %s OR sdt = %s
+                    -- Normalized match (last 9 digits)
+                    OR RIGHT(REGEXP_REPLACE(sdt, '[^0-9]', '', 'g'), 9) = %s
+                )
+                AND (
                     (trang_thai IN ('Đã đến làm', 'Đã cọc', 'Da den lam', 'Da coc')
                      AND ngay_hen_lam >= CURRENT_DATE - INTERVAL '360 days')
                     OR (ngay_hen_lam >= CURRENT_DATE 
                         AND ngay_hen_lam < CURRENT_DATE + INTERVAL '180 days')
                     OR ngay_nhap_don >= CURRENT_DATE - INTERVAL '60 days'
-                  )
+                )
             ) AS is_duplicate
-        """, ('%' + phone_suffix,))
+        """, (phone, phone_with_zero, normalized))
         
         result = cursor.fetchone()
         is_duplicate = result[0] if result else False

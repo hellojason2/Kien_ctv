@@ -5,6 +5,7 @@ Saves to both database and Google Sheets
 """
 
 import os
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,8 @@ from ..db_pool import get_db_connection, return_db_connection
 BASE_DIR = Path(__file__).parent.parent.parent.absolute()
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
 CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
+# Environment variable for credentials (JSON string) - used in production
+GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +39,34 @@ def clean_phone(phone):
 
 
 def get_google_client():
-    """Get authenticated Google Sheets client"""
+    """Get authenticated Google Sheets client - supports both file and env variable"""
+    scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    
+    # Try environment variable first (for production/Railway)
+    if GOOGLE_CREDENTIALS_JSON:
+        try:
+            creds_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
+            credentials = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+            logger.info("Using Google credentials from environment variable")
+            return gspread.authorize(credentials)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get Google client from env: {e}")
+            return None
+    
+    # Fall back to file (for local development)
     try:
-        scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
-        return gspread.authorize(credentials)
+        if CREDENTIALS_FILE.exists():
+            credentials = Credentials.from_service_account_file(str(CREDENTIALS_FILE), scopes=scopes)
+            logger.info("Using Google credentials from file")
+            return gspread.authorize(credentials)
+        else:
+            logger.error(f"Google credentials file not found: {CREDENTIALS_FILE}")
+            return None
     except Exception as e:
-        logger.error(f"Failed to get Google client: {e}")
+        logger.error(f"Failed to get Google client from file: {e}")
         return None
 
 

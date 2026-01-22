@@ -19,8 +19,6 @@ let earningsDateFilter = {
 function initEarnings() {
     // Set default to current month
     applyEarningsPreset('month');
-    // Load lifetime stats (static, never changes)
-    loadEarningsLifetimeStats();
     // Check which date ranges have data and show indicators
     checkDateRangesWithData('earnings');
 }
@@ -464,70 +462,6 @@ async function loadRecentCommissions(fromDate = null, toDate = null) {
             container.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
         }
         hideRecentCommissionsLoading();
-    }
-}
-
-// Load Lifetime Statistics (all-time, never changes)
-async function loadEarningsLifetimeStats() {
-    const result = await api('/api/ctv/lifetime-stats');
-    
-    if (result.status === 'success') {
-        const stats = result.stats;
-        const container = document.getElementById('earningsLifetimeStats');
-        
-        if (!container) return;
-        
-        // stats.level0 is now available from backend
-        // We only show the total row as requested ("show all earnings as one earning")
-        
-        container.innerHTML = `
-            <table class="recent-commissions-table">
-                <thead>
-                    <tr>
-                        <th data-i18n="level">LEVEL</th>
-                        <th data-i18n="revenue">REVENUE</th>
-                        <th data-i18n="rate">RATE</th>
-                        <th data-i18n="count">COUNT</th>
-                        <th data-i18n="total_commission">TOTAL COMMISSION</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${result.commissions.map(c => `
-                    <tr>
-                        <td>
-                            <span class="level-badge" style="background:${getLevelColor(c.level)}20; color:${getLevelColor(c.level)}">
-                                ${getCommissionLabel(c.level)}
-                            </span>
-                        </td>
-                        <td class="col-revenue">${formatCurrency(c.total_revenue)}</td>
-                        <td class="col-rate">${(c.commission_rate * 100).toFixed(1)}%</td>
-                        <td class="col-count">${c.transaction_count}</td>
-                        <td class="col-total">+${formatCurrency(c.total_commission)}</td>
-                    </tr>
-                    `).join('')}
-                    ${result.commissions.length > 0 ? `
-                    <tr style="background:var(--bg-tertiary); font-weight:700;">
-                        <td style="padding-left:24px;">All</td>
-                        <td class="col-revenue">${formatCurrency(result.commissions.reduce((sum, c) => sum + Number(c.total_revenue), 0))}</td>
-                        <td></td>
-                        <td class="col-count">${result.commissions.reduce((sum, c) => sum + c.transaction_count, 0)}</td>
-                        <td class="col-total">+${formatCurrency(result.commissions.reduce((sum, c) => sum + Number(c.total_commission), 0))}</td>
-                    </tr>
-                    ` : ''}
-                </tbody>
-            </table>
-        `;
-        
-        // Helper for level colors
-        function getLevelColor(level) {
-            const colors = ['#64748b', '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; // Default, L0, L1, L2, L3, L4
-            return colors[Number(level) + 1] || '#64748b';
-        }
-    } else {
-        const container = document.getElementById('earningsLifetimeStats');
-        if (container) {
-            container.innerHTML = `<div class="empty-state">${t('error_loading_data') || 'Error loading data'}</div>`;
-        }
     }
 }
 

@@ -9,6 +9,61 @@
 window.allCTV = window.allCTV || [];
 
 /**
+ * Format referrer as a nice badge with phone icon
+ * @param {string} code - Referrer phone/code
+ * @param {string} name - Referrer name (optional)
+ * @returns {string} - HTML string for the badge
+ */
+function formatReferrerBadge(code, name) {
+    if (!code) return '-';
+    
+    const phoneIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
+    
+    // Format the phone number nicely (add spaces for readability)
+    const formattedCode = formatPhoneDisplay(code);
+    
+    if (name) {
+        return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}<span class="badge-referrer-name">(${escapeHtmlCTV(name)})</span></span>`;
+    }
+    
+    return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}</span>`;
+}
+
+/**
+ * Format phone number for display (add spaces for readability)
+ * @param {string} phone - Phone number
+ * @returns {string} - Formatted phone number
+ */
+function formatPhoneDisplay(phone) {
+    if (!phone) return '';
+    // Remove non-digit characters
+    const digits = phone.toString().replace(/\D/g, '');
+    
+    // Format Vietnamese phone (10 digits): 0xxx xxx xxx
+    if (digits.length === 10 && digits.startsWith('0')) {
+        return digits.slice(0, 4) + ' ' + digits.slice(4, 7) + ' ' + digits.slice(7);
+    }
+    // Format 9-digit number (without leading 0): xxx xxx xxx
+    if (digits.length === 9) {
+        return digits.slice(0, 3) + ' ' + digits.slice(3, 6) + ' ' + digits.slice(6);
+    }
+    // Return as-is for other formats
+    return phone;
+}
+
+/**
+ * Escape HTML for CTV context (prevent XSS)
+ * @param {string} text - Text to escape
+ * @returns {string} - Escaped HTML
+ */
+function escapeHtmlCTV(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Load CTV list from API
  */
 async function loadCTVList() {
@@ -68,7 +123,7 @@ function renderCTVTable(data) {
             <td>${ctv.ten}</td>
             <td>${ctv.email || '-'}</td>
             <td>${ctv.sdt || '-'}</td>
-            <td>${ctv.nguoi_gioi_thieu_code || '-'}</td>
+            <td>${formatReferrerBadge(ctv.nguoi_gioi_thieu_code, ctv.nguoi_gioi_thieu_name)}</td>
             <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
             <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
             <td>

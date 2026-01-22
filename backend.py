@@ -10,7 +10,7 @@ from psycopg2.extras import RealDictCursor
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # App version for cache busting (update on each deploy)
-APP_VERSION = "2026.01.09.1"
+APP_VERSION = "2026.01.22.FIX"
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
@@ -75,6 +75,15 @@ from modules.db_pool import get_db_connection, return_db_connection
 # ══════════════════════════════════════════════════════════════════════════════
 # LANDING PAGES
 # ══════════════════════════════════════════════════════════════════════════════
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon with no-cache headers to force update"""
+    print("Serving favicon.ico with no-cache headers")
+    response = send_file(os.path.join(BASE_DIR, 'static', 'images', 'favicon.ico'), mimetype='image/vnd.microsoft.icon')
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/')
 def index():

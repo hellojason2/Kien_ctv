@@ -4,6 +4,7 @@ from psycopg2 import Error
 from .blueprint import ctv_bp
 from ..auth import require_ctv
 from ..db_pool import get_db_connection, return_db_connection
+from .customers import normalize_phone
 
 @ctv_bp.route('/api/ctv/clients-with-services', methods=['GET'])
 @require_ctv
@@ -25,8 +26,14 @@ def get_ctv_clients_with_services():
         search = request.args.get('search', '').strip()
         limit = request.args.get('limit', 50, type=int)
         
+        # Normalize CTV code for matching (handles 0972020908 vs 972020908)
+        ctv_code = ctv['ma_ctv']
+        ctv_code_normalized = normalize_phone(ctv_code)
+        ctv_code_with_zero = '0' + ctv_code_normalized if ctv_code_normalized else ctv_code
+        
         # Get distinct clients from BOTH khach_hang and services where CTV is the closer
         # Prioritize consulting sources (nha_khoa, gioi_thieu) first
+        # Use normalized phone matching for nguoi_chot
         client_query = """
             SELECT 
                 sdt,
@@ -43,7 +50,8 @@ def get_ctv_clients_with_services():
                     ngay_nhap_don as first_date,
                     source
                 FROM khach_hang
-                WHERE nguoi_chot = %s
+                WHERE (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s
+                       OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
                 AND sdt IS NOT NULL AND sdt != ''
                 
                 UNION ALL
@@ -56,12 +64,16 @@ def get_ctv_clients_with_services():
                     'nha_khoa' as source
                 FROM services s
                 JOIN customers c ON s.customer_id = c.id
-                WHERE COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                WHERE (COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                       OR COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                       OR COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                       OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = %s)
                 AND c.phone IS NOT NULL AND c.phone != ''
             ) AS all_services
             WHERE sdt IS NOT NULL AND sdt != ''
         """
-        params = [ctv['ma_ctv'], ctv['ma_ctv']]
+        params = [ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized,
+                  ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized]
         
         if search:
             client_query += " AND (ten_khach ILIKE %s OR sdt ILIKE %s)"
@@ -88,6 +100,7 @@ def get_ctv_clients_with_services():
             
             # Get services from BOTH tables for this client where CTV is the closer
             # Prioritize consulting services (nha_khoa, gioi_thieu) first
+            # Use normalized phone matching for nguoi_chot
             cursor.execute("""
                 SELECT 
                     id,
@@ -115,7 +128,8 @@ def get_ctv_clients_with_services():
                         source as source_type,
                         (source IN ('nha_khoa', 'gioi_thieu')) as is_consulting
                     FROM khach_hang
-                    WHERE sdt = %s AND nguoi_chot = %s
+                    WHERE sdt = %s AND (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s
+                           OR RIGHT(REGEXP_REPLACE(nguoi_chot, '[^0-9]', '', 'g'), 9) = %s)
                     
                     UNION ALL
                     
@@ -133,13 +147,17 @@ def get_ctv_clients_with_services():
                         true as is_consulting
                     FROM services s
                     JOIN customers c ON s.customer_id = c.id
-                    WHERE c.phone = %s AND COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                    WHERE c.phone = %s AND (COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                           OR COALESCE(s.nguoi_chot, s.ctv_code) = %s 
+                           OR COALESCE(s.nguoi_chot, s.ctv_code) = %s
+                           OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = %s)
                 ) AS all_svc
                 ORDER BY 
                     CASE WHEN is_consulting THEN 0 ELSE 1 END,
                     ngay_nhap_don DESC
                 LIMIT 5
-            """, (sdt, ctv['ma_ctv'], sdt, ctv['ma_ctv']))
+            """, (sdt, ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized,
+                  sdt, ctv_code, ctv_code_normalized, ctv_code_with_zero, ctv_code_normalized))
             
             services_raw = [dict(row) for row in cursor.fetchall()]
             

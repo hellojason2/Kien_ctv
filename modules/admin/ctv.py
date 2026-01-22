@@ -67,6 +67,7 @@ def list_ctv():
                 c.email,
                 c.nguoi_gioi_thieu,
                 c.nguoi_gioi_thieu as nguoi_gioi_thieu_code,
+                p.ten as nguoi_gioi_thieu_name,
                 c.cap_bac,
                 c.is_active,
                 c.created_at

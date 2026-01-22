@@ -55,8 +55,14 @@ def get_my_commissions():
             FROM commissions c
             LEFT JOIN khach_hang kh ON c.transaction_id = -ABS(kh.id)
             LEFT JOIN services s ON c.transaction_id = s.id AND c.transaction_id > 0
-            LEFT JOIN ctv ctv_kh ON kh.nguoi_chot = ctv_kh.ma_ctv
-            LEFT JOIN ctv ctv_s ON s.nguoi_chot = ctv_s.ma_ctv
+            LEFT JOIN ctv ctv_kh ON (
+                kh.nguoi_chot = ctv_kh.ma_ctv
+                OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(ctv_kh.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
+            LEFT JOIN ctv ctv_s ON (
+                s.nguoi_chot = ctv_s.ma_ctv
+                OR RIGHT(REGEXP_REPLACE(s.nguoi_chot, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(ctv_s.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
             LEFT JOIN customers cust ON s.customer_id = cust.id
             WHERE c.ctv_code = %s
         """

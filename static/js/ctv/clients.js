@@ -131,26 +131,16 @@ function renderCtvClientCards(clients) {
 // Render single client card
 function renderCtvClientCard(client) {
     const initials = getCtvInitials(client.ten_khach);
-    // Only show deposit badge at client level if deposited (handle both ASCII and Unicode)
-    const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc') 
-        ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` 
-        : '';
     
     // Check if client has any consulting services
     const hasConsultingServices = client.is_consulting || 
         (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu' || s.source_type === 'nha_khoa' || s.source_type === 'gioi_thieu'));
-    const consultingBadgeHTML = hasConsultingServices 
-        ? `<span class="client-consulting-badge" style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 8px;">${t('consulting') || 'Consulting'}</span>` 
-        : '';
     
     // Sort services to show consulting first
     const sortedServices = sortCtvServicesConsultingFirst(client.services);
     
     // Convert services to table rows
     const servicesRows = sortedServices.map((svc, idx) => {
-        const depositBadge = (svc.deposit_status === 'Da coc' || svc.deposit_status === 'Đã cọc') 
-            ? `<span class="mini-badge success">${t('da_coc')}</span>` 
-            : '';
         
         // Check if this is a consulting service
         const isConsulting = svc.is_consulting || svc.source === 'nha_khoa' || svc.source === 'gioi_thieu' || svc.source_type === 'nha_khoa' || svc.source_type === 'gioi_thieu';
@@ -167,7 +157,7 @@ function renderCtvClientCard(client) {
                 </td>
                 <td>
                     <div class="svc-name">${escapeHtmlCTV(svc.dich_vu || t('unknown_service'))}</div>
-                    ${consultingSvcBadge}${depositBadge}
+                    ${consultingSvcBadge}
                 </td>
                 <td>
                     <div class="svc-date">${dateDisplay}</div>
@@ -187,7 +177,7 @@ function renderCtvClientCard(client) {
                 <div class="client-avatar">${initials}</div>
                 <div class="client-main-info">
                     <div class="client-name">
-                        ${escapeHtmlCTV(client.ten_khach)}${consultingBadgeHTML}
+                        ${escapeHtmlCTV(client.ten_khach)}
                     </div>
                     <div class="client-phone">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +197,6 @@ function renderCtvClientCard(client) {
                     <span class="client-info-label">${t('first_visit')}</span>
                     <span class="client-info-value">${client.first_visit_date || '-'}</span>
                 </div>
-                ${depositBadgeHTML}
             </div>
             <div class="services-container">
                 <table class="services-list-table">
@@ -277,13 +266,10 @@ function renderCtvClientTable(clients) {
                         // Check if client has any consulting services
                         const hasConsultingServices = client.is_consulting || 
                             (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu' || s.source_type === 'nha_khoa' || s.source_type === 'gioi_thieu'));
-                        const consultingBadge = hasConsultingServices 
-                            ? `<span style="background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 6px;">${t('consulting') || 'Consulting'}</span>` 
-                            : '';
                         
                         return `
                             <tr class="${hasConsultingServices ? 'consulting-row' : ''}">
-                                <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}${consultingBadge}</td>
+                                <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}</td>
                                 <td class="col-phone">${escapeHtmlCTV(client.sdt || '-')}</td>
                                 <td class="col-location">${escapeHtmlCTV(client.co_so || '-')}</td>
                                 <td class="col-count" style="text-align: center;">${client.service_count || 0}</td>

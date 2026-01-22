@@ -65,6 +65,42 @@
 .badge-active { background: rgba(22, 163, 74, 0.15); color: #15803d; }
 .badge-inactive { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
 
+/* Referrer Phone Badge */
+.badge-referrer {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    color: #3b5998;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.2s ease;
+}
+
+.badge-referrer:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+    border-color: rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
+}
+
+.badge-referrer svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.badge-referrer-name {
+    font-family: inherit;
+    font-weight: 500;
+    color: #4b5563;
+    margin-left: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    CARDS
    ═══════════════════════════════════════════════════════════════════ */

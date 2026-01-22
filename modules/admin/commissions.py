@@ -366,32 +366,42 @@ def list_commissions_summary():
         commissions_data = {row['ctv_code']: row for row in cursor.fetchall()}
         
         # Get services from khach_hang table
+        # Use phone normalization to handle leading zero variations (972020881 vs 0972020881)
         kh_query = """
             SELECT
-                kh.nguoi_chot as ctv_code,
+                c.ma_ctv as ctv_code,
                 COUNT(*) as service_count,
                 SUM(kh.tong_tien) as total_revenue
             FROM khach_hang kh
+            JOIN ctv c ON (
+                LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
             WHERE kh.nguoi_chot IS NOT NULL
             AND kh.nguoi_chot != ''
             AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
             AND """ + kh_where + """
-            GROUP BY kh.nguoi_chot
+            GROUP BY c.ma_ctv
         """
         cursor.execute(kh_query, kh_params)
         kh_services = {row['ctv_code']: row for row in cursor.fetchall()}
         
         # Get services from services table
+        # Use phone normalization to handle leading zero variations (972020881 vs 0972020881)
         svc_query = """
             SELECT 
-                s.ctv_code,
+                c.ma_ctv as ctv_code,
                 COUNT(*) as service_count,
                 SUM(s.tong_tien) as total_revenue
             FROM services s
-            WHERE s.ctv_code IS NOT NULL 
-            AND s.ctv_code != ''
+            JOIN ctv c ON (
+                LOWER(COALESCE(s.nguoi_chot, s.ctv_code)) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(COALESCE(s.nguoi_chot, s.ctv_code), '[^0-9]', '', 'g'), 9) = RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
+            WHERE COALESCE(s.nguoi_chot, s.ctv_code) IS NOT NULL 
+            AND COALESCE(s.nguoi_chot, s.ctv_code) != ''
             AND """ + svc_where + """
-            GROUP BY s.ctv_code
+            GROUP BY c.ma_ctv
         """
         cursor.execute(svc_query, svc_params)
         svc_services = {row['ctv_code']: row for row in cursor.fetchall()}
@@ -433,7 +443,7 @@ def list_commissions_summary():
             total_services = kh_count + svc_count
             total_revenue = kh_revenue + svc_revenue
             
-            service_price = comm_service_price if comm_service_price > 0 else total_revenue
+            service_price = total_revenue  # Use personal sales only (Doanh số cá nhân)
             
             summary.append({
                 'ctv_code': ctv_code,
@@ -446,7 +456,7 @@ def list_commissions_summary():
             })
             
             total_service_count += total_services
-            total_service_revenue += service_price
+            total_service_revenue += total_revenue  # Personal sales only
         
         summary.sort(key=lambda x: (x['total_commission'], x['service_count']), reverse=True)
         

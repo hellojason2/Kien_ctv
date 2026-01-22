@@ -7,9 +7,9 @@
     <title>CTV Portal</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
 
     <!-- Google Fonts: Playfair Display (Luxury) & Plus Jakarta Sans (Modern) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1094,26 +1094,43 @@
             background-color: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
             margin-bottom: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
         }
 
         .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 28px;
+            border-bottom: 1px solid #f1f5f9;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, #fafbfc 0%, #f8fafc 100%);
         }
 
         .card-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 14px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .card-body {
-            padding: 24px;
+            padding: 24px 28px;
+        }
+        
+        /* Network page specific card styling */
+        #page-network .card {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+        
+        #page-network .card + .card {
+            margin-top: 28px;
+        }
+        
+        #page-network .card-body {
+            padding: 20px 24px 24px;
         }
 
         /* Stats Grid */
@@ -1250,130 +1267,196 @@
             color: #1a1a1a;
         }
 
-        /* Direct Downline Table - Enhanced Styling */
+        /* Direct Downline Table - Modern Enhanced Styling */
         .direct-downline-table-wrapper {
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             background: #ffffff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            margin-top: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            margin-top: 8px;
         }
 
         .direct-downline-table {
             width: 100%;
-            border-collapse: separate;
+            border-collapse: collapse;
             border-spacing: 0;
+            table-layout: fixed;
         }
 
+        /* Column widths for consistency */
+        .direct-downline-table th:nth-child(1),
+        .direct-downline-table td:nth-child(1) { width: 15%; } /* Mã CTV */
+        .direct-downline-table th:nth-child(2),
+        .direct-downline-table td:nth-child(2) { width: 22%; } /* Tên */
+        .direct-downline-table th:nth-child(3),
+        .direct-downline-table td:nth-child(3) { width: 28%; } /* Email */
+        .direct-downline-table th:nth-child(4),
+        .direct-downline-table td:nth-child(4) { width: 15%; } /* SĐT */
+        .direct-downline-table th:nth-child(5),
+        .direct-downline-table td:nth-child(5) { width: 20%; } /* Cấp Bậc */
+
         .direct-downline-table thead {
-            background: linear-gradient(135deg, rgba(79, 125, 243, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
-            border-bottom: 2px solid rgba(79, 125, 243, 0.15);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         }
 
         .direct-downline-table thead th {
             padding: 16px 20px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            color: #4b5563;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             white-space: nowrap;
+            border-bottom: 2px solid #e2e8f0;
         }
 
         .direct-downline-table thead th:first-child {
-            padding-left: 24px;
+            padding-left: 28px;
+            border-radius: 16px 0 0 0;
         }
 
         .direct-downline-table thead th:last-child {
-            padding-right: 24px;
+            padding-right: 28px;
+            border-radius: 0 16px 0 0;
+            text-align: center;
         }
 
         .direct-downline-table tbody tr {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #f1f5f9;
             transition: all 0.2s ease;
             background: #ffffff;
         }
 
+        .direct-downline-table tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
         .direct-downline-table tbody tr:hover {
-            background: rgba(79, 125, 243, 0.04);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(99, 102, 241, 0.04) 100%);
         }
 
         .direct-downline-table tbody tr:last-child {
             border-bottom: none;
         }
 
+        .direct-downline-table tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 16px;
+        }
+
+        .direct-downline-table tbody tr:last-child td:last-child {
+            border-radius: 0 0 16px 0;
+        }
+
         .direct-downline-table tbody td {
-            padding: 18px 20px;
+            padding: 16px 20px;
             font-size: 14px;
-            color: #1a1a1a;
+            color: #374151;
             vertical-align: middle;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .direct-downline-table tbody td:first-child {
-            padding-left: 24px;
+            padding-left: 28px;
             font-weight: 600;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
             color: #3b82f6;
-        }
-
-        .direct-downline-table tbody td:last-child {
-            padding-right: 24px;
-        }
-
-        .direct-downline-table tbody td:nth-child(2) {
-            font-weight: 500;
-            color: #1a1a1a;
-        }
-
-        .direct-downline-table tbody td:nth-child(3),
-        .direct-downline-table tbody td:nth-child(4) {
-            color: #6b7280;
             font-size: 13px;
         }
 
-        .direct-downline-table tbody td:nth-child(5) {
-            font-weight: 600;
+        .direct-downline-table tbody td:last-child {
+            padding-right: 28px;
+            text-align: center;
         }
 
-        /* Rank Badge Styling */
+        .direct-downline-table tbody td:nth-child(2) {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .direct-downline-table tbody td:nth-child(3) {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .direct-downline-table tbody td:nth-child(4) {
+            color: #475569;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+        }
+
+        /* Rank Badge Styling - Modern */
         .rank-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
-            background: rgba(79, 125, 243, 0.1);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
             color: #3b82f6;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            border: 1px solid rgba(59, 130, 246, 0.15);
         }
 
-        /* Responsive Table */
-        @media (max-width: 768px) {
+        /* Empty state for downline */
+        #directDownline .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Responsive Table - Modern */
+        @media (max-width: 992px) {
             .direct-downline-table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                margin: 8px -8px 0 -8px;
+                border-radius: 12px;
             }
 
             .direct-downline-table {
-                min-width: 600px;
+                min-width: 700px;
             }
 
             .direct-downline-table thead th,
             .direct-downline-table tbody td {
-                padding: 12px 16px;
+                padding: 14px 16px;
                 font-size: 13px;
             }
 
             .direct-downline-table thead th:first-child,
             .direct-downline-table tbody td:first-child {
-                padding-left: 16px;
+                padding-left: 20px;
             }
 
             .direct-downline-table thead th:last-child,
             .direct-downline-table tbody td:last-child {
-                padding-right: 16px;
+                padding-right: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .direct-downline-table {
+                min-width: 600px;
+            }
+            
+            .direct-downline-table thead th,
+            .direct-downline-table tbody td {
+                padding: 12px 12px;
+                font-size: 12px;
+            }
+            
+            .rank-badge {
+                padding: 4px 10px;
+                font-size: 11px;
             }
         }
 
@@ -2528,13 +2611,7 @@
         </div>
         <div class="login-box">
             <div class="login-logo">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3"
-                        fill="none" />
-                    <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3" />
-                    <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3" />
-                    <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3" />
-                </svg>
+                <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
             </div>
             <h1>CTV Portal</h1>
             <p class="subtitle" data-i18n="login_subtitle">Đăng nhập để xem hoa hồng và mạng lưới</p>
@@ -3778,10 +3855,6 @@
 
         function renderCtvClientCard(client) {
             const initials = getCtvInitials(client.ten_khach);
-            // Only show deposit badge at client level if deposited
-            const depositBadgeHTML = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc')
-                ? `<span class="client-status-badge deposited">${t('da_coc')}</span>`
-                : '';
 
             const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
 
@@ -3809,7 +3882,6 @@
                             <span class="client-info-label">${t('first_visit')}</span>
                             <span class="client-info-value">${client.first_visit_date || '-'}</span>
                         </div>
-                        ${depositBadgeHTML}
                     </div>
                     <div class="services-container">
                         <div class="services-title">${t('services_title')} (${client.services.length})</div>
@@ -3822,10 +3894,6 @@
         }
 
         function renderCtvServiceCard(service, index) {
-            // Only show deposit badge at service level if deposited
-            const depositBadgeHTML = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc')
-                ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>`
-                : '';
 
             const datesHTML = `
                 ${service.ngay_nhap_don
@@ -3858,7 +3926,6 @@
                 <div class="service-card">
                     <div class="service-card-header">
                         <div class="service-number">${service.service_number}</div>
-                        ${depositBadgeHTML}
                     </div>
                     <div class="service-name">${escapeHtmlCTV(service.dich_vu || t('unknown_service'))}</div>
                     <div class="service-details">
@@ -3912,15 +3979,10 @@
                                 <th>${t('co_so')}</th>
                                 <th style="text-align: center;">${t('service_count')}</th>
                                 <th style="text-align: right;">${t('tong_tien')}</th>
-                                <th style="text-align: center;">${t('trang_thai_coc')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${clients.map(client => {
-                // Only show deposit badge if deposited
-                const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc')
-                    ? `<span class="table-status-badge deposited">${t('da_coc')}</span>`
-                    : '';
                 const totalAmount = getClientTotal(client);
 
                 return `
@@ -3930,7 +3992,6 @@
                                         <td class="col-location">${escapeHtmlCTV(client.co_so || '-')}</td>
                                         <td class="col-count" style="text-align: center;">${client.service_count || 0}</td>
                                         <td class="col-amount" style="text-align: right;">${formatCtvCurrency(totalAmount)}</td>
-                                        <td class="col-status" style="text-align: center;">${depositBadgeHTML}</td>
                                     </tr>
                                 `;
             }).join('')}

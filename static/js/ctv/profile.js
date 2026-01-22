@@ -424,43 +424,9 @@ function initDashboardDateFilter() {
     checkDashboardDateRangesWithData();
 }
 
-// Load Lifetime Statistics (all-time data)
+// Lifetime Statistics section removed - function kept as stub to prevent errors
 async function loadLifetimeStats() {
-    const result = await api('/api/ctv/lifetime-stats');
-    if (result.status === 'success') {
-        const stats = result.stats;
-        
-        // Update lifetime stats table
-        document.getElementById('lifetimeTotalCommissions').textContent = formatCurrency(stats.total_commissions || 0);
-        document.getElementById('lifetimeTotalCommissions').className = 'value-highlight';
-        
-        document.getElementById('lifetimeTotalTransactions').textContent = stats.total_transactions || 0;
-        document.getElementById('lifetimeTotalTransactions').className = 'value-normal';
-        
-        document.getElementById('lifetimeNetworkSize').textContent = stats.network_size || 0;
-        document.getElementById('lifetimeNetworkSize').className = 'value-normal';
-        
-        document.getElementById('lifetimeDirectReferrals').textContent = stats.direct_referrals || 0;
-        document.getElementById('lifetimeDirectReferrals').className = 'value-normal';
-        
-        document.getElementById('lifetimeTotalServices').textContent = stats.total_services || 0;
-        document.getElementById('lifetimeTotalServices').className = 'value-normal';
-        
-        document.getElementById('lifetimeTotalRevenue').textContent = formatCurrency(stats.total_revenue || 0);
-        document.getElementById('lifetimeTotalRevenue').className = 'value-normal';
-    } else {
-        // Fallback: use data from profile endpoint
-        const profileResult = await api('/api/ctv/me');
-        if (profileResult.status === 'success') {
-            document.getElementById('lifetimeTotalCommissions').textContent = formatCurrency(profileResult.stats.total_earnings || 0);
-            document.getElementById('lifetimeNetworkSize').textContent = profileResult.stats.network_size || 0;
-            
-            // Set placeholders for other stats
-            document.getElementById('lifetimeTotalTransactions').textContent = '-';
-            document.getElementById('lifetimeDirectReferrals').textContent = profileResult.stats.network_by_level?.[1] || '-';
-            document.getElementById('lifetimeTotalServices').textContent = '-';
-            document.getElementById('lifetimeTotalRevenue').textContent = '-';
-        }
-    }
+    // Section removed from UI
+    return;
 }
 

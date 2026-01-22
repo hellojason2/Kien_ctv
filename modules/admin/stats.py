@@ -187,7 +187,7 @@ def get_stats():
                 SELECT 
                     c.ctv_code,
                     ctv.ten,
-                    COALESCE(SUM(c.transaction_amount), 0) as total_revenue,
+                    COALESCE(SUM(CASE WHEN c.level = 0 THEN c.transaction_amount ELSE 0 END), 0) as total_revenue,
                     COALESCE(SUM(c.commission_amount), 0) as total_commission
                 FROM commissions c
                 JOIN ctv ON c.ctv_code = ctv.ma_ctv

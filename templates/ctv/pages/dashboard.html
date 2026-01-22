@@ -10,6 +10,19 @@
         </div>
     </div>
 
+    <!-- Book Appointment Button -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-primary" onclick="navigateToPage('booking')" style="padding: 12px 24px; font-size: 16px;">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;margin-right:8px;vertical-align:middle;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span data-i18n="book_appointment">Đặt Lịch Hẹn</span>
+        </button>
+    </div>
+
     <!-- Date Filter Card -->
     <div class="card" style="margin-bottom: 20px;">
         <div class="card-body" style="padding: 16px;">
@@ -74,58 +87,5 @@
         </div>
     </div>
 
-    <!-- Lifetime Statistics Table -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="badge-header" data-i18n="lifetime_statistics" style="background:var(--primary-blue); color:white; padding:8px 16px; border-radius:20px; font-size:12px; display:inline-block; font-weight:700; text-transform:uppercase;">LIFETIME STATISTICS</h3>
-        </div>
-        <div class="card-body">
-            <div class="lifetime-stats-table">
-                <!-- 
-                 * ══════════════════════════════════════════════════════════════════════════════
-                 * CRITICAL: LIFETIME STATISTICS TABLE STRUCTURE
-                 * ══════════════════════════════════════════════════════════════════════════════
-                 * AI INSTRUCTION: DO NOT CHANGE THIS HTML STRUCTURE WITHOUT EXPLICIT USER CONFIRMATION.
-                 * This table structure and class names are required for the specific design requested.
-                 * ══════════════════════════════════════════════════════════════════════════════
-                 -->
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="metric">METRIC</th>
-                            <th data-i18n="value">VALUE</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lifetimeStatsBody">
-                        <!-- Content populated by JS -->
-                        <tr>
-                            <td data-i18n="total_commissions_earned"></td>
-                            <td id="lifetimeTotalCommissions"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_transactions"></td>
-                            <td id="lifetimeTotalTransactions"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_network_members"></td>
-                            <td id="lifetimeNetworkSize"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="direct_referrals"></td>
-                            <td id="lifetimeDirectReferrals"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_services_completed"></td>
-                            <td id="lifetimeTotalServices"><span class="skeleton-loader" style="width:60px;height:20px;"></span></td>
-                        </tr>
-                        <tr>
-                            <td data-i18n="total_revenue_generated"></td>
-                            <td id="lifetimeTotalRevenue"><span class="skeleton-loader" style="width:80px;height:20px;"></span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 </div>
 
