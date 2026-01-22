@@ -94,8 +94,13 @@ def test_login_page():
 
 @app.route('/catalogue')
 def catalogue_page():
-    """Serve the service catalogue page (TMV + NK)"""
-    return send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'index.html'))
+    """Serve the service catalogue page (TMV + NK) with no-cache headers"""
+    response = send_file(os.path.join(BASE_DIR, 'static', 'catalogue', 'index.html'))
+    # Prevent browser caching - always fetch fresh content
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/bang-gia')
 def pricing_page():
@@ -267,7 +272,7 @@ def api_admin_remove_duplicates():
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 4000))
+    port = int(os.environ.get('PORT', 2002))
     print("=" * 50)
     print(f"Starting Flask server on http://localhost:{port}")
     print("=" * 50)

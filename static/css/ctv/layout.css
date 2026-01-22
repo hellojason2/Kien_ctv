@@ -120,9 +120,9 @@
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
+    color: #1e293b; /* Darker text */
+    font-size: 15px; /* Slightly larger */
+    font-weight: 600; /* Bolder */
     background: transparent;
     box-shadow: none;
     margin-bottom: 0;

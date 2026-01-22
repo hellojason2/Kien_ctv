@@ -139,15 +139,18 @@
 
         /* Common Button Vibe */
         .sidebar-icon {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
         }
 
         .sidebar-icon:hover {
             transform: translateY(-2px) scale(1.05);
-            filter: brightness(1.1);
+            filter: brightness(1.2);
+            box-shadow: 0 0 0 2px #CA8A04, 0 8px 24px rgba(0, 0, 0, 0.3);
+            /* Gold Glow */
+            z-index: 10;
         }
 
         .sidebar-icon svg {
@@ -162,28 +165,28 @@
             transition: all 0.2s ease;
         }
 
-        /* 1. Catalogue: Amber/Orange content */
+        /* 1. Catalogue: Vibrant Coral-Rose (Bright Jewel) */
         .sidebar-icon.catalogue-btn {
-            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
-            box-shadow: 0 6px 16px rgba(255, 94, 98, 0.3);
+            background: linear-gradient(135deg, #F43F5E 0%, #FB7185 100%);
+            box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
         }
 
-        /* 2. Pricing Chart: Blue/Cyan */
+        /* 2. Pricing Chart: Deep Sapphire (Jewel) */
         .sidebar-icon.pricing-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            box-shadow: 0 6px 16px rgba(0, 242, 254, 0.3);
+            background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
         }
 
-        /* 3. Language: Indigo/Violet */
+        /* 3. Language: Deep Amethyst (Jewel) */
         .sidebar-icon.lang-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 6px 16px rgba(118, 75, 162, 0.3);
+            background: linear-gradient(135deg, #581C87 0%, #7C3AED 100%);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
         }
 
-        /* 4. CTV Signup: Emerald/Green */
+        /* 4. CTV Signup: Deep Emerald (Jewel) */
         .sidebar-icon.ctv-signup {
-            background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
-            box-shadow: 0 6px 16px rgba(60, 186, 146, 0.3);
+            background: linear-gradient(135deg, #064E3B 0%, #059669 100%);
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
             margin-top: auto;
             flex-direction: column;
             gap: 2px;
@@ -197,10 +200,10 @@
             font-weight: 700;
         }
 
-        /* 5. CTV Portal: Purple/Pink */
+        /* 5. CTV Portal: Deep Rose/Gold (Jewel) */
         .sidebar-icon.ctv-login {
-            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-            box-shadow: 0 6px 16px rgba(255, 117, 140, 0.3);
+            background: linear-gradient(135deg, #881337 0%, #BE123C 100%);
+            box-shadow: 0 6px 16px rgba(190, 18, 60, 0.4);
             margin-bottom: 20px;
         }
 
@@ -610,10 +613,14 @@
             }
 
             .sidebar-icon {
-                height: 100%;
-                width: auto;
-                padding: 0 16px;
-                border-radius: 8px;
+                height: 44px;
+                width: 44px;
+                min-width: 44px;
+                padding: 0;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             /* Adjust language popup for bottom sidebar */
@@ -650,20 +657,35 @@
             }
 
             .sidebar-icon.ctv-signup {
-                margin-top: 0;
-                height: auto;
-                padding: 8px 12px;
-                flex-direction: column;
-                gap: 2px;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                height: 44px !important;
+                width: 44px !important;
+                min-width: 44px !important;
+                padding: 0 !important;
+                flex-direction: row !important;
+                gap: 0 !important;
             }
 
             .sidebar-icon.ctv-signup svg {
-                width: 18px;
-                height: 18px;
+                width: 20px;
+                height: 20px;
             }
 
-            .sidebar-icon.ctv-signup .ctv-label {
-                font-size: 8px;
+            .sidebar-icon.ctv-signup .ctv-badge {
+                display: none;
+            }
+
+            /* Hide pricing button on mobile - keep only essential buttons */
+            .sidebar-icon.pricing-btn {
+                display: none !important;
+            }
+
+            /* Ensure all sidebar icons are perfectly aligned */
+            .sidebar-icon {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                align-self: center !important;
             }
         }
 
@@ -871,14 +893,7 @@
                 </svg>
             </div>
 
-            <!-- Pricing Chart Button (New) -->
-            <div class="sidebar-icon pricing-btn" onclick="window.location.href='/bang-gia'"
-                data-i18n-tooltip="pricing_chart">
-                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-            </div>
+
 
             <!-- Language Toggle -->
             <div class="sidebar-lang" id="langSwitcher">
@@ -995,7 +1010,7 @@
                 ctv_portal: 'Cong CTV',
                 language: 'Ngon Ngu',
                 choose_language: 'Chon Ngon Ngu',
-                catalogue: 'Bảng Giá Dịch Vụ',
+                catalogue: 'Catalogue Dịch Vụ',
 
                 // Phone check
                 phone_placeholder: 'Nhập SDT Cần Kiểm Tra',

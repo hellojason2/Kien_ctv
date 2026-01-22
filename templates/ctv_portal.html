@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTV Portal</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    
+
+    <!-- Google Fonts: Playfair Display (Luxury) & Plus Jakarta Sans (Modern) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -27,7 +35,7 @@
         /* ═══════════════════════════════════════════════════════════════════
            LOGIN PAGE
            ═══════════════════════════════════════════════════════════════════ */
-        
+
         .login-container {
             min-height: 100vh;
             display: flex;
@@ -474,12 +482,19 @@
         }
 
         @keyframes successPop {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         @keyframes checkDraw {
-            to { stroke-dashoffset: 0; }
+            to {
+                stroke-dashoffset: 0;
+            }
         }
 
         .success-text {
@@ -509,7 +524,7 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════════
-           TOP FLOATING NAVIGATION - TradeVerse Inspired
+           TOP FLOATING NAVIGATION - Luxury/Dark Theme
            ═══════════════════════════════════════════════════════════════════ */
 
         .top-nav {
@@ -518,12 +533,14 @@
             left: 20px;
             right: 20px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(28, 25, 23, 0.9);
+            /* Rich Black Glass */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* Subtle border */
             animation: slideDown 0.5s ease;
         }
 
@@ -532,6 +549,7 @@
                 transform: translateY(-100px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -557,14 +575,18 @@
         .nav-logo svg {
             width: 36px;
             height: 36px;
-            color: #1a1a1a;
+            color: #CA8A04;
+            /* Gold */
+            filter: drop-shadow(0 0 8px rgba(202, 138, 4, 0.3));
         }
 
         .nav-title {
             font-size: 18px;
             font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: -0.02em;
+            color: #FAFAF9;
+            /* Warm White */
+            letter-spacing: -0.01em;
+            font-family: 'Playfair Display', serif;
         }
 
         /* Navigation Links */
@@ -579,15 +601,19 @@
         .nav-link {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 14px;
+            gap: 10px;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: 600;
-            color: #666666;
+            color: #A8A29E;
+            /* Stone 400 */
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
         }
 
         .nav-link svg {
@@ -601,15 +627,21 @@
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.9);
-            color: #1a1a1a;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.03);
+            color: #F5F5F4;
+            /* Stone 100 */
+            border-color: rgba(202, 138, 4, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .nav-link.active {
-            background: #1a1a1a;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(28, 25, 23, 1);
+            /* Solid dark */
+            color: #CA8A04;
+            /* Gold */
+            border-color: #CA8A04;
+            box-shadow: 0 0 20px rgba(202, 138, 4, 0.15);
         }
 
         /* Right Side Actions */
@@ -635,7 +667,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             white-space: nowrap;
             letter-spacing: 0.3px;
@@ -643,7 +675,7 @@
 
         .user-badge:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
         }
 
         .user-badge.manager {
@@ -661,17 +693,17 @@
             color: white;
         }
 
-        .user-badge.gold { 
+        .user-badge.gold {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             color: white;
         }
 
-        .user-badge.silver { 
+        .user-badge.silver {
             background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
             color: white;
         }
 
-        .user-badge.bronze { 
+        .user-badge.bronze {
             background: linear-gradient(135deg, #fdba74 0%, #c2410c 100%);
             color: white;
         }
@@ -835,7 +867,8 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 96px; /* Space for fixed nav */
+            padding-top: 96px;
+            /* Space for fixed nav */
         }
 
         /* Content Area */
@@ -1110,15 +1143,31 @@
             color: #1a1a1a;
         }
 
-        .stat-card.green .value { color: #22c55e; }
-        .stat-card.blue .value { color: #3b82f6; }
-        .stat-card.gold .value { color: #d97706; }
-        .stat-card.pink .value { color: #ec4899; }
+        .stat-card.green .value {
+            color: #22c55e;
+        }
+
+        .stat-card.blue .value {
+            color: #3b82f6;
+        }
+
+        .stat-card.gold .value {
+            color: #d97706;
+        }
+
+        .stat-card.pink .value {
+            color: #ec4899;
+        }
 
         /* Skeleton Loading Animation */
         @keyframes skeleton-shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
         }
 
         .skeleton-loader {
@@ -1132,25 +1181,25 @@
         }
 
         .stat-card.green .skeleton-loader {
-            background: linear-gradient(90deg, rgba(34,197,94,0.15) 25%, rgba(34,197,94,0.25) 50%, rgba(34,197,94,0.15) 75%);
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 25%, rgba(34, 197, 94, 0.25) 50%, rgba(34, 197, 94, 0.15) 75%);
             background-size: 200% 100%;
             animation: skeleton-shimmer 1.5s ease-in-out infinite;
         }
 
         .stat-card.blue .skeleton-loader {
-            background: linear-gradient(90deg, rgba(59,130,246,0.15) 25%, rgba(59,130,246,0.25) 50%, rgba(59,130,246,0.15) 75%);
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 25%, rgba(59, 130, 246, 0.25) 50%, rgba(59, 130, 246, 0.15) 75%);
             background-size: 200% 100%;
             animation: skeleton-shimmer 1.5s ease-in-out infinite;
         }
 
         .stat-card.gold .skeleton-loader {
-            background: linear-gradient(90deg, rgba(217,119,6,0.15) 25%, rgba(217,119,6,0.25) 50%, rgba(217,119,6,0.15) 75%);
+            background: linear-gradient(90deg, rgba(217, 119, 6, 0.15) 25%, rgba(217, 119, 6, 0.25) 50%, rgba(217, 119, 6, 0.15) 75%);
             background-size: 200% 100%;
             animation: skeleton-shimmer 1.5s ease-in-out infinite;
         }
 
         .stat-card.pink .skeleton-loader {
-            background: linear-gradient(90deg, rgba(236,72,153,0.15) 25%, rgba(236,72,153,0.25) 50%, rgba(236,72,153,0.15) 75%);
+            background: linear-gradient(90deg, rgba(236, 72, 153, 0.15) 25%, rgba(236, 72, 153, 0.25) 50%, rgba(236, 72, 153, 0.15) 75%);
             background-size: 200% 100%;
             animation: skeleton-shimmer 1.5s ease-in-out infinite;
         }
@@ -1389,7 +1438,7 @@
             z-index: 100;
             min-width: 220px;
             max-width: 320px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
             opacity: 0;
             visibility: hidden;
             transform: translateY(8px);
@@ -1464,11 +1513,30 @@
         }
 
         /* Level badges L0-L4 (matches database levels) */
-        .level-badge.l0 { background: #ff6b6b; color: #fff; }
-        .level-badge.l1 { background: #ffa502; color: #000; }
-        .level-badge.l2 { background: #2ed573; color: #000; }
-        .level-badge.l3 { background: #1e90ff; color: #fff; }
-        .level-badge.l4 { background: #a55eea; color: #fff; }
+        .level-badge.l0 {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .level-badge.l1 {
+            background: #ffa502;
+            color: #000;
+        }
+
+        .level-badge.l2 {
+            background: #2ed573;
+            color: #000;
+        }
+
+        .level-badge.l3 {
+            background: #1e90ff;
+            color: #fff;
+        }
+
+        .level-badge.l4 {
+            background: #a55eea;
+            color: #fff;
+        }
 
         /* Tree Container */
         .tree-wrapper {
@@ -1483,7 +1551,7 @@
             margin: 0;
         }
 
-        .tree-wrapper > ul {
+        .tree-wrapper>ul {
             padding-left: 0;
         }
 
@@ -1510,8 +1578,8 @@
             width: 14px;
         }
 
-        .tree-wrapper > ul > li::before,
-        .tree-wrapper > ul > li::after {
+        .tree-wrapper>ul>li::before,
+        .tree-wrapper>ul>li::after {
             display: none;
         }
 
@@ -1536,7 +1604,7 @@
 
         .tree-node:hover {
             border-color: #1a1a1a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .tree-node.has-children::before {
@@ -1762,7 +1830,8 @@
         /* Add explicit button style for phone check row since it might not inherit from .date-filter .btn-filter */
         .phone-check-row .btn-filter {
             padding: 12px 20px;
-            background: #5b21b6; /* Purple to match the gradient card in screenshot? Or #1a1a1a? The login button is purple-ish in screenshot */
+            background: #5b21b6;
+            /* Purple to match the gradient card in screenshot? Or #1a1a1a? The login button is purple-ish in screenshot */
             /* Wait, the login button is .btn-primary: background #1a1a1a in CSS, but screenshot shows purple gradient button. 
                The screenshot shows "Kiểm Tra Trùng Lặp" button is BLUE/PURPLE gradient. 
                Wait, let's look at the screenshot again (`middle_of_page`). The button is blue-ish.
@@ -1776,9 +1845,10 @@
             font-size: 14px;
             font-weight: 500;
             white-space: nowrap;
-            height: 42px; /* Match input height roughly */
+            height: 42px;
+            /* Match input height roughly */
         }
-        
+
         .phone-check-row .btn-filter:hover {
             background: #4338ca;
         }
@@ -1788,6 +1858,7 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
             .phone-check-row .btn-filter {
                 width: 100%;
             }
@@ -1829,7 +1900,8 @@
 
         /* Mobile Menu Trigger Style */
         .mobile-menu-trigger {
-            display: none; /* Hidden by default (desktop) */
+            display: none;
+            /* Hidden by default (desktop) */
             width: 40px;
             height: 40px;
             align-items: center;
@@ -1838,30 +1910,32 @@
             border-radius: 8px;
             margin-right: 12px;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .mobile-menu-trigger svg {
             width: 24px;
             height: 24px;
-            color: #1a1a1a; /* Dark color for visibility */
+            color: #1a1a1a;
+            /* Dark color for visibility */
         }
 
         /* Responsive - Mobile */
         @media (max-width: 768px) {
+
             /* Show Mobile Menu Trigger */
             .mobile-menu-trigger {
                 display: flex;
             }
-            
+
             /* Align header content */
             .header-left {
                 display: flex;
                 align-items: center;
                 width: 100%;
             }
-            
+
             /* ... existing mobile styles ... */
             /* Sidebar becomes bottom navigation */
             .sidebar {
@@ -1902,7 +1976,8 @@
             .sidebar-icon {
                 width: auto;
                 height: 48px;
-                padding: 8px 16px; /* Wider touch target */
+                padding: 8px 16px;
+                /* Wider touch target */
                 flex-direction: column;
                 justify-content: center;
                 gap: 4px;
@@ -1917,13 +1992,14 @@
                 height: 24px;
                 margin: 0;
                 /* Make icon color more prominent if needed */
-                opacity: 0.8; 
+                opacity: 0.8;
             }
-            
+
             /* Active state for bottom nav */
             .sidebar-icon.active svg {
                 opacity: 1;
-                color: #667eea; /* Brand color */
+                color: #667eea;
+                /* Brand color */
             }
 
             /* Hide text labels on mobile to save space, or keep them if they fit? 
@@ -1935,7 +2011,7 @@
                 /* Make text slightly bolder */
                 color: var(--text-secondary);
             }
-            
+
             .sidebar-icon.active span {
                 color: #667eea;
             }
@@ -1947,7 +2023,8 @@
             /* Main Wrapper */
             .main-wrapper {
                 margin-left: 0;
-                padding-bottom: 80px; /* Space for bottom nav */
+                padding-bottom: 80px;
+                /* Space for bottom nav */
             }
 
             /* Header */
@@ -1974,7 +2051,8 @@
 
             /* Stats Grid */
             .stats-grid {
-                grid-template-columns: 1fr 1fr; /* 2 cols on mobile */
+                grid-template-columns: 1fr 1fr;
+                /* 2 cols on mobile */
                 gap: 12px;
             }
 
@@ -2004,22 +2082,24 @@
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                margin: 0 -16px; /* Bleed to edges */
+                margin: 0 -16px;
+                /* Bleed to edges */
                 padding: 0 16px;
             }
 
             table {
                 min-width: 100%;
                 /* Ensure tables don't get crushed */
-                display: table; 
+                display: table;
             }
-            
+
             /* Add min-width to table to force scroll if needed */
             .stats-table {
                 min-width: 500px;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 10px 12px;
                 font-size: 13px;
             }
@@ -2034,23 +2114,26 @@
                 padding: 12px 16px;
                 font-size: 13px;
             }
-            
+
             /* Language Toggle Mobile Adjustments */
             .sidebar-lang {
-                display: none; /* Hide sidebar lang toggle on mobile bottom bar */
+                display: none;
+                /* Hide sidebar lang toggle on mobile bottom bar */
             }
         }
 
         /* Responsive - Small Mobile */
         @media (max-width: 480px) {
             .stats-grid {
-                grid-template-columns: 1fr; /* 1 col on small mobile */
+                grid-template-columns: 1fr;
+                /* 1 col on small mobile */
             }
-            
+
             .sidebar-icon span {
-                display: none; /* Hide labels on very small screens if needed */
+                display: none;
+                /* Hide labels on very small screens if needed */
             }
-            
+
             .sidebar-icon svg {
                 width: 28px;
                 height: 28px;
@@ -2060,7 +2143,7 @@
         /* ═══════════════════════════════════════════════════════════════════
            CLIENT CARDS STYLES
            ═══════════════════════════════════════════════════════════════════ */
-        
+
         .clients-grid {
             display: grid;
             gap: 24px;
@@ -2216,21 +2299,21 @@
             .services-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .client-info-row {
                 gap: 12px;
             }
-            
+
             .client-info-item {
                 min-width: 45%;
             }
-            
+
             .client-card-header {
                 flex-direction: column;
                 text-align: center;
                 gap: 12px;
             }
-            
+
             .client-main-info {
                 margin-left: 0;
             }
@@ -2414,6 +2497,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
@@ -2427,14 +2511,16 @@
                 <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
                     <span class="lang-flag">🇻🇳</span>
                     <span class="lang-name">Tiếng Việt</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
                 <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
                     <span class="lang-flag">🇺🇸</span>
                     <span class="lang-name">English</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
@@ -2443,15 +2529,16 @@
         <div class="login-box">
             <div class="login-logo">
                 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3" fill="none"/>
-                    <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3"/>
-                    <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3"/>
-                    <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3"/>
+                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="#1a1a1a" stroke-width="3"
+                        fill="none" />
+                    <path d="M50 10 L50 90" stroke="#1a1a1a" stroke-width="3" />
+                    <path d="M20 30 L80 70" stroke="#1a1a1a" stroke-width="3" />
+                    <path d="M20 70 L80 30" stroke="#1a1a1a" stroke-width="3" />
                 </svg>
             </div>
             <h1>CTV Portal</h1>
             <p class="subtitle" data-i18n="login_subtitle">Đăng nhập để xem hoa hồng và mạng lưới</p>
-            
+
             <form id="loginForm">
                 <div class="form-group">
                     <label data-i18n="ctv_code">Tên đăng nhập</label>
@@ -2459,7 +2546,8 @@
                 </div>
                 <div class="form-group">
                     <label data-i18n="password">Mật khẩu</label>
-                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhập mật khẩu" required>
+                    <input type="password" id="password" data-i18n-placeholder="enter_password"
+                        placeholder="Nhập mật khẩu" required>
                 </div>
                 <div class="remember-me">
                     <input type="checkbox" id="rememberMe">
@@ -2499,10 +2587,11 @@
                 <!-- Logo -->
                 <div class="nav-logo">
                     <svg viewBox="0 0 100 100" fill="none">
-                        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="currentColor" stroke-width="3" fill="none"/>
-                        <path d="M50 10 L50 90" stroke="currentColor" stroke-width="3"/>
-                        <path d="M20 30 L80 70" stroke="currentColor" stroke-width="3"/>
-                        <path d="M20 70 L80 30" stroke="currentColor" stroke-width="3"/>
+                        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="currentColor" stroke-width="3"
+                            fill="none" />
+                        <path d="M50 10 L50 90" stroke="currentColor" stroke-width="3" />
+                        <path d="M20 30 L80 70" stroke="currentColor" stroke-width="3" />
+                        <path d="M20 70 L80 30" stroke="currentColor" stroke-width="3" />
                     </svg>
                     <span class="nav-title">CTV Portal</span>
                 </div>
@@ -2537,7 +2626,9 @@
                     <div class="nav-link" data-page="settings" data-i18n="nav_settings">
                         <svg viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
                         </svg>
                         <span>Settings</span>
                     </div>
@@ -2547,17 +2638,19 @@
                 <div class="nav-actions">
                     <!-- User Badge -->
                     <span class="user-badge" id="userLevel">-</span>
-                    
+
                     <!-- User Name -->
                     <span class="user-name" id="userName">-</span>
-                    
+
                     <!-- Language Selector -->
                     <div class="nav-lang" id="langSwitcher">
                         <div class="lang-toggle">
                             <svg viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
                             </svg>
                             <span class="lang-current" id="currentLangLabel">VI</span>
                         </div>
@@ -2566,14 +2659,16 @@
                             <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
                                 <span class="lang-flag">VN</span>
                                 <span class="lang-name">Tiếng Việt</span>
-                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
                             </div>
                             <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
                                 <span class="lang-flag">US</span>
                                 <span class="lang-name">English</span>
-                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
                             </div>
@@ -2642,7 +2737,9 @@
                 <button class="mobile-menu-link" data-page="settings" data-i18n="nav_settings">
                     <svg viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
                     </svg>
                     <span>Settings</span>
                 </button>
@@ -2669,9 +2766,11 @@
                 <div class="page-section active" id="page-dashboard">
                     <!-- Phone Check Card -->
                     <div class="phone-check-card">
-                        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title">Kiểm Tra Trùng Lặp Số Điện Thoại</h3>
+                        <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;" data-i18n="phone_check_title">
+                            Kiểm Tra Trùng Lặp Số Điện Thoại</h3>
                         <div class="phone-check-row">
-                            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder" placeholder="Nhập số điện thoại...">
+                            <input type="tel" id="dashPhoneInput" data-i18n-placeholder="phone_check_placeholder"
+                                placeholder="Nhập số điện thoại...">
                             <button class="btn-filter" onclick="checkPhonePortal()" data-i18n="check">Kiểm Tra</button>
                             <div class="result" id="dashPhoneResult" style="display:none;"></div>
                         </div>
@@ -2714,7 +2813,9 @@
                     <div class="card" style="margin-bottom:20px;">
                         <div class="card-body">
                             <div class="date-filter">
-                                <select id="earningsTimeFilter" style="padding:10px 16px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" onchange="applyTimeFilter()">
+                                <select id="earningsTimeFilter"
+                                    style="padding:10px 16px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;"
+                                    onchange="applyTimeFilter()">
                                     <option value="custom" data-i18n="custom_range">Tuy chinh</option>
                                     <option value="day" data-i18n="today">Hom nay</option>
                                     <option value="month" data-i18n="this_month">Thang nay</option>
@@ -2722,9 +2823,11 @@
                                     <option value="year" data-i18n="this_year">Nam nay</option>
                                 </select>
                                 <label style="font-size:14px;color:#666;" data-i18n="from_date">Tu ngay:</label>
-                                <input type="date" id="earningsFromDate" onchange="document.getElementById('earningsTimeFilter').value='custom'">
+                                <input type="date" id="earningsFromDate"
+                                    onchange="document.getElementById('earningsTimeFilter').value='custom'">
                                 <label style="font-size:14px;color:#666;" data-i18n="to_date">Den ngay:</label>
-                                <input type="date" id="earningsToDate" onchange="document.getElementById('earningsTimeFilter').value='custom'">
+                                <input type="date" id="earningsToDate"
+                                    onchange="document.getElementById('earningsTimeFilter').value='custom'">
                                 <button class="btn-filter" onclick="filterCommissions()" data-i18n="filter">Loc</button>
                             </div>
                         </div>
@@ -2776,23 +2879,34 @@
                             <h3 data-i18n="booking_form_title">Thông Tin Khách Hàng</h3>
                         </div>
                         <div class="card-body">
-                            <p style="color:#666;margin-bottom:24px;font-size:14px;" data-i18n="booking_form_subtitle">Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+                            <p style="color:#666;margin-bottom:24px;font-size:14px;" data-i18n="booking_form_subtitle">
+                                Bạn vui lòng nhập thông tin khách hàng tại đây</p>
                             <form id="bookingForm" style="max-width:600px;">
                                 <div class="form-group">
-                                    <label data-i18n="customer_name">Tên khách hàng <span style="color:#e53e3e;">*</span></label>
-                                    <input type="text" id="bookingCustomerName" data-i18n-placeholder="customer_name_placeholder" placeholder="Nhập tên khách hàng" required>
+                                    <label data-i18n="customer_name">Tên khách hàng <span
+                                            style="color:#e53e3e;">*</span></label>
+                                    <input type="text" id="bookingCustomerName"
+                                        data-i18n-placeholder="customer_name_placeholder"
+                                        placeholder="Nhập tên khách hàng" required>
                                 </div>
                                 <div class="form-group">
-                                    <label data-i18n="customer_phone">Số điện thoại <span style="color:#e53e3e;">*</span></label>
-                                    <input type="tel" id="bookingCustomerPhone" data-i18n-placeholder="customer_phone_placeholder" placeholder="Nhập số điện thoại" required>
+                                    <label data-i18n="customer_phone">Số điện thoại <span
+                                            style="color:#e53e3e;">*</span></label>
+                                    <input type="tel" id="bookingCustomerPhone"
+                                        data-i18n-placeholder="customer_phone_placeholder"
+                                        placeholder="Nhập số điện thoại" required>
                                 </div>
                                 <div class="form-group">
-                                    <label data-i18n="service_interest">Dịch vụ Quan tâm <span style="color:#e53e3e;">*</span></label>
-                                    <input type="text" id="bookingServiceInterest" data-i18n-placeholder="service_interest_placeholder" placeholder="Nhập dịch vụ quan tâm" required>
+                                    <label data-i18n="service_interest">Dịch vụ Quan tâm <span
+                                            style="color:#e53e3e;">*</span></label>
+                                    <input type="text" id="bookingServiceInterest"
+                                        data-i18n-placeholder="service_interest_placeholder"
+                                        placeholder="Nhập dịch vụ quan tâm" required>
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="notes">Ghi chú</label>
-                                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder"
+                                        placeholder="Nhập ghi chú (tùy chọn)"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="customer_region">Khu vực của khách hàng</label>
@@ -2805,11 +2919,15 @@
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="referrer_phone">SDT người giới thiệu</label>
-                                    <input type="tel" id="bookingReferrerPhone" readonly style="background:#f0f0f0;cursor:not-allowed;">
+                                    <input type="tel" id="bookingReferrerPhone" readonly
+                                        style="background:#f0f0f0;cursor:not-allowed;">
                                 </div>
-                                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn" data-i18n="submit_booking">Gửi Thông Tin</button>
-                                <div class="error-msg" id="bookingError" style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
-                                <div class="success-msg" id="bookingSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+                                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn"
+                                    data-i18n="submit_booking">Gửi Thông Tin</button>
+                                <div class="error-msg" id="bookingError"
+                                    style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
+                                <div class="success-msg" id="bookingSuccess"
+                                    style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
                             </form>
                         </div>
                     </div>
@@ -2825,19 +2943,27 @@
                             <form id="changePasswordForm" style="max-width:400px;">
                                 <div class="form-group">
                                     <label data-i18n="current_password">Mật khẩu hiện tại</label>
-                                    <input type="password" id="currentPassword" data-i18n-placeholder="current_password_placeholder" placeholder="Enter current password" required>
+                                    <input type="password" id="currentPassword"
+                                        data-i18n-placeholder="current_password_placeholder"
+                                        placeholder="Enter current password" required>
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="new_password">Mật khẩu mới</label>
-                                    <input type="password" id="newPassword" data-i18n-placeholder="new_password_placeholder" placeholder="Enter new password (at least 6 characters)" required minlength="6">
+                                    <input type="password" id="newPassword"
+                                        data-i18n-placeholder="new_password_placeholder"
+                                        placeholder="Enter new password (at least 6 characters)" required minlength="6">
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="confirm_password">Xác nhận mật khẩu mới</label>
-                                    <input type="password" id="confirmPassword" data-i18n-placeholder="confirm_password_placeholder" placeholder="Re-enter new password" required minlength="6">
+                                    <input type="password" id="confirmPassword"
+                                        data-i18n-placeholder="confirm_password_placeholder"
+                                        placeholder="Re-enter new password" required minlength="6">
                                 </div>
-                                <button type="submit" class="btn btn-primary" id="changePasswordBtn" data-i18n="change_password_btn">Đổi Mật Khẩu</button>
+                                <button type="submit" class="btn btn-primary" id="changePasswordBtn"
+                                    data-i18n="change_password_btn">Đổi Mật Khẩu</button>
                                 <div class="error-msg" id="changePasswordError"></div>
-                                <div class="success-msg" id="changePasswordSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+                                <div class="success-msg" id="changePasswordSuccess"
+                                    style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
                             </form>
                         </div>
                     </div>
@@ -2857,7 +2983,7 @@
                 'Content-Type': 'application/json',
                 ...(authToken && { 'Authorization': `Bearer ${authToken}` })
             };
-            
+
             const response = await fetch(endpoint, { ...options, headers });
             return response.json();
         }
@@ -2871,7 +2997,7 @@
         const savedMaCTV = localStorage.getItem('ctv_remember_ma_ctv');
         const savedPassword = localStorage.getItem('ctv_remember_password');
         const rememberChecked = localStorage.getItem('ctv_remember_checked');
-        
+
         if (rememberChecked === 'true') {
             document.getElementById('rememberMe').checked = true;
             if (savedMaCTV) {
@@ -2892,21 +3018,21 @@
             const loginError = document.getElementById('loginError');
             const loginForm = document.getElementById('loginForm');
             const loginSuccess = document.getElementById('loginSuccess');
-            
+
             loginBtn.disabled = true;
             loginBtn.textContent = 'Đang đăng nhập...';
             loginError.classList.remove('show');
-            
+
             const result = await api('/ctv/login', {
                 method: 'POST',
                 body: JSON.stringify({ ma_ctv: maCTV, password })
             });
-            
+
             if (result.status === 'success') {
                 authToken = result.token;
                 localStorage.setItem('ctvToken', authToken);
                 currentUser = result.ctv;
-                
+
                 // Save credentials ONLY after successful login
                 if (rememberMe) {
                     localStorage.setItem('ctv_remember_ma_ctv', maCTV);
@@ -2917,11 +3043,11 @@
                     localStorage.removeItem('ctv_remember_password');
                     localStorage.removeItem('ctv_remember_checked');
                 }
-                
+
                 // Show success animation
                 loginForm.style.display = 'none';
                 loginSuccess.classList.add('show');
-                
+
                 // Wait then show portal
                 setTimeout(() => {
                     showPortal();
@@ -2940,7 +3066,7 @@
             authToken = null;
             currentUser = null;
             localStorage.removeItem('ctvToken');
-            
+
             // Redirect to main dashboard
             window.location.href = '/';
         });
@@ -2948,45 +3074,45 @@
         // Change Password
         document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorEl = document.getElementById('changePasswordError');
             const successEl = document.getElementById('changePasswordSuccess');
             const submitBtn = document.getElementById('changePasswordBtn');
-            
+
             // Reset messages
             errorEl.classList.remove('show');
             errorEl.textContent = '';
             successEl.style.display = 'none';
             successEl.textContent = '';
-            
+
             // Validate passwords match
             if (newPassword !== confirmPassword) {
                 errorEl.textContent = 'Mật khẩu mới không khớp';
                 errorEl.classList.add('show');
                 return;
             }
-            
+
             // Validate length
             if (newPassword.length < 6) {
                 errorEl.textContent = 'Mật khẩu mới phải có ít nhất 6 ký tự';
                 errorEl.classList.add('show');
                 return;
             }
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Đang xử lý...';
-            
+
             const result = await api('/api/ctv/change-password', {
                 method: 'POST',
-                body: JSON.stringify({ 
-                    current_password: currentPassword, 
-                    new_password: newPassword 
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword
                 })
             });
-            
+
             if (result.status === 'success') {
                 successEl.textContent = 'Đổi mật khẩu thành công!';
                 successEl.style.display = 'block';
@@ -2996,7 +3122,7 @@
                 errorEl.textContent = result.message || 'Doi mat khau that bai';
                 errorEl.classList.add('show');
             }
-            
+
             submitBtn.disabled = false;
             submitBtn.textContent = 'Đổi Mật Khẩu';
         });
@@ -3004,43 +3130,43 @@
         // Booking Form Handler
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const customerName = document.getElementById('bookingCustomerName').value.trim();
             const customerPhone = document.getElementById('bookingCustomerPhone').value.trim();
             const serviceInterest = document.getElementById('bookingServiceInterest').value.trim();
             const notes = document.getElementById('bookingNotes').value.trim();
             const region = document.getElementById('bookingRegion').value;
-            
+
             const submitBtn = document.getElementById('bookingSubmitBtn');
             const errorEl = document.getElementById('bookingError');
             const successEl = document.getElementById('bookingSuccess');
-            
+
             // Clear previous messages
             errorEl.style.display = 'none';
             successEl.style.display = 'none';
-            
+
             // Validate required fields
             if (!customerName) {
                 errorEl.textContent = t('customer_name_required') || 'Tên khách hàng là bắt buộc';
                 errorEl.style.display = 'block';
                 return;
             }
-            
+
             if (!customerPhone) {
                 errorEl.textContent = t('customer_phone_required') || 'Số điện thoại là bắt buộc';
                 errorEl.style.display = 'block';
                 return;
             }
-            
+
             if (!serviceInterest) {
                 errorEl.textContent = t('service_interest_required') || 'Dịch vụ quan tâm là bắt buộc';
                 errorEl.style.display = 'block';
                 return;
             }
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = t('submitting') || 'Đang gửi...';
-            
+
             const result = await api('/api/ctv/booking', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -3051,7 +3177,7 @@
                     region: region
                 })
             });
-            
+
             if (result.status === 'success') {
                 successEl.textContent = t('booking_success') || 'Thông tin khách hàng đã được gửi thành công!';
                 successEl.style.display = 'block';
@@ -3065,7 +3191,7 @@
                 errorEl.textContent = result.message || t('booking_failed') || 'Gửi thông tin thất bại';
                 errorEl.style.display = 'block';
             }
-            
+
             submitBtn.disabled = false;
             submitBtn.textContent = t('submit_booking') || 'Gửi Thông Tin';
         });
@@ -3097,18 +3223,18 @@
             if (result.status === 'success') {
                 currentUser = result.profile;
                 document.getElementById('userName').textContent = result.profile.ten;
-                
+
                 const levelBadge = document.getElementById('userLevel');
                 const capBac = (result.profile.cap_bac || 'Bronze').toLowerCase();
                 levelBadge.textContent = result.profile.cap_bac || 'Bronze';
                 levelBadge.className = 'user-badge ' + capBac;
-                
+
                 // Update stats
                 document.getElementById('statTotalEarnings').textContent = formatCurrency(result.stats.total_earnings);
                 document.getElementById('statMonthlyEarnings').textContent = formatCurrency(result.stats.monthly_earnings);
                 document.getElementById('statNetworkSize').textContent = result.stats.network_size;
                 document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
-                
+
                 // Pre-fill referrer phone in booking form
                 const referrerPhoneInput = document.getElementById('bookingReferrerPhone');
                 if (referrerPhoneInput) {
@@ -3126,9 +3252,9 @@
                     container.innerHTML = `<div class="empty-state">${t('no_commissions')}</div>`;
                     return;
                 }
-                
+
                 const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
-                
+
                 container.innerHTML = result.commissions.slice(0, 5).map(c => `
                     <div class="commission-item">
                         <div class="left">
@@ -3163,16 +3289,16 @@
             // Build URL with query params
             let url = '/api/ctv/commission';
             const params = new URLSearchParams();
-            
+
             if (fromDate) params.append('from', fromDate);
             if (toDate) params.append('to', toDate);
-            
+
             if (params.toString()) url += '?' + params.toString();
-            
+
             const result = await api(url);
             if (result.status === 'success') {
                 const levelColors = ['#22c55e', '#3b82f6', '#d97706', '#ec4899', '#8b5cf6'];
-                
+
                 // Summary table
                 const summaryContainer = document.getElementById('earningsSummary');
                 if (!result.by_level || result.by_level.length === 0) {
@@ -3212,14 +3338,14 @@
                 }
             }
         }
-        
+
         // Apply time filter preset
         function applyTimeFilter() {
             const timeFilter = document.getElementById('earningsTimeFilter').value;
             const today = new Date();
             let fromDate, toDate;
-            
-            switch(timeFilter) {
+
+            switch (timeFilter) {
                 case 'day':
                     fromDate = today;
                     toDate = today;
@@ -3241,31 +3367,31 @@
                     // Keep current date inputs, don't change them
                     return;
             }
-            
+
             // Update date inputs
             document.getElementById('earningsFromDate').value = fromDate.toISOString().split('T')[0];
             document.getElementById('earningsToDate').value = toDate.toISOString().split('T')[0];
-            
+
             // Auto-filter after applying time preset
             filterCommissions();
         }
-        
+
         // Filter commissions by date
         function filterCommissions() {
             const fromDate = document.getElementById('earningsFromDate').value;
             const toDate = document.getElementById('earningsToDate').value;
             loadAllCommissions(fromDate, toDate);
         }
-        
+
         // Set default earnings date filter (start of current month to today)
         function setEarningsDefaultDateFilter() {
             const today = new Date();
             const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            
+
             const fromDate = document.getElementById('earningsFromDate');
             const toDate = document.getElementById('earningsToDate');
             const timeFilter = document.getElementById('earningsTimeFilter');
-            
+
             if (fromDate) {
                 fromDate.value = firstDayOfMonth.toISOString().split('T')[0];
             }
@@ -3284,7 +3410,7 @@
                 maxDepth: depth,
                 directRecruits: node.children ? node.children.length : 0
             };
-            
+
             if (node.children && node.children.length > 0) {
                 node.children.forEach(child => {
                     const childStats = calculateTreeStats(child, depth + 1);
@@ -3292,7 +3418,7 @@
                     stats.maxDepth = Math.max(stats.maxDepth, childStats.maxDepth);
                 });
             }
-            
+
             return stats;
         }
 
@@ -3303,7 +3429,7 @@
             if (treeResult.status === 'success') {
                 // Calculate stats
                 const stats = calculateTreeStats(treeResult.hierarchy);
-                
+
                 // Render with wrapper structure
                 const treeHTML = `
                     <div class="tree-stats">
@@ -3330,7 +3456,7 @@
                 `;
                 document.getElementById('networkTree').innerHTML = treeHTML;
             }
-            
+
             // Load direct downline
             const downlineResult = await api('/api/ctv/my-downline');
             if (downlineResult.status === 'success') {
@@ -3372,13 +3498,13 @@
             // Display level matches database level (L0-L4)
             const displayLevel = node.level;
             const levelClass = `l${displayLevel}`;
-            
+
             const hasChildren = node.children && node.children.length > 0;
             const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
-            
+
             // Cut-off badge for level 4 (L4)
             const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
-            
+
             let html = `
                 <li>
                     <div class="tree-node ${hasChildrenClass}" onclick="toggleTreeNode(this)">
@@ -3389,7 +3515,7 @@
                         ${cutoffBadge}
                     </div>
             `;
-            
+
             if (hasChildren) {
                 html += '<ul class="tree-children">';
                 node.children.forEach(child => {
@@ -3397,7 +3523,7 @@
                 });
                 html += '</ul>';
             }
-            
+
             html += '</li>';
             return html;
         }
@@ -3405,7 +3531,7 @@
         function toggleTreeNode(element) {
             const li = element.parentElement;
             const children = li.querySelector(':scope > ul.tree-children');
-            
+
             if (children) {
                 element.classList.toggle('expanded');
                 children.classList.toggle('collapsed');
@@ -3436,28 +3562,28 @@
             document.querySelectorAll('.nav-link[data-page]').forEach(i => i.classList.remove('active'));
             const navLink = document.querySelector(`.nav-link[data-page="${page}"]`);
             if (navLink) navLink.classList.add('active');
-            
+
             // Update active states for mobile menu
             document.querySelectorAll('.mobile-menu-link[data-page]').forEach(i => i.classList.remove('active'));
             const mobileLink = document.querySelector(`.mobile-menu-link[data-page="${page}"]`);
             if (mobileLink) mobileLink.classList.add('active');
-            
+
             // Update page sections
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             const pageSection = document.getElementById(`page-${page}`);
             if (pageSection) pageSection.classList.add('active');
-            
+
             // Re-apply translations
             if (typeof applyTranslations === 'function') {
                 applyTranslations();
             }
-            
+
             // Load page data
             if (page === 'dashboard' && typeof loadLifetimeStats === 'function') loadLifetimeStats();
             if (page === 'earnings' && typeof initEarnings === 'function') initEarnings();
             if (page === 'network' && typeof loadNetwork === 'function') loadNetwork();
             if (page === 'clients' && typeof switchToCardView === 'function') switchToCardView();
-            
+
             // Close mobile menu
             closeMobileMenu();
         }
@@ -3523,13 +3649,13 @@
                 closeMobileMenu();
             });
         }
-                
-                // Load page data
-                if (page === 'earnings') {
-                    setEarningsDefaultDateFilter();
-                    filterCommissions();
-                }
-                if (page === 'network') loadNetwork();
+
+        // Load page data
+        if (page === 'earnings') {
+            setEarningsDefaultDateFilter();
+            filterCommissions();
+        }
+        if (page === 'network') loadNetwork();
             });
         });
 
@@ -3537,12 +3663,12 @@
         // ═══════════════════════════════════════════════════════════════════
         // PHONE CHECK IN PORTAL
         // ═══════════════════════════════════════════════════════════════════
-        
+
         async function checkPhonePortal() {
             const input = document.getElementById('dashPhoneInput');
             const result = document.getElementById('dashPhoneResult');
             const phone = input.value.trim();
-            
+
             if (!phone || phone.length < 9) {
                 result.textContent = t('phone_short');
                 result.className = 'result';
@@ -3551,13 +3677,13 @@
                 result.style.color = '#d97706';
                 return;
             }
-            
+
             try {
                 const response = await api('/api/ctv/check-phone', {
                     method: 'POST',
                     body: JSON.stringify({ phone })
                 });
-                
+
                 if (response.is_duplicate) {
                     result.textContent = t('duplicate');
                     result.className = 'result trung';
@@ -3571,7 +3697,7 @@
                 result.style.display = 'block';
             }
         }
-        
+
         // Enter key for phone input
         document.getElementById('dashPhoneInput')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') checkPhonePortal();
@@ -3580,7 +3706,7 @@
         // ═══════════════════════════════════════════════════════════════════
         // CLIENT CARDS VIEW
         // ═══════════════════════════════════════════════════════════════════
-        
+
         let ctvClients = [];
         let currentView = 'card';
 
@@ -3608,10 +3734,10 @@
             if (search) {
                 url += `?search=${encodeURIComponent(search)}`;
             }
-            
+
             const result = await api(url);
             const grid = document.getElementById('ctvClientsGrid');
-            
+
             if (result.status === 'success') {
                 ctvClients = result.clients;
                 if (currentView === 'card') {
@@ -3633,7 +3759,7 @@
 
         function renderCtvClientCards(clients) {
             const grid = document.getElementById('ctvClientsGrid');
-            
+
             if (!clients || clients.length === 0) {
                 grid.innerHTML = `
                     <div class="no-clients-message">
@@ -3646,19 +3772,19 @@
                 `;
                 return;
             }
-            
+
             grid.innerHTML = clients.map(client => renderCtvClientCard(client)).join('');
         }
 
         function renderCtvClientCard(client) {
             const initials = getCtvInitials(client.ten_khach);
             // Only show deposit badge at client level if deposited
-            const depositBadgeHTML = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') 
-                ? `<span class="client-status-badge deposited">${t('da_coc')}</span>` 
+            const depositBadgeHTML = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc')
+                ? `<span class="client-status-badge deposited">${t('da_coc')}</span>`
                 : '';
-            
+
             const servicesHTML = client.services.map((svc, idx) => renderCtvServiceCard(svc, idx)).join('');
-            
+
             return `
                 <div class="client-card">
                     <div class="client-card-header">
@@ -3697,12 +3823,12 @@
 
         function renderCtvServiceCard(service, index) {
             // Only show deposit badge at service level if deposited
-            const depositBadgeHTML = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') 
-                ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>` 
+            const depositBadgeHTML = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc')
+                ? `<span class="service-deposit-status deposited">${t('da_coc')}</span>`
                 : '';
-            
+
             const datesHTML = `
-                ${service.ngay_nhap_don 
+                ${service.ngay_nhap_don
                     ? `<div class="service-appointment">
                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -3712,9 +3838,9 @@
                            </svg>
                            <span>${t('ngay_nhap_don')}</span>
                            <span class="date">${service.ngay_nhap_don}</span>
-                       </div>` 
+                       </div>`
                     : ''}
-                ${service.ngay_hen_lam 
+                ${service.ngay_hen_lam
                     ? `<div class="service-appointment">
                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -3724,10 +3850,10 @@
                            </svg>
                            <span>${t('ngay_hen_lam')}</span>
                            <span class="date">${service.ngay_hen_lam}</span>
-                       </div>` 
+                       </div>`
                     : ''}
             `;
-            
+
             return `
                 <div class="service-card">
                     <div class="service-card-header">
@@ -3756,7 +3882,7 @@
 
         function renderCtvClientTable(clients) {
             const tableContainer = document.getElementById('ctvClientsTable');
-            
+
             if (!clients || clients.length === 0) {
                 tableContainer.innerHTML = `
                     <div class="no-clients-message">
@@ -3769,13 +3895,13 @@
                 `;
                 return;
             }
-            
+
             // Calculate total amount per client from services
             const getClientTotal = (client) => {
                 if (!client.services || client.services.length === 0) return 0;
                 return client.services.reduce((sum, svc) => sum + (svc.tong_tien || 0), 0);
             };
-            
+
             const tableHTML = `
                 <div class="client-table-wrapper">
                     <table class="client-table" style="width: 100%; border-collapse: collapse;">
@@ -3791,13 +3917,13 @@
                         </thead>
                         <tbody>
                             ${clients.map(client => {
-                                // Only show deposit badge if deposited
-                                const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc') 
-                                    ? `<span class="table-status-badge deposited">${t('da_coc')}</span>`
-                                    : '';
-                                const totalAmount = getClientTotal(client);
-                                
-                                return `
+                // Only show deposit badge if deposited
+                const depositBadgeHTML = (client.overall_deposit === 'Da coc' || client.overall_deposit === 'Đã cọc')
+                    ? `<span class="table-status-badge deposited">${t('da_coc')}</span>`
+                    : '';
+                const totalAmount = getClientTotal(client);
+
+                return `
                                     <tr>
                                         <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}</td>
                                         <td class="col-phone">${escapeHtmlCTV(client.sdt || '-')}</td>
@@ -3807,12 +3933,12 @@
                                         <td class="col-status" style="text-align: center;">${depositBadgeHTML}</td>
                                     </tr>
                                 `;
-                            }).join('')}
+            }).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
-            
+
             tableContainer.innerHTML = tableHTML;
         }
 
@@ -3852,7 +3978,7 @@
         // ═══════════════════════════════════════════════════════════════════
         // LANGUAGE SYSTEM
         // ═══════════════════════════════════════════════════════════════════
-        
+
         const translations = {
             vi: {
                 // Login
@@ -3868,13 +3994,14 @@
                 login_success: 'Đăng nhập thành công!',
                 login_failed: 'Đăng nhập thất bại',
                 logging_in: 'Đang đăng nhập...',
-                
+
                 // Dashboard
                 overview: 'Tổng Quan',
                 nav_dashboard: 'Tổng Quan',
                 nav_earnings: 'Hoa Hồng',
                 nav_network: 'TEAM',
                 nav_settings: 'Cài Đặt',
+                catalogue: 'Catalogue Dịch Vụ',
                 earnings: 'Hoa Hồng',
                 network: 'Mạng Lưới',
                 search: 'Tìm Kiếm',
@@ -3883,14 +4010,14 @@
                 logout: 'Đăng Xuất',
                 language: 'Ngôn Ngữ',
                 choose_language: 'Chọn Ngôn Ngữ',
-                
+
                 // Page Titles
                 page_overview: 'Tổng Quan',
                 page_earnings: 'Hoa Hồng',
                 page_network: 'Mạng Lưới',
                 page_customers: 'Khách Hàng',
                 page_settings: 'Cài Đặt',
-                
+
                 // Stats
                 total_earnings: 'Tổng Thu Nhập',
                 this_month: 'Thu Nhập Tháng Này',
@@ -3899,7 +4026,7 @@
                 direct_level1: 'Trực Tiếp (Level 1)',
                 services_this_month: 'Dịch Vụ Tháng Này',
                 recent_commissions: 'Hoa Hồng Gần Đây',
-                
+
                 // Filters
                 from_date: 'Từ ngày:',
                 to_date: 'Đến ngày:',
@@ -3913,7 +4040,7 @@
                 this_year: 'Năm nay',
                 select_filter_hint: 'Chọn ngày và nhấn Lọc để xem hoa hồng',
                 click_filter_hint: 'Nhấn Lọc để xem danh sách',
-                
+
                 // Commission
                 no_commissions: 'Chưa có hoa hồng nào',
                 no_commissions_period: 'Không có hoa hồng trong khoảng thời gian này',
@@ -3928,7 +4055,7 @@
                 date: 'Ngày',
                 transactions: 'Giao Dịch',
                 revenue: 'Doanh Thu',
-                
+
                 // Network
                 your_network: 'Mạng Lưới Của Bạn',
                 direct_list: 'Danh Sách CTV Trực Tiếp',
@@ -3946,7 +4073,7 @@
                 email_col: 'Email',
                 phone_col: 'SĐT',
                 rank_col: 'Cấp Bậc',
-                
+
                 // Settings / Change Password
                 change_password: 'Đổi Mật Khẩu',
                 current_password: 'Mật khẩu hiện tại',
@@ -3956,7 +4083,7 @@
                 password_changed: 'Đổi mật khẩu thành công!',
                 password_mismatch: 'Mật khẩu mới không khớp',
                 password_too_short: 'Mật khẩu mới phải có ít nhất 6 ký tự',
-                
+
                 // Booking Appointments
                 booking_appointments: 'Đặt Lịch Hẹn',
                 page_booking: 'Đặt Lịch Hẹn',
@@ -3983,7 +4110,7 @@
                 customer_name_required: 'Tên khách hàng là bắt buộc',
                 customer_phone_required: 'Số điện thoại là bắt buộc',
                 service_interest_required: 'Dịch vụ quan tâm là bắt buộc',
-                
+
                 // Phone Check
                 phone_check_title: 'Kiểm Tra Trùng Lặp Số Điện Thoại',
                 phone_check_placeholder: 'Nhập số điện thoại...',
@@ -3991,7 +4118,7 @@
                 checking: 'Đang kiểm tra...',
                 duplicate: 'TRÙNG',
                 not_duplicate: 'KHÔNG TRÙNG',
-                
+
                 // Status
                 completed: 'Đã đến làm',
                 deposited: 'Đã cọc',
@@ -3999,18 +4126,18 @@
                 pending: 'Chờ xác nhận',
                 da_coc: 'Đã cọc',
                 chua_coc: 'Chưa cọc',
-                
+
                 // Loading
                 loading: 'Đang tải...',
                 no_data: 'Chưa có dữ liệu',
-                
+
                 // Service Card Labels
                 tong_tien: 'Tổng tiền:',
                 tien_coc: 'Tiền cọc:',
                 phai_dong: 'Phải đóng:',
                 ngay_nhap_don: 'Ngày nhập đơn:',
                 ngay_hen_lam: 'Ngày hẹn làm:',
-                
+
                 // Client Card Labels
                 co_so: 'Cơ sở',
                 first_visit: 'Lần đầu',
@@ -4032,13 +4159,14 @@
                 login_success: 'Login successful!',
                 login_failed: 'Login failed',
                 logging_in: 'Logging in...',
-                
+
                 // Dashboard
                 overview: 'Overview',
                 nav_dashboard: 'Dashboard',
                 nav_earnings: 'Earnings',
                 nav_network: 'TEAM',
                 nav_settings: 'Settings',
+                catalogue: 'Service Catalogue',
                 earnings: 'Earnings',
                 network: 'Network',
                 settings: 'Settings',
@@ -4046,14 +4174,14 @@
                 logout: 'Logout',
                 language: 'Language',
                 choose_language: 'Choose Language',
-                
+
                 // Page Titles
                 page_overview: 'Overview',
                 page_earnings: 'Earnings',
                 page_network: 'Network',
                 page_customers: 'Customers',
                 page_settings: 'Settings',
-                
+
                 // Stats
                 total_earnings: 'Total Earnings',
                 this_month: 'This Month',
@@ -4061,7 +4189,7 @@
                 direct_referrals: 'Direct Referrals',
                 direct_level1: 'Direct (Level 1)',
                 recent_commissions: 'Recent Commissions',
-                
+
                 // Filters
                 from_date: 'From:',
                 to_date: 'To:',
@@ -4075,7 +4203,7 @@
                 this_year: 'This Year',
                 select_filter_hint: 'Select dates and click Filter to view commissions',
                 click_filter_hint: 'Click Filter to view list',
-                
+
                 // Commission
                 no_commissions: 'No commissions yet',
                 no_commissions_period: 'No commissions in this period',
@@ -4090,7 +4218,7 @@
                 date: 'Date',
                 transactions: 'Transactions',
                 revenue: 'Revenue',
-                
+
                 // Network
                 your_network: 'Your Network',
                 direct_list: 'Direct Referrals List',
@@ -4108,7 +4236,7 @@
                 email_col: 'Email',
                 phone_col: 'Phone',
                 rank_col: 'Rank',
-                
+
                 // Settings / Change Password
                 change_password: 'Change Password',
                 current_password: 'Current Password',
@@ -4118,7 +4246,7 @@
                 password_changed: 'Password changed successfully!',
                 password_mismatch: 'New passwords do not match',
                 password_too_short: 'New password must be at least 6 characters',
-                
+
                 // Booking Appointments
                 booking_appointments: 'Book Appointments',
                 page_booking: 'Book Appointments',
@@ -4145,7 +4273,7 @@
                 customer_name_required: 'Customer name is required',
                 customer_phone_required: 'Phone number is required',
                 service_interest_required: 'Service of interest is required',
-                
+
                 // Phone Check
                 phone_check_title: 'Phone Number Check',
                 phone_check_placeholder: 'Enter phone number...',
@@ -4153,7 +4281,7 @@
                 checking: 'Checking...',
                 duplicate: 'DUPLICATE',
                 not_duplicate: 'NOT DUPLICATE',
-                
+
                 // Status
                 completed: 'Completed',
                 deposited: 'Deposited',
@@ -4161,18 +4289,18 @@
                 pending: 'Pending',
                 da_coc: 'Deposited',
                 chua_coc: 'Not Deposited',
-                
+
                 // Loading
                 loading: 'Loading...',
                 no_data: 'No data',
-                
+
                 // Service Card Labels
                 tong_tien: 'Total:',
                 tien_coc: 'Deposit:',
                 phai_dong: 'Due:',
                 ngay_nhap_don: 'Order Date:',
                 ngay_hen_lam: 'Appointment Date:',
-                
+
                 // Client Card Labels
                 co_so: 'Facility',
                 first_visit: 'First Visit',
@@ -4205,7 +4333,7 @@
         document.addEventListener('click', (e) => {
             const switcher = document.getElementById('langSwitcher');
             const loginToggle = document.getElementById('loginLangToggle');
-            
+
             if (switcher && !switcher.contains(e.target)) {
                 switcher.classList.remove('active');
             }
@@ -4225,12 +4353,12 @@
             currentLang = lang;
             localStorage.setItem('ctv_language', lang);
             applyTranslations();
-            
+
             // Update language options in popup
             document.querySelectorAll('.lang-option').forEach(opt => {
                 opt.classList.toggle('active', opt.dataset.lang === lang);
             });
-            
+
             // Update current language labels (sidebar and login page)
             const langLabel = document.getElementById('currentLangLabel');
             if (langLabel) {
@@ -4240,11 +4368,11 @@
             if (loginLangLabel) {
                 loginLangLabel.textContent = lang.toUpperCase();
             }
-            
+
             // Close any open popups
             const loginToggle = document.getElementById('loginLangToggle');
             if (loginToggle) loginToggle.classList.remove('active');
-            
+
             // Re-render dynamic content based on active page
             const activePage = document.querySelector('.page-section.active');
             if (activePage) {
@@ -4272,7 +4400,7 @@
                     el.textContent = translations[currentLang][key];
                 }
             });
-            
+
             // Update placeholders
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
@@ -4280,7 +4408,7 @@
                     el.placeholder = translations[currentLang][key];
                 }
             });
-            
+
             // Update tooltips (data-tooltip for custom CSS tooltips)
             document.querySelectorAll('[data-i18n-title]').forEach(el => {
                 const key = el.getAttribute('data-i18n-title');
@@ -4288,7 +4416,7 @@
                     el.setAttribute('data-tooltip', translations[currentLang][key]);
                 }
             });
-            
+
             // Update page title
             document.title = currentLang === 'vi' ? 'CTV Portal' : 'CTV Portal';
         }
@@ -4296,7 +4424,7 @@
         // Initialize language on page load
         function initLanguage() {
             setLanguage(currentLang);
-            
+
             // Setup language switcher click handler
             const langSwitcher = document.getElementById('langSwitcher');
             if (langSwitcher) {
@@ -4312,4 +4440,5 @@
         checkAuth();
     </script>
 </body>
+
 </html>
