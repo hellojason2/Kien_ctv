@@ -370,6 +370,42 @@
             transform: scale(0.98);
         }
 
+        /* Booking Button (Coral/Orange) */
+        .btn-booking {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            padding: 16px 32px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+            text-decoration: none;
+        }
+
+        .btn-booking:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(135deg, #ff5252, #ff7b42);
+        }
+
+        .btn-booking:active {
+            transform: scale(0.98);
+        }
+
+        .btn-booking svg {
+            flex-shrink: 0;
+        }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -870,6 +906,13 @@
                 padding: 14px 24px !important;
                 box-sizing: border-box !important;
             }
+
+            .btn-booking {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 14px 24px !important;
+                box-sizing: border-box !important;
+            }
         }
     </style>
 </head>
@@ -963,10 +1006,16 @@
                 </div>
                 <div id="phoneCheckResult" class="phone-check-result"></div>
 
-                <!-- Book Appointment Button - Now floating, hidden here -->
-                <!-- <a href="https://forms.gle/QXYGaJ4zHQmxcg1F8" target="_blank" class="book-appointment-btn" data-i18n="book_appointment">
-                    Đặt Lịch Hẹn
-                </a> -->
+                <!-- Book Appointment Button -->
+                <a href="https://forms.gle/QXYGaJ4zHQmxcg1F8" target="_blank" class="btn-booking" data-i18n="book_appointment">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Đặt Lịch Hẹn</span>
+                </a>
             </div>
         </main>
     </div>
