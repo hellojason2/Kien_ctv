@@ -87,19 +87,34 @@ def favicon():
 
 @app.route('/')
 def index():
-    """Serve the dashboard HTML"""
-    # Now serving from templates to enable Jinja2 processing and cache busting
-    return render_template('dashboard.html')
+    """Serve the dashboard HTML with no-cache headers to prevent stale content"""
+    from flask import make_response
+    response = make_response(render_template('dashboard.html'))
+    # Prevent browser caching of HTML - always fetch fresh content
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/ctv/signup')
 def ctv_signup_page():
-    """Serve the CTV signup page"""
-    return render_template('ctv_signup.html')
+    """Serve the CTV signup page with no-cache headers"""
+    from flask import make_response
+    response = make_response(render_template('ctv_signup.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/booking')
 def booking_page():
-    """Serve the public booking/appointment page"""
-    return render_template('booking.html')
+    """Serve the public booking/appointment page with no-cache headers"""
+    from flask import make_response
+    response = make_response(render_template('booking.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/test-login')
 def test_login_page():

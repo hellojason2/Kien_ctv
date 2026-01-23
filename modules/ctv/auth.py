@@ -60,13 +60,22 @@ def logout():
 
 @ctv_bp.route('/ctv/portal', methods=['GET'])
 def portal():
-    """Serve CTV portal HTML using Jinja2 template"""
+    """Serve CTV portal HTML using Jinja2 template with no-cache headers"""
     try:
-        return render_template('ctv/base.html')
+        response = make_response(render_template('ctv/base.html'))
+        # Prevent browser caching - always fetch fresh content
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     except Exception as e:
         template_path = os.path.join(BASE_DIR, 'templates', 'ctv_portal.html')
         if os.path.exists(template_path):
-            return send_file(template_path)
+            response = make_response(send_file(template_path))
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
         return jsonify({'status': 'error', 'message': f'CTV portal not found: {str(e)}'}), 404
 
 
