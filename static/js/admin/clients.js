@@ -342,7 +342,7 @@ function renderClientTable(clients) {
 }
 
 /**
- * Initialize client search handler
+ * Initialize client search and filter handlers
  */
 function initClientSearch() {
     const searchInput = document.getElementById('clientSearch');
@@ -350,6 +350,14 @@ function initClientSearch() {
         searchInput.addEventListener('input', debounce(() => {
             loadClientsWithServices(1);
         }, 300));
+    }
+    
+    // Status filter change handler
+    const statusFilter = document.getElementById('clientStatusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            loadClientsWithServices(1);
+        });
     }
     
     // Initialize view state
@@ -360,9 +368,12 @@ function initClientSearch() {
  * Export clients to Excel
  */
 function exportClientsExcel() {
-    const search = document.getElementById('clientSearch').value;
+    const search = document.getElementById('clientSearch')?.value || '';
+    const status = document.getElementById('clientStatusFilter')?.value || '';
+    
     const params = new URLSearchParams();
     if (search) params.append('search', search);
+    if (status) params.append('status', status);
     
     const token = localStorage.getItem('session_token');
     window.open(`/api/admin/clients/export?${params}&token=${token}`, '_blank');

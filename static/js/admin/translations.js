@@ -197,7 +197,8 @@ const translations = {
         // Status
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
-        consulting: 'Đang tư vấn',
+        cskh_potential: 'CSKH Tiềm Năng (360+ ngày)',
+        all_statuses: 'Tất cả trạng thái',
         
         // Modal
         add_new_ctv: 'Thêm CTV Mới',
@@ -454,7 +455,8 @@ const translations = {
         // Status
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
-        consulting: 'Consulting',
+        cskh_potential: 'CSKH Potential (360+ days)',
+        all_statuses: 'All Statuses',
         
         // Loading
         loading: 'Loading...',
