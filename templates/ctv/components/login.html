@@ -13,14 +13,16 @@
         <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
             <span class="lang-flag">VN</span>
             <span class="lang-name" data-i18n="vietnamese"></span>
-            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="3">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
         </div>
         <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
             <span class="lang-flag">US</span>
             <span class="lang-name" data-i18n="english"></span>
-            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="3">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
         </div>
@@ -29,28 +31,32 @@
 
 <div class="login-box">
     <div class="login-logo">
-        <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+        <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Logo"
+            style="width: 80px; height: 80px; object-fit: contain;">
     </div>
     <h1>CTV Portal</h1>
-    <p class="subtitle" data-i18n="login_subtitle"></p>
-    
+    <p class="subtitle" data-i18n="login_subtitle">Đăng nhập để xem hoa hồng và team</p>
+
     <form id="loginForm">
         <div class="form-group">
-            <label data-i18n="ctv_code"></label>
-            <input type="text" id="maCTV" data-i18n-placeholder="ctv_code_placeholder" required>
+            <label data-i18n="ctv_code">TÊN ĐĂNG NHẬP</label>
+            <input type="text" id="maCTV" data-i18n-placeholder="ctv_code_placeholder" placeholder="Nhập số điện thoại"
+                required>
         </div>
         <div class="form-group">
-            <label data-i18n="password"></label>
-            <input type="password" id="password" data-i18n-placeholder="enter_password" required>
+            <label data-i18n="password">MẬT KHẨU</label>
+            <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Nhập mật khẩu"
+                required>
         </div>
         <div class="remember-me">
             <input type="checkbox" id="rememberMe">
-            <label for="rememberMe" data-i18n="remember_me"></label>
+            <label for="rememberMe" data-i18n="remember_me">Ghi nhớ đăng nhập</label>
         </div>
         <button type="submit" class="btn btn-login" id="loginBtn">
-            <span class="btn-text" data-i18n="login"></span>
+            <span class="btn-text" data-i18n="login">Đăng Nhập</span>
             <span class="btn-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>
                     <line x1="15" y1="12" x2="3" y2="12"></line>
@@ -61,11 +67,12 @@
     </form>
 
     <div class="back-link">
-        <a href="/" data-i18n="back_home"></a>
+        <a href="/" data-i18n="back_home">Quay về trang chủ</a>
     </div>
 
     <div class="signup-link" style="text-align: center; margin-top: 16px;">
-        <a href="/ctv/signup" data-i18n="signup_now" style="color: #4a7c23; text-decoration: none; font-size: 14px; font-weight: 500;">Đăng ký CTV mới →</a>
+        <a href="/ctv/signup" data-i18n="signup_now"
+            style="color: #4a7c23; text-decoration: none; font-size: 14px; font-weight: 500;">Đăng ký CTV mới →</a>
     </div>
 
     <!-- Success Animation -->
@@ -79,4 +86,3 @@
         <div class="success-subtext" data-i18n="login_redirecting"></div>
     </div>
 </div>
-
