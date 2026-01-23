@@ -348,7 +348,15 @@
     animation: fadeIn 0.2s ease;
 }
 
-/* Language toggle fix for signup page */
+/* Language toggle fix for signup page - Position top-right */
+.login-lang-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    left: auto !important;
+    z-index: 100;
+}
+
 .login-lang-popup {
     opacity: 0 !important;
     visibility: hidden !important;
