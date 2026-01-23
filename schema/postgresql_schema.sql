@@ -200,6 +200,7 @@ CREATE TABLE commissions (
     commission_rate DECIMAL(5,4) NOT NULL,
     transaction_amount DECIMAL(15,2) NOT NULL,
     commission_amount DECIMAL(15,2) NOT NULL,
+    commission_type VARCHAR(20) DEFAULT 'direct',  -- 'direct' = normal, 'cskh' = returning customer
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ctv_code) REFERENCES ctv(ma_ctv) ON DELETE CASCADE
 );

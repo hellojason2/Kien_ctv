@@ -6,10 +6,14 @@ from ..redis_cache import (
     get_cached_commission_rates,
     invalidate_commission_cache
 )
-from .hierarchy import build_ancestor_chain
+from .hierarchy import build_ancestor_chain, get_parent
 
 # Maximum level for commission calculations
 MAX_LEVEL = 4
+
+# CSKH (Customer Care) commission settings
+# For returning customers closed by staff, original CTV gets L1 rate, upline gets L2 rate
+CSKH_MAX_LEVELS = 2  # Only 2 levels for CSKH commissions
 
 # Default commission rates (fallback if database is empty)
 DEFAULT_COMMISSION_RATES = {
@@ -19,6 +23,89 @@ DEFAULT_COMMISSION_RATES = {
     3: 0.0125,    # 1.25% - level 3
     4: 0.00625    # 0.625% - level 4
 }
+
+
+def find_original_ctv_for_customer(cursor, customer_phone):
+    """
+    DOES: Find the earliest CTV who closed this customer within 365 days.
+    Used for CSKH (returning customer) commission attribution.
+    
+    INPUTS: 
+        cursor - Database cursor
+        customer_phone - Customer's phone number (from khach_hang.sdt)
+    
+    OUTPUTS: 
+        ctv_code (str) or None - The ma_ctv of the earliest CTV who closed this customer
+    
+    LOGIC:
+        1. Find all previous visits for this customer phone within 365 days
+        2. Filter to only visits where nguoi_chot is a CTV (matches ctv.ma_ctv)
+        3. Return the earliest CTV (by ngay_hen_lam date)
+    """
+    if not customer_phone:
+        return None
+    
+    try:
+        cursor.execute("""
+            SELECT c.ma_ctv
+            FROM khach_hang kh
+            JOIN ctv c ON (
+                LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = 
+                   RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
+            WHERE RIGHT(REGEXP_REPLACE(kh.sdt, '[^0-9]', '', 'g'), 9) = 
+                  RIGHT(REGEXP_REPLACE(%s, '[^0-9]', '', 'g'), 9)
+            AND kh.trang_thai IN ('Đã đến làm', 'Da den lam')
+            AND kh.ngay_hen_lam >= CURRENT_DATE - INTERVAL '365 days'
+            ORDER BY kh.ngay_hen_lam ASC
+            LIMIT 1
+        """, (customer_phone,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result['ma_ctv'] if isinstance(result, dict) else result[0]
+        return None
+        
+    except Error as e:
+        print(f"Error finding original CTV for customer {customer_phone}: {e}")
+        return None
+
+
+def count_customer_visits(cursor, customer_phone, days=365):
+    """
+    DOES: Count completed visits for a customer within specified days.
+    
+    INPUTS:
+        cursor - Database cursor
+        customer_phone - Customer's phone number
+        days - Number of days to look back (default 365)
+    
+    OUTPUTS:
+        int - Number of completed visits
+    """
+    if not customer_phone:
+        return 0
+    
+    try:
+        cursor.execute("""
+            SELECT COUNT(*) as visit_count
+            FROM khach_hang
+            WHERE RIGHT(REGEXP_REPLACE(sdt, '[^0-9]', '', 'g'), 9) = 
+                  RIGHT(REGEXP_REPLACE(%s, '[^0-9]', '', 'g'), 9)
+            AND trang_thai IN ('Đã đến làm', 'Da den lam')
+            AND ngay_hen_lam >= CURRENT_DATE - INTERVAL '%s days'
+        """ % ('%s', days), (customer_phone,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result['visit_count'] if isinstance(result, dict) else result[0]
+        return 0
+        
+    except Error as e:
+        print(f"Error counting visits for customer {customer_phone}: {e}")
+        return 0
+
 
 def get_commission_rates(connection=None):
     """
@@ -126,8 +213,8 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None, com
             
             cursor.execute("""
                 INSERT INTO commissions
-                (transaction_id, ctv_code, level, commission_rate, transaction_amount, commission_amount)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (transaction_id, ctv_code, level, commission_rate, transaction_amount, commission_amount, commission_type)
+                VALUES (%s, %s, %s, %s, %s, %s, 'direct')
                 RETURNING id
             """, (transaction_id, ancestor_code, level, rate, amount, commission_amount))
             
@@ -139,7 +226,8 @@ def calculate_commissions(transaction_id, ctv_code, amount, connection=None, com
                 'level': level,
                 'commission_rate': rate,
                 'transaction_amount': float(amount),
-                'commission_amount': commission_amount
+                'commission_amount': commission_amount,
+                'commission_type': 'direct'
             })
         
         if commit:
@@ -173,6 +261,119 @@ def calculate_commission_for_service(service_id, ctv_code, amount, connection=No
     DOES: Calculate and store commission records for a service transaction
     """
     return calculate_commissions(service_id, ctv_code, amount, connection, commit=commit)
+
+
+def calculate_cskh_commissions(transaction_id, original_ctv_code, amount, connection=None, commit=True):
+    """
+    DOES: Calculate CSKH (Customer Care) commissions for returning customers closed by staff.
+    
+    LOGIC:
+        - Original CTV gets Level 1 rate (4%) - NOT Level 0 since they didn't close
+        - Original CTV's upline gets Level 2 rate (2%)
+        - Chain STOPS after 2 levels (no further upline commission)
+    
+    INPUTS:
+        transaction_id - Unique transaction ID (negative for khach_hang)
+        original_ctv_code - The CTV who originally brought this customer
+        amount - Transaction amount
+        connection - Optional database connection
+        commit - Whether to commit the transaction
+    
+    OUTPUTS:
+        List of commission records created
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+        
+        # Ensure idempotency by removing existing commissions for this transaction
+        cursor.execute("DELETE FROM commissions WHERE transaction_id = %s", (transaction_id,))
+        
+        rates = get_commission_rates(connection)
+        commissions = []
+        
+        # Level 1: Original CTV gets L1 rate (4%) - they didn't close, so they're treated as referrer
+        level_1_rate = rates.get(1, 0.04)  # Default 4%
+        if level_1_rate > 0:
+            commission_amount = float(amount) * level_1_rate
+            cursor.execute("""
+                INSERT INTO commissions
+                (transaction_id, ctv_code, level, commission_rate, transaction_amount, commission_amount, commission_type)
+                VALUES (%s, %s, %s, %s, %s, %s, 'cskh')
+                RETURNING id
+            """, (transaction_id, original_ctv_code, 1, level_1_rate, amount, commission_amount))
+            
+            result = cursor.fetchone()
+            commissions.append({
+                'id': result['id'] if result else None,
+                'ctv_code': original_ctv_code,
+                'level': 1,
+                'commission_rate': level_1_rate,
+                'transaction_amount': float(amount),
+                'commission_amount': commission_amount,
+                'commission_type': 'cskh'
+            })
+        
+        # Level 2: Original CTV's upline gets L2 rate (2%)
+        upline_code = get_parent(cursor, original_ctv_code)
+        if upline_code:
+            level_2_rate = rates.get(2, 0.02)  # Default 2%
+            if level_2_rate > 0:
+                commission_amount = float(amount) * level_2_rate
+                cursor.execute("""
+                    INSERT INTO commissions
+                    (transaction_id, ctv_code, level, commission_rate, transaction_amount, commission_amount, commission_type)
+                    VALUES (%s, %s, %s, %s, %s, %s, 'cskh')
+                    RETURNING id
+                """, (transaction_id, upline_code, 2, level_2_rate, amount, commission_amount))
+                
+                result = cursor.fetchone()
+                commissions.append({
+                    'id': result['id'] if result else None,
+                    'ctv_code': upline_code,
+                    'level': 2,
+                    'commission_rate': level_2_rate,
+                    'transaction_amount': float(amount),
+                    'commission_amount': commission_amount,
+                    'commission_type': 'cskh'
+                })
+        
+        # STOP - No further upline commissions for CSKH
+        
+        if commit:
+            connection.commit()
+            invalidate_commission_cache()
+        
+        cursor.close()
+        
+        if should_close:
+            return_db_connection(connection)
+        
+        print(f"CSKH commission created: transaction={transaction_id}, original_ctv={original_ctv_code}, amount={amount}, commissions={len(commissions)}")
+        return commissions
+        
+    except Error as e:
+        print(f"Error calculating CSKH commissions: {e}")
+        if connection:
+            connection.rollback()
+        if should_close and connection:
+            return_db_connection(connection)
+        return []
+
+
+def calculate_cskh_commission_for_khach_hang(khach_hang_id, original_ctv_code, amount, connection=None, commit=True):
+    """
+    DOES: Calculate CSKH commissions for a returning customer (khach_hang) closed by staff.
+    """
+    return calculate_cskh_commissions(-abs(khach_hang_id), original_ctv_code, amount, connection, commit=commit)
+
 
 def recalculate_commissions_for_record(record_id, source_type, connection=None):
     """
@@ -426,6 +627,62 @@ def calculate_new_commissions_fast(connection=None):
                 count += 1
             except Exception as e:
                 print(f"Error processing service {svc['id']}: {e}")
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # CSKH: Process staff-closed records for returning customers
+        # When nguoi_chot is NOT a CTV (staff), check if customer is returning,
+        # and credit the original CTV who first brought them
+        # ═══════════════════════════════════════════════════════════════════════════
+        cskh_count = 0
+        
+        # Find staff-closed khach_hang records that don't have commissions yet
+        # Staff = nguoi_chot does NOT match any CTV
+        cursor.execute("""
+            SELECT kh.id, kh.sdt, kh.tong_tien, kh.nguoi_chot
+            FROM khach_hang kh
+            LEFT JOIN ctv c ON (
+                LOWER(kh.nguoi_chot) = LOWER(c.ma_ctv)
+                OR RIGHT(REGEXP_REPLACE(kh.nguoi_chot, '[^0-9]', '', 'g'), 9) = 
+                   RIGHT(REGEXP_REPLACE(c.ma_ctv, '[^0-9]', '', 'g'), 9)
+            )
+            LEFT JOIN commissions comm ON comm.transaction_id = -abs(kh.id)
+            WHERE kh.id > %s
+            AND c.ma_ctv IS NULL  -- nguoi_chot is NOT a CTV (staff closed)
+            AND kh.tong_tien > 0
+            AND kh.sdt IS NOT NULL
+            AND kh.sdt != ''
+            AND (kh.trang_thai = 'Đã đến làm' OR kh.trang_thai = 'Da den lam')
+            AND comm.id IS NULL  -- No commissions calculated yet
+            ORDER BY kh.id ASC
+        """, (max_kh_id,))
+        staff_closed = cursor.fetchall()
+        
+        for record in staff_closed:
+            try:
+                kh_id = record['id']
+                customer_phone = record['sdt']
+                amount = record['tong_tien']
+                
+                # Check if this is a returning customer (visit count >= 2)
+                visit_count = count_customer_visits(cursor, customer_phone, days=365)
+                
+                if visit_count >= 2:
+                    # Find the original CTV who first brought this customer
+                    original_ctv = find_original_ctv_for_customer(cursor, customer_phone)
+                    
+                    if original_ctv:
+                        # Calculate CSKH commission (L1 rate for original CTV, L2 rate for upline)
+                        calculate_cskh_commission_for_khach_hang(kh_id, original_ctv, amount, connection, commit=False)
+                        cskh_count += 1
+                        print(f"CSKH: Customer {customer_phone} (visit #{visit_count}) -> credited to original CTV {original_ctv}")
+                
+                new_max_kh = max(new_max_kh, kh_id)
+                
+            except Exception as e:
+                print(f"Error processing CSKH for khach_hang {record['id']}: {e}")
+        
+        if cskh_count > 0:
+            print(f"CSKH commissions calculated: {cskh_count} returning customers")
             
         # Update commission_cache
         if new_max_kh > max_kh_id or new_max_svc > max_svc_id:
@@ -442,7 +699,7 @@ def calculate_new_commissions_fast(connection=None):
         if should_close:
             return_db_connection(connection)
             
-        return {'total': count}
+        return {'total': count, 'cskh': cskh_count}
         
     except Error as e:
         print(f"Error in fast commission calculation: {e}")
