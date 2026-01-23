@@ -156,8 +156,8 @@ window.translations = {
         password_too_short: 'Mật khẩu mới phải có ít nhất 6 ký tự',
 
         // Booking Appointments
-        booking_appointments: 'Đặt Lịch Hẹn',
-        page_booking: 'Đặt Lịch Hẹn',
+        booking_appointments: 'Giới thiệu khách',
+        page_booking: 'Giới thiệu khách',
 
         // Catalogue
         catalogue: 'Bảng Giá Dịch Vụ',
