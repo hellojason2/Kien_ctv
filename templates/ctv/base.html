@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTV Portal</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
-    
+
     <!-- Modular CSS with cache busting - v2 forces reload -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/base.css') }}?v=3.0.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/login.css') }}?v=3.0.1">
@@ -22,6 +23,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/dashboard-tables.css') }}?v=3.0.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/responsive.css') }}?v=3.0.4">
 </head>
+
 <body>
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
@@ -50,7 +52,8 @@
         </div>
 
         <!-- Floating Book Appointment Button (only visible when logged in) -->
-        <button type="button" class="floating-book-btn" onclick="navigateToPage('booking')" data-i18n="book_appointment">
+        <button type="button" class="floating-book-btn" onclick="navigateToPage('booking')"
+            data-i18n="book_appointment">
             <svg viewBox="0 0 24 24">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -67,7 +70,7 @@
     <script src="{{ url_for('static', filename='js/ctv/db-validator.js') }}?v=3.0.1"></script>
     <script src="{{ url_for('static', filename='js/ctv/utils.js') }}?v=3.0.1"></script>
     <script src="{{ url_for('static', filename='js/ctv/indicator_config.js') }}?v=3.0.1"></script>
-    <script src="{{ url_for('static', filename='js/ctv/translations.js') }}?v=3.0.1"></script>
+    <script src="{{ url_for('static', filename='js/ctv/translations.js') }}?v=3.0.4"></script>
     <script src="{{ url_for('static', filename='js/ctv/auth.js') }}?v=3.0.1"></script>
     <script src="{{ url_for('static', filename='js/ctv/navigation.js') }}?v=3.0.1"></script>
     <script src="{{ url_for('static', filename='js/ctv/profile.js') }}?v=3.0.1"></script>
@@ -78,4 +81,5 @@
     <script src="{{ url_for('static', filename='js/ctv/booking.js') }}?v=3.0.2"></script>
     <script src="{{ url_for('static', filename='js/ctv/main.js') }}?v=3.0.1"></script>
 </body>
+
 </html>

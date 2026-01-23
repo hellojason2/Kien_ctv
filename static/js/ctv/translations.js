@@ -20,10 +20,10 @@ const translations = {
         login_redirecting: 'Đang chuyển hướng...',
         login_failed: 'Đăng nhập thất bại',
         logging_in: 'Đang đăng nhập...',
-        
+
         // Branding
         ctv_portal: 'CTV Portal',
-        
+
         // Dashboard
         overview: 'Tổng Quan',
         page_overview: 'Tổng Quan',
@@ -41,7 +41,7 @@ const translations = {
         language: 'Ngôn Ngữ',
         choose_language: 'Chọn Ngôn Ngữ',
         menu: 'Menu',
-        
+
         // Stats
         total_earnings: 'Tổng Thu Nhập',
         this_month: 'Thu Nhập Tháng Này',
@@ -50,7 +50,7 @@ const translations = {
         direct_level1: 'Trực Tiếp (Level 1)',
         services_this_month: 'Dịch Vụ Tháng Này',
         recent_commissions: 'Hoa Hồng Gần Đây',
-        
+
         // Period Labels
         earnings_period_today: 'Thu Nhập Hôm Nay',
         earnings_period_3days: 'Thu Nhập 3 Ngày Qua',
@@ -60,7 +60,7 @@ const translations = {
         earnings_period_3months: 'Thu Nhập 3 Tháng',
         earnings_period_year: 'Thu Nhập Năm Nay',
         earnings_period_custom: 'Thu Nhập Khoảng Thời Gian',
-        
+
         // Total Revenue Period Labels
         total_revenue_today: 'Tổng Doanh Thu Hôm Nay',
         total_revenue_3days: 'Tổng Doanh Thu 3 Ngày Qua',
@@ -70,7 +70,7 @@ const translations = {
         total_revenue_3months: 'Tổng Doanh Thu 3 Tháng',
         total_revenue_year: 'Tổng Doanh Thu Năm Nay',
         total_revenue_custom: 'Tổng Doanh Thu Khoảng Thời Gian',
-        
+
         // Commission Period Labels
         commission_period_today: 'Hoa Hồng Hôm Nay',
         commission_period_3days: 'Hoa Hồng 3 Ngày Qua',
@@ -80,7 +80,7 @@ const translations = {
         commission_period_3months: 'Hoa Hồng 3 Tháng',
         commission_period_year: 'Hoa Hồng Năm Nay',
         commission_period_custom: 'Hoa Hồng Khoảng Thời Gian',
-        
+
         services_period_today: 'Dịch Vụ Hôm Nay',
         services_period_3days: 'Dịch Vụ 3 Ngày Qua',
         services_period_week: 'Dịch Vụ Tuần Này',
@@ -89,7 +89,7 @@ const translations = {
         services_period_3months: 'Dịch Vụ 3 Tháng',
         services_period_year: 'Dịch Vụ Năm Nay',
         services_period_custom: 'Dịch Vụ Khoảng Thời Gian',
-        
+
         // Filters
         from_date: 'Từ ngày:',
         to_date: 'Đến ngày:',
@@ -107,7 +107,7 @@ const translations = {
         this_year: 'Năm nay',
         select_filter_hint: 'Chọn ngày và nhấn Lọc để xem hoa hồng',
         click_filter_hint: 'Nhấn Lọc để xem danh sách',
-        
+
         // Commission
         no_commissions: 'Chưa có hoa hồng nào',
         no_commissions_period: 'Không có hoa hồng trong khoảng thời gian này',
@@ -123,7 +123,7 @@ const translations = {
         date: 'Ngày',
         transactions: 'Giao Dịch',
         revenue: 'Doanh Thu',
-        
+
         // Network
         your_network: 'Team Của Bạn',
         direct_list: 'Danh Sách CTV Trực Tiếp',
@@ -141,7 +141,7 @@ const translations = {
         email_col: 'Email',
         phone_col: 'SĐT',
         rank_col: 'Cấp Bậc',
-        
+
         // Settings / Change Password
         change_password: 'Đổi Mật Khẩu',
         current_password: 'Mật khẩu hiện tại',
@@ -154,11 +154,11 @@ const translations = {
         password_changed: 'Đổi mật khẩu thành công!',
         password_mismatch: 'Mật khẩu mới không khớp',
         password_too_short: 'Mật khẩu mới phải có ít nhất 6 ký tự',
-        
+
         // Booking Appointments
         booking_appointments: 'Đặt Lịch Hẹn',
         page_booking: 'Đặt Lịch Hẹn',
-        
+
         // Catalogue
         catalogue: 'Bảng Giá Dịch Vụ',
         pricing: 'Bảng Giá TMV',
@@ -185,7 +185,7 @@ const translations = {
         customer_name_required: 'Tên khách hàng là bắt buộc',
         customer_phone_required: 'Số điện thoại là bắt buộc',
         service_interest_required: 'Dịch vụ quan tâm là bắt buộc',
-        
+
         // Phone Check
         phone_check_title: 'Kiểm Tra Trùng Lặp Số Điện Thoại',
         phone_check_placeholder: 'Nhập số điện thoại...',
@@ -194,7 +194,7 @@ const translations = {
         duplicate: 'TRÙNG',
         not_duplicate: 'KHÔNG TRÙNG',
         phone_short: 'Số điện thoại quá ngắn',
-        
+
         // Status
         completed: 'Đã đến làm',
         deposited: 'Đã cọc',
@@ -202,18 +202,18 @@ const translations = {
         pending: 'Chờ xác nhận',
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
-        
+
         // Loading
         loading: 'Đang tải...',
         no_data: 'Chưa có dữ liệu',
-        
+
         // Service Card Labels
         tong_tien: 'Tổng tiền:',
         tien_coc: 'Tiền cọc:',
         phai_dong: 'Phải đóng:',
         ngay_nhap_don: 'Ngày nhập đơn:',
         ngay_hen_lam: 'Ngày hẹn làm:',
-        
+
         // Client Card Labels
         co_so: 'Cơ sở',
         first_visit: 'Lần đầu',
@@ -226,14 +226,14 @@ const translations = {
         vietnamese: 'Tiếng Việt',
         english: 'English',
         error_loading_data: 'Lỗi khi tải dữ liệu',
-        
+
         // Table Headers
         ten_khach: 'Tên Khách Hàng',
         sdt: 'Số Điện Thoại',
         trang_thai_coc: 'Trạng Thái Cọc',
         status: 'Trạng Thái',
         service_count: 'Số Dịch Vụ',
-        
+
         // Lifetime Statistics
         lifetime_statistics: 'Thống Kê Toàn Bộ',
         metric: 'Chỉ Số',
@@ -243,7 +243,7 @@ const translations = {
         total_network_members: 'Tổng Thành Viên Team',
         total_services_completed: 'Tổng Dịch Vụ Hoàn Thành',
         total_revenue_generated: 'Tổng Doanh Thu Tạo Ra',
-        
+
         // Referral Link
         share_referral: 'Chia Sẻ Link',
         referral_link_copied: 'Đã sao chép link giới thiệu!',
@@ -263,10 +263,10 @@ const translations = {
         login_redirecting: 'Redirecting...',
         login_failed: 'Login failed',
         logging_in: 'Logging in...',
-        
+
         // Branding
         ctv_portal: 'CTV Portal',
-        
+
         // Dashboard
         overview: 'Overview',
         page_overview: 'Overview',
@@ -284,7 +284,7 @@ const translations = {
         language: 'Language',
         choose_language: 'Choose Language',
         menu: 'Menu',
-        
+
         // Stats
         total_earnings: 'Total Earnings',
         this_month: 'This Month',
@@ -293,7 +293,7 @@ const translations = {
         direct_level1: 'Direct (Level 1)',
         services_this_month: 'Services This Month',
         recent_commissions: 'Recent Commissions',
-        
+
         // Period Labels
         earnings_period_today: 'Earnings Today',
         earnings_period_3days: 'Earnings Last 3 Days',
@@ -303,7 +303,7 @@ const translations = {
         earnings_period_3months: 'Earnings Last 3 Months',
         earnings_period_year: 'Earnings This Year',
         earnings_period_custom: 'Earnings Period',
-        
+
         // Total Revenue Period Labels
         total_revenue_today: 'Total Revenue Today',
         total_revenue_3days: 'Total Revenue Last 3 Days',
@@ -313,7 +313,7 @@ const translations = {
         total_revenue_3months: 'Total Revenue Last 3 Months',
         total_revenue_year: 'Total Revenue This Year',
         total_revenue_custom: 'Total Revenue Period',
-        
+
         // Commission Period Labels
         commission_period_today: 'Commission Today',
         commission_period_3days: 'Commission Last 3 Days',
@@ -323,7 +323,7 @@ const translations = {
         commission_period_3months: 'Commission Last 3 Months',
         commission_period_year: 'Commission This Year',
         commission_period_custom: 'Commission Period',
-        
+
         services_period_today: 'Services Today',
         services_period_3days: 'Services Last 3 Days',
         services_period_week: 'Services This Week',
@@ -332,7 +332,7 @@ const translations = {
         services_period_3months: 'Services Last 3 Months',
         services_period_year: 'Services This Year',
         services_period_custom: 'Services Period',
-        
+
         // Filters
         from_date: 'From:',
         to_date: 'To:',
@@ -350,7 +350,7 @@ const translations = {
         this_year: 'This Year',
         select_filter_hint: 'Select dates and click Filter to view commissions',
         click_filter_hint: 'Click Filter to view list',
-        
+
         // Commission
         no_commissions: 'No commissions yet',
         no_commissions_period: 'No commissions in this period',
@@ -366,7 +366,7 @@ const translations = {
         date: 'Date',
         transactions: 'Transactions',
         revenue: 'Revenue',
-        
+
         // Network
         your_network: 'Your Team',
         direct_list: 'Direct Referrals List',
@@ -384,7 +384,7 @@ const translations = {
         email_col: 'Email',
         phone_col: 'Phone',
         rank_col: 'Rank',
-        
+
         // Settings / Change Password
         change_password: 'Change Password',
         current_password: 'Current Password',
@@ -397,11 +397,11 @@ const translations = {
         password_changed: 'Password changed successfully!',
         password_mismatch: 'New passwords do not match',
         password_too_short: 'New password must be at least 6 characters',
-        
+
         // Booking Appointments
         booking_appointments: 'Book Appointments',
         page_booking: 'Book Appointments',
-        
+
         // Catalogue
         catalogue: 'Service Catalogue',
         pricing: 'TMV Pricing',
@@ -428,7 +428,7 @@ const translations = {
         customer_name_required: 'Customer name is required',
         customer_phone_required: 'Phone number is required',
         service_interest_required: 'Service of interest is required',
-        
+
         // Phone Check
         phone_check_title: 'Phone Number Check',
         phone_check_placeholder: 'Enter phone number...',
@@ -437,7 +437,7 @@ const translations = {
         duplicate: 'DUPLICATE',
         not_duplicate: 'NOT DUPLICATE',
         phone_short: 'Phone number too short',
-        
+
         // Status
         completed: 'Completed',
         deposited: 'Deposited',
@@ -445,18 +445,18 @@ const translations = {
         pending: 'Pending',
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
-        
+
         // Loading
         loading: 'Loading...',
         no_data: 'No data',
-        
+
         // Service Card Labels
         tong_tien: 'Total:',
         tien_coc: 'Deposit:',
         phai_dong: 'Due:',
         ngay_nhap_don: 'Order Date:',
         ngay_hen_lam: 'Appointment Date:',
-        
+
         // Client Card Labels
         co_so: 'Facility',
         first_visit: 'First Visit',
@@ -469,14 +469,14 @@ const translations = {
         vietnamese: 'Vietnamese',
         english: 'English',
         error_loading_data: 'Error loading data',
-        
+
         // Table Headers
         ten_khach: 'Customer Name',
         sdt: 'Phone Number',
         trang_thai_coc: 'Deposit Status',
         status: 'Status',
         service_count: 'Services',
-        
+
         // Lifetime Statistics
         lifetime_statistics: 'Lifetime Statistics',
         metric: 'Metric',
@@ -486,7 +486,7 @@ const translations = {
         total_network_members: 'Total Team Members',
         total_services_completed: 'Total Services Completed',
         total_revenue_generated: 'Total Revenue Generated',
-        
+
         // Referral Link
         share_referral: 'Share Link',
         referral_link_copied: 'Referral link copied!',
@@ -496,21 +496,37 @@ const translations = {
 
 let currentLang = localStorage.getItem('ctv_language') || 'vi';
 
+// Validate language
+if (!translations[currentLang]) {
+    console.warn(`Language '${currentLang}' not supported, falling back to 'vi'`);
+    currentLang = 'vi';
+    localStorage.setItem('ctv_language', 'vi');
+}
+
 // Translation function
 function t(key) {
+    if (!translations[currentLang]) {
+        return translations['vi'][key] || key;
+    }
     return translations[currentLang][key] || translations['vi'][key] || key;
 }
 
 // Apply translations to DOM
 function applyTranslations() {
+    // Safety check
+    if (!translations[currentLang]) {
+        currentLang = 'vi';
+    }
+    const currentDict = translations[currentLang];
+
     // Update elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (translations[currentLang][key]) {
+        if (currentDict && currentDict[key]) {
             // Check if this is an active date filter button with a date range
             const isActiveFilterButton = el.classList.contains('btn-filter-preset') && el.classList.contains('active');
             const dateRange = el.getAttribute('data-date-range');
-            
+
             // Preserve data-indicator span if it exists
             const indicator = el.querySelector('.data-indicator');
             if (indicator) {
@@ -518,13 +534,13 @@ function applyTranslations() {
                 const indicatorClone = indicator.cloneNode(true);
                 // Clear all content
                 el.innerHTML = '';
-                
+
                 // Add translated text + date range if this is an active filter button
-                let textContent = translations[currentLang][key];
+                let textContent = currentDict[key];
                 if (isActiveFilterButton && dateRange) {
                     textContent = `${textContent} ${dateRange}`;
                 }
-                
+
                 el.appendChild(document.createTextNode(textContent));
                 // Restore the indicator
                 el.appendChild(indicatorClone);
@@ -534,7 +550,7 @@ function applyTranslations() {
                 }
             } else {
                 // For non-button elements or buttons without indicators
-                let textContent = translations[currentLang][key];
+                let textContent = currentDict[key];
                 if (isActiveFilterButton && dateRange) {
                     textContent = `${textContent} ${dateRange}`;
                 }
@@ -542,33 +558,39 @@ function applyTranslations() {
             }
         }
     });
-    
+
     // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
-        if (translations[currentLang][key]) {
-            el.placeholder = translations[currentLang][key];
+        if (currentDict && currentDict[key]) {
+            el.placeholder = currentDict[key];
         }
     });
-    
+
     // Update tooltips (data-tooltip for custom CSS tooltips)
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
         const key = el.getAttribute('data-i18n-title');
-        if (translations[currentLang][key]) {
-            el.setAttribute('data-tooltip', translations[currentLang][key]);
+        if (currentDict && currentDict[key]) {
+            el.setAttribute('data-tooltip', currentDict[key]);
         }
     });
-    
+
     // Update page title
     document.title = currentLang === 'vi' ? 'CTV Portal' : 'CTV Portal';
 }
 
 // Set language
 function setLanguage(lang) {
+    // Validate language
+    if (!translations[lang]) {
+        console.warn(`Language '${lang}' not supported, falling back to 'vi'`);
+        lang = 'vi';
+    }
+
     currentLang = lang;
     localStorage.setItem('ctv_language', lang);
     applyTranslations();
-    
+
     // Update language options in popup (both desktop and mobile)
     document.querySelectorAll('.lang-option').forEach(opt => {
         const isActive = opt.dataset.lang === lang;
@@ -578,7 +600,7 @@ function setLanguage(lang) {
             opt.classList.remove('active');
         }
     });
-    
+
     // Update current language labels (sidebar, mobile menu, header, and login page)
     const langLabel = document.getElementById('currentLangLabel');
     if (langLabel) {
@@ -597,23 +619,23 @@ function setLanguage(lang) {
     if (headerLangLabel) {
         headerLangLabel.textContent = lang.toUpperCase();
     }
-    
+
     // Close any open popups
     const loginToggle = document.getElementById('loginLangToggle');
     if (loginToggle) loginToggle.classList.remove('active');
-    
+
     // Update header language label if function exists
     if (typeof updateHeaderLangLabel === 'function') {
         updateHeaderLangLabel();
     }
-    
+
     // Update page title in header
     const activePage = document.querySelector('.page-section.active');
     if (activePage && typeof updatePageTitle === 'function') {
         const pageId = activePage.id.replace('page-', '');
         updatePageTitle(pageId);
     }
-    
+
     // Re-render dynamic content based on active page
     // NOTE: Don't reload recent commissions on dashboard when language changes
     // It should only reload when date filter changes
