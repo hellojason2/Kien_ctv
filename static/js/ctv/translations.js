@@ -158,6 +158,7 @@ window.translations = {
         // Booking Appointments
         booking_appointments: 'Giới thiệu khách',
         page_booking: 'Giới thiệu khách',
+        book_appointment: 'Giới thiệu khách',
 
         // Catalogue
         catalogue: 'Bảng Giá Dịch Vụ',
@@ -399,8 +400,9 @@ window.translations = {
         password_too_short: 'New password must be at least 6 characters',
 
         // Booking Appointments
-        booking_appointments: 'Book Appointments',
-        page_booking: 'Book Appointments',
+        booking_appointments: 'Refer Customer',
+        page_booking: 'Refer Customer',
+        book_appointment: 'Refer Customer',
 
         // Catalogue
         catalogue: 'Service Catalogue',
