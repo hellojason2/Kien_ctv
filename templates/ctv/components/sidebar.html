@@ -2,11 +2,11 @@
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="sidebar-logo-image" onerror="this.onerror=null; this.src=this.src.replace('.png', '.svg');">
+            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="sidebar-logo-image">
         </div>
         <span class="sidebar-brand" data-i18n="ctv_portal">CTV Portal</span>
     </div>
-    
+
     <div class="sidebar-menu">
         <div class="sidebar-icon active" data-page="dashboard" data-i18n-title="overview">
             <svg viewBox="0 0 24 24">
@@ -18,7 +18,8 @@
             <span data-i18n="overview"></span>
         </div>
         <!-- Share Referral Link - Prominent position at top -->
-        <div class="sidebar-icon sidebar-referral" id="shareReferralBtn" data-i18n-title="share_referral" onclick="copyReferralLink()">
+        <div class="sidebar-icon sidebar-referral" id="shareReferralBtn" data-i18n-title="share_referral"
+            onclick="copyReferralLink()">
             <svg viewBox="0 0 24 24">
                 <circle cx="18" cy="5" r="3"></circle>
                 <circle cx="6" cy="12" r="3"></circle>
@@ -28,104 +29,112 @@
             </svg>
             <span data-i18n="share_referral"></span>
         </div>
-    <div class="sidebar-icon" data-page="earnings" data-i18n-title="earnings">
-        <svg viewBox="0 0 24 24">
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-        <span data-i18n="earnings"></span>
-    </div>
-    <div class="sidebar-icon" data-page="network" data-i18n-title="network">
-        <svg viewBox="0 0 24 24">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        <span data-i18n="network"></span>
-    </div>
-    <div class="sidebar-icon" data-page="clients" data-i18n-title="customers">
-        <svg viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span data-i18n="customers"></span>
-    </div>
-    <div class="sidebar-icon" data-page="booking" data-i18n-title="booking_appointments">
-        <svg viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
-        </svg>
-        <span data-i18n="booking_appointments"></span>
-    </div>
-    <!-- Catalogue Button - Opens in new tab -->
-    <div class="sidebar-icon sidebar-catalogue" onclick="window.open('/catalogue', '_blank')" data-i18n-title="catalogue">
-        <svg viewBox="0 0 24 24">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            <line x1="8" y1="6" x2="16" y2="6"></line>
-            <line x1="8" y1="10" x2="16" y2="10"></line>
-            <line x1="8" y1="14" x2="12" y2="14"></line>
-        </svg>
-        <span data-i18n="catalogue"></span>
-    </div>
-    <!-- Pricing Button - Opens in new tab -->
-    <div class="sidebar-icon sidebar-pricing" onclick="window.open('/bang-gia', '_blank')" data-i18n-title="pricing">
-        <svg viewBox="0 0 24 24">
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-        <span data-i18n="pricing"></span>
-    </div>
-    <div class="sidebar-icon" data-page="settings" data-i18n-title="settings">
-        <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        <span data-i18n="settings"></span>
-    </div>
-    <!-- Language Switcher -->
-    <div class="sidebar-lang" id="langSwitcher">
-        <div class="sidebar-icon" data-i18n-title="language">
+        <div class="sidebar-icon" data-page="earnings" data-i18n-title="earnings">
             <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
-            <span data-i18n="language"></span>
-            <span class="lang-current" id="currentLangLabel">VI</span>
+            <span data-i18n="earnings"></span>
         </div>
-        <div class="lang-popup">
-            <div class="lang-popup-title" data-i18n="choose_language"></div>
-            <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
+        <div class="sidebar-icon" data-page="network" data-i18n-title="network">
+            <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span data-i18n="network"></span>
+        </div>
+        <div class="sidebar-icon" data-page="clients" data-i18n-title="customers">
+            <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span data-i18n="customers"></span>
+        </div>
+        <div class="sidebar-icon" data-page="booking" data-i18n-title="booking_appointments">
+            <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
+            </svg>
+            <span data-i18n="booking_appointments"></span>
+        </div>
+        <!-- Catalogue Button - Opens in new tab -->
+        <div class="sidebar-icon sidebar-catalogue" onclick="window.open('/catalogue', '_blank')"
+            data-i18n-title="catalogue">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="8" y1="10" x2="16" y2="10"></line>
+                <line x1="8" y1="14" x2="12" y2="14"></line>
+            </svg>
+            <span data-i18n="catalogue"></span>
+        </div>
+        <!-- Pricing Button - Opens in new tab -->
+        <div class="sidebar-icon sidebar-pricing" onclick="window.open('/bang-gia', '_blank')"
+            data-i18n-title="pricing">
+            <svg viewBox="0 0 24 24">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span data-i18n="pricing"></span>
+        </div>
+        <div class="sidebar-icon" data-page="settings" data-i18n-title="settings">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+            <span data-i18n="settings"></span>
+        </div>
+        <!-- Language Switcher -->
+        <div class="sidebar-lang" id="langSwitcher">
+            <div class="sidebar-icon" data-i18n-title="language">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
+                </svg>
+                <span data-i18n="language"></span>
+                <span class="lang-current" id="currentLangLabel">VI</span>
+            </div>
+            <div class="lang-popup">
+                <div class="lang-popup-title" data-i18n="choose_language"></div>
+                <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi')">
                     <span class="lang-flag">VN</span>
                     <span class="lang-name" data-i18n="vietnamese"></span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
                 <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
                     <span class="lang-flag">US</span>
                     <span class="lang-name" data-i18n="english"></span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
+            </div>
+        </div>
+        <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout">
+            <svg viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span data-i18n="logout"></span>
         </div>
     </div>
-    <div class="sidebar-icon sidebar-logout" id="logoutBtn" data-i18n-title="logout">
-        <svg viewBox="0 0 24 24">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-        <span data-i18n="logout"></span>
-    </div>
-    </div>
-    
+
     <!-- Mobile Menu Button (only visible on mobile) -->
     <div class="mobile-menu-btn" id="mobileMenuBtn">
         <svg viewBox="0 0 24 24">
@@ -160,7 +169,8 @@
                 <span data-i18n="overview"></span>
             </div>
             <!-- Share Referral Link - Prominent position at top -->
-            <div class="mobile-menu-item mobile-referral" id="mobileShareReferralBtn" data-i18n-title="share_referral" onclick="copyReferralLink(); closeMobileMenu();">
+            <div class="mobile-menu-item mobile-referral" id="mobileShareReferralBtn" data-i18n-title="share_referral"
+                onclick="copyReferralLink(); closeMobileMenu();">
                 <svg viewBox="0 0 24 24">
                     <circle cx="18" cy="5" r="3"></circle>
                     <circle cx="6" cy="12" r="3"></circle>
@@ -188,8 +198,8 @@
             </div>
             <div class="mobile-menu-item" data-page="clients" data-i18n-title="customers">
                 <svg viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                 </svg>
                 <span data-i18n="customers"></span>
             </div>
@@ -204,7 +214,8 @@
                 <span data-i18n="booking_appointments"></span>
             </div>
             <!-- Catalogue Button - Mobile -->
-            <div class="mobile-menu-item mobile-catalogue" onclick="window.open('/catalogue', '_blank'); closeMobileMenu();" data-i18n-title="catalogue">
+            <div class="mobile-menu-item mobile-catalogue"
+                onclick="window.open('/catalogue', '_blank'); closeMobileMenu();" data-i18n-title="catalogue">
                 <svg viewBox="0 0 24 24">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -215,7 +226,8 @@
                 <span data-i18n="catalogue"></span>
             </div>
             <!-- Pricing Button - Mobile -->
-            <div class="mobile-menu-item mobile-pricing" onclick="window.open('/bang-gia', '_blank'); closeMobileMenu();" data-i18n-title="pricing">
+            <div class="mobile-menu-item mobile-pricing"
+                onclick="window.open('/bang-gia', '_blank'); closeMobileMenu();" data-i18n-title="pricing">
                 <svg viewBox="0 0 24 24">
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -225,7 +237,9 @@
             <div class="mobile-menu-item" data-page="settings" data-i18n-title="settings">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
                 </svg>
                 <span data-i18n="settings"></span>
             </div>
@@ -236,7 +250,9 @@
                     <svg viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
                     </svg>
                     <span data-i18n="language"></span>
                     <span class="mobile-lang-current" id="mobileCurrentLangLabel">VI</span>
@@ -246,14 +262,16 @@
                     <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi'); closeMobileMenu();">
                         <span class="lang-flag">VN</span>
                         <span class="lang-name" data-i18n="vietnamese"></span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="3">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
                     <div class="lang-option" data-lang="en" onclick="selectLanguage('en'); closeMobileMenu();">
                         <span class="lang-flag">US</span>
                         <span class="lang-name" data-i18n="english"></span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="3">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
@@ -271,4 +289,3 @@
         </div>
     </div>
 </div>
-

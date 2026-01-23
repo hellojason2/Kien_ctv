@@ -4,22 +4,24 @@
         <!-- Left: Menu Toggle -->
         <div class="header-left">
             <button class="header-menu-btn" id="headerMenuBtn" aria-label="Menu">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
             <div class="header-logo">
-                <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="logo-image" onerror="this.onerror=null; this.src=this.src.replace('.png', '.svg');">
+                <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="logo-image">
             </div>
             <span class="header-brand">CTV Portal</span>
         </div>
-        
+
         <!-- Center: Quick Action Buttons -->
         <div class="header-actions">
             <button class="header-action-btn action-signup" id="headerSignupBtn" onclick="copyReferralLink()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <circle cx="18" cy="5" r="3"></circle>
                     <circle cx="6" cy="12" r="3"></circle>
                     <circle cx="18" cy="19" r="3"></circle>
@@ -29,7 +31,8 @@
                 <span data-i18n="share_referral">Chia Sẻ Link</span>
             </button>
             <button class="header-action-btn action-booking" data-page="booking">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -38,7 +41,7 @@
                 <span data-i18n="booking_appointments">Đặt Lịch</span>
             </button>
         </div>
-        
+
         <!-- Right: User Info -->
         <div class="header-right">
             <div class="header-user" id="headerUser">
@@ -46,10 +49,13 @@
                 <span class="user-badge" id="userLevel">-</span>
             </div>
             <button class="header-lang-btn" id="headerLangBtn" onclick="toggleHeaderLang(event)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
                 </svg>
                 <span class="header-lang-label" id="headerLangLabel">VI</span>
             </button>
@@ -58,14 +64,16 @@
                 <div class="lang-option" data-lang="vi" onclick="selectLanguage('vi'); closeHeaderLang();">
                     <span class="lang-flag">VN</span>
                     <span class="lang-name" data-i18n="vietnamese">Tiếng Việt</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
                 <div class="lang-option" data-lang="en" onclick="selectLanguage('en'); closeHeaderLang();">
                     <span class="lang-flag">US</span>
                     <span class="lang-name" data-i18n="english">English</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="3">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
@@ -78,7 +86,8 @@
 <header class="header" style="display: none;">
     <div class="header-left">
         <div class="header-logo">
-            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm Thẩm Mỹ Viện" class="logo-image">
+            <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm Thẩm Mỹ Viện"
+                class="logo-image">
         </div>
         <span class="header-title">CTV Portal</span>
         <span class="header-page-title" id="headerPageTitle"></span>
@@ -88,4 +97,3 @@
         <span class="user-badge">-</span>
     </div>
 </header>
-
