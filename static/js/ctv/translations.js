@@ -5,7 +5,7 @@
  * FLOW: Loaded first, used by all modules for text display
  */
 
-const translations = {
+window.translations = {
     vi: {
         // Login
         login_subtitle: 'Đăng nhập để xem hoa hồng và team',
@@ -494,30 +494,30 @@ const translations = {
     }
 };
 
-let currentLang = localStorage.getItem('ctv_language') || 'vi';
+window.currentLang = localStorage.getItem('ctv_language') || 'vi';
 
 // Validate language
-if (!translations[currentLang]) {
-    console.warn(`Language '${currentLang}' not supported, falling back to 'vi'`);
-    currentLang = 'vi';
+if (!window.translations[window.currentLang]) {
+    console.warn(`Language '${window.currentLang}' not supported, falling back to 'vi'`);
+    window.currentLang = 'vi';
     localStorage.setItem('ctv_language', 'vi');
 }
 
 // Translation function
-function t(key) {
-    if (!translations[currentLang]) {
-        return translations['vi'][key] || key;
+window.t = function (key) {
+    if (!window.translations[window.currentLang]) {
+        return window.translations['vi'][key] || key;
     }
-    return translations[currentLang][key] || translations['vi'][key] || key;
+    return window.translations[window.currentLang][key] || window.translations['vi'][key] || key;
 }
 
 // Apply translations to DOM
-function applyTranslations() {
+window.applyTranslations = function () {
     // Safety check
-    if (!translations[currentLang]) {
-        currentLang = 'vi';
+    if (!window.translations[window.currentLang]) {
+        window.currentLang = 'vi';
     }
-    const currentDict = translations[currentLang];
+    const currentDict = window.translations[window.currentLang];
 
     // Update elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -576,20 +576,20 @@ function applyTranslations() {
     });
 
     // Update page title
-    document.title = currentLang === 'vi' ? 'CTV Portal' : 'CTV Portal';
+    document.title = window.currentLang === 'vi' ? 'CTV Portal' : 'CTV Portal';
 }
 
 // Set language
-function setLanguage(lang) {
+window.setLanguage = function (lang) {
     // Validate language
-    if (!translations[lang]) {
+    if (!window.translations[lang]) {
         console.warn(`Language '${lang}' not supported, falling back to 'vi'`);
         lang = 'vi';
     }
 
-    currentLang = lang;
+    window.currentLang = lang;
     localStorage.setItem('ctv_language', lang);
-    applyTranslations();
+    window.applyTranslations();
 
     // Update language options in popup (both desktop and mobile)
     document.querySelectorAll('.lang-option').forEach(opt => {
@@ -656,7 +656,7 @@ function setLanguage(lang) {
 }
 
 // Toggle language popup (sidebar)
-function toggleLangPopup(e) {
+window.toggleLangPopup = function (e) {
     e.stopPropagation();
     const switcher = document.getElementById('langSwitcher');
     switcher.classList.toggle('active');
@@ -666,15 +666,15 @@ function toggleLangPopup(e) {
 }
 
 // Toggle language popup (login page)
-function toggleLoginLangPopup(e) {
+window.toggleLoginLangPopup = function (e) {
     e.stopPropagation();
     const toggle = document.getElementById('loginLangToggle');
     toggle.classList.toggle('active');
 }
 
 // Select language from popup
-function selectLanguage(lang) {
-    setLanguage(lang);
+window.selectLanguage = function (lang) {
+    window.setLanguage(lang);
     // Close the popup (desktop)
     const langSwitcher = document.getElementById('langSwitcher');
     if (langSwitcher) langSwitcher.classList.remove('active');
@@ -684,7 +684,7 @@ function selectLanguage(lang) {
 }
 
 // Get current language
-function getCurrentLang() {
-    return currentLang;
+window.getCurrentLang = function () {
+    return window.currentLang;
 }
 
