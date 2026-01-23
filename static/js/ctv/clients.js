@@ -91,15 +91,8 @@ async function loadCtvClientsWithServices() {
 function sortCtvServicesConsultingFirst(services) {
     if (!services || services.length === 0) return services;
     
-    return [...services].sort((a, b) => {
-        // Consulting sources (nha_khoa, gioi_thieu) should come first
-        const aIsConsulting = a.is_consulting || a.source === 'nha_khoa' || a.source === 'gioi_thieu' || a.source_type === 'nha_khoa' || a.source_type === 'gioi_thieu';
-        const bIsConsulting = b.is_consulting || b.source === 'nha_khoa' || b.source === 'gioi_thieu' || b.source_type === 'nha_khoa' || b.source_type === 'gioi_thieu';
-        
-        if (aIsConsulting && !bIsConsulting) return -1;
-        if (!aIsConsulting && bIsConsulting) return 1;
-        return 0;
-    });
+    // Default sort by date - removed consulting priority
+    return [...services];
 }
 
 // Render client cards
@@ -132,36 +125,39 @@ function renderCtvClientCards(clients) {
 function renderCtvClientCard(client) {
     const initials = getCtvInitials(client.ten_khach);
     
-    // Check if client has any consulting services
-    const hasConsultingServices = client.is_consulting || 
-        (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu' || s.source_type === 'nha_khoa' || s.source_type === 'gioi_thieu'));
-    
     // Sort services to show consulting first
     const sortedServices = sortCtvServicesConsultingFirst(client.services);
     
     // Convert services to table rows
     const servicesRows = sortedServices.map((svc, idx) => {
         
-        // Check if this is a consulting service
-        const isConsulting = svc.is_consulting || svc.source === 'nha_khoa' || svc.source === 'gioi_thieu' || svc.source_type === 'nha_khoa' || svc.source_type === 'gioi_thieu';
-        const consultingSvcBadge = isConsulting 
-            ? `<span class="mini-badge consulting" style="background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; margin-left: 4px;">${t('consulting') || 'Consulting'}</span>` 
-            : '';
-            
         const dateDisplay = svc.ngay_hen_lam || svc.ngay_nhap_don || '-';
         
+        // Helper to get status class
+        const getStatusClass = (status) => {
+            if (!status) return '';
+            const s = status.toLowerCase().trim();
+            if (s === 'huy' || s === 'cancelled') return 'cancel';
+            if (s === 'cho xac nhan' || s === 'pending') return 'pending';
+            if (s === 'dang tu van' || s === 'consulting') return 'consulting';
+            if (s === 'da den lam' || s === 'completed') return 'completed';
+            if (s === 'da coc' || s === 'deposited') return 'deposited';
+            return '';
+        };
+
+        const statusClass = getStatusClass(svc.trang_thai);
+        
         return `
-            <tr class="${isConsulting ? 'consulting-row' : ''}">
+            <tr>
                 <td>
                     <div class="svc-index">${idx + 1}</div>
                 </td>
                 <td>
                     <div class="svc-name">${escapeHtmlCTV(svc.dich_vu || t('unknown_service'))}</div>
-                    ${consultingSvcBadge}
                 </td>
                 <td>
                     <div class="svc-date">${dateDisplay}</div>
-                    <div class="svc-status ${svc.trang_thai === 'Huy' ? 'cancel' : ''}">${escapeHtmlCTV(svc.trang_thai || '-')}</div>
+                    <div class="svc-status ${statusClass}">${escapeHtmlCTV(svc.trang_thai || '-')}</div>
                 </td>
                 <td class="text-right">
                     <div class="svc-price">${formatCtvCurrency(svc.tong_tien)}</div>
@@ -172,7 +168,7 @@ function renderCtvClientCard(client) {
     }).join('');
     
     return `
-        <div class="client-card${hasConsultingServices ? ' consulting-client' : ''}">
+        <div class="client-card">
             <div class="client-card-header">
                 <div class="client-avatar">${initials}</div>
                 <div class="client-main-info">
@@ -263,12 +259,8 @@ function renderCtvClientTable(clients) {
                         // Show overall status if available
                         const totalAmount = getClientTotal(client);
                         
-                        // Check if client has any consulting services
-                        const hasConsultingServices = client.is_consulting || 
-                            (client.services && client.services.some(s => s.is_consulting || s.source === 'nha_khoa' || s.source === 'gioi_thieu' || s.source_type === 'nha_khoa' || s.source_type === 'gioi_thieu'));
-                        
                         return `
-                            <tr class="${hasConsultingServices ? 'consulting-row' : ''}">
+                            <tr>
                                 <td class="col-name">${escapeHtmlCTV(client.ten_khach || '-')}</td>
                                 <td class="col-phone">${escapeHtmlCTV(client.sdt || '-')}</td>
                                 <td class="col-location">${escapeHtmlCTV(client.co_so || '-')}</td>
@@ -300,4 +292,3 @@ function initClientSearch() {
         }
     }
 }
-

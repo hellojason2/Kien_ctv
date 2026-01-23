@@ -202,7 +202,6 @@ const translations = {
         pending: 'Chờ xác nhận',
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
-        consulting: 'Đang tư vấn',
         
         // Loading
         loading: 'Đang tải...',
@@ -446,7 +445,6 @@ const translations = {
         pending: 'Pending',
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
-        consulting: 'Consulting',
         
         // Loading
         loading: 'Loading...',
