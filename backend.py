@@ -323,4 +323,20 @@ if __name__ == '__main__':
     print(f"http://localhost:{port}")
     print("=" * 50 + "\n")
     debug = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    
+    # On macOS, port 5000 is often used by AirPlay Receiver (ControlCenter)
+    # Try to kill it multiple times if we're using port 5000
+    if port == 5000:
+        import subprocess
+        import time
+        # Kill ControlCenter multiple times to ensure it stays dead
+        for _ in range(3):
+            try:
+                subprocess.run(['killall', '-9', 'ControlCenter'], 
+                             capture_output=True, timeout=1, check=False)
+                time.sleep(0.3)
+            except Exception:
+                pass
+        time.sleep(0.5)  # Final delay to let port be released
+    
     app.run(host='0.0.0.0', port=port, debug=debug)

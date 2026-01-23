@@ -122,7 +122,18 @@ class GoogleSheetSync:
         except ValueError: return 0
 
     def clean_phone(self, phone):
+        """
+        Clean phone number to digits only, preserving trailing zeros.
+        This function extracts all digits from the phone number and preserves
+        any trailing zeros that are part of the original number.
+        
+        Examples:
+            "09720208810" -> "09720208810" (trailing zero preserved)
+            "097202088100" -> "097202088100" (trailing zeros preserved)
+            "097-202-0881" -> "0972020881" (non-digits removed, trailing zeros preserved)
+        """
         if not phone: return None
+        # Extract all digits, preserving trailing zeros
         cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
         return cleaned[:15] if cleaned else None
 

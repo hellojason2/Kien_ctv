@@ -6,10 +6,11 @@
  */
 
 // Check phone duplicate on booking page
+// Note: .trim() only removes whitespace, trailing zeros in phone numbers are preserved
 async function checkBookingPhone() {
     const input = document.getElementById('bookingCustomerPhone');
     const result = document.getElementById('bookingPhoneResult');
-    const phone = input.value.trim();
+    const phone = input.value.trim(); // Preserves trailing zeros
     
     if (!phone || phone.length < 8) {
         result.textContent = t('phone_short') || 'Số điện thoại quá ngắn';
@@ -51,8 +52,9 @@ function initBooking() {
     bookingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Note: .trim() only removes whitespace, trailing zeros in phone numbers are preserved
         const customerName = document.getElementById('bookingCustomerName').value.trim();
-        const customerPhone = document.getElementById('bookingCustomerPhone').value.trim();
+        const customerPhone = document.getElementById('bookingCustomerPhone').value.trim(); // Preserves trailing zeros
         const serviceInterest = document.getElementById('bookingServiceInterest').value.trim();
         const notes = document.getElementById('bookingNotes').value.trim();
         const region = document.getElementById('bookingRegion').value;
@@ -134,9 +136,11 @@ function initBooking() {
 }
 
 // Update referrer phone field with current user's CTV code or phone
+// Note: Trailing zeros in phone numbers are preserved when setting the value
 function updateBookingReferrerPhone() {
     const referrerPhoneInput = document.getElementById('bookingReferrerPhone');
     if (referrerPhoneInput && typeof currentUser !== 'undefined' && currentUser) {
+        // Preserve trailing zeros from database values
         referrerPhoneInput.value = currentUser.ma_ctv || currentUser.sdt || '';
     }
 }

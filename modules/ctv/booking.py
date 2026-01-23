@@ -31,9 +31,19 @@ logger = logging.getLogger(__name__)
 
 
 def clean_phone(phone):
-    """Clean phone number to digits only"""
+    """
+    Clean phone number to digits only, preserving trailing zeros.
+    This function extracts all digits from the phone number and preserves
+    any trailing zeros that are part of the original number.
+    
+    Examples:
+        "09720208810" -> "09720208810" (trailing zero preserved)
+        "097202088100" -> "097202088100" (trailing zeros preserved)
+        "097-202-0881" -> "0972020881" (non-digits removed, trailing zeros preserved)
+    """
     if not phone:
         return None
+    # Extract all digits, preserving trailing zeros
     cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
     return cleaned[:15] if cleaned else None
 
@@ -122,16 +132,21 @@ def append_to_google_sheet(booking_data, referrer_phone):
         # Format date as DD/MM/YYYY for Google Sheets
         today = datetime.now().strftime('%d/%m/%Y')
         
+        # Format phone numbers as text strings to preserve leading zeros
+        # Prepend apostrophe to force Google Sheets to treat as text (apostrophe won't be visible in cell)
+        customer_phone_text = f"'{booking_data.get('customer_phone', '')}" if booking_data.get('customer_phone') else ''
+        referrer_phone_text = f"'{referrer_phone}" if referrer_phone else ''
+        
         # Build the row to append
         # Columns: Ngày nhập đơn, Tên khách hàng, Số điện thoại, Dịch vụ Quan tâm, Ghi chú, Khu vực của khách hàng, SDT người giới thiệu
         row = [
             today,                                      # Ngày nhập đơn
             booking_data['customer_name'],              # Tên khách hàng
-            booking_data['customer_phone'],             # Số điện thoại
+            customer_phone_text,                        # Số điện thoại (as text to preserve leading zeros)
             booking_data['service_interest'],           # Dịch vụ Quan tâm
             booking_data.get('notes', ''),              # Ghi chú
             booking_data.get('region', ''),             # Khu vực của khách hàng
-            referrer_phone                              # SDT người giới thiệu
+            referrer_phone_text                          # SDT người giới thiệu (as text to preserve leading zeros)
         ]
         
         worksheet.append_row(row, value_input_option='USER_ENTERED')
@@ -237,6 +252,7 @@ def create_booking():
         return jsonify({'status': 'error', 'message': 'Invalid customer phone number'}), 400
     
     # Get referrer phone (CTV's ma_ctv, which is typically their phone number)
+    # Note: Trailing zeros are preserved from database values
     referrer_phone = ctv.get('ma_ctv', '')
     if not referrer_phone:
         referrer_phone = ctv.get('sdt', '')

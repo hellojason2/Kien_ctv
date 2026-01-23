@@ -334,13 +334,14 @@
             successMsg.style.display = 'none';
             
             // Get form data
+            // Note: .trim() only removes whitespace, trailing zeros in phone numbers are preserved
             const data = {
                 customer_name: document.getElementById('customerName').value.trim(),
-                customer_phone: document.getElementById('customerPhone').value.trim(),
+                customer_phone: document.getElementById('customerPhone').value.trim(), // Preserves trailing zeros
                 service_interest: document.getElementById('serviceInterest').value.trim(),
                 notes: document.getElementById('notes').value.trim(),
                 region: document.getElementById('region').value,
-                referrer_phone: document.getElementById('referrerPhone').value.trim()
+                referrer_phone: document.getElementById('referrerPhone').value.trim() // Preserves trailing zeros
             };
             
             // Validate

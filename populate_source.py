@@ -62,7 +62,13 @@ def get_db_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 def clean_phone(phone):
+    """
+    Clean phone number to digits only, preserving trailing zeros.
+    This function extracts all digits from the phone number and preserves
+    any trailing zeros that are part of the original number.
+    """
     if not phone: return None
+    # Extract all digits, preserving trailing zeros
     cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
     return cleaned[:15] if cleaned else None
 

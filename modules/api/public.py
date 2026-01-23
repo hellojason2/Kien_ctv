@@ -13,9 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 def clean_phone(phone):
-    """Clean phone number to digits only"""
+    """
+    Clean phone number to digits only, preserving trailing zeros.
+    This function extracts all digits from the phone number and preserves
+    any trailing zeros that are part of the original number.
+    
+    Examples:
+        "09720208810" -> "09720208810" (trailing zero preserved)
+        "097202088100" -> "097202088100" (trailing zeros preserved)
+        "097-202-0881" -> "0972020881" (non-digits removed, trailing zeros preserved)
+    """
     if not phone:
         return None
+    # Extract all digits, preserving trailing zeros
     cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
     return cleaned[:15] if cleaned else None
 
@@ -54,7 +64,7 @@ def create_public_booking():
     if not cleaned_phone or len(cleaned_phone) < 8:
         return jsonify({'status': 'error', 'message': 'Invalid customer phone number'}), 400
     
-    # Clean referrer phone if provided
+    # Clean referrer phone if provided (preserves trailing zeros)
     cleaned_referrer = clean_phone(referrer_phone) if referrer_phone else ''
     
     # Save to database

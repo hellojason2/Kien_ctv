@@ -40,10 +40,14 @@ def parse_date(s):
     return None
 
 def clean_phone(phone):
-    """Clean phone number - remove non-digits, normalize"""
+    """
+    Clean phone number - remove non-digits, preserving trailing zeros.
+    This function extracts all digits from the phone number and preserves
+    any trailing zeros that are part of the original number.
+    """
     if not phone:
         return None
-    # Keep only digits
+    # Keep only digits, preserving trailing zeros
     cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
     return cleaned if cleaned else None
 

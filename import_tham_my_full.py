@@ -90,7 +90,13 @@ def parse_money(value):
     except ValueError: return 0
 
 def clean_phone(phone):
+    """
+    Clean phone number to digits only, preserving trailing zeros.
+    This function extracts all digits from the phone number and preserves
+    any trailing zeros that are part of the original number.
+    """
     if not phone: return None
+    # Extract all digits, preserving trailing zeros
     cleaned = ''.join(c for c in str(phone).strip() if c.isdigit())
     return cleaned[:15] if cleaned else None
 
