@@ -7,29 +7,30 @@
  * Load signup terms from database
  */
 async function loadSignupTerms() {
-    try {
-        const response = await fetch(`/api/admin/signup-terms/active?language=${currentLang}`);
-        const result = await response.json();
-        
-        if (result.status === 'success' && result.term) {
-            // Update terms title
-            const termsTitle = document.querySelector('#termsModal h2[data-i18n="terms_title"]');
-            if (termsTitle) {
-                termsTitle.textContent = result.term.title;
-            }
-            
-            // Update terms content
-            const termsContent = document.querySelector('#termsModal .terms-content');
-            if (termsContent) {
-                termsContent.innerHTML = result.term.content;
-            }
-        } else {
-            console.warn('No active terms found, using default terms');
-        }
-    } catch (error) {
-        console.error('Failed to load terms:', error);
-        // Keep default terms if loading fails
-    }
+    // Disabled to use hardcoded terms from template
+    // try {
+    //     const response = await fetch(`/api/admin/signup-terms/active?language=${currentLang}`);
+    //     const result = await response.json();
+    //     
+    //     if (result.status === 'success' && result.term) {
+    //         // Update terms title
+    //         const termsTitle = document.querySelector('#termsModal h2[data-i18n="terms_title"]');
+    //         if (termsTitle) {
+    //             termsTitle.textContent = result.term.title;
+    //         }
+    //         
+    //         // Update terms content
+    //         const termsContent = document.querySelector('#termsModal .terms-content');
+    //         if (termsContent) {
+    //             termsContent.innerHTML = result.term.content;
+    //         }
+    //     } else {
+    //         console.warn('No active terms found, using default terms');
+    //     }
+    // } catch (error) {
+    //     console.error('Failed to load terms:', error);
+    //     // Keep default terms if loading fails
+    // }
 }
 
 // Simple translations
@@ -151,27 +152,27 @@ function t(key) {
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('ctv_language', lang);
-    
+
     // Update language label
     document.getElementById('loginLangLabel').textContent = lang.toUpperCase();
-    
+
     // Update all elements with data-i18n
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         el.textContent = t(key);
     });
-    
+
     // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         el.placeholder = t(key);
     });
-    
+
     // Update active language option
     document.querySelectorAll('.lang-option').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
-    
+
     // Reload terms in the selected language
     loadSignupTerms();
 }
@@ -206,34 +207,34 @@ function debounce(func, wait) {
 async function checkReferrerPhone(phone) {
     const referrerInput = document.getElementById('referrerCode');
     const formGroup = referrerInput.closest('.form-group');
-    
+
     // Remove any existing validation message
     let validationMsg = formGroup.querySelector('.validation-msg');
     if (validationMsg) {
         validationMsg.remove();
     }
-    
+
     // Clear any existing state classes
     referrerInput.classList.remove('input-valid', 'input-invalid', 'input-checking');
-    
+
     if (!phone || phone.trim() === '') {
         return;
     }
-    
+
     // Clean phone number
     const phoneDigits = phone.replace(/\D/g, '');
-    
+
     if (phoneDigits.length < 8) {
         return; // Too short, don't validate yet
     }
-    
+
     // Show checking state
     referrerInput.classList.add('input-checking');
     validationMsg = document.createElement('div');
     validationMsg.className = 'validation-msg checking';
     validationMsg.textContent = t('checking') || 'Checking...';
     formGroup.appendChild(validationMsg);
-    
+
     try {
         const response = await fetch('/api/ctv/check-referrer-phone', {
             method: 'POST',
@@ -244,15 +245,15 @@ async function checkReferrerPhone(phone) {
                 phone: phone
             })
         });
-        
+
         const data = await response.json();
-        
+
         // Remove checking state
         referrerInput.classList.remove('input-checking');
         if (validationMsg) {
             validationMsg.remove();
         }
-        
+
         if (data.status === 'success') {
             if (data.exists) {
                 // Valid referrer phone
@@ -286,32 +287,32 @@ const debouncedCheckReferrer = debounce(checkReferrerPhone, 500);
 let termsShown = false; // Track if terms have been shown
 
 // Make functions global for HTML onclick access
-window.openTermsModal = function(event) {
+window.openTermsModal = function (event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
-    
+
     console.log('Global openTermsModal called');
 
     const modal = document.getElementById('termsModal');
-    
+
     if (!modal) {
         console.error('Terms modal not found');
         alert('Lỗi: Không tìm thấy khung điều khoản. Vui lòng tải lại trang.');
         return;
     }
-    
+
     // FORCE SHOW MODAL - Direct Style Manipulation
     modal.classList.add('show');
     modal.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important;';
-    
+
     // Fix body
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.top = '0';
-    
+
     return false;
 };
 
@@ -320,14 +321,14 @@ function openTermsModal() {
     return window.openTermsModal();
 }
 
-window.closeTermsModal = function() {
+window.closeTermsModal = function () {
     const modal = document.getElementById('termsModal');
     if (!modal) return;
-    
+
     modal.classList.remove('show');
     modal.style.display = 'none'; // Explicitly hide
     modal.style.cssText = ''; // Clear inline styles
-    
+
     // Reset body styles for mobile
     document.body.style.overflow = '';
     document.body.style.position = '';
@@ -338,15 +339,15 @@ window.closeTermsModal = function() {
 // Signup form submission
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const errorMsg = document.getElementById('signupError');
     const successMsg = document.getElementById('signupSuccess');
     const submitBtn = document.getElementById('signupBtn');
-    
+
     // Hide messages
     errorMsg.style.display = 'none';
     successMsg.style.display = 'none';
-    
+
     // Get form values
     const lastName = document.getElementById('lastName').value.trim();
     const firstName = document.getElementById('firstName').value.trim();
@@ -359,26 +360,26 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     const referrerCode = document.getElementById('referrerCode').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
+
     // Validation
     if (!lastName || !firstName || !phoneNumber || !password || !confirmPassword) {
         errorMsg.textContent = t('signup_error');
         errorMsg.style.display = 'block';
         return;
     }
-    
+
     if (password.length < 6) {
         errorMsg.textContent = t('password_too_short');
         errorMsg.style.display = 'block';
         return;
     }
-    
+
     if (password !== confirmPassword) {
         errorMsg.textContent = t('password_mismatch');
         errorMsg.style.display = 'block';
         return;
     }
-    
+
     // Phone validation (basic)
     const phoneDigits = phoneNumber.replace(/\D/g, '');
     if (phoneDigits.length < 9 || phoneDigits.length > 11) {
@@ -386,11 +387,11 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         errorMsg.style.display = 'block';
         return;
     }
-    
+
     // Disable button and show loading
     submitBtn.disabled = true;
     submitBtn.textContent = t('submitting');
-    
+
     try {
         const response = await fetch('/api/ctv/signup', {
             method: 'POST',
@@ -408,17 +409,17 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
                 password: password
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'success') {
             // Show success message
             successMsg.textContent = t('signup_success');
             successMsg.style.display = 'block';
-            
+
             // Clear form
             document.getElementById('signupForm').reset();
-            
+
             // Redirect to login after 3 seconds
             setTimeout(() => {
                 window.location.href = '/ctv/portal';
@@ -452,11 +453,11 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLang);
     loadSignupTerms(); // Load terms from database
-    
+
     // Check for referral link parameter
     const urlParams = new URLSearchParams(window.location.search);
     const refPhone = urlParams.get('ref');
-    
+
     const referrerInput = document.getElementById('referrerCode');
     if (refPhone && referrerInput) {
         // Pre-fill the referrer phone number from URL
@@ -467,21 +468,21 @@ document.addEventListener('DOMContentLoaded', () => {
         referrerInput.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
         referrerInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
     }
-    
+
     // Auto-show terms modal on first visit
     if (!termsShown) {
         termsShown = true;
         // Show modal after a brief delay to ensure page is loaded
         setTimeout(() => {
             window.openTermsModal();
-            
+
             // Auto-close after 3 seconds
             setTimeout(() => {
                 window.closeTermsModal();
             }, 3000);
         }, 500);
     }
-    
+
     // Attach real-time validation to referrer code input
     if (referrerInput) {
         referrerInput.addEventListener('input', (e) => {
@@ -491,20 +492,20 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.style.borderColor = '';
         });
     }
-    
+
     // Terms modal event listeners
     const closeTermsModal_btn = document.getElementById('closeTermsModal');
     const closeTermsBtn = document.getElementById('closeTermsBtn');
     const termsModal = document.getElementById('termsModal');
-    
+
     if (closeTermsModal_btn) {
         closeTermsModal_btn.addEventListener('click', window.closeTermsModal);
     }
-    
+
     if (closeTermsBtn) {
         closeTermsBtn.addEventListener('click', window.closeTermsModal);
     }
-    
+
     // Close modal when clicking outside
     if (termsModal) {
         termsModal.addEventListener('click', (e) => {
