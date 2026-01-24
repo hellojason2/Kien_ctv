@@ -161,7 +161,7 @@ window.translations = {
         book_appointment: 'Giới thiệu khách',
 
         // Catalogue
-        catalogue: 'Bảng Giá Dịch Vụ',
+        catalogue: 'Catalog',
         pricing: 'Bảng Giá TMV',
         booking_form_title: 'Thông Tin Khách Hàng',
         booking_form_subtitle: 'Bạn vui lòng nhập thông tin khách hàng tại đây',
@@ -405,7 +405,7 @@ window.translations = {
         book_appointment: 'Refer Customer',
 
         // Catalogue
-        catalogue: 'Service Catalogue',
+        catalogue: 'Catalog',
         pricing: 'TMV Pricing',
         booking_form_title: 'Customer Information',
         booking_form_subtitle: 'Please enter customer information here',

@@ -798,6 +798,47 @@
         padding: 0 0 12px 0;
         margin-bottom: 12px;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CUSTOM SIDEBAR BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Catalogue Button - Vibrant Pink/Red */
+.sidebar-icon.sidebar-catalogue {
+    background: linear-gradient(135deg, #F43F5E 0%, #FB7185 100%);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+    color: white !important;
+    border: none;
+}
+
+.sidebar-icon.sidebar-catalogue:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.5);
+}
+
+.sidebar-icon.sidebar-catalogue svg {
+    color: white !important;
+    opacity: 1;
+}
+
+/* Pricing Button - Radiant Green (Emerald) */
+.sidebar-icon.sidebar-pricing {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    color: white !important;
+    border: none;
+}
+
+.sidebar-icon.sidebar-pricing:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
+}
+
+.sidebar-icon.sidebar-pricing svg {
+    color: white !important;
+    opacity: 1;
+}
     
     .sidebar-logo {
         width: 36px;
