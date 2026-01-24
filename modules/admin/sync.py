@@ -769,3 +769,49 @@ def find_missing_phones():
         return jsonify({'status': 'error', 'message': str(e)}), 500
     
     return jsonify({'status': 'success', 'result': result})
+
+
+@admin_bp.route('/api/admin/check-google-creds', methods=['GET'])
+@require_admin
+def check_google_creds():
+    try:
+        from ..google_sync import GOOGLE_SHEET_ID, GOOGLE_CREDENTIALS_JSON
+        import os
+        from pathlib import Path
+        import json
+        
+        valid = False
+        source = 'none'
+        
+        # Check env var
+        if GOOGLE_CREDENTIALS_JSON:
+            try:
+                json.loads(GOOGLE_CREDENTIALS_JSON)
+                valid = True
+                source = 'env'
+            except:
+                pass
+        
+        # Check file
+        if not valid:
+            creds_file = Path(os.getcwd()) / 'google_credentials.json'
+            if creds_file.exists():
+                valid = True
+                source = 'file'
+            
+        # Check Sheet ID
+        if not GOOGLE_SHEET_ID:
+            valid = False
+            message = "Missing GOOGLE_SHEET_ID"
+        else:
+            message = "Credentials found" if valid else "No credentials found"
+            
+        return jsonify({
+            'valid': valid,
+            'source': source,
+            'message': message,
+            'sheet_id': GOOGLE_SHEET_ID
+        })
+    except Exception as e:
+        return jsonify({'valid': False, 'message': str(e)}), 500
+

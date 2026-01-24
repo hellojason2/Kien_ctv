@@ -2,6 +2,12 @@
 <div class="page-section active" id="page-overview">
     <div class="header" style="display: flex; align-items: center; gap: 16px;">
         <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
+        <!-- Google Sheet Variable Status Checker -->
+        <div class="sync-status-container" id="googleStatusContainer" title="Checking Google Sheet Variables...">
+            <span class="sync-status-dot" id="googleStatusDot" style="background-color: #ccc;"></span>
+            <span class="sync-status-text" id="googleStatusText">Checking Vars...</span>
+        </div>
+
         <!-- Sync Worker Status Indicator -->
         <div class="sync-status-container" id="syncStatusContainer" onclick="resetSyncCounter()"
             title="Click to clear notifications">

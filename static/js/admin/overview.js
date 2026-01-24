@@ -36,6 +36,48 @@ function initOverview() {
 
     // Load row count indicators (DB vs Google Sheets)
     loadRowCounts();
+
+    // Check Google Sheet Variables
+    checkGoogleStatus();
+}
+
+/**
+ * Check Google Sheet Variables Status
+ */
+async function checkGoogleStatus() {
+    const dot = document.getElementById('googleStatusDot');
+    const text = document.getElementById('googleStatusText');
+    const container = document.getElementById('googleStatusContainer');
+
+    if (!dot || !text) return;
+
+    try {
+        const result = await api('/api/admin/check-google-creds');
+
+        if (result.valid) {
+            // GREEN - Found
+            dot.style.backgroundColor = '#22c55e'; // Green
+            text.textContent = 'Variables: OK';
+            text.style.color = '#15803d'; // Dark green text
+            container.style.backgroundColor = '#dcfce7'; // Light green bg
+            container.style.borderColor = '#bbf7d0';
+            container.title = `Source: ${result.source}`;
+        } else {
+            // RED - Missing
+            dot.style.backgroundColor = '#ef4444'; // Red
+            text.textContent = 'Variables: Missing';
+            text.style.color = '#b91c1c'; // Dark red text
+            container.style.backgroundColor = '#fee2e2'; // Light red bg
+            container.style.borderColor = '#fecaca';
+            container.title = result.message;
+        }
+    } catch (error) {
+        console.error('Error checking Google status:', error);
+        dot.style.backgroundColor = '#ef4444';
+        text.textContent = 'Check Failed';
+        text.style.color = '#b91c1c';
+        container.style.backgroundColor = '#fee2e2';
+    }
 }
 
 /**
