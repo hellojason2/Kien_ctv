@@ -1,0 +1,1126 @@
+{
+  "categories": [
+    {
+      "id": "filler-basic",
+      "name": "FILLER HÀN CƠ BẢN",
+      "icon": "💉",
+      "items": [
+        {
+          "name": "1cc",
+          "price": "6.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "COMBO Môi 2cc",
+          "price": "12.500.000đ",
+          "bonus": "Tặng thêm 1cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Cằm 2cc",
+          "price": "12.500.000đ",
+          "bonus": "Tặng thêm 1cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Rãnh Cười 2cc",
+          "price": "12.500.000đ",
+          "bonus": "Tặng thêm 1cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Tai Tài Lộc 3cc",
+          "price": "20.000.000đ",
+          "bonus": "Tặng thêm 2cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Thái Dương 3cc",
+          "price": "20.000.000đ",
+          "bonus": "Tặng thêm 2cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Đầy Trán 5cc",
+          "price": "31.000.000đ",
+          "bonus": "Tặng thêm 3cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO má cấp độ I (5cc)",
+          "price": "31.000.000đ",
+          "bonus": "Tặng thêm 3cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO má cấp độ II (7cc)",
+          "price": "43.000.000đ",
+          "bonus": "Tặng thêm 4cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "50cc Mông",
+          "price": "25.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "200cc Mông",
+          "price": "65.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "COMBo 3cc",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Combo 5cc",
+          "price": "22.500.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "filler-premium",
+      "name": "FILLER HÀN CAO CẤP",
+      "icon": "✨",
+      "items": [
+        {
+          "name": "1cc",
+          "price": "9.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "COMBO Môi 2cc",
+          "price": "20.000.000đ",
+          "bonus": "Tặng thêm 1cc  (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Cằm 2cc",
+          "price": "20.000.000đ",
+          "bonus": "Tặng thêm 1cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Rãnh Cười 2cc",
+          "price": "20.000.000đ",
+          "bonus": "Tặng thêm 1cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Tai Tài Lộc 3cc",
+          "price": "31.000.000đ",
+          "bonus": "Tặng thêm 2cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Thái Dương 3cc",
+          "price": "31.000.000đ",
+          "bonus": "Tặng thêm 2cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO má cấp độ I (3cc)",
+          "price": "31.000.000đ",
+          "bonus": "Tặng thêm 2cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO Đầy Trán 5cc",
+          "price": "46.000.000đ",
+          "bonus": "Tặng thêm 3cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO má cấp độ II (5cc)",
+          "price": "46.000.000đ",
+          "bonus": "Tặng thêm 3cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "COMBO má cấp độ III (7cc)",
+          "price": "61.000.000đ",
+          "bonus": "Tặng thêm 4cc (thời hạn sử dụng 6 tháng)",
+          "badge": null
+        },
+        {
+          "name": "1cc Filler Juverderm",
+          "price": "14.000.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        }
+      ]
+    },
+    {
+      "id": "breast",
+      "name": "DỊCH VỤ NÂNG NGỰC",
+      "icon": "🌸",
+      "items": [
+        {
+          "name": "Nâng ngực Nano Ergonomix",
+          "price": "200.000.000đ",
+          "bonus": "",
+          "badge": "Hot"
+        },
+        {
+          "name": "Nâng ngực Nano Chip",
+          "price": "190.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng ngực Nano không Chip",
+          "price": "165.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng ngực Mentor Perfect",
+          "price": "190.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Treo Sa Trễ",
+          "price": "125.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu Nhỏ Quầng Ti",
+          "price": "50.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "slimming",
+      "name": "TIÊM THON GỌN TỪNG VÙNG",
+      "icon": "💫",
+      "items": [
+        {
+          "name": "Thon gọn hàm Botox Hàn 50 unit",
+          "price": "4.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thon gọn hàm Botox Hàn 100 unit",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thon gọn hàm Botox Hàn trọn gói 2 năm",
+          "price": "23.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thon gọn hàm Botox Mỹ",
+          "price": "14.000.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Thon gọn cầu vai",
+          "price": "18.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "vline",
+      "name": "THON GỌN HÀM VLINE PERFECT",
+      "icon": "✓",
+      "items": [
+        {
+          "name": "Thon gọn hàm Vline Perfect 50 shot",
+          "price": "9.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thon gọn hàm Vline Perfect 100 shot",
+          "price": "14.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thon gọn hàm Vline Perfect 150 shot",
+          "price": "16.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "COMBO 2 năm",
+          "price": "31.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "other",
+      "name": "DỊCH VỤ KHÁC",
+      "icon": "⚡",
+      "items": [
+        {
+          "name": "Cắt 2 môi",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cắt 1 môi",
+          "price": "10.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Làm đầy hốc mắt (bảo hành dặm miễn phí 3 tháng)",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Xóa nếp nhăn trán Botox Hàn",
+          "price": "10.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Xóa nếp nhăn mắt Botox Hàn",
+          "price": "5.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Xóa nếp nhăn ấn đường Botox Hàn",
+          "price": "10.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Xóa nếp nhăn trán Botox Mỹ",
+          "price": "13.500.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Xóa nếp nhăn mắt Botox Mỹ",
+          "price": "13.500.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Xóa nếp nhăn ấn đường Botox Mỹ",
+          "price": "13.500.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Hút mở xoài vai",
+          "price": "41.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hút mỡ họng cằm",
+          "price": "41.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hút mỡ đùi",
+          "price": "75.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hút mỡ Bụng+Eo",
+          "price": "75.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hút mỡ bắp tay",
+          "price": "41.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hút mỡ bắp chân",
+          "price": "41.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu nhỏ đầu ti",
+          "price": "16.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu ngắn đầu ti",
+          "price": "16.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu nhỏ quầng vú",
+          "price": "25.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Trị hôi nách bằng Botox Hàn",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Trị hôi nách bằng Botox Mỹ",
+          "price": "25.000.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Hút tuyến mồ hôi trị hôi nách",
+          "price": "37.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Độn cằm sụn Mỹ",
+          "price": "41.000.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        },
+        {
+          "name": "Độn cằm sụn Hàn",
+          "price": "62.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Độn cằm sụn Sugiform",
+          "price": "81.000.000đ",
+          "bonus": "",
+          "badge": "Premium"
+        }
+      ]
+    },
+    {
+      "id": "nose",
+      "name": "NÂNG MŨI",
+      "icon": "👃",
+      "items": [
+        {
+          "name": "Nâng mũi Mini Line",
+          "price": "25.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng mũi Softline 4D",
+          "price": "34.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng mũi Shanghai",
+          "price": "55.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Sụn sinh học Surgiform",
+          "price": "21.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bọc sụn đầu mũi",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng mũi Tái Cấu Trúc Reform\n (đã gồm bọc đầu mũi , thu gọn dầu mũi , dựng trụ)",
+          "price": "56.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng mũi TCT Reform sụn Tự Thân",
+          "price": "135.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu nhỏ đầu mũi",
+          "price": "31.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mài gồ",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cắt cánh mũi",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu nền mũi",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mũi sửa lại lần 2 (Thêm chi phí tháo sụn và bóc tách bao sơ)",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Chỉ tháo sụn mũi",
+          "price": "7.500.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "eyes",
+      "name": "CÁC DỊCH VỤ VỀ MẮT",
+      "icon": "👁",
+      "items": [
+        {
+          "name": "Cắt mí Line Mini",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cắt mí Line Mini (khách hàng >=39 tuổi)",
+          "price": "12.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cắt mí Shanghai",
+          "price": "12.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nhấn mí Baby Eyes",
+          "price": "8.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bấm mí",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mở góc mắt trong",
+          "price": "11.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mở góc mắt ngoài",
+          "price": "11.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Hạ mắt xếch",
+          "price": "11.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bóc mỡ mắt (khách làm lẻ dịch vụ)",
+          "price": "7.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng nửa đuôi cung mày",
+          "price": "12.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng full cung chân mày",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cấy mỡ ly tâm mí mắt trên",
+          "price": "18.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cấy mỡ ly tâm mí mắt dưới",
+          "price": "18.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da mắt",
+          "price": "28.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "tham-my-co-be",
+      "name": "THẨM MỸ CÔ BÉ",
+      "icon": "🔹",
+      "items": [
+        {
+          "name": "Tạo Hình môi bé độ 1",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tạo Hình môi bé độ 2",
+          "price": "12.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tạo Hình môi bé độ 3",
+          "price": "16.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Chuyển vạt làm hồng",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tạo hình môi lớn độ 1",
+          "price": "16.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tạo hình môi lớn độ 2",
+          "price": "18.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tiêm filler làm đầy môi lớn",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cấy mỡ môi lớn tự thân",
+          "price": "44.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng chỉ trẻ hóa môi lớn",
+          "price": "27.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tiêm/Cấy PRP trẻ hóa môi lớn",
+          "price": "10.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu hẹp âm đạo độ 1",
+          "price": "22.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu hẹp âm đạo độ 2",
+          "price": "25.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thu hẹp âm đạo độ 3",
+          "price": "27.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bóc bỏ xơ sẹo/niêm mạc",
+          "price": "11.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Siết cơ vòng âm đạo tăng đàn hồi Nano cấp 1",
+          "price": "18.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Siết cơ vòng âm đạo tăng đàn hồi Nano cấp 2",
+          "price": "27.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Siết cơ vòng âm đạo tăng đàn hồi Nano cấp 3",
+          "price": "37.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Cấy chỉ âm đạo Collagen",
+          "price": "27.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tăng kích thích điểm G/Nâng G",
+          "price": "22.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Chỉnh mũ âm vật độ 1",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Chỉnh mũ âm vật độ 2",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng sa trễ tầng sinh môn",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Sửa sẹo tầng sinh môn",
+          "price": "11.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Loại bỏ niêm mạc gốc màng trinh",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng sa trễ âm đạo/tử cung",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Tái tạo/ vá màng trinh",
+          "price": "68.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bóc u tuyến Batholin",
+          "price": "28.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Bóc nang bã đậu âm đạo",
+          "price": "8.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Thẩm mỹ sẹo mổ đẻ",
+          "price": "15.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Combo Tạo hình Môi bé+ Thu hẹp âm đạo",
+          "price": "22.500.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "cang-da-medi-lift",
+      "name": "CĂNG DA MEDI LIFT",
+      "icon": "🔹",
+      "items": [
+        {
+          "name": "Căng da Medi Lift  toàn mặt ( gây mê ) tại BV",
+          "price": "110.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da Medi Lift vùng cổ ( tiền mê ) tại BV",
+          "price": "53.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da Medi Lift vùng trán ( gây tê)",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da Medi Lift vùng đuôi mắt / thái dương ( gây tê)",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da Medi Lift vùng hàm ( gây tê)",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Căng da Medi Lift vùng má ( gây tê)",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ táo Cấp độ 1",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ táo Cấp độ 2",
+          "price": "55.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ táo Cấp độ 3",
+          "price": "75.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ táo Cấp độ 4",
+          "price": "100.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "tham-my-cong-nghe-cao",
+      "name": "THẨM MỸ CÔNG NGHỆ CAO",
+      "icon": "🔹",
+      "items": [
+        {
+          "name": "Trẻ hóa PRH Cấp độ 1",
+          "price": "31.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Trẻ hóa PRH Cấp độ 2",
+          "price": "62.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Trẻ hóa PRH Cấp độ 3",
+          "price": "93.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Trẻ hóa PRH Cấp độ 4",
+          "price": "125.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa Hifu cấp độ 1",
+          "price": "13.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa Hifu cấp độ 2",
+          "price": "20.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa Hifu cấp độ 3",
+          "price": "28.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa Hifu cấp độ 4",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mắt Ultherapy",
+          "price": "20.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mặt Ultherapy",
+          "price": "30.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mặt+cổ Ultherapy",
+          "price": "40.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng bụng/đùi Ultherapy",
+          "price": "55.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mắt Thermage",
+          "price": "50.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mặt Thermage",
+          "price": "75.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng mặt+cổ Thermage",
+          "price": "90.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Nâng cơ trẻ hóa vùng bụng/đùi Thermage",
+          "price": "100.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ  Hạ Gò Má",
+          "price": "15.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Má",
+          "price": "16.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Bắp Tay",
+          "price": "19.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Bắp Chân",
+          "price": "19.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Đùi",
+          "price": "28.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Bụng",
+          "price": "35.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus  Giảm Mỡ Eo",
+          "price": "35.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Slim Plus Giảm Mỡ Nọng Cằm",
+          "price": "14.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "RS Titan",
+          "price": "2.760.000đ",
+          "bonus": "1.920.000",
+          "badge": null
+        },
+        {
+          "name": "RS Katana",
+          "price": "3.360.000đ",
+          "bonus": "2.340.000",
+          "badge": null
+        },
+        {
+          "name": "RS Venus 3D",
+          "price": "4.080.000đ",
+          "bonus": "2.760.000",
+          "badge": null
+        },
+        {
+          "name": "RS Ful Zirconia",
+          "price": "4.680.000đ",
+          "bonus": "3.240.000",
+          "badge": null
+        },
+        {
+          "name": "RS Ceramill",
+          "price": "6.600.000đ",
+          "bonus": "4.620.000",
+          "badge": null
+        },
+        {
+          "name": "RS Emax",
+          "price": "6.600.000đ",
+          "bonus": "4.620.000",
+          "badge": null
+        },
+        {
+          "name": "RS HT Smile",
+          "price": "7.200.000đ",
+          "bonus": "5.040.000",
+          "badge": null
+        },
+        {
+          "name": "RS Cercon HT",
+          "price": "7.200.000đ",
+          "bonus": "5.040.000",
+          "badge": null
+        },
+        {
+          "name": "RS Nacera Vita",
+          "price": "7.800.000đ",
+          "bonus": "5.460.000",
+          "badge": null
+        },
+        {
+          "name": "RS 3M Lava Plus",
+          "price": "9.600.000đ",
+          "bonus": "6.720.000",
+          "badge": null
+        },
+        {
+          "name": "RS Orodent",
+          "price": "18.600.000đ",
+          "bonus": "13.020.000",
+          "badge": null
+        },
+        {
+          "name": "Dán sứ Veneer Emax Press",
+          "price": "8.640.000đ",
+          "bonus": "6.120.000",
+          "badge": null
+        },
+        {
+          "name": "Dán sứ Veneer Caramay Ngọc Trai",
+          "price": "11.040.000đ",
+          "bonus": "7.800.000",
+          "badge": null
+        },
+        {
+          "name": "Dán sứ Veneer Lisi Press",
+          "price": "17.040.000đ",
+          "bonus": "12.000.000",
+          "badge": null
+        },
+        {
+          "name": "Trụ Implant Hàn",
+          "price": "23.650.000đ",
+          "bonus": "16.500.000",
+          "badge": null
+        },
+        {
+          "name": "Trụ Implant Mỹ",
+          "price": "28.380.000đ",
+          "bonus": "19.800.000",
+          "badge": null
+        },
+        {
+          "name": "Trụ Implant Pháp",
+          "price": "31.460.000đ",
+          "bonus": "22.000.000",
+          "badge": null
+        },
+        {
+          "name": "Trụ Implant Thụy Sỹ",
+          "price": "48.290.000đ",
+          "bonus": "33.880.000",
+          "badge": null
+        },
+        {
+          "name": "Implant Toàn hàm: All-on Phục hình tạm",
+          "price": "15.730.000đ",
+          "bonus": "11.000.000",
+          "badge": null
+        },
+        {
+          "name": "Implant Toàn hàm: All-on Phục hình cố định: thanh bar",
+          "price": "39.380.000đ",
+          "bonus": "27.500.000",
+          "badge": null
+        }
+      ]
+    }
+  ],
+  "updated_at": "24/01/2026 02:20"
+}
