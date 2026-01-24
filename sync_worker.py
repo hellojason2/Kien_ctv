@@ -133,6 +133,16 @@ def main():
         
         stats = run_sync(syncer, use_phone_matching=USE_PHONE_MATCHING, timestamp_column=TIMESTAMP_COLUMN)
         
+        # --- Pricing Sync Step ---
+        try:
+            from modules.pricing_sync import sync_pricing_sheet
+            PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
+            sync_pricing_sheet(syncer.get_google_client(), PRICING_SHEET_ID)
+            logger.info("  - Pricing Data: Synced successfully")
+        except Exception as e:
+            logger.error(f"  - Pricing Sync Error: {e}")
+        # -------------------------
+
         total_processed = sum(s['processed'] for s in stats.values())
         total_errors = sum(s['errors'] for s in stats.values())
         logger.info(f"\nCycle #{cycle} Complete:")

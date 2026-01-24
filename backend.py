@@ -133,8 +133,18 @@ def catalogue_page():
 
 @app.route('/bang-gia')
 def pricing_page():
-    """Serve the TMV pricing page"""
-    return render_template('pricing.html')
+    """Serve the TMV pricing page with dynamic data from JSON"""
+    import json
+    pricing_data = {"categories": [], "updated_at": ""}
+    try:
+        data_path = os.path.join(app.static_folder, 'data', 'pricing.json')
+        if os.path.exists(data_path):
+            with open(data_path, 'r', encoding='utf-8') as f:
+                pricing_data = json.load(f)
+    except Exception as e:
+        print(f"Error loading pricing data: {e}")
+        
+    return render_template('pricing.html', categories=pricing_data.get('categories', []), updated_at=pricing_data.get('updated_at'))
 
 # Catalogue asset routes - serve pages and images for the React catalogue app
 @app.route('/pages/<path:filename>')

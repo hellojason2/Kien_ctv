@@ -23,6 +23,9 @@
     <meta name="twitter:description" content="Hệ thống quản lý Cộng Tác Viên - Tam Group">
     <meta name="twitter:image" content="{{ url_for('static', filename='images/tam-og-image.png', _external=True) }}">
 
+    <!-- Theme Color (Fixes Chrome/Safari color mismatch) -->
+    <meta name="theme-color" content="#c7e9fb">
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
@@ -1426,6 +1429,42 @@
                     closeCustomerPanel();
                 }
             });
+        });
+
+        // Check Google Credentials Status
+        async function checkGoogleStatus() {
+            try {
+                const response = await fetch('/api/admin/check-google-creds');
+                const data = await response.json();
+                const statusEl = document.getElementById('google-status');
+
+                if (!statusEl) return;
+
+                const dot = statusEl.querySelector('.status-dot');
+                const text = statusEl.querySelector('.status-text');
+
+                if (data.valid) {
+                    dot.style.background = '#22c55e'; // Green
+                    text.textContent = 'Google Connected';
+                    text.style.color = '#15803d';
+                    statusEl.style.background = '#dcfce7';
+                    statusEl.title = `Source: ${data.source}`;
+                } else {
+                    dot.style.background = '#ef4444'; // Red
+                    text.textContent = 'Google Missing';
+                    text.style.color = '#b91c1c';
+                    statusEl.style.background = '#fee2e2';
+                }
+            } catch (e) {
+                console.error('Failed to check Google status:', e);
+            }
+        }
+
+        // Run on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('google-status')) {
+                checkGoogleStatus();
+            }
         });
     </script>
 
