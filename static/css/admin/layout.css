@@ -792,6 +792,17 @@
     margin-left: var(--sidebar-width-collapsed);
 }
 
+/* FULL WIDTH LAYOUT - No Sidebar */
+.dashboard.no-sidebar {
+    display: flex;
+}
+
+.main-content.full-width {
+    margin-left: 0 !important;
+    max-width: 100%;
+    width: 100%;
+}
+
 /* Mobile: Full width when sidebar collapsed */
 @media (max-width: 768px) {
     .main-content {
@@ -802,6 +813,11 @@
 
     .main-content.sidebar-collapsed {
         margin-left: 0;
+    }
+
+    /* Full width on mobile - no padding for header since no header */
+    .main-content.full-width {
+        padding-top: 16px;
     }
 }
 
