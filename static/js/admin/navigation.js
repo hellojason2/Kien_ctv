@@ -20,10 +20,6 @@ let sidebarCollapsed = sidebarDesktopCollapsed;
 // Expanded groups state (persisted)
 let expandedGroups = JSON.parse(localStorage.getItem('expandedGroups') || '{}');
 
-// Track last window width to detect REAL width changes (not scroll-triggered)
-let lastWindowWidth = window.innerWidth;
-let resizeDebounceTimer = null;
-
 /**
  * Check if currently on mobile
  */
@@ -162,80 +158,52 @@ function initSidebarCollapse() {
         closeBtn.addEventListener('click', closeMobileSidebar);
     }
 
-    // Handle window resize - with debounce to prevent scroll-triggered issues
-    window.addEventListener('resize', debouncedHandleResize);
-}
-
-/**
- * Debounced resize handler wrapper
- * This prevents scroll-triggered resize events (from address bar hiding on mobile)
- * from causing unwanted sidebar state changes
- */
-function debouncedHandleResize() {
-    // Clear any existing timer
-    if (resizeDebounceTimer) {
-        clearTimeout(resizeDebounceTimer);
-    }
-
-    // Debounce: wait 100ms after last resize event
-    resizeDebounceTimer = setTimeout(() => {
-        actualHandleResize();
-    }, 100);
+    // Handle window resize
+    window.addEventListener('resize', handleResize);
 }
 
 /**
  * Handle window resize - adjust state appropriately
- * CRITICAL: Only respond to ACTUAL width changes, not height changes from scrolling
- * On mobile, sidebar should NEVER auto-expand unless user clicks hamburger.
+ * Matches CTV Portal behavior
  */
-function actualHandleResize() {
-    const currentWidth = window.innerWidth;
-
-    // CRITICAL: Only process if width actually changed
-    // Mobile browsers often fire resize events when scrolling (address bar hides)
-    // but those only change height, not width. We ignore height-only changes.
-    if (currentWidth === lastWindowWidth) {
-        return; // No width change - ignore this resize event
-    }
-
-    // Width changed - update tracking
-    lastWindowWidth = currentWidth;
-
+function handleResize() {
     const sidebar = document.getElementById('adminSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
     const mainContent = document.querySelector('.main-content');
 
     if (isMobileView()) {
-        // On mobile: ALWAYS keep sidebar collapsed unless explicitly opened
-        // Never auto-expand based on desktop state
-        if (!sidebarMobileOpen) {
-            // Sidebar should be hidden
-            if (sidebar) sidebar.classList.add('collapsed');
-            if (backdrop) backdrop.classList.remove('active');
-            document.body.style.overflow = '';
+        // Switching to mobile - close sidebar if it was open from desktop
+        // But keep it open if it was explicitly opened on mobile (sidebarMobileOpen)
+        if (!sidebarMobileOpen && sidebar) {
+            sidebar.classList.add('collapsed');
         }
+
+        // If sidebar is closed, ensure backdrop is hidden
+        if (!sidebarMobileOpen && backdrop) {
+            backdrop.classList.remove('active');
+        }
+
         // Remove desktop-specific classes on mobile
         if (mainContent) mainContent.classList.remove('sidebar-collapsed');
     } else {
-        // Switching TO desktop: apply desktop state
-        // Close any mobile sidebar state first
-        sidebarMobileOpen = false;
-        document.body.style.overflow = '';
-        if (backdrop) backdrop.classList.remove('active');
-
-        // Apply desktop collapsed state
+        // Switching to desktop - apply desktop collapsed state
         if (sidebar) {
             sidebar.classList.toggle('collapsed', sidebarDesktopCollapsed);
         }
+
         if (mainContent) {
             mainContent.classList.toggle('sidebar-collapsed', sidebarDesktopCollapsed);
         }
-    }
-}
 
-// Backward compatibility alias
-function handleResize() {
-    debouncedHandleResize();
+        // Always hide backdrop on desktop
+        if (backdrop) {
+            backdrop.classList.remove('active');
+        }
+        document.body.style.overflow = '';
+
+        // Reset mobile state
+        sidebarMobileOpen = false;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
