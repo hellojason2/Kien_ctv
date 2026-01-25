@@ -1064,4 +1064,9 @@
     .mobile-menu-popup {
         display: block !important;
     }
+
+    /* CRITICAL FIX: Hide desktop sidebar completely on mobile to prevent layout breakage */
+    #adminSidebar {
+        display: none !important;
+    }
 }
