@@ -579,9 +579,13 @@ def admin_login(username, password, remember_me=False):
 
 def ctv_login(ma_ctv, password):
     """
-    DOES: Authenticate CTV by ma_ctv (case-insensitive) and create session
-    INPUTS: ma_ctv (CTV code, case-insensitive), password
+    DOES: Authenticate CTV by ma_ctv OR phone number (case-insensitive) and create session
+    INPUTS: ma_ctv (CTV code OR phone number, case-insensitive), password
     OUTPUTS: {'token': str, 'ctv': dict} or {'error': str}
+    
+    SUPPORTS:
+    - Login by CTV code (e.g., TMV.001)
+    - Login by phone number (e.g., 0989460997)
     """
     max_retries = 3
     last_error = None
@@ -595,12 +599,29 @@ def ctv_login(ma_ctv, password):
         try:
             cursor = connection.cursor(cursor_factory=RealDictCursor)
             
-            # Case-insensitive lookup by ma_ctv
+            # First try: Case-insensitive lookup by ma_ctv (CTV code)
             cursor.execute("""
                 SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
                 FROM ctv WHERE LOWER(ma_ctv) = LOWER(%s)
             """, (ma_ctv,))
             ctv = cursor.fetchone()
+            
+            # Second try: If not found by ma_ctv, try by phone number
+            if not ctv:
+                # Clean input - extract digits only for phone matching
+                phone_digits = ''.join(c for c in ma_ctv if c.isdigit())
+                if len(phone_digits) >= 8:
+                    # Try exact match first, then last 8 digits
+                    phone_suffix = phone_digits[-8:]
+                    cursor.execute("""
+                        SELECT ma_ctv, ten, email, sdt, cap_bac, password_hash, is_active
+                        FROM ctv 
+                        WHERE sdt = %s 
+                           OR sdt LIKE %s
+                           OR REPLACE(sdt, ' ', '') = %s
+                        LIMIT 1
+                    """, (phone_digits, '%' + phone_suffix, phone_digits))
+                    ctv = cursor.fetchone()
             
             cursor.close()
             return_db_connection(connection)
