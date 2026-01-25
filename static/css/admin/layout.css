@@ -1050,3 +1050,18 @@
     font-size: 14px;
     font-weight: 600;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE OVERRIDE - Ensure hamburger button shows on mobile
+   (CTV layout.css hides it globally, we need to show it on mobile)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+
+    .mobile-menu-popup {
+        display: block !important;
+    }
+}
