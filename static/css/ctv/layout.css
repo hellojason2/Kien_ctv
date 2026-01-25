@@ -3,8 +3,18 @@
  * Sidebar, Header, Content Area
  * Modern Glassmorphism Design
  * 
- * Updated: January 2026
+ * Updated: January 24, 2026 - Collapsible Sidebar with Animations
  */
+
+/* ═══════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES FOR SIDEBAR
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    --sidebar-width-expanded: 250px;
+    --sidebar-width-collapsed: 72px;
+    --sidebar-transition: 300ms ease-in-out;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    PORTAL LAYOUT
@@ -20,11 +30,37 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR - Reference Design
+   MOBILE BACKDROP OVERLAY
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (max-width: 768px) {
+    .sidebar-backdrop {
+        display: block;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR - With Collapsible Functionality
    ═══════════════════════════════════════════════════════════════════ */
 
 .sidebar {
-    width: 250px;
+    width: var(--sidebar-width-expanded);
     background: rgba(255, 255, 255, 0.9);
     border-right: 1px solid rgba(0, 0, 0, 0.06);
     backdrop-filter: blur(20px);
@@ -37,8 +73,25 @@
     bottom: 0;
     z-index: 1000;
     padding: 24px 16px;
-    transition: all 0.3s ease;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
+    transition: width var(--sidebar-transition), transform var(--sidebar-transition);
+    overflow: visible;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+}
+
+/* Mobile: Hidden when collapsed */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(0);
+    }
+
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+        width: var(--sidebar-width-expanded);
+    }
 }
 
 /* Mobile menu button - hidden on desktop */
@@ -51,6 +104,10 @@
     display: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR HEADER
+   ═══════════════════════════════════════════════════════════════════ */
+
 .sidebar-header {
     padding: 0 0 24px 8px;
     display: flex;
@@ -59,11 +116,14 @@
     justify-content: flex-start;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     margin-bottom: 16px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .sidebar-logo {
     width: 50px;
     height: 50px;
+    min-width: 50px;
     background: transparent;
     border-radius: 0;
     display: flex;
@@ -84,6 +144,18 @@
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.3px;
+    transition: opacity var(--sidebar-transition);
+}
+
+.sidebar.collapsed .sidebar-brand {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding-left: 0;
 }
 
 .sidebar-logo svg {
@@ -92,11 +164,17 @@
     color: var(--text-primary);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR MENU
+   ═══════════════════════════════════════════════════════════════════ */
+
 .sidebar-menu {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .nav-label {
@@ -108,7 +186,20 @@
     padding: 0 12px;
     margin-bottom: 4px;
     margin-top: 16px;
+    transition: opacity var(--sidebar-transition);
 }
+
+.sidebar.collapsed .nav-label {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR NAV ITEMS
+   ═══════════════════════════════════════════════════════════════════ */
 
 .sidebar-icon {
     width: 100%;
@@ -120,13 +211,16 @@
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #1e293b; /* Darker text */
-    font-size: 15px; /* Slightly larger */
-    font-weight: 600; /* Bolder */
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 600;
     background: transparent;
     box-shadow: none;
     margin-bottom: 0;
     justify-content: flex-start;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
 }
 
 .sidebar-icon:hover {
@@ -146,11 +240,13 @@
 .sidebar-icon svg {
     width: 20px;
     height: 20px;
+    min-width: 20px;
     opacity: 0.7;
     stroke-width: 2;
     margin-right: 0;
     stroke: currentColor;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .sidebar-icon.active svg {
@@ -159,6 +255,76 @@
     stroke: currentColor;
     filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.2));
 }
+
+.sidebar-icon span {
+    transition: opacity var(--sidebar-transition), width var(--sidebar-transition);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Hide text when collapsed */
+.sidebar.collapsed .sidebar-icon {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar.collapsed .sidebar-icon span:not(.lang-current) {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR TOOLTIPS (COLLAPSED STATE)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-tooltip {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    background: #ffffff;
+    color: var(--text-primary);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    display: none;
+}
+
+.sidebar-tooltip::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #ffffff;
+}
+
+/* Show tooltips only when sidebar is collapsed */
+.sidebar.collapsed .sidebar-icon:hover .sidebar-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+    display: block;
+}
+
+.sidebar.collapsed .sidebar-tooltip {
+    display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR LOGOUT
+   ═══════════════════════════════════════════════════════════════════ */
 
 .sidebar-logout {
     margin-top: auto;
@@ -175,19 +341,61 @@
     color: var(--danger);
 }
 
-/* Sidebar Tooltip Styles - Disabled for this design as text is visible */
-.sidebar-icon::after, .sidebar-icon::before {
+/* ═══════════════════════════════════════════════════════════════════
+   COLLAPSE TOGGLE BUTTON
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sidebar-collapse-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-primary);
+}
+
+.sidebar-collapse-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+
+.sidebar-collapse-btn .expand-icon {
     display: none;
 }
 
+.sidebar.collapsed .sidebar-collapse-btn .collapse-icon {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-collapse-btn .expand-icon {
+    display: block;
+}
+
+/* Hide collapse button on mobile */
+@media (max-width: 768px) {
+    .sidebar-collapse-btn {
+        display: none;
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
-   LANGUAGE TOGGLE - Corrected
+   LANGUAGE TOGGLE
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Language Toggle in Sidebar */
 .sidebar-lang {
     position: relative;
-    /* Ensure it has proper stacking context */
     z-index: 500;
 }
 
@@ -196,7 +404,6 @@
     overflow: visible;
 }
 
-/* Default (Desktop Expanded) - Inline Badge */
 .sidebar-lang .lang-current {
     font-size: 11px;
     font-weight: 700;
@@ -204,14 +411,24 @@
     background: rgba(0, 0, 0, 0.05);
     padding: 2px 8px;
     border-radius: 6px;
-    margin-left: auto; /* Push to right */
+    margin-left: auto;
     line-height: 1.4;
-    /* Reset absolute positioning from previous styles */
-    position: static; 
+    position: static;
     transform: none;
     bottom: auto;
     left: auto;
     pointer-events: auto;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .sidebar-lang .lang-current {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    margin: 0;
+    font-size: 8px;
+    padding: 1px 4px;
+    left: auto;
 }
 
 .sidebar-lang.active .sidebar-icon {
@@ -236,6 +453,7 @@
     transform: translateX(10px);
     transition: all 0.2s ease;
     z-index: 1100;
+    margin-left: 8px;
 }
 
 .lang-popup::before {
@@ -245,13 +463,23 @@
     bottom: 16px;
     border: 6px solid transparent;
     border-right-color: #ffffff;
-    left: auto; /* Reset left */
+    left: auto;
 }
 
 .sidebar-lang.active .lang-popup {
     opacity: 1;
     visibility: visible;
     transform: translateX(0);
+}
+
+.lang-popup-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 6px;
+    margin-bottom: 4px;
 }
 
 .lang-option {
@@ -291,17 +519,117 @@
     color: #334155;
 }
 
+.lang-check {
+    margin-left: auto;
+    opacity: 0;
+    stroke: #10b981;
+    transition: opacity 0.15s;
+}
+
+.lang-option.active .lang-check {
+    opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CUSTOM SIDEBAR BUTTONS (Catalogue, Pricing, Referral)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Catalogue Button - Vibrant Pink/Red */
+.sidebar-icon.sidebar-catalogue {
+    background: linear-gradient(135deg, #F43F5E 0%, #FB7185 100%);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+    color: white !important;
+    border: none;
+}
+
+.sidebar-icon.sidebar-catalogue:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.5);
+}
+
+.sidebar-icon.sidebar-catalogue svg {
+    color: white !important;
+    stroke: white !important;
+    opacity: 1;
+}
+
+.sidebar-icon.sidebar-catalogue span {
+    color: white !important;
+}
+
+/* Pricing Button - Radiant Green (Emerald) */
+.sidebar-icon.sidebar-pricing {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    color: white !important;
+    border: none;
+}
+
+.sidebar-icon.sidebar-pricing:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
+}
+
+.sidebar-icon.sidebar-pricing svg {
+    color: white !important;
+    stroke: white !important;
+    opacity: 1;
+}
+
+.sidebar-icon.sidebar-pricing span {
+    color: white !important;
+}
+
+/* Referral Button - Gradient Blue/Purple */
+.sidebar-icon.sidebar-referral {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    color: white !important;
+    border: none;
+}
+
+.sidebar-icon.sidebar-referral:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.5);
+}
+
+.sidebar-icon.sidebar-referral svg {
+    color: white !important;
+    stroke: white !important;
+    opacity: 1;
+}
+
+.sidebar-icon.sidebar-referral span {
+    color: white !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    MAIN CONTENT WRAPPER
    ═══════════════════════════════════════════════════════════════════ */
 
 .main-wrapper {
     flex: 1;
-    margin-left: 250px;
+    margin-left: var(--sidebar-width-expanded);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding: 90px 32px 24px 32px; /* Extra top padding for floating header */
+    padding: 90px 32px 24px 32px;
+    transition: margin-left var(--sidebar-transition);
+}
+
+.main-wrapper.sidebar-collapsed {
+    margin-left: var(--sidebar-width-collapsed);
+}
+
+/* Mobile: Full width when sidebar collapsed */
+@media (max-width: 768px) {
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .main-wrapper.sidebar-collapsed {
+        margin-left: 0;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -311,7 +639,7 @@
 .floating-header {
     position: fixed;
     top: 16px;
-    left: 266px; /* sidebar width + gap */
+    left: calc(var(--sidebar-width-expanded) + 16px);
     right: 16px;
     z-index: 1001;
     padding: 0;
@@ -320,15 +648,26 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 
+    box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.08),
         0 1px 2px rgba(0, 0, 0, 0.04),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.main-wrapper.sidebar-collapsed~.floating-header,
+.floating-header.sidebar-collapsed {
+    left: calc(var(--sidebar-width-collapsed) + 16px);
+}
+
+@media (max-width: 768px) {
+    .floating-header {
+        left: 16px;
+    }
+}
+
 .floating-header:hover {
-    box-shadow: 
+    box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.12),
         0 2px 4px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -351,7 +690,7 @@
 }
 
 .header-menu-btn {
-    display: none; /* Hidden on desktop, shown on mobile */
+    display: none;
     width: 40px;
     height: 40px;
     border: none;
@@ -372,6 +711,12 @@
     width: 20px;
     height: 20px;
     stroke: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .header-menu-btn {
+        display: flex;
+    }
 }
 
 .floating-header .header-logo {
@@ -430,7 +775,7 @@
 .action-signup {
     background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 50%, #e85d26 100%);
     color: #ffffff;
-    box-shadow: 
+    box-shadow:
         0 4px 16px rgba(255, 107, 53, 0.35),
         0 2px 4px rgba(255, 107, 53, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -438,7 +783,7 @@
 
 .action-signup:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 
+    box-shadow:
         0 8px 24px rgba(255, 107, 53, 0.4),
         0 4px 8px rgba(255, 107, 53, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -464,7 +809,7 @@
     color: #ffffff;
     border-color: transparent;
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 
+    box-shadow:
         0 8px 24px rgba(79, 125, 243, 0.35),
         0 4px 8px rgba(79, 125, 243, 0.2);
 }
@@ -700,7 +1045,7 @@
 }
 
 .header-page-title {
-    display: none; /* Hidden in this design */
+    display: none;
 }
 
 .header-right {
@@ -735,12 +1080,6 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-    .sidebar {
-        width: 64px;
-        padding-top: 16px;
-        gap: 6px;
-    }
-    
     .sidebar-header {
         padding: 0;
         margin-bottom: 16px;
@@ -748,40 +1087,33 @@
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         padding-bottom: 16px;
     }
-    
+
     .sidebar-logo {
         width: 40px;
         height: 40px;
+        min-width: 40px;
     }
-    
+
     .sidebar-brand {
-        display: none;
+        display: block;
+        /* Keep visible on mobile when sidebar is open */
     }
-    
+
     .sidebar-menu {
         gap: 6px;
     }
-    
-    .sidebar-icon {
-        width: 44px;
-        height: 44px;
-        justify-content: center;
+
+    .main-wrapper {
+        margin-left: 0;
+        padding: 80px 16px 24px 16px;
     }
 
-    .sidebar-icon span, .sidebar-icon .lang-current {
-        display: none;
-    }
-    
-    .main-wrapper {
-        margin-left: 64px;
-    }
-    
     .header {
         padding: 14px 20px;
     }
-    
+
     .content {
-        padding: 20px;
+        padding: 20px 0;
     }
 }
 
@@ -790,101 +1122,47 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 480px) {
-    .sidebar {
-        width: 56px;
-    }
-    
     .sidebar-header {
         padding: 0 0 12px 0;
         margin-bottom: 12px;
     }
-}
 
-/* ═══════════════════════════════════════════════════════════════════
-   CUSTOM SIDEBAR BUTTONS
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* Catalogue Button - Vibrant Pink/Red */
-.sidebar-icon.sidebar-catalogue {
-    background: linear-gradient(135deg, #F43F5E 0%, #FB7185 100%);
-    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
-    color: white !important;
-    border: none;
-}
-
-.sidebar-icon.sidebar-catalogue:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.5);
-}
-
-.sidebar-icon.sidebar-catalogue svg {
-    color: white !important;
-    opacity: 1;
-}
-
-/* Pricing Button - Radiant Green (Emerald) */
-.sidebar-icon.sidebar-pricing {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-    color: white !important;
-    border: none;
-}
-
-.sidebar-icon.sidebar-pricing:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
-}
-
-.sidebar-icon.sidebar-pricing svg {
-    color: white !important;
-    opacity: 1;
-}
-    
     .sidebar-logo {
         width: 36px;
         height: 36px;
+        min-width: 36px;
     }
-    
-    .sidebar-icon {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .sidebar-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-    
+
     .main-wrapper {
-        margin-left: 56px;
+        padding: 80px 12px 24px 12px;
     }
-    
+
     .header {
         padding: 12px 16px;
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .header-logo {
         width: 60px;
         height: 60px;
     }
-    
+
     .header-left {
         width: 100%;
         justify-content: center;
     }
-    
+
     .header-right {
         width: 100%;
         justify-content: center;
     }
-    
+
     .header-title {
         font-size: 16px;
     }
-    
+
     .content {
-        padding: 16px;
+        padding: 16px 0;
     }
 }

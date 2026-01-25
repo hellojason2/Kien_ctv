@@ -574,6 +574,12 @@ window.applyTranslations = function () {
         const key = el.getAttribute('data-i18n-title');
         if (currentDict && currentDict[key]) {
             el.setAttribute('data-tooltip', currentDict[key]);
+
+            // Also update the child .sidebar-tooltip element if it exists
+            const tooltipEl = el.querySelector('.sidebar-tooltip');
+            if (tooltipEl) {
+                tooltipEl.textContent = currentDict[key];
+            }
         }
     });
 
