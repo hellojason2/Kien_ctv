@@ -147,9 +147,15 @@ function initSidebarCollapse() {
         mobileMenuBtn.addEventListener('click', openMobileSidebar);
     }
 
-    // Backdrop click - ONLY closes sidebar
+    // Backdrop click - closes sidebar
     if (backdrop) {
         backdrop.addEventListener('click', closeMobileSidebar);
+    }
+
+    // Close button (X) inside sidebar - closes sidebar on mobile
+    const closeBtn = document.getElementById('sidebarCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeMobileSidebar);
     }
 
     // Handle window resize

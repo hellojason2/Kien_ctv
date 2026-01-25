@@ -117,6 +117,50 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR HEADER & CLOSE BUTTON
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.sidebar-close-btn {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.sidebar-close-btn:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+.sidebar-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+@media (max-width: 768px) {
+    .sidebar-close-btn {
+        display: flex;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    SIDEBAR LOGO
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -124,7 +168,6 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--accent-primary);
-    margin-bottom: 16px;
     padding: 0 12px;
     white-space: nowrap;
     overflow: hidden;
