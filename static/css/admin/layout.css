@@ -171,6 +171,15 @@
     padding: 0 12px;
     white-space: nowrap;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-logo-image {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
 }
 
 .sidebar-logo .logo-full {
@@ -936,6 +945,24 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+    }
+
+    .header-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-bottom: 0;
+    }
+
+    .header-actions .btn {
+        white-space: nowrap;
+        flex: 1 0 auto;
+        padding: 10px 12px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .header h2 {

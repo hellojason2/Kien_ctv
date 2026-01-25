@@ -11,21 +11,21 @@
 async function showDashboard() {
     const loginPage = document.getElementById('loginPage');
     const dashboard = document.getElementById('dashboard');
-    
-    console.log('showDashboard called', {loginPage, dashboard});
-    
+
+    console.log('showDashboard called', { loginPage, dashboard });
+
     if (loginPage) {
         loginPage.style.display = 'none';
     }
-    
+
     if (dashboard) {
         dashboard.classList.add('active');
     }
-    
+
     // Hide language toggle when dashboard is active
     const langToggle = document.querySelector('.lang-toggle');
     if (langToggle) langToggle.style.display = 'none';
-    
+
     // Initialize overview page if it exists
     if (typeof initOverview === 'function') {
         initOverview();
@@ -65,28 +65,28 @@ function initLoginForm() {
     // Load saved credentials if remember me was checked
     const savedUsername = localStorage.getItem('admin_remember_username');
     const savedPassword = localStorage.getItem('admin_remember_password');
-    
+
     if (savedUsername && savedPassword) {
         document.getElementById('username').value = savedUsername;
         document.getElementById('password').value = savedPassword;
         const rememberMeCheck = document.getElementById('rememberMe');
         if (rememberMeCheck) rememberMeCheck.checked = true;
     }
-    
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
-        
+
         const result = await api('/admin89/login', {
             method: 'POST',
             body: JSON.stringify({ username, password, remember_me: rememberMe })
         });
-        
+
         if (result.status === 'success') {
             setAuthToken(result.token);
-            
+
             // Save or remove credentials based on remember me checkbox
             if (rememberMe) {
                 localStorage.setItem('admin_remember_username', username);
@@ -95,7 +95,7 @@ function initLoginForm() {
                 localStorage.removeItem('admin_remember_username');
                 localStorage.removeItem('admin_remember_password');
             }
-            
+
             showDashboard();
         } else {
             document.getElementById('loginError').textContent = result.message || 'Login failed';
@@ -106,16 +106,59 @@ function initLoginForm() {
 /**
  * Initialize logout handler
  */
+/**
+ * Initialize logout handler
+ */
 function initLogout() {
-    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-        e.preventDefault();
-        await api('/admin89/logout', { method: 'POST' });
+    const handleLogout = async (e, skipApi = false) => {
+        if (e && e.preventDefault) e.preventDefault();
+
+        if (!skipApi) {
+            try {
+                await api('/admin89/logout', { method: 'POST' });
+            } catch (err) {
+                console.warn('Logout API failed, continuing with local logout', err);
+            }
+        }
+
         setAuthToken(null);
-        document.getElementById('loginPage').style.display = 'flex';
-        document.getElementById('dashboard').classList.remove('active');
+
+        const loginPage = document.getElementById('loginPage');
+        const dashboard = document.getElementById('dashboard');
+
+        if (loginPage) loginPage.style.display = 'flex';
+        if (dashboard) dashboard.classList.remove('active');
+
         // Show language toggle again on logout
         const langToggle = document.querySelector('.lang-toggle');
         if (langToggle) langToggle.style.display = 'flex';
+
+        // Clear any open modals or overlays
+        document.querySelectorAll('.modal-overlay, .mobile-menu-popup').forEach(el => {
+            el.classList.remove('active');
+            el.style.display = '';
+        });
+        document.body.style.overflow = '';
+    };
+
+    // Desktop Logout
+    const logoutBtn = document.getElementById('adminLogoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+    // Mobile Logout
+    const mobileLogoutBtn = document.getElementById('adminMobileLogoutBtn');
+    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
+
+    // Legacy/Fallback Logout
+    const legacyBtn = document.getElementById('logoutBtn');
+    if (legacyBtn) legacyBtn.addEventListener('click', handleLogout);
+
+    // Listen for 401 Unauthorized events from api.js
+    window.addEventListener('auth:unauthorized', () => {
+        // Only trigger if we are currently logged in (dashboard is active)
+        if (document.getElementById('dashboard').classList.contains('active')) {
+            handleLogout(null, true); // Skip API call as session is already dead
+        }
     });
 }
 

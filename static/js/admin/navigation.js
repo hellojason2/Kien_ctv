@@ -44,37 +44,27 @@ function getCurrentActivePage() {
    ═══════════════════════════════════════════════════════════════════ */
 
 /**
- * Open sidebar (mobile only) - TG KOL Style
+ * Open mobile menu popup (CTV Style)
  */
 function openMobileSidebar() {
-    const sidebar = document.getElementById('adminSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-
+    const popup = document.getElementById('adminMobileMenuPopup');
     sidebarMobileOpen = true;
 
-    if (sidebar) {
-        sidebar.classList.remove('collapsed');
-    }
-    if (backdrop) {
-        backdrop.classList.add('active');
+    if (popup) {
+        popup.classList.add('active');
     }
     document.body.style.overflow = 'hidden';
 }
 
 /**
- * Close sidebar (mobile only) - TG KOL Style
+ * Close mobile menu popup (CTV Style)
  */
 function closeMobileSidebar() {
-    const sidebar = document.getElementById('adminSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-
+    const popup = document.getElementById('adminMobileMenuPopup');
     sidebarMobileOpen = false;
 
-    if (sidebar) {
-        sidebar.classList.add('collapsed');
-    }
-    if (backdrop) {
-        backdrop.classList.remove('active');
+    if (popup) {
+        popup.classList.remove('active');
     }
     document.body.style.overflow = '';
 }
@@ -117,8 +107,11 @@ function initSidebarCollapse() {
     const sidebar = document.getElementById('adminSidebar');
     const mainContent = document.querySelector('.main-content');
     const collapseBtn = document.getElementById('sidebarCollapseBtn');
-    const backdrop = document.getElementById('sidebarBackdrop');
+
+    // Mobile elements
     const mobileMenuBtn = document.getElementById('adminMobileMenuBtn');
+    const mobileMenuOverlay = document.getElementById('adminMobileMenuOverlay');
+    const mobileMenuClose = document.getElementById('adminMobileMenuClose');
 
     // Mobile: Always start with sidebar closed (hidden)
     // Sidebar HTML has 'collapsed' class by default for mobile
@@ -146,20 +139,19 @@ function initSidebarCollapse() {
         collapseBtn.addEventListener('click', toggleSidebarCollapsed);
     }
 
-    // Mobile menu button (hamburger) - ONLY opens sidebar
+    // Mobile menu button (hamburger)
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', openMobileSidebar);
     }
 
-    // Backdrop click - closes sidebar
-    if (backdrop) {
-        backdrop.addEventListener('click', closeMobileSidebar);
+    // Mobile menu overlay click - closes menu
+    if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', closeMobileSidebar);
     }
 
-    // Close button (X) inside sidebar - closes sidebar on mobile
-    const closeBtn = document.getElementById('sidebarCloseBtn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeMobileSidebar);
+    // Mobile menu close button
+    if (mobileMenuClose) {
+        mobileMenuClose.addEventListener('click', closeMobileSidebar);
     }
 
     // Handle window resize
@@ -293,19 +285,15 @@ function initNavGroups() {
  * @param {string} page - Page name (overview, ctv, hierarchy, etc.)
  */
 function navigateTo(page) {
-    // Update active states in main sidebar nav
-    document.querySelectorAll('.sidebar-nav a[data-page]').forEach(a => {
-        a.classList.remove('active');
+    // Remove active class from all links (sidebar, flyout, and mobile)
+    document.querySelectorAll('.sidebar-nav a, .nav-flyout a, .mobile-menu-item').forEach(el => {
+        el.classList.remove('active');
     });
 
-    // Update active states in flyout menus
-    document.querySelectorAll('.nav-flyout a[data-page]').forEach(a => {
-        a.classList.remove('active');
-    });
-
-    // Set active on clicked item (both in nav and flyout)
+    // Set active on clicked item (both in nav, flyout, and mobile menu)
     document.querySelectorAll(`[data-page="${page}"]`).forEach(el => {
-        if (el.tagName === 'A') {
+        // Handle Sidebar Links (A tags), Flyout Links (A tags), and Mobile Menu Items (DIVs)
+        if (el.tagName === 'A' || el.classList.contains('mobile-menu-item')) {
             el.classList.add('active');
         }
     });
@@ -392,6 +380,16 @@ function initNavigation() {
             e.preventDefault();
             const page = e.currentTarget.dataset.page;
             navigateTo(page);
+        });
+    });
+
+    // Mobile menu items
+    document.querySelectorAll('.mobile-menu-item[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = e.currentTarget.dataset.page;
+            navigateTo(page);
+            closeMobileSidebar(); // Close menu after selection
         });
     });
 

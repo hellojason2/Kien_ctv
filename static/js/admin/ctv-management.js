@@ -16,16 +16,16 @@ window.allCTV = window.allCTV || [];
  */
 function formatReferrerBadge(code, name) {
     if (!code) return '-';
-    
+
     const phoneIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
-    
+
     // Format the phone number nicely (add spaces for readability)
     const formattedCode = formatPhoneDisplay(code);
-    
+
     if (name) {
         return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}<span class="badge-referrer-name">(${escapeHtmlCTV(name)})</span></span>`;
     }
-    
+
     return `<span class="badge badge-referrer" title="${code}">${phoneIcon}${formattedCode}</span>`;
 }
 
@@ -38,7 +38,7 @@ function formatPhoneDisplay(phone) {
     if (!phone) return '';
     // Remove non-digit characters
     const digits = phone.toString().replace(/\D/g, '');
-    
+
     // Format Vietnamese phone (10 digits): 0xxx xxx xxx
     if (digits.length === 10 && digits.startsWith('0')) {
         return digits.slice(0, 4) + ' ' + digits.slice(4, 7) + ' ' + digits.slice(7);
@@ -70,7 +70,7 @@ async function loadCTVList() {
     // Check if we should show inactive CTVs
     const showInactive = document.getElementById('showInactiveCTV')?.checked || false;
     const activeOnly = !showInactive;
-    
+
     const result = await api(`/api/admin/ctv?active_only=${activeOnly}`);
     if (result.status === 'success') {
         window.allCTV = result.data;
@@ -79,7 +79,7 @@ async function loadCTVList() {
         const activeCTV = showInactive ? result.data.filter(c => c.is_active !== false) : result.data;
         populateCTVSelects(activeCTV);
     }
-    
+
     // Also load pending registrations
     // loadPendingRegistrations(); - Removed as per user request to use Registrations tab instead
 }
@@ -112,26 +112,49 @@ function renderCTVTable(data) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">${t('no_ctv_found')}</td></tr>`;
         return;
     }
+    const labelCode = t('code');
+    const labelName = t('name');
+    const labelEmail = t('email');
+    const labelPhone = t('phone');
+    const labelReferrer = t('referrer');
+    const labelLevel = t('level');
+    const labelStatus = t('status');
+    const labelActions = t('actions');
+
     tbody.innerHTML = data.map(ctv => {
         // Check if code is numeric only
         const isNumericCode = /^\d+$/.test(ctv.ma_ctv);
         const codeStyle = isNumericCode ? '' : 'color:#b91c1c;font-weight:600;';
-        
+
         return `
         <tr>
-            <td style="${codeStyle}">${ctv.ma_ctv}${!isNumericCode ? ' ⚠️' : ''}</td>
-            <td>${ctv.ten}</td>
-            <td>${ctv.email || '-'}</td>
-            <td>${ctv.sdt || '-'}</td>
-            <td>${formatReferrerBadge(ctv.nguoi_gioi_thieu_code, ctv.nguoi_gioi_thieu_name)}</td>
-            <td><span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span></td>
-            <td><span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span></td>
-            <td>
-                <div style="display:flex;gap:4px;flex-wrap:wrap">
-                    <button class="btn btn-secondary" style="padding:6px 10px;font-size:11px" onclick="viewHierarchy('${ctv.ma_ctv}')" title="View Tree">🌳</button>
-                    <button class="btn btn-info" style="padding:6px 10px;font-size:11px;background:#dbeafe;color:#1e40af;border-color:#bfdbfe" onclick="showEditCTVModal('${ctv.ma_ctv}')" title="Edit CTV">✏️</button>
-                    <button class="btn btn-primary" style="padding:6px 10px;font-size:11px" onclick="showChangePasswordModal('${ctv.ma_ctv}')" title="Change Password">🔑</button>
-                    <button class="btn btn-danger" style="padding:6px 10px;font-size:11px;background:#fee2e2;color:#b91c1c;border-color:#fecaca" onclick="deleteCTV('${ctv.ma_ctv}', '${ctv.ten.replace(/'/g, "\\'")}')" title="Delete CTV">🗑️</button>
+            <td data-label="${labelCode}" style="${codeStyle}">
+                ${ctv.ma_ctv}${!isNumericCode ? ' ⚠️' : ''}
+            </td>
+            <td data-label="${labelName}">
+                <strong>${ctv.ten}</strong>
+            </td>
+            <td data-label="${labelEmail}">
+                ${ctv.email || '-'}
+            </td>
+            <td data-label="${labelPhone}">
+                ${ctv.sdt || '-'}
+            </td>
+            <td data-label="${labelReferrer}">
+                ${formatReferrerBadge(ctv.nguoi_gioi_thieu_code, ctv.nguoi_gioi_thieu_name)}
+            </td>
+            <td data-label="${labelLevel}">
+                <span class="badge badge-${ctv.cap_bac?.toLowerCase() || 'bronze'}">${ctv.cap_bac || 'Bronze'}</span>
+            </td>
+            <td data-label="${labelStatus}">
+                <span class="badge badge-${ctv.is_active !== false ? 'active' : 'inactive'}">${ctv.is_active !== false ? t('active') : t('inactive')}</span>
+            </td>
+            <td data-label="${labelActions}">
+                <div class="mobile-actions-grid">
+                    <button class="btn btn-secondary" onclick="viewHierarchy('${ctv.ma_ctv}')" title="View Tree">🌳</button>
+                    <button class="btn btn-info" onclick="showEditCTVModal('${ctv.ma_ctv}')" title="Edit CTV">✏️</button>
+                    <button class="btn btn-primary" onclick="showChangePasswordModal('${ctv.ma_ctv}')" title="Change Password">🔑</button>
+                    <button class="btn btn-danger" onclick="deleteCTV('${ctv.ma_ctv}', '${ctv.ten.replace(/'/g, "\\'")}')" title="Delete CTV">🗑️</button>
                 </div>
             </td>
         </tr>
@@ -148,13 +171,13 @@ function populateCTVSelects(ctvList = null) {
     // Use provided list or fall back to allCTV (filtered to active only for dropdowns)
     const listForDropdowns = ctvList || window.allCTV.filter(c => c.is_active !== false);
     const options = listForDropdowns.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
-    
+
     // Populate regular dropdowns
     const commissionFilter = document.getElementById('commissionCtvFilter');
     if (commissionFilter) {
         commissionFilter.innerHTML = `<option value="">${t('all_ctvs')}</option>` + options;
     }
-    
+
     // Initialize searchable dropdowns
     initHierarchyDropdown();
     initReferrerDropdown();
@@ -169,13 +192,13 @@ function showCreateCTVModal() {
         console.error('createCTVModal element not found!');
         return;
     }
-    
+
     // Force show modal - multiple methods to ensure it works
     modal.classList.add('active');
     modal.style.display = 'flex';
     modal.style.zIndex = '99999';
     modal.style.pointerEvents = 'auto';
-    
+
     // Ensure modal content is visible
     const modalContent = modal.querySelector('.modal');
     if (modalContent) {
@@ -185,21 +208,21 @@ function showCreateCTVModal() {
         modalContent.style.pointerEvents = 'auto';
         modalContent.style.zIndex = '100000';
     }
-    
+
     console.log('Modal shown:', modal.style.display, modal.classList.contains('active'));
-    
+
     // Re-apply translations to modal elements
     applyTranslations();
-    
+
     // Generate CTV Code
     generateCTVCode().then(code => {
         const input = document.getElementById('newCtvCode');
         if (input) input.value = code;
     });
-    
+
     // Load CTV levels for datalist
     loadCTVLevels();
-    
+
     // Reset referrer dropdown
     const input = document.getElementById('referrerSearch');
     const hiddenInput = document.getElementById('newCtvReferrer');
@@ -216,7 +239,7 @@ async function loadCTVLevels() {
         if (result.status === 'success' && result.levels) {
             const datalist = document.getElementById('levelOptions');
             if (datalist) {
-                datalist.innerHTML = result.levels.map(level => 
+                datalist.innerHTML = result.levels.map(level =>
                     `<option value="${level}">`
                 ).join('');
             }
@@ -238,12 +261,12 @@ async function createCTV() {
         nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
         cap_bac: document.getElementById('newCtvLevel').value || 'Đã đặt cọc'
     };
-    
+
     const result = await api('/api/admin/ctv', {
         method: 'POST',
         body: JSON.stringify(data)
     });
-    
+
     if (result.status === 'success') {
         alert(`CTV created! Default password: ${result.default_password}`);
         closeModal('createCTVModal');
@@ -253,7 +276,7 @@ async function createCTV() {
         if (input) input.value = '';
         const hiddenInput = document.getElementById('newCtvReferrer');
         if (hiddenInput) hiddenInput.value = '';
-        
+
         loadCTVList();
     } else {
         alert('Error: ' + result.message);
@@ -267,12 +290,12 @@ async function createCTV() {
 async function showEditCTVModal(ctvCode) {
     // Find the CTV in our loaded list
     const ctv = window.allCTV.find(c => c.ma_ctv === ctvCode);
-    
+
     if (!ctv) {
         alert('CTV not found');
         return;
     }
-    
+
     const modal = document.getElementById('editCTVModal');
     if (modal) {
         modal.classList.add('active');
@@ -287,18 +310,18 @@ async function showEditCTVModal(ctvCode) {
             modalContent.style.pointerEvents = 'auto';
         }
     }
-    
+
     // Populate the form fields
     document.getElementById('editCtvCode').value = ctv.ma_ctv;
     document.getElementById('editCtvName').value = ctv.ten || '';
     document.getElementById('editCtvPhone').value = ctv.sdt || '';
     document.getElementById('editCtvEmail').value = ctv.email || '';
     document.getElementById('editCtvLevel').value = ctv.cap_bac || '';
-    
+
     // Show the modal
     document.getElementById('editCTVModal').classList.add('active');
     applyTranslations();
-    
+
     // Load CTV levels for datalist
     loadCTVLevels();
 }
@@ -314,18 +337,18 @@ async function submitEditCTV() {
         email: document.getElementById('editCtvEmail').value,
         cap_bac: document.getElementById('editCtvLevel').value
     };
-    
+
     // Validate required fields
     if (!data.ten) {
         alert(t('enter_name') || 'Please enter a name');
         return;
     }
-    
+
     const result = await api(`/api/admin/ctv/${ctvCode}`, {
         method: 'PUT',
         body: JSON.stringify(data)
     });
-    
+
     if (result.status === 'success') {
         alert(t('ctv_updated') || 'CTV updated successfully');
         closeModal('editCTVModal');
@@ -345,7 +368,7 @@ async function generateCTVCode() {
     if (!window.allCTV || window.allCTV.length === 0) {
         await loadCTVList();
     }
-    
+
     let maxId = 0;
     if (window.allCTV && window.allCTV.length > 0) {
         window.allCTV.forEach(ctv => {
@@ -357,7 +380,7 @@ async function generateCTVCode() {
             }
         });
     }
-    
+
     const nextId = maxId + 1;
     // Format as CTV + 3 digits (e.g. CTV005)
     return `CTV${String(nextId).padStart(3, '0')}`;
@@ -387,17 +410,17 @@ function initCTVSearch() {
         searchInput.addEventListener('input', (e) => {
             const term = normalizeVietnamese(e.target.value);
             const searchValue = e.target.value;
-            
+
             // If search is empty, show all CTVs
             if (!term && !searchValue) {
                 renderCTVTable(window.allCTV);
                 return;
             }
-            
+
             // Extract digits only from search term for phone comparison
             const searchDigits = searchValue.replace(/\D/g, '');
             const searchDigitsNoZero = searchDigits.replace(/^0+/, ''); // Remove leading zeros
-            
+
             // Filter CTVs - normalize all fields for comparison
             const filtered = window.allCTV.filter(c => {
                 const code = normalizeVietnamese(c.ma_ctv || '');
@@ -405,23 +428,42 @@ function initCTVSearch() {
                 const email = normalizeVietnamese(c.email || '');
                 const phone = (c.sdt || '').toString().replace(/\D/g, ''); // Extract digits from phone
                 const phoneNoZero = phone.replace(/^0+/, ''); // Remove leading zeros from stored phone
-                
+
+                // DATA: Referrer info
+                const referrerCode = normalizeVietnamese(c.nguoi_gioi_thieu_code || '');
+                const referrerName = normalizeVietnamese(c.nguoi_gioi_thieu_name || '');
+                const referrerPhone = (c.nguoi_gioi_thieu_code || '').toString().replace(/\D/g, '');
+                const referrerPhoneNoZero = referrerPhone.replace(/^0+/, '');
+
                 // Match by code, name, email, or phone (with flexible phone matching)
+                // ALSO match by referrer code/phone/name
                 return code.includes(term) ||
-                       name.includes(term) ||
-                       email.includes(term) ||
-                       phone.includes(searchDigits) ||
-                       phone.includes(searchDigitsNoZero) ||
-                       phoneNoZero.includes(searchDigits) ||
-                       phoneNoZero.includes(searchDigitsNoZero) ||
-                       (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) ||
-                       (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
+                    name.includes(term) ||
+                    email.includes(term) ||
+                    referrerCode.includes(term) ||
+                    referrerName.includes(term) ||
+                    // Phone matching
+                    phone.includes(searchDigits) ||
+                    phone.includes(searchDigitsNoZero) ||
+                    phoneNoZero.includes(searchDigits) ||
+                    phoneNoZero.includes(searchDigitsNoZero) ||
+                    // Referrer Phone matching
+                    (searchDigits.length > 3 && referrerPhone.includes(searchDigits)) ||
+                    (searchDigits.length > 3 && referrerPhoneNoZero.includes(searchDigits)) ||
+
+                    (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) ||
+                    (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
             });
-            
+
             renderCTVTable(filtered);
         });
     }
 }
+
+// Initialize search when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    initCTVSearch();
+});
 
 /**
  * Initialize searchable referrer dropdown
@@ -431,7 +473,7 @@ function initReferrerDropdown() {
     const input = document.getElementById('referrerSearch');
     const list = document.getElementById('referrerList');
     const hiddenInput = document.getElementById('newCtvReferrer');
-    
+
     if (!dropdown || !input || !list) return;
 
     // Show dropdown on focus
@@ -485,34 +527,34 @@ function initReferrerDropdown() {
 function renderReferrerList(searchTerm = '') {
     const list = document.getElementById('referrerList');
     if (!list) return;
-    
+
     const term = normalizeVietnamese(searchTerm);
     const hiddenInput = document.getElementById('newCtvReferrer');
     const selectedValue = hiddenInput ? hiddenInput.value : '';
 
     // Filter active CTVs
     let filtered = (window.allCTV || []).filter(c => c.is_active !== false);
-    
+
     if (term) {
         // Extract digits only from search term for phone comparison
         const searchDigits = searchTerm.replace(/\D/g, '');
         const searchDigitsNoZero = searchDigits.replace(/^0+/, ''); // Remove leading zeros
-        
+
         filtered = filtered.filter(c => {
             const code = normalizeVietnamese(c.ma_ctv || '');
             const name = normalizeVietnamese(c.ten || '');
             const phone = (c.sdt || '').toString().replace(/\D/g, ''); // Extract digits from phone
             const phoneNoZero = phone.replace(/^0+/, ''); // Remove leading zeros from stored phone
-            
+
             // Match by code, name, or phone (with flexible phone matching)
-            return code.includes(term) || 
-                   name.includes(term) || 
-                   phone.includes(searchDigits) || 
-                   phone.includes(searchDigitsNoZero) ||
-                   phoneNoZero.includes(searchDigits) ||
-                   phoneNoZero.includes(searchDigitsNoZero) ||
-                   (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) || // Last 8 digits
-                   (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
+            return code.includes(term) ||
+                name.includes(term) ||
+                phone.includes(searchDigits) ||
+                phone.includes(searchDigitsNoZero) ||
+                phoneNoZero.includes(searchDigits) ||
+                phoneNoZero.includes(searchDigitsNoZero) ||
+                (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) || // Last 8 digits
+                (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
         });
     }
 
@@ -551,9 +593,9 @@ function selectReferrer(ctvCode) {
     const hiddenInput = document.getElementById('newCtvReferrer');
     const input = document.getElementById('referrerSearch');
     const dropdown = document.getElementById('referrerDropdown');
-    
+
     if (hiddenInput) hiddenInput.value = ctvCode;
-    
+
     if (ctvCode) {
         const ctv = (window.allCTV || []).find(c => c.ma_ctv === ctvCode);
         if (ctv && input) {
@@ -563,7 +605,7 @@ function selectReferrer(ctvCode) {
         // Clear input for "None" selection
         if (input) input.value = '';
     }
-    
+
     if (dropdown) dropdown.classList.remove('open');
 }
 
@@ -575,7 +617,7 @@ function selectReferrer(ctvCode) {
 function showChangePasswordModal(ctvCode) {
     document.getElementById('changePasswordCtvCode').value = ctvCode;
     document.getElementById('newPassword').value = '';
-    
+
     const modal = document.getElementById('changePasswordModal');
     if (modal) {
         modal.classList.add('active');
@@ -590,7 +632,7 @@ function showChangePasswordModal(ctvCode) {
             modalContent.style.pointerEvents = 'auto';
         }
     }
-    
+
     applyTranslations();
 }
 
@@ -626,21 +668,21 @@ async function submitChangePassword() {
  */
 async function deleteCTV(ctvCode, ctvName) {
     const confirmMsg = `⚠️ DELETE CTV?\n\nCode: ${ctvCode}\nName: ${ctvName}\n\nThis will PERMANENTLY remove this CTV from the system.`;
-    
+
     if (!confirm(confirmMsg)) {
         return;
     }
-    
+
     // Second confirm for safety
     if (!confirm(`⚠️ FINAL CONFIRMATION\n\nAre you ABSOLUTELY SURE you want to delete:\n${ctvCode} - ${ctvName}?\n\nClick OK to DELETE or Cancel to abort.`)) {
         return;
     }
-    
+
     try {
         const result = await api(`/api/admin/ctv/${ctvCode}/hard-delete`, {
             method: 'DELETE'
         });
-        
+
         if (result.status === 'success') {
             alert(`✅ CTV "${ctvCode}" has been deleted successfully.`);
             loadCTVList();
@@ -659,32 +701,32 @@ async function deleteCTV(ctvCode, ctvName) {
 async function deleteNonNumericCTVs() {
     // First, find all non-numeric CTVs
     const nonNumericCTVs = (window.allCTV || []).filter(ctv => !/^\d+$/.test(ctv.ma_ctv));
-    
+
     if (nonNumericCTVs.length === 0) {
         alert('✅ No CTVs with non-numeric codes found. All codes are valid!');
         return;
     }
-    
+
     // Show list of CTVs to be deleted
     const listPreview = nonNumericCTVs.slice(0, 10).map(c => `• ${c.ma_ctv} - ${c.ten}`).join('\n');
     const moreText = nonNumericCTVs.length > 10 ? `\n... and ${nonNumericCTVs.length - 10} more` : '';
-    
+
     const confirmMsg = `⚠️ BULK DELETE WARNING\n\nFound ${nonNumericCTVs.length} CTV(s) with non-numeric codes:\n\n${listPreview}${moreText}\n\nClick OK to DELETE ALL of them.`;
-    
+
     if (!confirm(confirmMsg)) {
         return;
     }
-    
+
     // Second confirm for bulk delete
     if (!confirm(`⚠️ FINAL CONFIRMATION\n\nYou are about to DELETE ${nonNumericCTVs.length} CTV(s).\n\nThis action CANNOT be undone!\n\nClick OK to proceed or Cancel to abort.`)) {
         return;
     }
-    
+
     try {
         const result = await api('/api/admin/ctv/delete-non-numeric', {
             method: 'DELETE'
         });
-        
+
         if (result.status === 'success') {
             alert(`✅ Successfully deleted ${result.deleted_count} CTV(s) with non-numeric codes.`);
             loadCTVList();

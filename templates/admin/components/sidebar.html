@@ -11,7 +11,7 @@
     </div>
 
     <div class="sidebar-menu">
-        <!-- Dashboard / Overview - Only active option -->
+        <!-- Dashboard / Overview -->
         <div class="sidebar-icon active" data-page="overview" data-i18n-title="overview">
             <svg viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1"></rect>
@@ -21,6 +21,100 @@
             </svg>
             <span data-i18n="overview">Tổng Quan</span>
             <div class="sidebar-tooltip" data-i18n="overview">Tổng Quan</div>
+        </div>
+
+        <!-- CTV Management -->
+        <div class="sidebar-icon" data-page="ctv" data-i18n-title="ctv_management">
+            <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span data-i18n="ctv_management">Quản Lý CTV</span>
+            <div class="sidebar-tooltip" data-i18n="ctv_management">Quản Lý CTV</div>
+        </div>
+
+        <!-- Registrations -->
+        <div class="sidebar-icon" data-page="registrations" data-i18n-title="registrations">
+            <svg viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            <span data-i18n="registrations">Đăng Ký Mới</span>
+            <div class="sidebar-tooltip" data-i18n="registrations">Đăng Ký Mới</div>
+        </div>
+
+        <!-- Hierarchy -->
+        <div class="sidebar-icon" data-page="hierarchy" data-i18n-title="hierarchy">
+            <svg viewBox="0 0 24 24">
+                <rect x="10" y="3" width="4" height="4"></rect>
+                <rect x="3" y="17" width="4" height="4"></rect>
+                <rect x="17" y="17" width="4" height="4"></rect>
+                <line x1="12" y1="7" x2="12" y2="17"></line>
+                <line x1="12" y1="12" x2="5" y2="12"></line>
+                <line x1="12" y1="12" x2="19" y2="12"></line>
+                <line x1="5" y1="12" x2="5" y2="17"></line>
+                <line x1="19" y1="12" x2="19" y2="17"></line>
+            </svg>
+            <span data-i18n="hierarchy">Cây Hệ Thống</span>
+            <div class="sidebar-tooltip" data-i18n="hierarchy">Cây Hệ Thống</div>
+        </div>
+
+        <!-- Clients -->
+        <div class="sidebar-icon" data-page="clients" data-i18n-title="clients">
+            <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span data-i18n="clients">Khách Hàng</span>
+            <div class="sidebar-tooltip" data-i18n="clients">Khách Hàng</div>
+        </div>
+
+        <!-- Commissions -->
+        <div class="sidebar-icon" data-page="commissions" data-i18n-title="commissions">
+            <svg viewBox="0 0 24 24">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span data-i18n="commissions">Hoa Hồng</span>
+            <div class="sidebar-tooltip" data-i18n="commissions">Hoa Hồng</div>
+        </div>
+
+        <!-- Signup Terms -->
+        <div class="sidebar-icon" data-page="signup-terms" data-i18n-title="signup_terms">
+            <svg viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span data-i18n="signup_terms">Điều Khoản</span>
+            <div class="sidebar-tooltip" data-i18n="signup_terms">Điều Khoản</div>
+        </div>
+
+        <!-- Activity Logs -->
+        <div class="sidebar-icon" data-page="activity-logs" data-i18n-title="activity_logs">
+            <svg viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <span data-i18n="activity_logs">Lịch Sử</span>
+            <div class="sidebar-tooltip" data-i18n="activity_logs">Lịch Sử</div>
+        </div>
+
+        <!-- Settings -->
+        <div class="sidebar-icon" data-page="settings" data-i18n-title="settings">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+            <span data-i18n="settings">Cài Đặt</span>
+            <div class="sidebar-tooltip" data-i18n="settings">Cài Đặt</div>
         </div>
 
         <!-- Language Switcher -->
@@ -98,43 +192,97 @@
                 <span data-i18n="overview">Tổng Quan</span>
             </div>
 
-            <div class="mobile-menu-divider"></div>
-
-            <!-- Language Toggle in Mobile Menu -->
-            <div class="mobile-menu-lang">
-                <div class="mobile-menu-item" id="adminMobileLangToggle">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path
-                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                        </path>
-                    </svg>
-                    <span data-i18n="language">Ngôn Ngữ</span>
-                    <span class="mobile-lang-current" id="adminMobileCurrentLangLabel">VI</span>
-                </div>
-                <div class="mobile-lang-popup" id="adminMobileLangPopup">
-                    <div class="lang-popup-title" data-i18n="choose_language">Chọn Ngôn Ngữ</div>
-                    <div class="lang-option" data-lang="vi"
-                        onclick="selectAdminLanguage('vi'); closeAdminMobileMenu();">
-                        <span class="lang-flag">VN</span>
-                        <span class="lang-name" data-i18n="vietnamese">Tiếng Việt</span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </div>
-                    <div class="lang-option" data-lang="en"
-                        onclick="selectAdminLanguage('en'); closeAdminMobileMenu();">
-                        <span class="lang-flag">US</span>
-                        <span class="lang-name" data-i18n="english">English</span>
-                        <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </div>
-                </div>
+            <!-- CTV Management -->
+            <div class="mobile-menu-item" data-page="ctv" data-i18n-title="ctv_management">
+                <svg viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span data-i18n="ctv_management">Quản Lý CTV</span>
             </div>
+
+            <!-- Registrations -->
+            <div class="mobile-menu-item" data-page="registrations" data-i18n-title="registrations">
+                <svg viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                <span data-i18n="registrations">Đăng Ký Mới</span>
+            </div>
+
+            <!-- Hierarchy -->
+            <div class="mobile-menu-item" data-page="hierarchy" data-i18n-title="hierarchy">
+                <svg viewBox="0 0 24 24">
+                    <rect x="10" y="3" width="4" height="4"></rect>
+                    <rect x="3" y="17" width="4" height="4"></rect>
+                    <rect x="17" y="17" width="4" height="4"></rect>
+                    <line x1="12" y1="7" x2="12" y2="17"></line>
+                    <line x1="12" y1="12" x2="5" y2="12"></line>
+                    <line x1="12" y1="12" x2="19" y2="12"></line>
+                    <line x1="5" y1="12" x2="5" y2="17"></line>
+                    <line x1="19" y1="12" x2="19" y2="17"></line>
+                </svg>
+                <span data-i18n="hierarchy">Cây Hệ Thống</span>
+            </div>
+
+            <!-- Clients -->
+            <div class="mobile-menu-item" data-page="clients" data-i18n-title="clients">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span data-i18n="clients">Khách Hàng</span>
+            </div>
+
+            <!-- Commissions -->
+            <div class="mobile-menu-item" data-page="commissions" data-i18n-title="commissions">
+                <svg viewBox="0 0 24 24">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <span data-i18n="commissions">Hoa Hồng</span>
+            </div>
+
+            <!-- Signup Terms -->
+            <div class="mobile-menu-item" data-page="signup-terms" data-i18n-title="signup_terms">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span data-i18n="signup_terms">Điều Khoản</span>
+            </div>
+
+            <!-- Activity Logs -->
+            <div class="mobile-menu-item" data-page="activity-logs" data-i18n-title="activity_logs">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <span data-i18n="activity_logs">Lịch Sử</span>
+            </div>
+
+            <!-- Settings -->
+            <div class="mobile-menu-item" data-page="settings" data-i18n-title="settings">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+                <span data-i18n="settings">Cài Đặt</span>
+            </div>
+
+            <!-- Language Toggle Removed - Moved to Header -->
+            <!-- 
+            <div class="mobile-menu-divider"></div>
+            <div class="mobile-menu-lang">...</div> 
+            -->
 
             <div class="mobile-menu-divider"></div>
 

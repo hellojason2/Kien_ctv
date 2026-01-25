@@ -20,18 +20,23 @@ async function api(endpoint, options = {}) {
         // Only send Authorization header if token exists and is not the placeholder 'cookie-auth'
         ...(authToken && authToken !== 'cookie-auth' && { 'Authorization': `Bearer ${authToken}` })
     };
-    
+
     // Include credentials to send cookies (for session_token)
     const fetchOptions = {
         ...options,
         headers,
         credentials: 'include' // Important: sends cookies with request
     };
-    
+
     try {
         const response = await fetch(endpoint, fetchOptions);
-        
+
         if (!response.ok) {
+            // Handle 401 Unauthorized globally
+            if (response.status === 401) {
+                window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+            }
+
             // Try to parse error response
             let errorData;
             try {
@@ -41,7 +46,7 @@ async function api(endpoint, options = {}) {
             }
             return errorData;
         }
-        
+
         return await response.json();
     } catch (error) {
         // Network error or other exception
@@ -62,22 +67,22 @@ async function apiLong(endpoint, options = {}, timeoutMs = 300000) {
         'Content-Type': 'application/json',
         ...(authToken && authToken !== 'cookie-auth' && { 'Authorization': `Bearer ${authToken}` })
     };
-    
+
     // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-    
+
     const fetchOptions = {
         ...options,
         headers,
         credentials: 'include',
         signal: controller.signal
     };
-    
+
     try {
         const response = await fetch(endpoint, fetchOptions);
         clearTimeout(timeoutId);
-        
+
         if (!response.ok) {
             let errorData;
             try {
@@ -87,16 +92,16 @@ async function apiLong(endpoint, options = {}, timeoutMs = 300000) {
             }
             return errorData;
         }
-        
+
         return await response.json();
     } catch (error) {
         clearTimeout(timeoutId);
         console.error('API Long Error:', error);
-        
+
         if (error.name === 'AbortError') {
-            return { 
-                status: 'error', 
-                message: 'Request timed out. The operation may still be running on the server. Please wait a moment and refresh the page to check the results.' 
+            return {
+                status: 'error',
+                message: 'Request timed out. The operation may still be running on the server. Please wait a moment and refresh the page to check the results.'
             };
         }
         return { status: 'error', message: error.message || 'Network error' };

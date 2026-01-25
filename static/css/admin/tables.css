@@ -187,15 +187,125 @@ tbody tr:last-child td {
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        border-radius: 0;
     }
+
+    /* Default table scroll behavior */
     table {
         min-width: 600px;
     }
+
     .commissions-table {
         min-width: 800px;
     }
-    th, td {
+
+    th,
+    td {
         padding: 10px 12px;
         font-size: 13px;
+    }
+
+    /* Responsive Card Table - Transforms rows into cards */
+    .responsive-card-table table {
+        min-width: 0;
+        display: block;
+        background: transparent;
+        border: none;
+    }
+
+    .responsive-card-table thead {
+        display: none;
+    }
+
+    .responsive-card-table tbody {
+        display: block;
+        background: transparent;
+    }
+
+    .responsive-card-table tr {
+        display: block;
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        /* Bolder border as requested */
+        border-radius: 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .responsive-card-table tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .responsive-card-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: right;
+        padding: 14px 18px;
+        /* Increased padding for better touch area */
+        border-bottom: 1px solid var(--border-color);
+        min-height: auto;
+        font-size: 14px;
+        word-break: break-word;
+    }
+
+    .responsive-card-table td:last-child {
+        border-bottom: none;
+        justify-content: center;
+        background: #f8fafc;
+        /* Lighter bg for actions */
+        padding: 16px;
+    }
+
+    .responsive-card-table td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        margin-right: 12px;
+        text-align: left;
+        flex: 0 0 auto;
+        max-width: 40%;
+        margin-top: 2px;
+    }
+
+    /* Mobile Actions Grid - Fixes "jumbled" buttons layout */
+    .mobile-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .mobile-actions-grid .btn {
+        width: 100%;
+        aspect-ratio: 1;
+        /* Force square shape */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        font-size: 20px;
+        /* Larger emoji font */
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Hide label for Actions column */
+    .responsive-card-table td[data-label="Actions"]:before,
+    .responsive-card-table td[data-label="Thao Tác"]:before {
+        display: none;
+    }
+
+    /* Make actions row centered content */
+    .responsive-card-table td[data-label="Actions"],
+    .responsive-card-table td[data-label="Thao Tác"] {
+        justify-content: center;
+        width: 100%;
+        display: flex;
     }
 }

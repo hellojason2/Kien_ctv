@@ -1,54 +1,66 @@
 <!-- Overview Page -->
 <div class="page-section active" id="page-overview">
-    <div class="header" style="display: flex; align-items: center; gap: 16px;">
+    <div class="header">
         <h2 data-i18n="dashboard_overview">Dashboard Overview</h2>
-        <!-- Google Sheet Variable Status Checker -->
-        <div class="sync-status-container" id="googleStatusContainer" title="Checking Google Sheet Variables...">
-            <span class="sync-status-dot" id="googleStatusDot" style="background-color: #ccc;"></span>
-            <span class="sync-status-text" id="googleStatusText">Checking Vars...</span>
-        </div>
 
-        <!-- Sync Worker Status Indicator -->
-        <div class="sync-status-container" id="syncStatusContainer" onclick="resetSyncCounter()"
-            title="Click to clear notifications">
-            <span class="sync-status-dot" id="syncStatusDot"></span>
-            <span class="sync-status-text" id="syncStatusText">Checking...</span>
-            <span class="sync-badge" id="syncBadge" style="display: none;">0</span>
-        </div>
+        <div class="header-toolbar" style="display: flex; align-items: center; gap: 24px;">
+            <!-- Group 1: Status Indicators -->
+            <div class="status-group"
+                style="display: flex; align-items: center; gap: 12px; padding-right: 24px; border-right: 2px solid #e5e7eb;">
+                <!-- Google Sheet Variable Status Checker -->
+                <div class="sync-status-container" id="googleStatusContainer" data-i18n-tooltip="checking_vars">
+                    <span class="sync-status-dot" id="googleStatusDot" style="background-color: #ccc;"></span>
+                    <span class="sync-status-text" id="googleStatusText" data-i18n="checking_vars">Checking
+                        Vars...</span>
+                </div>
 
-        <!-- Row Count Indicators -->
-        <div class="row-count-indicators" id="rowCountIndicators">
-            <div class="row-count-box" id="rowCountTM" title="Thẩm Mỹ (Beauty) - DB / Sheet">
-                <span class="row-count-label">TM</span>
-                <span class="row-count-value" id="rowCountTMValue">-/-</span>
+                <!-- Sync Worker Status Indicator -->
+                <div class="sync-status-container" id="syncStatusContainer" onclick="resetSyncCounter()"
+                    data-i18n-tooltip="click_to_clear">
+                    <span class="sync-status-dot" id="syncStatusDot"></span>
+                    <span class="sync-status-text" id="syncStatusText" data-i18n="checking_vars">Checking...</span>
+                    <span class="sync-badge" id="syncBadge" style="display: none;">0</span>
+                </div>
+
+                <!-- Row Count Indicators -->
+                <div class="row-count-indicators" id="rowCountIndicators">
+                    <div class="row-count-box" id="rowCountTM" data-i18n-tooltip="tm_tooltip">
+                        <span class="row-count-label">TM</span>
+                        <span class="row-count-value" id="rowCountTMValue">-/-</span>
+                    </div>
+                    <div class="row-count-box" id="rowCountNK" data-i18n-tooltip="nk_tooltip">
+                        <span class="row-count-label">NK</span>
+                        <span class="row-count-value" id="rowCountNKValue">-/-</span>
+                    </div>
+                    <div class="row-count-box" id="rowCountGT" data-i18n-tooltip="gt_tooltip">
+                        <span class="row-count-label">GT</span>
+                        <span class="row-count-value" id="rowCountGTValue">-/-</span>
+                    </div>
+                </div>
             </div>
-            <div class="row-count-box" id="rowCountNK" title="Nha Khoa (Dental) - DB / Sheet">
-                <span class="row-count-label">NK</span>
-                <span class="row-count-value" id="rowCountNKValue">-/-</span>
-            </div>
-            <div class="row-count-box" id="rowCountGT" title="Giới Thiệu (Referral) - DB / Sheet">
-                <span class="row-count-label">GT</span>
-                <span class="row-count-value" id="rowCountGTValue">-/-</span>
+
+            <!-- Group 2: Actions -->
+            <div class="actions-group" style="display: flex; align-items: center; gap: 8px;">
+                <!-- Sync Button -->
+                <button id="syncNowBtn" onclick="manualSync()"
+                    style="padding: 6px 12px; font-size: 13px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <span style="font-weight: bold;">⟳</span> <span data-i18n="sync_now">Sync Now</span>
+                </button>
+
+                <!-- Check Duplicates Button -->
+                <button id="checkDupesBtn" onclick="confirmDuplicateCleanup()"
+                    style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <span style="font-weight: bold;">🧹</span> <span data-i18n="check_duplicates">Check
+                        Duplicates</span>
+                </button>
+
+                <!-- Hard Reset Button -->
+                <button id="hardResetBtn" onclick="confirmHardReset()"
+                    style="padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <span style="font-weight: bold;">↻</span> <span data-i18n="hard_reset">Hard Reset</span>
+                </button>
             </div>
         </div>
-
-        <!-- Sync Button -->
-        <button id="syncNowBtn" onclick="manualSync()"
-            style="margin-left: auto; padding: 6px 12px; font-size: 13px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-            <span style="font-weight: bold;">⟳</span> <span data-i18n="sync_now">Sync Now</span>
-        </button>
-
-        <!-- Check Duplicates Button -->
-        <button id="checkDupesBtn" onclick="confirmDuplicateCleanup()"
-            style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-            <span style="font-weight: bold;">🧹</span> <span data-i18n="check_duplicates">Check Duplicates</span>
-        </button>
-
-        <!-- Hard Reset Button -->
-        <button id="hardResetBtn" onclick="confirmHardReset()"
-            style="padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-            <span style="font-weight: bold;">↻</span> <span data-i18n="hard_reset">Hard Reset</span>
-        </button>
     </div>
 
     <!-- Date Filter Card -->
@@ -118,11 +130,11 @@
             <h3 data-i18n="top_earners">Top Earners This Month</h3>
         </div>
         <div class="card-body" style="padding: 0;">
-            <div class="table-container">
+            <div class="table-container responsive-card-table">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th data-i18n="rank" style="width: 60px;">#</th>
+                            <th data-i18n="id" style="width: 60px;">#</th>
                             <th data-i18n="ctv_name">Name</th>
                             <th data-i18n="ctv_code">Code</th>
                             <th data-i18n="total_revenue" style="text-align: right;">Total Revenue</th>
@@ -153,7 +165,8 @@
                 </svg>
             </div>
             <h3 data-i18n="cleanup_progress">Cleanup In Progress</h3>
-            <p class="progress-modal-subtitle">Scanning for duplicates based on Date, Time, Name & Service...</p>
+            <p class="progress-modal-subtitle" data-i18n="cleanup_subtitle">Scanning for duplicates based on Date, Time,
+                Name & Service...</p>
         </div>
 
         <!-- Cleanup Status -->
@@ -161,7 +174,7 @@
             <div class="sync-spinner" id="cleanupSpinner"
                 style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #0ea5e9; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;">
             </div>
-            <div id="cleanupStatusText" style="font-weight: 600; color: #374151;">Starting...</div>
+            <div id="cleanupStatusText" style="font-weight: 600; color: #374151;" data-i18n="starting">Starting...</div>
         </div>
 
         <!-- Cleanup Log -->
@@ -173,12 +186,14 @@
         <!-- Cleanup Summary -->
         <div class="sync-summary" id="cleanupSummary" style="display: none; padding: 20px; text-align: center;">
             <div style="font-size: 48px; margin-bottom: 12px;">✓</div>
-            <h4 style="margin: 0 0 16px; color: #166534;" id="cleanupResultTitle">Cleanup Complete!</h4>
+            <h4 style="margin: 0 0 16px; color: #166534;" id="cleanupResultTitle" data-i18n="cleanup_complete">Cleanup
+                Complete!</h4>
             <div id="cleanupStats"
                 style="text-align: left; background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
             </div>
             <button class="btn-close-modal" onclick="closeCleanupModal()"
-                style="background: #0ea5e9; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Close</button>
+                style="background: #0ea5e9; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                data-i18n="close">Close</button>
         </div>
     </div>
 </div>
@@ -209,7 +224,7 @@
                 </div>
                 <div class="step-content">
                     <div class="step-header">
-                        <span class="step-title">Reading Database</span>
+                        <span class="step-title" data-i18n="step_read">Reading Database</span>
                         <span class="step-status" id="step-read-status">Waiting...</span>
                     </div>
                     <div class="step-progress-bar">
@@ -337,7 +352,7 @@
         <!-- Activity Log Panel -->
         <div class="progress-log-panel">
             <div class="log-header" onclick="toggleLogPanel()">
-                <span>📋 Activity Log</span>
+                <span data-i18n="activity_logs">📋 Activity Log</span>
                 <span class="log-toggle" id="logToggle">▼</span>
             </div>
             <div class="log-content" id="logContent" style="display: none;">
@@ -370,7 +385,7 @@
                 </svg>
             </div>
             <h3 data-i18n="sync_progress">Sync In Progress</h3>
-            <p class="progress-modal-subtitle">Pulling new records from Google Sheets...</p>
+            <p class="progress-modal-subtitle" data-i18n="sync_subtitle">Pulling new records from Google Sheets...</p>
         </div>
 
         <!-- Sync Status -->
@@ -390,12 +405,13 @@
         <!-- Summary (shown when complete) -->
         <div class="sync-summary" id="syncSummary" style="display: none; padding: 20px; text-align: center;">
             <div style="font-size: 48px; margin-bottom: 12px;">✓</div>
-            <h4 style="margin: 0 0 16px; color: #166534;">Sync Complete!</h4>
+            <h4 style="margin: 0 0 16px; color: #166534;" data-i18n="sync_complete">Sync Complete!</h4>
             <div id="syncSummaryStats"
                 style="text-align: left; background: #f0fdf4; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
             </div>
             <button class="btn-close-modal" onclick="closeSyncModal()"
-                style="background: #22c55e; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Close</button>
+                style="background: #22c55e; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;"
+                data-i18n="close">Close</button>
         </div>
     </div>
 </div>

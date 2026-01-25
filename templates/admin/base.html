@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/badges.css') }}?v=3.3">
     <!-- CTV Sidebar Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/layout.css') }}?v=4.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/mobile-ctv-style.css') }}?v=1.0">
 </head>
 
 <body>
@@ -33,19 +34,59 @@
 
     <!-- Dashboard with CTV Style Sidebar -->
     <div class="dashboard" id="dashboard">
-        <!-- Mobile Header with Hamburger Menu -->
-        <header class="mobile-header" id="adminMobileHeader">
-            <div class="mobile-header-left">
-                <button class="mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Open menu">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
-                <span class="mobile-header-title">CTV Admin</span>
+        <!-- Admin Floating Top Bar (CTV Style) -->
+        <header class="floating-header" id="floatingHeader">
+            <div class="floating-header-inner">
+                <!-- Left: Menu Toggle -->
+                <div class="header-left">
+                    <button class="header-menu-btn" id="adminMobileMenuBtn" aria-label="Menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <img src="{{ url_for('static', filename='images/tam-logo.png') }}" alt="Tâm" class="logo-image">
+                    </div>
+                    <span class="header-brand" data-i18n="admin_brand">CTV Admin</span>
+                </div>
+
+                <!-- Center: Spacer/Actions -->
+                <div class="header-actions">
+                    <!-- Actions can go here -->
+                </div>
+
+                <!-- Right: User Info -->
+                <div class="header-right">
+                    <!-- Language Switcher in Header -->
+                    <div class="header-lang" id="adminHeaderLangSwitcher">
+                        <div class="header-lang-trigger" id="headerLangTrigger">
+                            <span class="header-lang-code" id="headerCurrentLangLabel">VI</span>
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                fill="none">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="header-lang-dropdown" id="headerLangDropdown">
+                            <div class="lang-option" data-lang="vi" onclick="selectAdminLanguage('vi')">
+                                <span class="lang-flag">VN</span>
+                                <span class="lang-name">Tiếng Việt</span>
+                            </div>
+                            <div class="lang-option" data-lang="en" onclick="selectAdminLanguage('en')">
+                                <span class="lang-flag">US</span>
+                                <span class="lang-name">English</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-user">
+                        <span class="user-name">Admin</span>
+                        <span class="user-badge">System</span>
+                    </div>
+                </div>
             </div>
-            <div class="mobile-header-avatar">A</div>
         </header>
 
         {% include 'admin/components/sidebar.html' %}

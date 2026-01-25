@@ -382,26 +382,50 @@ def setup_request_logging(app):
     @app.after_request
     def after_request_logging(response):
         try:
-            if not request.path.startswith('/api/admin'):
+            # Skip static files and heartbeat
+            if request.path.startswith('/static') or request.path.startswith('/assets') or request.path == '/favicon.ico':
+                return response
+                
+            # Skip if specifically excluded
+            if getattr(request, 'skip_logging', False):
                 return response
             
-            if '/activity-logs' in request.path:
-                return response
+            # Try to identify user if not already set (for non-decorated routes)
+            if not hasattr(g, 'current_user') or not getattr(g, 'user_type', None):
+                try:
+                    # Import here to avoid circular import issues
+                    from .auth import get_current_user
+                    user_session = get_current_user()
+                    if user_session:
+                        g.current_user = user_session
+                        g.user_type = user_session.get('user_type')
+                except Exception:
+                    pass
             
             user_type = getattr(g, 'user_type', None)
             user_id = None
-            if hasattr(g, 'current_user'):
+            
+            if hasattr(g, 'current_user') and g.current_user:
                 if user_type == 'admin':
-                    user_id = g.current_user.get('username')
+                    # Support both session dict (user_id) and admin info dict (username)
+                    user_id = g.current_user.get('username') or g.current_user.get('user_id')
                 elif user_type == 'ctv':
-                    user_id = g.current_user.get('ma_ctv')
+                    # Support both session dict (user_id) and ctv info dict (ma_ctv)
+                    user_id = g.current_user.get('ma_ctv') or g.current_user.get('user_id')
             
             duration_ms = None
             if hasattr(g, 'request_start_time'):
                 duration = datetime.now() - g.request_start_time
                 duration_ms = int(duration.total_seconds() * 1000)
             
-            log_api_call(
+            # Determine event type
+            event_type = EVENT_API_CALL
+            # If it's a page load (HTML), call it a page view
+            if response.content_type and 'text/html' in response.content_type:
+                event_type = EVENT_PAGE_VIEW
+            
+            log_activity(
+                event_type=event_type,
                 user_type=user_type,
                 user_id=user_id,
                 endpoint=request.path,
@@ -411,6 +435,7 @@ def setup_request_logging(app):
             )
             
         except Exception as e:
+            # Don't let logging errors break the request
             print(f"Activity logging error: {e}")
         
         return response

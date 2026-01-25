@@ -429,9 +429,15 @@ async function loadStats() {
             const topEarnersEl = document.getElementById('topEarnersTableBody');
             console.log('Top earners data:', s.top_earners);
             if (s.top_earners && Array.isArray(s.top_earners) && s.top_earners.length > 0) {
+                const labelRank = t('id') || '#';
+                const labelName = t('ctv_name') || 'Name';
+                const labelCode = t('ctv_code') || 'Code';
+                const labelRev = t('total_revenue') || 'Total Revenue';
+                const labelComm = t('total_commission') || 'Total Commission';
+
                 topEarnersEl.innerHTML = s.top_earners.map((e, index) => `
                 <tr>
-                    <td style="font-weight: 500;">
+                    <td data-label="${labelRank}" style="font-weight: 500;">
                         ${index < 3 ? `
                             <div style="
                                 width: 24px; 
@@ -447,14 +453,14 @@ async function loadStats() {
                             ">${index + 1}</div>
                         ` : `<span style="margin-left: 8px;">${index + 1}</span>`}
                     </td>
-                    <td>
+                    <td data-label="${labelName}">
                         <div style="font-weight: 600; color: var(--text-primary);">${e.ten}</div>
                     </td>
-                    <td>
+                    <td data-label="${labelCode}">
                         <div style="font-size: 13px; font-family: 'SF Mono', monospace; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; display: inline-block;">${e.ctv_code}</div>
                     </td>
-                    <td style="text-align: right; font-weight: 600;">${formatCurrency(e.total_revenue)}</td>
-                    <td style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
+                    <td data-label="${labelRev}" style="text-align: right; font-weight: 600;">${formatCurrency(e.total_revenue)}</td>
+                    <td data-label="${labelComm}" style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
                 </tr>
             `).join('');
 
@@ -769,8 +775,8 @@ async function manualSync() {
 
     try {
         // Step 1: Get current database counts
-        updateStep('Step 1/5: Reading database...');
-        addSyncLog('📊 Reading current database counts...');
+        updateStep(t('step_read_db') + '...');
+        addSyncLog('📊 ' + t('log_read_counts') + '...');
 
         const previewResult = await api('/api/admin/reset-data/preview');
         if (previewResult.status === 'success') {
@@ -781,70 +787,70 @@ async function manualSync() {
         }
 
         // Step 2: Sync Tham My
-        updateStep('Step 2/5: Syncing Thẩm Mỹ (Beauty)...');
+        updateStep(t('step_sync_tm') + '...');
         addSyncLog('');
-        addSyncLog('═══ Syncing Thẩm Mỹ (Beauty) ═══');
-        addSyncLog('📥 Connecting to Google Sheets...');
-        addSyncLog('📖 Reading all rows from sheet...');
-        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        addSyncLog('═══ ' + t('step_sync_tm') + ' ═══');
+        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
+        addSyncLog('📖 ' + t('log_read_rows') + '...');
+        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
 
         const tmResult = await api('/api/admin/sync/tab/tham_my', { method: 'POST' });
         if (tmResult.status === 'success') {
             stats.tham_my = tmResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ Thẩm Mỹ: +${stats.tham_my.inserted} new, ${stats.tham_my.skipped} skipped`, 'success');
+            addSyncLog(`✓ ${t('tm_success').replace('{inserted}', stats.tham_my.inserted).replace('{skipped}', stats.tham_my.skipped)}`, 'success');
         } else {
-            addSyncLog(`✗ Thẩm Mỹ failed: ${tmResult.message}`, 'error');
+            addSyncLog(`✗ ${t('tm_fail').replace('{error}', tmResult.message)}`, 'error');
         }
 
         // Step 3: Sync Nha Khoa
-        updateStep('Step 3/5: Syncing Nha Khoa (Dental)...');
+        updateStep(t('log_sync_nk') + '...');
         addSyncLog('');
-        addSyncLog('═══ Syncing Nha Khoa (Dental) ═══');
-        addSyncLog('📥 Connecting to Google Sheets...');
-        addSyncLog('📖 Reading all rows from sheet...');
-        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        addSyncLog('═══ ' + t('log_sync_nk') + ' ═══');
+        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
+        addSyncLog('📖 ' + t('log_read_rows') + '...');
+        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
 
         const nkResult = await api('/api/admin/sync/tab/nha_khoa', { method: 'POST' });
         if (nkResult.status === 'success') {
             stats.nha_khoa = nkResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ Nha Khoa: +${stats.nha_khoa.inserted} new, ${stats.nha_khoa.skipped} skipped`, 'success');
+            addSyncLog(`✓ ${t('nk_success').replace('{inserted}', stats.nha_khoa.inserted).replace('{skipped}', stats.nha_khoa.skipped)}`, 'success');
         } else {
-            addSyncLog(`✗ Nha Khoa failed: ${nkResult.message}`, 'error');
+            addSyncLog(`✗ ${t('nk_fail').replace('{error}', nkResult.message)}`, 'error');
         }
 
         // Step 4: Sync Gioi Thieu
-        updateStep('Step 4/5: Syncing Giới Thiệu (Referral)...');
+        updateStep(t('log_sync_gt') + '...');
         addSyncLog('');
-        addSyncLog('═══ Syncing Giới Thiệu (Referral) ═══');
-        addSyncLog('📥 Connecting to Google Sheets...');
-        addSyncLog('📖 Reading all rows from sheet...');
-        addSyncLog('🔍 Comparing with database (checking duplicates)...');
+        addSyncLog('═══ ' + t('log_sync_gt') + ' ═══');
+        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
+        addSyncLog('📖 ' + t('log_read_rows') + '...');
+        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
 
         const gtResult = await api('/api/admin/sync/tab/gioi_thieu', { method: 'POST' });
         if (gtResult.status === 'success') {
             stats.gioi_thieu = gtResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ Giới Thiệu: +${stats.gioi_thieu.inserted} new, ${stats.gioi_thieu.skipped} skipped`, 'success');
+            addSyncLog(`✓ ${t('gt_success').replace('{inserted}', stats.gioi_thieu.inserted).replace('{skipped}', stats.gioi_thieu.skipped)}`, 'success');
         } else {
-            addSyncLog(`✗ Giới Thiệu failed: ${gtResult.message}`, 'error');
+            addSyncLog(`✗ ${t('gt_fail').replace('{error}', gtResult.message)}`, 'error');
         }
 
         // Step 5: Calculate commissions if needed
         const totalNew = stats.tham_my.inserted + stats.nha_khoa.inserted + stats.gioi_thieu.inserted;
 
         if (totalNew > 0) {
-            updateStep('Step 5/5: Calculating commissions...');
+            updateStep(t('step_calc_comm') + '...');
             addSyncLog('');
-            addSyncLog('═══ Calculating Commissions ═══');
-            addSyncLog('💰 Recalculating commission levels...');
+            addSyncLog('═══ ' + t('step_calc_comm') + ' ═══');
+            addSyncLog('💰 ' + t('log_recalc_comm'));
 
             const commResult = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
             if (commResult.status === 'success') {
-                addSyncLog(`✓ Commissions updated`, 'success');
+                addSyncLog(`✓ ${t('comm_updated')}`, 'success');
             }
         } else {
-            updateStep('Step 5/5: No new records, skipping...');
+            updateStep(t('step_no_records') + '...');
             addSyncLog('');
-            addSyncLog('ℹ️ No new records found - skipping commission calculation');
+            addSyncLog('ℹ️ ' + t('log_no_records'));
         }
 
         // Get final counts

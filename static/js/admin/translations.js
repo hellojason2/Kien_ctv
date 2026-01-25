@@ -26,7 +26,10 @@ const translations = {
         ctv_management: 'Quản Lý CTV',
         ctv_list: 'Danh Sách CTV',
         ctv_registrations: 'Đơn Đăng Ký',
-        hierarchy: 'Cấp Bậc',
+        registrations: 'Đăng Ký Mới',
+        hierarchy: 'Cây Hệ Thống',
+        menu: 'Menu',
+        admin_brand: 'CTV Admin',
         financial: 'Tài Chính',
         commissions: 'Hoa Hồng',
         clients: 'Khách Hàng',
@@ -82,16 +85,49 @@ const translations = {
         monthly_transactions: 'Giao Dịch Tháng',
         monthly_revenue: 'Doanh Thu Tháng',
         top_earners: 'Top Thu Nhập Tháng Này',
-        no_earnings: 'Chưa có thu nhập tháng này',
-        sync_now: 'Đồng Bộ',
-        hard_reset: 'Đặt Lại',
-        no_ctv_found: 'Không tìm thấy CTV nào',
-        ctv_name: 'CTV',
-        total_revenue: 'Doanh Thu',
-        total_commission: 'Hoa Hồng',
-        filter_by_date: 'Lọc Theo Ngày',
-        select_month: 'Chọn Tháng',
-        select_day: 'Chọn Ngày (Tùy Chọn)',
+        // Dashboard - System Status & Buttons
+        check_duplicates: 'Quét Trùng Lặp',
+        variables_ok: 'Biến: OK',
+        checking_vars: 'Đang kiểm tra biến...',
+        synced: 'Đã đồng bộ',
+        syncing: 'Đang đồng bộ...',
+        click_to_clear: 'Nhấn để xóa thông báo',
+        tm_tooltip: 'Thẩm Mỹ (Beauty) - DB / Sheet',
+        nk_tooltip: 'Nha Khoa (Dental) - DB / Sheet',
+        gt_tooltip: 'Giới Thiệu (Referral) - DB / Sheet',
+
+        // Date Filters
+        today: 'Hôm Nay',
+        three_days: '3 Ngày Qua',
+        week: 'Tuần Này',
+        this_month: 'Tháng Này',
+        last_month: 'Tháng Trước',
+        three_months: '3 Tháng Qua',
+        this_year: 'Năm Nay',
+        custom_range: 'Tùy Chỉnh',
+        quick_filters: 'Lọc Nhanh',
+        from_date: 'Từ:',
+        to_date: 'Đến:',
+        filter: 'Lọc',
+
+        // Progress Modals & Cleanup
+        cleanup_progress: 'Đang Dọn Dẹp',
+        cleanup_subtitle: 'Đang quét dữ liệu trùng lặp dựa trên Ngày, Giờ, Tên & Dịch vụ...',
+        starting: 'Đang khởi động...',
+        cleanup_complete: 'Dọn Dẹp Hoàn Tất!',
+        deleted_rows: 'Hàng đã xóa:',
+        hard_reset_progress: 'Đang Đặt Lại Hệ Thống',
+        hard_reset_subtitle: 'Vui lòng đợi trong khi chúng tôi đồng bộ lại dữ liệu...',
+        step_read: 'Đang đọc cơ sở dữ liệu',
+        step_clearing: 'Đang xóa dữ liệu cũ',
+        step_beauty: 'Đang nhập dữ liệu Thẩm Mỹ',
+        step_dental: 'Đang nhập dữ liệu Nha Khoa',
+        step_referral: 'Đang nhập dữ liệu Giới Thiệu',
+        step_commission: 'Đang tính toán hoa hồng',
+        reset_complete: 'Đặt Lại Hoàn Tất!',
+        sync_progress: 'Đang Đồng Bộ',
+        sync_subtitle: 'Đang kéo dữ liệu mới từ Google Sheets...',
+        close: 'Đóng',
 
         // CTV Management
         add_ctv: '+ Thêm CTV',
@@ -156,6 +192,27 @@ const translations = {
         preview_label: 'Xem Trước',
         version_history_title: 'Lịch Sử Phiên Bản Điều Khoản',
         close: 'Đóng',
+
+        // Sync Steps & Logs
+        log_read_db: 'Đang đọc số lượng trong cơ sở dữ liệu...',
+        log_connect_sheet: 'Đang kết nối Google Sheets...',
+        log_read_rows: 'Đang đọc tất cả hàng từ sheet...',
+        log_check_dupes: 'Đang so sánh với DB (kiểm tra trùng lặp)...',
+        tm_success: 'Thẩm Mỹ: +{inserted} mới, {skipped} bỏ qua',
+        tm_fail: 'Thẩm Mỹ thất bại: {error}',
+        log_sync_nk: 'Đang đồng bộ Nha Khoa (Dental)...',
+        nk_success: 'Nha Khoa: +{inserted} mới, {skipped} bỏ qua',
+        nk_fail: 'Nha Khoa thất bại: {error}',
+        log_sync_gt: 'Đang đồng bộ Giới Thiệu (Referral)...',
+        gt_success: 'Giới Thiệu: +{inserted} mới, {skipped} bỏ qua',
+        gt_fail: 'Giới Thiệu thất bại: {error}',
+        new: 'mới',
+        skipped: 'bỏ qua',
+        step_calc_comm: 'Đang tính toán hoa hồng',
+        log_recalc_comm: 'Đang tính lại các mức hoa hồng...',
+        comm_updated: 'Hoa hồng đã được cập nhật',
+        step_no_records: 'Không có dữ liệu mới, bỏ qua',
+        log_no_records: 'Không tìm thấy bản ghi mới - bỏ qua tính toán hoa hồng',
 
         // Hierarchy
         hierarchy_tree: 'Cây Cấp Bậc',
@@ -272,7 +329,10 @@ const translations = {
         ctv_management: 'CTV Management',
         ctv_list: 'CTV List',
         ctv_registrations: 'Registrations',
-        hierarchy: 'Hierarchy',
+        registrations: 'New Registrations',
+        hierarchy: 'System Tree',
+        menu: 'Menu',
+        admin_brand: 'CTV Admin',
         financial: 'Financial',
         commissions: 'Commissions',
         clients: 'Clients',
@@ -327,15 +387,49 @@ const translations = {
         monthly_transactions: 'Monthly Transactions',
         monthly_revenue: 'Monthly Revenue',
         top_earners: 'Top Earners This Month',
-        no_earnings: 'No earnings this month',
-        sync_now: 'Sync Now',
-        hard_reset: 'Hard Reset',
-        ctv_name: 'CTV',
-        total_revenue: 'Total Revenue',
-        total_commission: 'Total Commission',
-        filter_by_date: 'Filter By Date',
-        select_month: 'Select Month',
-        select_day: 'Select Day (Optional)',
+        // Dashboard - System Status & Buttons
+        check_duplicates: 'Check Duplicates',
+        variables_ok: 'Variables: OK',
+        checking_vars: 'Checking Vars...',
+        synced: 'Synced',
+        syncing: 'Syncing...',
+        click_to_clear: 'Click to clear notifications',
+        tm_tooltip: 'Thẩm Mỹ (Beauty) - DB / Sheet',
+        nk_tooltip: 'Nha Khoa (Dental) - DB / Sheet',
+        gt_tooltip: 'Giới Thiệu (Referral) - DB / Sheet',
+
+        // Date Filters
+        today: 'Today',
+        three_days: '3 Days',
+        week: 'This Week',
+        this_month: 'This Month',
+        last_month: 'Last Month',
+        three_months: '3 Months',
+        this_year: 'This Year',
+        custom_range: 'Custom',
+        quick_filters: 'Quick Filters',
+        from_date: 'From:',
+        to_date: 'To:',
+        filter: 'Filter',
+
+        // Progress Modals & Cleanup
+        cleanup_progress: 'Cleanup In Progress',
+        cleanup_subtitle: 'Scanning for duplicates based on Date, Time, Name & Service...',
+        starting: 'Starting...',
+        cleanup_complete: 'Cleanup Complete!',
+        deleted_rows: 'Deleted Rows:',
+        hard_reset_progress: 'Hard Reset In Progress',
+        hard_reset_subtitle: 'Please wait while we sync your data...',
+        step_read: 'Reading Database',
+        step_clearing: 'Clearing Database',
+        step_beauty: 'Importing Beauty Data',
+        step_dental: 'Importing Dental Data',
+        step_referral: 'Importing Referral Data',
+        step_commission: 'Calculating Commissions',
+        reset_complete: 'Reset Complete!',
+        sync_progress: 'Sync In Progress',
+        sync_subtitle: 'Pulling new records from Google Sheets...',
+        close: 'Close',
 
         // CTV Management
         add_ctv: '+ Add CTV',
@@ -387,6 +481,7 @@ const translations = {
         settings_saved: 'Settings saved!',
 
         // Signup Terms
+        signup_terms: 'Terms of Service',
         signup_terms_title: 'Signup Agreement Terms',
         version_history: 'Version History',
         save_terms: 'Save Terms',
@@ -400,6 +495,27 @@ const translations = {
         // Hierarchy
         hierarchy_tree: 'Hierarchy Tree',
         select_root: 'Select Root CTV',
+
+        // Sync Steps & Logs
+        log_read_db: 'Reading database counts...',
+        log_connect_sheet: 'Connecting to Google Sheets...',
+        log_read_rows: 'Reading all rows from sheet...',
+        log_check_dupes: 'Comparing with DB (checking duplicates)...',
+        tm_success: 'Beauty: +{inserted} new, {skipped} skipped',
+        tm_fail: 'Beauty failed: {error}',
+        log_sync_nk: 'Syncing Dental...',
+        nk_success: 'Dental: +{inserted} new, {skipped} skipped',
+        nk_fail: 'Dental failed: {error}',
+        log_sync_gt: 'Syncing Referral...',
+        gt_success: 'Referral: +{inserted} new, {skipped} skipped',
+        gt_fail: 'Referral failed: {error}',
+        new: 'new',
+        skipped: 'skipped',
+        step_calc_comm: 'Calculating commissions',
+        log_recalc_comm: 'Recalculating commission levels...',
+        comm_updated: 'Commissions updated',
+        step_no_records: 'No new records, skipping',
+        log_no_records: 'No new records found - skipping commission calculation',
         select_ctv: 'Select CTV',
         select_ctv_view: 'Select a CTV to view hierarchy',
         type_to_search: 'Type to search CTV...',
@@ -503,22 +619,46 @@ let currentLang = localStorage.getItem('admin_language') || 'en';
 function toggleLangPopup(e) {
     e.preventDefault();
     e.stopPropagation();
-    const switcher = document.getElementById('langSwitcher');
+    const switcher = document.getElementById('adminLangSwitcher');
     if (switcher) {
         switcher.classList.toggle('active');
     }
 }
 
 /**
- * Select language from popup and close
+ * Select language from popup and close (Legacy/Generic)
  * @param {string} lang - Language code (vi/en)
  */
 function selectLanguage(lang) {
+    selectAdminLanguage(lang);
+}
+
+/**
+ * Select language from popup and close (Admin Specific)
+ * @param {string} lang - Language code (vi/en)
+ */
+function selectAdminLanguage(lang) {
     setLanguage(lang);
-    // Close the popup
-    const switcher = document.getElementById('langSwitcher');
+
+    // Close the desktop popup
+    const switcher = document.getElementById('adminLangSwitcher');
     if (switcher) {
         switcher.classList.remove('active');
+    }
+
+    // Close the mobile popup (Toggle on Container)
+    const mobileToggle = document.getElementById('adminMobileLangToggle');
+    if (mobileToggle) {
+        const mobileContainer = mobileToggle.closest('.mobile-menu-lang');
+        if (mobileContainer) {
+            mobileContainer.classList.remove('active');
+        }
+    }
+
+    // Close the Header popup
+    const headerSwitcher = document.getElementById('adminHeaderLangSwitcher');
+    if (headerSwitcher) {
+        headerSwitcher.classList.remove('active');
     }
 }
 
@@ -531,15 +671,27 @@ function setLanguage(lang) {
     localStorage.setItem('admin_language', lang);
     applyTranslations();
 
-    // Update popup option states
+    // Update popup option states (both desktop and mobile)
     document.querySelectorAll('.lang-option').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
 
-    // Update current language label
-    const langLabel = document.getElementById('currentLangLabel');
+    // Update current language label (Desktop)
+    const langLabel = document.getElementById('adminCurrentLangLabel');
     if (langLabel) {
         langLabel.textContent = lang.toUpperCase();
+    }
+
+    // Update current language label (Mobile)
+    const mobileLangLabel = document.getElementById('adminMobileCurrentLangLabel');
+    if (mobileLangLabel) {
+        mobileLangLabel.textContent = lang.toUpperCase();
+    }
+
+    // Update current language label (Header)
+    const headerLangLabel = document.getElementById('headerCurrentLangLabel');
+    if (headerLangLabel) {
+        headerLangLabel.textContent = lang.toUpperCase();
     }
 
     // Re-populate dropdowns with translated options
