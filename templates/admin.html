@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - CTV System</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}?v=3">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
-    
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -193,11 +195,46 @@
 
         .dashboard.active {
             display: flex;
+            flex-direction: column;
         }
 
-        /* Sidebar */
+        /* ═══════════════════════════════════════════════════════════
+           SIDEBAR VARIABLES & TRANSITIONS (TG KOL Style)
+           ═══════════════════════════════════════════════════════════ */
+        :root {
+            --sidebar-width: 240px;
+            --sidebar-collapsed-width: 60px;
+            --sidebar-transition: 300ms ease-in-out;
+        }
+
+        /* Mobile Backdrop Overlay */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--sidebar-transition), visibility var(--sidebar-transition);
+        }
+
+        .sidebar-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-backdrop {
+                display: block;
+            }
+        }
+
+        /* Sidebar - With Slide Animation */
         .sidebar {
-            width: 240px;
+            width: var(--sidebar-width);
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             min-height: 100vh;
@@ -207,6 +244,101 @@
             top: 0;
             overflow-y: auto;
             height: 100vh;
+            z-index: 1000;
+            transition: transform var(--sidebar-transition), width var(--sidebar-transition);
+        }
+
+        /* Desktop collapsed state */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            padding: 24px 10px;
+        }
+
+        /* Mobile: Slide out completely when closed */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+                width: var(--sidebar-width);
+            }
+
+            .sidebar.mobile-closed {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* Mobile Header - Shows hamburger menu */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 998;
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+        }
+
+        .mobile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-menu-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            background: var(--accent-cyan);
+        }
+
+        .mobile-menu-btn:hover svg {
+            stroke: var(--bg-primary);
+        }
+
+        .mobile-menu-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-secondary);
+            stroke-width: 2;
+        }
+
+        .mobile-header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .mobile-header-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-cyan);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--bg-primary);
         }
 
         .sidebar-logo {
@@ -324,6 +456,7 @@
 
         /* Only show tooltips when sidebar is collapsed (mobile) */
         @media (max-width: 768px) {
+
             .sidebar-nav a:hover::after,
             .sidebar-nav a:hover::before,
             .home-btn:hover::after,
@@ -395,10 +528,21 @@
             font-weight: 700;
         }
 
-        .stat-card.cyan .value { color: var(--accent-cyan); }
-        .stat-card.green .value { color: var(--accent-green); }
-        .stat-card.orange .value { color: var(--accent-orange); }
-        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value {
+            color: var(--accent-cyan);
+        }
+
+        .stat-card.green .value {
+            color: var(--accent-green);
+        }
+
+        .stat-card.orange .value {
+            color: var(--accent-orange);
+        }
+
+        .stat-card.purple .value {
+            color: var(--accent-purple);
+        }
 
         /* Cards */
         .card {
@@ -464,11 +608,30 @@
             font-weight: 600;
         }
 
-        .badge-gold { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
-        .badge-silver { background: rgba(161, 161, 170, 0.2); color: var(--text-secondary); }
-        .badge-bronze { background: rgba(180, 83, 9, 0.2); color: #d97706; }
-        .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
-        .badge-inactive { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .badge-gold {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .badge-silver {
+            background: rgba(161, 161, 170, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .badge-bronze {
+            background: rgba(180, 83, 9, 0.2);
+            color: #d97706;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
 
         /* Toggle Switch */
         .toggle-switch {
@@ -477,12 +640,14 @@
             align-items: center;
             user-select: none;
         }
+
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
             position: absolute;
         }
+
         .toggle-slider {
             width: 44px;
             height: 24px;
@@ -492,6 +657,7 @@
             transition: background 0.2s;
             cursor: pointer;
         }
+
         .toggle-slider::before {
             content: '';
             position: absolute;
@@ -503,10 +669,12 @@
             left: 3px;
             transition: transform 0.2s;
         }
-        .toggle-switch input:checked + .toggle-slider {
+
+        .toggle-switch input:checked+.toggle-slider {
             background: var(--accent-primary);
         }
-        .toggle-switch input:checked + .toggle-slider::before {
+
+        .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(20px);
         }
 
@@ -549,11 +717,25 @@
             margin-top: 8px;
         }
 
-        .commission-card.l0 .rate { color: var(--accent-green); }
-        .commission-card.l1 .rate { color: var(--accent-orange); }
-        .commission-card.l2 .rate { color: var(--accent-purple); }
-        .commission-card.l3 .rate { color: var(--accent-pink); }
-        .commission-card.l4 .rate { color: var(--accent-cyan); }
+        .commission-card.l0 .rate {
+            color: var(--accent-green);
+        }
+
+        .commission-card.l1 .rate {
+            color: var(--accent-orange);
+        }
+
+        .commission-card.l2 .rate {
+            color: var(--accent-purple);
+        }
+
+        .commission-card.l3 .rate {
+            color: var(--accent-pink);
+        }
+
+        .commission-card.l4 .rate {
+            color: var(--accent-cyan);
+        }
 
         /* Hierarchy Tree - Dark Theme Design */
         .hierarchy-page-wrapper {
@@ -676,7 +858,7 @@
             margin: 0;
         }
 
-        .hierarchy-tree-container > ul {
+        .hierarchy-tree-container>ul {
             padding-left: 0;
         }
 
@@ -703,8 +885,8 @@
             width: 18px;
         }
 
-        .hierarchy-tree-container > ul > li::before,
-        .hierarchy-tree-container > ul > li::after {
+        .hierarchy-tree-container>ul>li::before,
+        .hierarchy-tree-container>ul>li::after {
             display: none;
         }
 
@@ -778,11 +960,30 @@
         }
 
         /* Level badges L0-L4 (matches database levels) */
-        .level-badge.l0 { background: #ff6b6b; color: #fff; }
-        .level-badge.l1 { background: #ffa502; color: #000; }
-        .level-badge.l2 { background: #2ed573; color: #000; }
-        .level-badge.l3 { background: #1e90ff; color: #fff; }
-        .level-badge.l4 { background: #a55eea; color: #fff; }
+        .level-badge.l0 {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .level-badge.l1 {
+            background: #ffa502;
+            color: #000;
+        }
+
+        .level-badge.l2 {
+            background: #2ed573;
+            color: #000;
+        }
+
+        .level-badge.l3 {
+            background: #1e90ff;
+            color: #fff;
+        }
+
+        .level-badge.l4 {
+            background: #a55eea;
+            color: #fff;
+        }
 
         .cutoff-badge {
             font-size: 0.65rem;
@@ -809,7 +1010,7 @@
                 padding: 6px 10px;
                 font-size: 0.85rem;
             }
-            
+
             .hierarchy-tree-container ul {
                 padding-left: 15px;
             }
@@ -992,11 +1193,11 @@
             padding: 60px 20px;
             text-align: center;
         }
-        
+
         .hierarchy-loading.active {
             display: flex;
         }
-        
+
         .hierarchy-spinner {
             width: 48px;
             height: 48px;
@@ -1006,17 +1207,22 @@
             animation: hierarchySpin 0.8s linear infinite;
             margin-bottom: 16px;
         }
-        
+
         @keyframes hierarchySpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .hierarchy-loading-text {
             color: var(--text-secondary);
             font-size: 14px;
         }
-        
+
         .hierarchy-loading-subtext {
             color: var(--text-secondary);
             font-size: 12px;
@@ -1029,89 +1235,116 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             .commission-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
 
-        /* Responsive - Mobile */
+        /* Responsive - Mobile (TG KOL Style) */
         @media (max-width: 768px) {
+
+            /* Sidebar slides in/out - full width when open */
             .sidebar {
-                width: 60px;
-                padding: 16px 8px;
+                width: var(--sidebar-width);
+                padding: 24px 16px;
             }
+
+            /* Keep sidebar labels visible when open on mobile */
             .sidebar-logo {
-                font-size: 12px;
-                text-align: center;
-                padding: 0;
+                font-size: 18px;
+                text-align: left;
+                padding: 0 12px;
             }
+
             .sidebar-nav a {
-                padding: 12px 8px;
-                justify-content: center;
+                padding: 12px;
+                justify-content: flex-start;
             }
+
             .sidebar-nav a span {
-                display: none;
+                display: inline;
             }
+
             .home-btn {
-                padding: 10px 8px;
-                justify-content: center;
+                padding: 10px 12px;
+                justify-content: flex-start;
             }
+
             .home-btn span {
-                display: none;
+                display: inline;
             }
+
+            /* Main content full width with header offset */
             .main-content {
-                margin-left: 60px;
-                padding: 16px;
+                margin-left: 0;
+                padding: 72px 16px 16px 16px;
             }
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
             }
+
             .stat-card {
                 padding: 16px;
             }
+
             .stat-card .value {
                 font-size: 22px;
             }
+
             .stat-card .label {
                 font-size: 10px;
             }
+
             .commission-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             .header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 12px;
             }
+
             .header h2 {
                 font-size: 20px;
             }
+
             .card-body {
                 padding: 16px;
             }
+
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
+
             table {
                 min-width: 600px;
             }
-            th, td {
+
+            th,
+            td {
                 padding: 10px 12px;
                 font-size: 13px;
             }
+
             /* Hierarchy page responsive */
             .hierarchy-stats {
                 grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
             }
+
             .hierarchy-stat-card {
                 padding: 10px;
             }
+
             .hierarchy-stat-card .stat-number {
                 font-size: 1.4rem;
             }
+
             .hierarchy-stat-card .stat-label {
                 font-size: 0.7rem;
             }
@@ -1119,75 +1352,96 @@
 
         /* Responsive - Small Mobile */
         @media (max-width: 480px) {
+
+            /* Sidebar stays full width on small mobile too */
             .sidebar {
-                width: 50px;
-                padding: 12px 6px;
+                width: var(--sidebar-width);
+                padding: 20px 12px;
             }
+
             .sidebar-logo {
-                font-size: 10px;
+                font-size: 16px;
             }
+
             .sidebar-nav a {
-                padding: 10px 6px;
+                padding: 10px 12px;
             }
+
             .sidebar-nav svg {
                 width: 18px;
                 height: 18px;
             }
+
+            /* Main content full width */
             .main-content {
-                margin-left: 50px;
-                padding: 12px;
+                margin-left: 0;
+                padding: 72px 12px 12px 12px;
             }
+
             .stats-grid {
                 grid-template-columns: 1fr;
                 gap: 10px;
             }
+
             .stat-card .value {
                 font-size: 24px;
             }
+
             .commission-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
             }
+
             .commission-card {
                 padding: 14px;
             }
+
             .commission-card .rate {
                 font-size: 24px;
             }
+
             .header h2 {
                 font-size: 18px;
             }
+
             /* Form elements responsive */
             .form-group {
                 margin-bottom: 16px;
             }
+
             .form-group input,
             .form-group select {
                 padding: 10px 12px;
                 font-size: 14px;
             }
+
             .btn {
                 padding: 12px 16px;
                 font-size: 13px;
             }
+
             /* Modal responsive */
             .modal {
                 max-width: 95%;
                 margin: 10px;
             }
+
             .modal-header,
             .modal-body,
             .modal-footer {
                 padding: 16px;
             }
+
             /* Hierarchy page small mobile */
             .hierarchy-stats {
                 grid-template-columns: repeat(3, 1fr);
             }
+
             .hierarchy-search-box {
                 font-size: 13px;
                 padding: 8px 12px;
             }
+
             .hierarchy-btn {
                 padding: 6px 12px;
                 font-size: 12px;
@@ -1199,6 +1453,7 @@
             position: relative;
             width: 100%;
         }
+
         .searchable-dropdown input {
             width: 100%;
             padding: 12px;
@@ -1211,10 +1466,12 @@
             font-size: 14px;
             box-sizing: border-box;
         }
+
         .searchable-dropdown input:focus {
             outline: none;
             border-color: var(--primary);
         }
+
         .searchable-dropdown .dropdown-arrow {
             position: absolute;
             right: 12px;
@@ -1224,9 +1481,11 @@
             color: var(--text-secondary);
             transition: transform 0.2s;
         }
+
         .searchable-dropdown.open .dropdown-arrow {
             transform: translateY(-50%) rotate(180deg);
         }
+
         .searchable-dropdown .dropdown-list {
             position: absolute;
             top: 100%;
@@ -1241,23 +1500,28 @@
             z-index: 1000;
             display: none;
         }
+
         .searchable-dropdown.open .dropdown-list {
             display: block;
         }
+
         .searchable-dropdown .dropdown-item {
             padding: 10px 12px;
             cursor: pointer;
             transition: background 0.15s;
             font-size: 14px;
         }
+
         .searchable-dropdown .dropdown-item:hover,
         .searchable-dropdown .dropdown-item.highlighted {
             background: var(--primary);
             color: white;
         }
+
         .searchable-dropdown .dropdown-item.selected {
             background: rgba(79, 209, 197, 0.2);
         }
+
         .searchable-dropdown .no-results {
             padding: 10px 12px;
             color: var(--text-secondary);
@@ -1267,7 +1531,7 @@
         /* ═══════════════════════════════════════════════════════════════════
            CLIENT CARDS STYLES
            ═══════════════════════════════════════════════════════════════════ */
-        
+
         .clients-grid {
             display: grid;
             gap: 24px;
@@ -1423,11 +1687,11 @@
             .services-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .client-info-row {
                 gap: 12px;
             }
-            
+
             .client-info-item {
                 min-width: 45%;
             }
@@ -1562,8 +1826,10 @@
         .suspicious-ip-close:active {
             opacity: 0.5 !important;
         }
+
         .sidebar-badge {
-            background: #ef4444; /* Red color */
+            background: #ef4444;
+            /* Red color */
             color: white;
             font-size: 11px;
             font-weight: 700;
@@ -1588,6 +1854,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Language Toggle -->
     <div class="lang-toggle">
@@ -1603,11 +1870,13 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label data-i18n="username">Username</label>
-                    <input type="text" id="username" data-i18n-placeholder="enter_username" placeholder="Enter username" required>
+                    <input type="text" id="username" data-i18n-placeholder="enter_username" placeholder="Enter username"
+                        required>
                 </div>
                 <div class="form-group">
                     <label data-i18n="password">Password</label>
-                    <input type="password" id="password" data-i18n-placeholder="enter_password" placeholder="Enter password" required>
+                    <input type="password" id="password" data-i18n-placeholder="enter_password"
+                        placeholder="Enter password" required>
                 </div>
                 <button type="submit" class="btn btn-primary" data-i18n="login">Login</button>
                 <div class="error-msg" id="loginError"></div>
@@ -1620,8 +1889,26 @@
 
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
+        <!-- Mobile Backdrop Overlay -->
+        <div class="sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+        <!-- Mobile Header with Hamburger Menu -->
+        <header class="mobile-header" id="adminMobileHeader">
+            <div class="mobile-header-left">
+                <button class="mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <span class="mobile-header-title">CTV Admin</span>
+            </div>
+            <div class="mobile-header-avatar">A</div>
+        </header>
+
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar mobile-closed" id="adminSidebar">
             <div class="sidebar-logo">CTV Admin</div>
             <a href="/" class="home-btn" data-i18n-tooltip="home_dashboard">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1633,50 +1920,86 @@
             <ul class="sidebar-nav">
                 <li>
                     <a href="#" class="active" data-page="overview" data-i18n-tooltip="overview">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                        </svg>
                         <span data-i18n="overview">Overview</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="ctv" data-i18n-tooltip="ctv_management">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 20v-1a5 5 0 0 1 10 0v1"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="16" rx="2" />
+                            <circle cx="12" cy="10" r="3" />
+                            <path d="M7 20v-1a5 5 0 0 1 10 0v1" />
+                        </svg>
                         <span data-i18n="ctv_management">CTV Management</span>
                         <span class="sidebar-badge" id="pendingRegistrationsBadge" style="display: none;">0</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="hierarchy" data-i18n-tooltip="hierarchy">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="5" r="3" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <circle cx="6" cy="17" r="3" />
+                            <circle cx="18" cy="17" r="3" />
+                            <line x1="12" y1="12" x2="6" y2="14" />
+                            <line x1="12" y1="12" x2="18" y2="14" />
+                        </svg>
                         <span data-i18n="hierarchy">Hierarchy</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="commissions" data-i18n-tooltip="commissions">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <line x1="12" y1="1" x2="12" y2="23" />
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
                         <span data-i18n="commissions">Commissions</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="clients" data-i18n-tooltip="clients">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
                         <span data-i18n="clients">Clients</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="settings" data-i18n-tooltip="settings">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
                         <span data-i18n="settings">Settings</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" data-page="activity-logs" data-i18n-tooltip="activity_logs">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
                         <span data-i18n="activity_logs">Activity Logs</span>
                     </a>
                 </li>
                 <li style="margin-top: auto; padding-top: 20px;">
                     <a href="#" id="logoutBtn" data-i18n-tooltip="logout">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
                         <span data-i18n="logout">Logout</span>
                     </a>
                 </li>
@@ -1721,12 +2044,14 @@
                                         <th data-i18n="ctv_name">Name</th>
                                         <th data-i18n="ctv_code">Code</th>
                                         <th data-i18n="total_revenue" style="text-align: right;">Total Revenue</th>
-                                        <th data-i18n="total_commission" style="text-align: right;">Total Commission</th>
+                                        <th data-i18n="total_commission" style="text-align: right;">Total Commission
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="topEarnersTableBody">
                                     <tr>
-                                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                        <td colspan="5"
+                                            style="text-align: center; padding: 40px; color: var(--text-secondary);">
                                             <div class="loading" data-i18n="loading">Loading...</div>
                                         </td>
                                     </tr>
@@ -1742,16 +2067,22 @@
                 <div class="header">
                     <h2 data-i18n="ctv_management">CTV Management</h2>
                     <div class="header-actions">
-                        <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/ctv/export')" data-i18n="export_excel">Export Excel</button>
-                        <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add CTV</button>
+                        <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/ctv/export')"
+                            data-i18n="export_excel">Export Excel</button>
+                        <button class="btn btn-primary" onclick="showCreateCTVModal()" data-i18n="add_ctv">+ Add
+                            CTV</button>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
                         <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
                             <div class="search-box" style="margin-bottom:0;flex:1;min-width:200px">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                                <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder" placeholder="Search by name, email, phone...">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg>
+                                <input type="text" id="ctvSearch" data-i18n-placeholder="search_placeholder"
+                                    placeholder="Search by name, email, phone...">
                             </div>
                             <label class="toggle-switch" style="display:flex;align-items:center;gap:8px;cursor:pointer">
                                 <input type="checkbox" id="showInactiveCTV" onchange="loadCTVList()">
@@ -1774,7 +2105,9 @@
                                     </tr>
                                 </thead>
                                 <tbody id="ctvTableBody">
-                                    <tr><td colspan="8" class="loading" data-i18n="loading">Loading...</td></tr>
+                                    <tr>
+                                        <td colspan="8" class="loading" data-i18n="loading">Loading...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1793,13 +2126,14 @@
                         <div class="form-group" style="max-width: 400px; margin-bottom: 20px;">
                             <label data-i18n="select_root">Select Root CTV</label>
                             <div class="searchable-dropdown" id="hierarchyDropdown">
-                                <input type="text" id="hierarchySearch" placeholder="Type to search CTV..." autocomplete="off">
+                                <input type="text" id="hierarchySearch" placeholder="Type to search CTV..."
+                                    autocomplete="off">
                                 <span class="dropdown-arrow">&#9660;</span>
                                 <div class="dropdown-list" id="hierarchyList"></div>
                             </div>
                             <input type="hidden" id="hierarchyRoot" value="">
                         </div>
-                        
+
                         <!-- Hierarchy Tree Wrapper -->
                         <div class="hierarchy-page-wrapper" id="hierarchyTreeWrapper" style="display: none;">
                             <!-- Stats Cards -->
@@ -1817,35 +2151,49 @@
                                     <div class="stat-label" data-i18n="direct_recruits">Direct Recruits</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Search Box -->
                             <div class="hierarchy-search-container">
-                                <input type="text" class="hierarchy-search-box" id="treeSearchBox" placeholder="Search by name or CTV code...">
+                                <input type="text" class="hierarchy-search-box" id="treeSearchBox"
+                                    placeholder="Search by name or CTV code...">
                                 <div class="search-result-info" id="treeSearchInfo"></div>
                             </div>
-                            
+
                             <!-- Controls -->
                             <div class="hierarchy-controls">
-                                <button class="hierarchy-btn hierarchy-btn-expand" onclick="expandAllNodes()" data-i18n="expand_all">Expand All</button>
-                                <button class="hierarchy-btn hierarchy-btn-collapse" onclick="collapseAllNodes()" data-i18n="collapse_all">Collapse All</button>
+                                <button class="hierarchy-btn hierarchy-btn-expand" onclick="expandAllNodes()"
+                                    data-i18n="expand_all">Expand All</button>
+                                <button class="hierarchy-btn hierarchy-btn-collapse" onclick="collapseAllNodes()"
+                                    data-i18n="collapse_all">Collapse All</button>
                             </div>
-                            
+
                             <!-- Tree Container -->
                             <div class="hierarchy-tree-container" id="hierarchyTree">
                                 <div class="loading" data-i18n="select_ctv_view">Select a CTV to view hierarchy</div>
                             </div>
                         </div>
-                        
+
                         <!-- Loading Indicator -->
                         <div class="hierarchy-loading" id="hierarchyLoading">
                             <div class="hierarchy-spinner"></div>
-                            <div class="hierarchy-loading-text" data-i18n="loading_hierarchy">Loading hierarchy tree...</div>
-                            <div class="hierarchy-loading-subtext" data-i18n="loading_please_wait">Please wait, this may take a moment for large trees</div>
+                            <div class="hierarchy-loading-text" data-i18n="loading_hierarchy">Loading hierarchy tree...
+                            </div>
+                            <div class="hierarchy-loading-subtext" data-i18n="loading_please_wait">Please wait, this may
+                                take a moment for large trees</div>
                         </div>
-                        
+
                         <!-- Placeholder when no CTV selected -->
-                        <div id="hierarchyPlaceholder" class="loading" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
-                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 16px; opacity: 0.5;"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
+                        <div id="hierarchyPlaceholder" class="loading"
+                            style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
+                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                style="margin-bottom: 16px; opacity: 0.5;">
+                                <circle cx="12" cy="5" r="3" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <circle cx="6" cy="17" r="3" />
+                                <circle cx="18" cy="17" r="3" />
+                                <line x1="12" y1="12" x2="6" y2="14" />
+                                <line x1="12" y1="12" x2="18" y2="14" />
+                            </svg>
                             <p data-i18n="select_ctv_view">Select a CTV to view hierarchy</p>
                         </div>
                     </div>
@@ -1857,7 +2205,8 @@
                 <div class="header">
                     <h2 data-i18n="commission_reports">Hoa Hong</h2>
                     <div class="header-actions">
-                        <button class="btn btn-secondary" onclick="exportCommissionsExcel()" data-i18n="export_excel">Export Excel</button>
+                        <button class="btn btn-secondary" onclick="exportCommissionsExcel()"
+                            data-i18n="export_excel">Export Excel</button>
                     </div>
                 </div>
                 <div class="card">
@@ -1865,22 +2214,33 @@
                         <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end;">
                             <div class="form-group" style="flex:1; min-width:150px;">
                                 <label data-i18n="filter_month">Loc Theo Thang</label>
-                                <input type="month" id="commissionMonthFilter" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                                <input type="month" id="commissionMonthFilter"
+                                    style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
                             </div>
                         </div>
                         <!-- Grand Total Summary -->
-                        <div id="commissionGrandTotal" style="display:flex; gap:20px; margin-bottom:20px; padding:16px; background:var(--bg-tertiary); border-radius:12px; flex-wrap:wrap;">
+                        <div id="commissionGrandTotal"
+                            style="display:flex; gap:20px; margin-bottom:20px; padding:16px; background:var(--bg-tertiary); border-radius:12px; flex-wrap:wrap;">
                             <div style="flex:1; min-width:120px; max-width:200px;">
-                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong CTV</div>
-                                <div id="totalCtvCount" style="font-size:18px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word;">0</div>
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong CTV
+                                </div>
+                                <div id="totalCtvCount"
+                                    style="font-size:18px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word;">
+                                    0</div>
                             </div>
                             <div style="flex:1; min-width:120px; max-width:250px;">
-                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Dich Vu</div>
-                                <div id="grandTotalService" style="font-size:16px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Dich
+                                    Vu</div>
+                                <div id="grandTotalService"
+                                    style="font-size:16px; font-weight:700; color:var(--text-primary); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">
+                                    0</div>
                             </div>
                             <div style="flex:1; min-width:120px; max-width:250px;">
-                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Hoa Hong</div>
-                                <div id="grandTotalCommission" style="font-size:16px; font-weight:700; color:var(--accent-green); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">0</div>
+                                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Tong Hoa
+                                    Hong</div>
+                                <div id="grandTotalCommission"
+                                    style="font-size:16px; font-weight:700; color:var(--accent-green); word-break:break-word; overflow-wrap:break-word; line-height:1.3;">
+                                    0</div>
                             </div>
                         </div>
                         <div class="table-container">
@@ -1895,7 +2255,9 @@
                                     </tr>
                                 </thead>
                                 <tbody id="commissionsTableBody">
-                                    <tr><td colspan="5" class="loading" data-i18n="loading">Loading...</td></tr>
+                                    <tr>
+                                        <td colspan="5" class="loading" data-i18n="loading">Loading...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1908,8 +2270,11 @@
                 <div class="header">
                     <h2 data-i18n="commission_settings">Commission Settings</h2>
                     <div class="header-actions">
-                        <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/commission-settings/export')" data-i18n="export_excel">Export Excel</button>
-                        <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes">Save Changes</button>
+                        <button class="btn btn-secondary"
+                            onclick="exportToExcel('/api/admin/commission-settings/export')"
+                            data-i18n="export_excel">Export Excel</button>
+                        <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes">Save
+                            Changes</button>
                     </div>
                 </div>
                 <div class="card">
@@ -1930,14 +2295,19 @@
                     <h2 data-i18n="client_management">Client Management</h2>
                     <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
                         <div id="clientsCount" style="color: var(--text-secondary); font-size: 14px;"></div>
-                        <button class="btn btn-secondary" onclick="exportClientsExcel()" data-i18n="export_excel">Export Excel</button>
+                        <button class="btn btn-secondary" onclick="exportClientsExcel()" data-i18n="export_excel">Export
+                            Excel</button>
                     </div>
                 </div>
                 <!-- Search Bar -->
                 <div class="client-search-container">
                     <div class="search-box" style="max-width: 400px; margin-bottom: 20px;">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                        <input type="text" id="clientSearch" placeholder="Search by name or phone..." data-i18n-placeholder="client_search_placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" id="clientSearch" placeholder="Search by name or phone..."
+                            data-i18n-placeholder="client_search_placeholder">
                     </div>
                 </div>
                 <!-- Client Cards Container -->
@@ -1945,7 +2315,8 @@
                     <div class="loading" data-i18n="loading">Loading...</div>
                 </div>
                 <!-- Pagination -->
-                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div
+                    style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
                     <div id="clientsPaginationInfo" style="color: var(--text-secondary); font-size: 13px;"></div>
                     <div id="clientsPaginationControls" style="display: flex; gap: 8px;"></div>
                 </div>
@@ -1956,12 +2327,15 @@
                 <div class="header">
                     <h2 data-i18n="activity_logs">Activity Logs</h2>
                     <div class="header-actions">
-                        <button class="btn btn-secondary" onclick="exportActivityLogsExcel()" data-i18n="export_excel">Export Excel</button>
-                        <button class="btn btn-secondary" onclick="exportActivityLogs()" data-i18n="export_csv">Export CSV</button>
-                        <button class="btn btn-secondary" onclick="refreshActivityLogs()" data-i18n="refresh">Refresh</button>
+                        <button class="btn btn-secondary" onclick="exportActivityLogsExcel()"
+                            data-i18n="export_excel">Export Excel</button>
+                        <button class="btn btn-secondary" onclick="exportActivityLogs()" data-i18n="export_csv">Export
+                            CSV</button>
+                        <button class="btn btn-secondary" onclick="refreshActivityLogs()"
+                            data-i18n="refresh">Refresh</button>
                     </div>
                 </div>
-                
+
                 <!-- Stats Cards -->
                 <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
                     <div class="stat-card green">
@@ -1981,14 +2355,16 @@
                         <div class="value" id="statTotalLogs">-</div>
                     </div>
                 </div>
-                
+
                 <!-- Filters -->
                 <div class="card" style="margin-bottom: 20px;">
                     <div class="card-body" style="padding: 16px;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label data-i18n="event_type">Event Type</label>
-                                <select id="logEventType" class="form-input" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
+                                <select id="logEventType" class="form-input"
+                                    style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
                                     <option value="">All Events</option>
                                     <option value="login_success">Login Success</option>
                                     <option value="login_failed">Login Failed</option>
@@ -2003,7 +2379,8 @@
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label data-i18n="user_type">User Type</label>
-                                <select id="logUserType" class="form-input" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
+                                <select id="logUserType" class="form-input"
+                                    style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
                                     <option value="">All Users</option>
                                     <option value="admin">Admin</option>
                                     <option value="ctv">CTV</option>
@@ -2011,41 +2388,56 @@
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label data-i18n="date_from">Date From</label>
-                                <input type="date" id="logDateFrom" class="form-input" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
+                                <input type="date" id="logDateFrom" class="form-input"
+                                    style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label data-i18n="date_to">Date To</label>
-                                <input type="date" id="logDateTo" class="form-input" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
+                                <input type="date" id="logDateTo" class="form-input"
+                                    style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label data-i18n="search">Search</label>
-                                <input type="text" id="logSearch" placeholder="IP, user, endpoint..." class="form-input" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
+                                <input type="text" id="logSearch" placeholder="IP, user, endpoint..." class="form-input"
+                                    style="background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 6px; color: var(--text-primary); font-family: inherit; width: 100%;">
                             </div>
-                            <button class="btn btn-primary" onclick="loadActivityLogs(1)" data-i18n="apply_filters">Apply Filters</button>
+                            <button class="btn btn-primary" onclick="loadActivityLogs(1)"
+                                data-i18n="apply_filters">Apply Filters</button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Suspicious IPs Alert -->
-                <div id="suspiciousIPsAlert" class="card" style="margin-bottom: 20px; display: none; border: 1px solid var(--accent-red); background: rgba(239, 68, 68, 0.08);">
-                    <div class="card-header" style="padding: 12px 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="color: var(--accent-red); display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px;">
-                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <div id="suspiciousIPsAlert" class="card"
+                    style="margin-bottom: 20px; display: none; border: 1px solid var(--accent-red); background: rgba(239, 68, 68, 0.08);">
+                    <div class="card-header"
+                        style="padding: 12px 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                        <h3
+                            style="color: var(--accent-red); display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px;">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                            </svg>
                             <span data-i18n="suspicious_ips_detected">Suspicious IPs Detected</span>
                         </h3>
-                        <button class="suspicious-ip-close" onclick="closeSuspiciousIPsAlert()" aria-label="Close alert" style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s ease;">&times;</button>
+                        <button class="suspicious-ip-close" onclick="closeSuspiciousIPsAlert()" aria-label="Close alert"
+                            style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s ease;">&times;</button>
                     </div>
-                    <div class="card-body" id="suspiciousIPsBody" style="padding: 12px 16px; max-height: 200px; overflow-y: auto;">
+                    <div class="card-body" id="suspiciousIPsBody"
+                        style="padding: 12px 16px; max-height: 200px; overflow-y: auto;">
                     </div>
                 </div>
-                
+
                 <!-- Grouped Logs -->
                 <div class="card">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="card-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 data-i18n="recent_activity">Recent Activity</h3>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--text-secondary);">
-                                <input type="checkbox" id="groupedViewToggle" checked onchange="toggleGroupedView()" style="cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--text-secondary);">
+                                <input type="checkbox" id="groupedViewToggle" checked onchange="toggleGroupedView()"
+                                    style="cursor: pointer;">
                                 <span data-i18n="grouped_view">Grouped View</span>
                             </label>
                             <span id="logsCount" style="color: var(--text-secondary); font-size: 13px;"></span>
@@ -2055,7 +2447,8 @@
                         <!-- Grouped View -->
                         <div id="groupedLogsContainer" style="padding: 0;">
                             <div id="groupedLogsBody" style="padding: 0;">
-                                <div style="text-align: center; padding: 40px; color: var(--text-secondary);" data-i18n="loading">Loading...</div>
+                                <div style="text-align: center; padding: 40px; color: var(--text-secondary);"
+                                    data-i18n="loading">Loading...</div>
                             </div>
                         </div>
                         <!-- Table View (hidden by default) -->
@@ -2072,12 +2465,15 @@
                                 </tr>
                             </thead>
                             <tbody id="activityLogsBody">
-                                <tr><td colspan="7" class="loading" data-i18n="loading">Loading...</td></tr>
+                                <tr>
+                                    <td colspan="7" class="loading" data-i18n="loading">Loading...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <!-- Pagination -->
-                    <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                    <div
+                        style="padding: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
                         <div id="paginationInfo" style="color: var(--text-secondary); font-size: 13px;"></div>
                         <div id="paginationControls" style="display: flex; gap: 8px;">
                         </div>
@@ -2098,11 +2494,13 @@
                 <form id="createCTVForm">
                     <div class="form-group">
                         <label><span data-i18n="ctv_code">CTV Code</span> *</label>
-                        <input type="text" id="newCtvCode" data-i18n-placeholder="ctv_code_placeholder" placeholder="VD: CTV012" required>
+                        <input type="text" id="newCtvCode" data-i18n-placeholder="ctv_code_placeholder"
+                            placeholder="VD: CTV012" required>
                     </div>
                     <div class="form-group">
                         <label><span data-i18n="name">Name</span> *</label>
-                        <input type="text" id="newCtvName" data-i18n-placeholder="full_name" placeholder="Full name" required>
+                        <input type="text" id="newCtvName" data-i18n-placeholder="full_name" placeholder="Full name"
+                            required>
                     </div>
                     <div class="form-group">
                         <label data-i18n="email">Email</label>
@@ -2114,14 +2512,16 @@
                     </div>
                     <div class="form-group">
                         <label data-i18n="referrer_label">Referrer</label>
-                        <select id="newCtvReferrer" style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
+                        <select id="newCtvReferrer"
+                            style="width:100%; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-family:inherit;">
                             <option value="" data-i18n="none_root">None (Root CTV)</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('createCTVModal')" data-i18n="cancel">Cancel</button>
+                <button class="btn btn-secondary" onclick="closeModal('createCTVModal')"
+                    data-i18n="cancel">Cancel</button>
                 <button class="btn btn-primary" onclick="createCTV()" data-i18n="create_ctv">Create CTV</button>
             </div>
         </div>
@@ -2138,7 +2538,7 @@
                 'Content-Type': 'application/json',
                 ...(authToken && { 'Authorization': `Bearer ${authToken}` })
             };
-            
+
             const response = await fetch(endpoint, { ...options, headers });
             return response.json();
         }
@@ -2153,12 +2553,12 @@
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
+
             const result = await api('/admin89/login', {
                 method: 'POST',
                 body: JSON.stringify({ username, password })
             });
-            
+
             if (result.status === 'success') {
                 authToken = result.token;
                 localStorage.setItem('adminToken', authToken);
@@ -2224,7 +2624,7 @@
                 document.getElementById('statMonthlyCommission').textContent = formatCurrency(s.monthly_commission);
                 document.getElementById('statMonthlyTx').textContent = s.monthly_transactions;
                 document.getElementById('statMonthlyRevenue').textContent = formatCurrency(s.monthly_revenue);
-                
+
                 // Top earners with revenue and commission columns
                 const topEarnersEl = document.getElementById('topEarnersTableBody');
                 if (topEarnersEl) {
@@ -2257,7 +2657,7 @@
                                 <td style="text-align: right; font-weight: 600; color: var(--accent-green);">${formatCurrency(e.total_commission)}</td>
                             </tr>
                         `).join('');
-                        
+
                         // Apply translations to dynamically added elements
                         if (typeof applyTranslations === 'function') {
                             applyTranslations();
@@ -2280,7 +2680,7 @@
             // Check if we should show inactive CTVs
             const showInactive = document.getElementById('showInactiveCTV')?.checked || false;
             const activeOnly = !showInactive;
-            
+
             const result = await api(`/api/admin/ctv?active_only=${activeOnly}`);
             if (result.status === 'success') {
                 allCTV = result.data;
@@ -2317,11 +2717,11 @@
             // Use provided list or fall back to allCTV (filtered to active only for dropdowns)
             const listForDropdowns = ctvList || allCTV.filter(c => c.is_active !== false);
             const options = listForDropdowns.map(c => `<option value="${c.ma_ctv}">${c.ten} (${c.ma_ctv})</option>`).join('');
-            
+
             // Populate regular dropdowns
             document.getElementById('commissionCtvFilter').innerHTML = `<option value="">${t('all_ctvs')}</option>` + options;
             document.getElementById('newCtvReferrer').innerHTML = `<option value="">${t('none_root')}</option>` + options;
-            
+
             // Initialize searchable dropdown for hierarchy
             initHierarchyDropdown();
         }
@@ -2329,16 +2729,16 @@
         // Searchable Dropdown for Hierarchy
         let hierarchyDropdownOpen = false;
         let highlightedIndex = -1;
-        
+
         function initHierarchyDropdown() {
             const dropdown = document.getElementById('hierarchyDropdown');
             const input = document.getElementById('hierarchySearch');
             const list = document.getElementById('hierarchyList');
             const hiddenInput = document.getElementById('hierarchyRoot');
-            
+
             // Render all items initially
             renderHierarchyList('');
-            
+
             // Input events
             input.addEventListener('focus', () => {
                 // Clear the input when clicked/focused so user can search fresh
@@ -2346,16 +2746,16 @@
                 renderHierarchyList('');
                 openHierarchyDropdown();
             });
-            
+
             input.addEventListener('input', (e) => {
                 renderHierarchyList(e.target.value);
                 openHierarchyDropdown();
                 highlightedIndex = -1;
             });
-            
+
             input.addEventListener('keydown', (e) => {
                 const items = list.querySelectorAll('.dropdown-item');
-                
+
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
                     highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
@@ -2373,14 +2773,14 @@
                     closeHierarchyDropdown();
                 }
             });
-            
+
             // Click outside to close
             document.addEventListener('click', (e) => {
                 if (!dropdown.contains(e.target)) {
                     closeHierarchyDropdown();
                 }
             });
-            
+
             // Arrow click to toggle
             dropdown.querySelector('.dropdown-arrow').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -2392,36 +2792,36 @@
                 }
             });
         }
-        
+
         function openHierarchyDropdown() {
             const dropdown = document.getElementById('hierarchyDropdown');
             dropdown.classList.add('open');
             hierarchyDropdownOpen = true;
         }
-        
+
         function closeHierarchyDropdown() {
             const dropdown = document.getElementById('hierarchyDropdown');
             dropdown.classList.remove('open');
             hierarchyDropdownOpen = false;
             highlightedIndex = -1;
         }
-        
+
         function renderHierarchyList(searchTerm) {
             const list = document.getElementById('hierarchyList');
             const term = searchTerm.toLowerCase();
-            
+
             // Only show active CTVs in hierarchy dropdown
-            const filtered = allCTV.filter(c => 
+            const filtered = allCTV.filter(c =>
                 c.is_active !== false &&
                 (c.ma_ctv.toLowerCase().includes(term) ||
-                c.ten.toLowerCase().includes(term))
+                    c.ten.toLowerCase().includes(term))
             );
-            
+
             if (filtered.length === 0) {
                 list.innerHTML = '<div class="no-results">No CTVs found</div>';
                 return;
             }
-            
+
             // Sort: exact code match first, then by code
             filtered.sort((a, b) => {
                 const aExact = a.ma_ctv.toLowerCase() === term;
@@ -2430,9 +2830,9 @@
                 if (!aExact && bExact) return 1;
                 return a.ma_ctv.localeCompare(b.ma_ctv);
             });
-            
+
             const selectedValue = document.getElementById('hierarchyRoot').value;
-            
+
             list.innerHTML = filtered.slice(0, 50).map(c => `
                 <div class="dropdown-item ${c.ma_ctv === selectedValue ? 'selected' : ''}" 
                      data-value="${c.ma_ctv}" 
@@ -2441,7 +2841,7 @@
                 </div>
             `).join('');
         }
-        
+
         function updateHighlight(items) {
             items.forEach((item, i) => {
                 item.classList.toggle('highlighted', i === highlightedIndex);
@@ -2450,7 +2850,7 @@
                 items[highlightedIndex].scrollIntoView({ block: 'nearest' });
             }
         }
-        
+
         function selectHierarchyCTV(ctvCode) {
             const ctv = allCTV.find(c => c.ma_ctv === ctvCode);
             if (ctv) {
@@ -2464,7 +2864,7 @@
         // Search CTV (table search)
         document.getElementById('ctvSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = allCTV.filter(c => 
+            const filtered = allCTV.filter(c =>
                 c.ma_ctv.toLowerCase().includes(term) ||
                 c.ten.toLowerCase().includes(term) ||
                 (c.email || '').toLowerCase().includes(term) ||
@@ -2476,43 +2876,43 @@
         // ═══════════════════════════════════════════════════════════════════
         // HIERARCHY TREE FUNCTIONS
         // ═══════════════════════════════════════════════════════════════════
-        
+
         let currentHierarchyData = null;
-        
+
         async function loadHierarchy(ctvCode) {
             // Show loading indicator, hide placeholder and wrapper
             const loadingEl = document.getElementById('hierarchyLoading');
             const wrapperEl = document.getElementById('hierarchyTreeWrapper');
             const placeholderEl = document.getElementById('hierarchyPlaceholder');
-            
+
             loadingEl.classList.add('active');
             wrapperEl.style.display = 'none';
             placeholderEl.style.display = 'none';
-            
+
             try {
                 const result = await api(`/api/admin/hierarchy/${ctvCode}`);
-                
+
                 // Hide loading indicator
                 loadingEl.classList.remove('active');
-                
+
                 if (result.status === 'success') {
                     currentHierarchyData = result.hierarchy;
-                    
+
                     // Show the wrapper
                     wrapperEl.style.display = 'block';
-                    
+
                     // Calculate and display stats
                     const stats = calculateTreeStats(result.hierarchy);
                     document.getElementById('statTotalMembers').textContent = stats.totalMembers;
                     document.getElementById('statLevelsDeep').textContent = stats.maxDepth;
                     document.getElementById('statDirectRecruits').textContent = stats.directRecruits;
-                    
+
                     // Render the tree
                     document.getElementById('hierarchyTree').innerHTML = '<ul>' + renderTree(result.hierarchy) + '</ul>';
-                    
+
                     // Initialize search
                     initTreeSearch();
-                    
+
                     // Expand all by default
                     expandAllNodes();
                 } else {
@@ -2526,14 +2926,14 @@
                 console.error('Error loading hierarchy:', error);
             }
         }
-        
+
         function calculateTreeStats(node, depth = 1) {
             let stats = {
                 totalMembers: 1,
                 maxDepth: depth,
                 directRecruits: node.children ? node.children.length : 0
             };
-            
+
             if (node.children && node.children.length > 0) {
                 node.children.forEach(child => {
                     const childStats = calculateTreeStats(child, depth + 1);
@@ -2541,7 +2941,7 @@
                     stats.maxDepth = Math.max(stats.maxDepth, childStats.maxDepth);
                 });
             }
-            
+
             return stats;
         }
 
@@ -2549,16 +2949,16 @@
             // Display level matches database level (L0-L4)
             const displayLevel = node.level;
             const levelClass = `l${displayLevel}`;
-            
+
             const hasChildren = node.children && node.children.length > 0;
             const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
-            
+
             // Commission rate display
             const commissionPercent = (node.commission_rate * 100).toFixed(2);
-            
+
             // Cut-off badge for level 4 (L4)
             const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
-            
+
             let html = `
                 <li>
                     <div class="tree-node ${hasChildrenClass}" 
@@ -2572,7 +2972,7 @@
                         ${cutoffBadge}
                     </div>
             `;
-            
+
             if (hasChildren) {
                 html += '<ul class="tree-children">';
                 node.children.forEach(child => {
@@ -2580,21 +2980,21 @@
                 });
                 html += '</ul>';
             }
-            
+
             html += '</li>';
             return html;
         }
-        
+
         function toggleTreeNode(element) {
             const li = element.parentElement;
             const children = li.querySelector(':scope > ul.tree-children');
-            
+
             if (children) {
                 element.classList.toggle('expanded');
                 children.classList.toggle('collapsed');
             }
         }
-        
+
         function expandAllNodes() {
             document.querySelectorAll('#hierarchyTree .tree-node.has-children').forEach(node => {
                 node.classList.add('expanded');
@@ -2603,7 +3003,7 @@
                 child.classList.remove('collapsed');
             });
         }
-        
+
         function collapseAllNodes() {
             document.querySelectorAll('#hierarchyTree .tree-node.has-children').forEach(node => {
                 node.classList.remove('expanded');
@@ -2612,42 +3012,42 @@
                 child.classList.add('collapsed');
             });
         }
-        
+
         function initTreeSearch() {
             const searchBox = document.getElementById('treeSearchBox');
             const searchInfo = document.getElementById('treeSearchInfo');
-            
+
             // Clear previous listeners by cloning
             const newSearchBox = searchBox.cloneNode(true);
             searchBox.parentNode.replaceChild(newSearchBox, searchBox);
-            
-            newSearchBox.addEventListener('input', function() {
+
+            newSearchBox.addEventListener('input', function () {
                 const query = this.value.toLowerCase().trim();
                 const allNodes = document.querySelectorAll('#hierarchyTree .tree-node');
-                
+
                 // Remove all highlights first
                 allNodes.forEach(node => node.classList.remove('highlighted'));
-                
+
                 if (query === '') {
                     searchInfo.textContent = '';
                     return;
                 }
-                
+
                 let matchCount = 0;
                 let firstMatch = null;
-                
+
                 allNodes.forEach(node => {
                     const name = (node.dataset.name || '').toLowerCase();
                     const code = (node.dataset.code || '').toLowerCase();
-                    
+
                     if (name.includes(query) || code.includes(query)) {
                         node.classList.add('highlighted');
                         matchCount++;
-                        
+
                         if (!firstMatch) {
                             firstMatch = node;
                         }
-                        
+
                         // Expand all parents to show this node
                         let parent = node.parentElement;
                         while (parent) {
@@ -2662,7 +3062,7 @@
                         }
                     }
                 });
-                
+
                 if (matchCount > 0) {
                     searchInfo.textContent = `Found ${matchCount} result(s)`;
                     if (firstMatch) {
@@ -2705,12 +3105,12 @@
                 level: parseInt(input.dataset.level),
                 rate: parseFloat(input.value)
             }));
-            
+
             const result = await api('/api/admin/commission-settings', {
                 method: 'PUT',
                 body: JSON.stringify({ settings })
             });
-            
+
             if (result.status === 'success') {
                 alert('Commission settings saved!');
                 loadCommissionSettings();
@@ -2722,19 +3122,19 @@
         // Load Commissions (Grouped by CTV)
         async function loadCommissions() {
             const month = document.getElementById('commissionMonthFilter').value;
-            
+
             let url = '/api/admin/commissions/summary?';
             if (month) url += `month=${month}&`;
-            
+
             const result = await api(url);
             if (result.status === 'success') {
                 const tbody = document.getElementById('commissionsTableBody');
-                
+
                 // Update grand totals
                 document.getElementById('totalCtvCount').textContent = result.total_ctv || 0;
                 document.getElementById('grandTotalService').textContent = formatCurrency(result.grand_total?.total_service_price || 0);
                 document.getElementById('grandTotalCommission').textContent = formatCurrency(result.grand_total?.total_commission || 0);
-                
+
                 if (result.data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Khong co hoa hong</td></tr>';
                     return;
@@ -2765,24 +3165,24 @@
             clientsCurrentPage = page;
             const search = document.getElementById('clientSearch')?.value || '';
             const grid = document.getElementById('clientsGrid');
-            
+
             grid.innerHTML = '<div class="loading">' + t('loading') + '</div>';
-            
+
             const params = new URLSearchParams();
             params.append('page', page);
             params.append('per_page', 50);
             if (search) params.append('search', search);
-            
+
             const result = await api(`/api/admin/clients-with-services?${params}`);
-            
+
             if (result.status === 'success') {
                 allClients = result.clients;
                 clientsTotalPages = result.pagination.total_pages || 1;
-                
+
                 // Update count display
-                document.getElementById('clientsCount').textContent = 
+                document.getElementById('clientsCount').textContent =
                     `${t('showing')} ${result.clients.length} ${t('of')} ${result.pagination.total} ${t('clients')}`;
-                
+
                 renderClientCards(result.clients);
                 updateClientsPagination(result.pagination);
             } else {
@@ -2800,46 +3200,46 @@
         function updateClientsPagination(pagination) {
             const info = document.getElementById('clientsPaginationInfo');
             const controls = document.getElementById('clientsPaginationControls');
-            
+
             const start = (pagination.page - 1) * pagination.per_page + 1;
             const end = Math.min(pagination.page * pagination.per_page, pagination.total);
             info.textContent = `${start}-${end} ${t('of')} ${pagination.total}`;
-            
+
             let html = '';
             const totalPages = pagination.total_pages || 1;
             const currentPage = pagination.page;
-            
+
             // Previous button
             html += `<button class="btn btn-secondary" ${currentPage <= 1 ? 'disabled' : ''} onclick="loadClientsWithServices(${currentPage - 1})" style="padding: 8px 12px; font-size: 12px;">Prev</button>`;
-            
+
             // Page numbers
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
-            
+
             if (startPage > 1) {
                 html += `<button class="btn btn-secondary" onclick="loadClientsWithServices(1)" style="padding: 8px 12px; font-size: 12px;">1</button>`;
                 if (startPage > 2) html += `<span style="color: var(--text-secondary); padding: 0 8px;">...</span>`;
             }
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 const isActive = i === currentPage;
                 html += `<button class="btn ${isActive ? 'btn-primary' : 'btn-secondary'}" onclick="loadClientsWithServices(${i})" style="padding: 8px 12px; font-size: 12px;">${i}</button>`;
             }
-            
+
             if (endPage < totalPages) {
                 if (endPage < totalPages - 1) html += `<span style="color: var(--text-secondary); padding: 0 8px;">...</span>`;
                 html += `<button class="btn btn-secondary" onclick="loadClientsWithServices(${totalPages})" style="padding: 8px 12px; font-size: 12px;">${totalPages}</button>`;
             }
-            
+
             // Next button
             html += `<button class="btn btn-secondary" ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadClientsWithServices(${currentPage + 1})" style="padding: 8px 12px; font-size: 12px;">Next</button>`;
-            
+
             controls.innerHTML = html;
         }
 
         function renderClientCards(clients) {
             const grid = document.getElementById('clientsGrid');
-            
+
             if (!clients || clients.length === 0) {
                 grid.innerHTML = `
                     <div class="no-clients-message">
@@ -2852,7 +3252,7 @@
                 `;
                 return;
             }
-            
+
             grid.innerHTML = clients.map(client => renderClientCard(client)).join('');
         }
 
@@ -2860,9 +3260,9 @@
             const initials = getInitials(client.ten_khach);
             const depositClass = client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc' ? 'deposited' : 'not-deposited';
             const depositText = (client.overall_deposit === 'Đã cọc' || client.overall_deposit === 'Da coc') ? t('da_coc') : t('chua_coc');
-            
+
             const servicesHTML = client.services.map((svc, idx) => renderServiceCard(svc, idx)).join('');
-            
+
             return `
                 <div class="client-card">
                     <div class="client-card-header">
@@ -2906,9 +3306,9 @@
         function renderServiceCard(service, index) {
             const depositClass = service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc' ? 'deposited' : 'not-deposited';
             const depositText = (service.deposit_status === 'Đã cọc' || service.deposit_status === 'Da coc') ? t('da_coc') : t('chua_coc');
-            
+
             const datesHTML = `
-                ${service.ngay_nhap_don 
+                ${service.ngay_nhap_don
                     ? `<div class="service-appointment">
                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -2918,9 +3318,9 @@
                            </svg>
                            <span>${t('ngay_nhap_don')}</span>
                            <span class="date">${service.ngay_nhap_don}</span>
-                       </div>` 
+                       </div>`
                     : ''}
-                ${service.ngay_hen_lam 
+                ${service.ngay_hen_lam
                     ? `<div class="service-appointment">
                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -2930,10 +3330,10 @@
                            </svg>
                            <span>${t('ngay_hen_lam')}</span>
                            <span class="date">${service.ngay_hen_lam}</span>
-                       </div>` 
+                       </div>`
                     : ''}
             `;
-            
+
             return `
                 <div class="service-card">
                     <div class="service-card-header">
@@ -3023,12 +3423,12 @@
                 nguoi_gioi_thieu: document.getElementById('newCtvReferrer').value || null,
                 cap_bac: 'Bronze'
             };
-            
+
             const result = await api('/api/admin/ctv', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            
+
             if (result.status === 'success') {
                 alert(`CTV created! Default password: ${result.default_password}`);
                 closeModal('createCTVModal');
@@ -3038,6 +3438,72 @@
                 alert('Error: ' + result.message);
             }
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SIDEBAR STATE MANAGEMENT (TG KOL Style)
+        // ═══════════════════════════════════════════════════════════════════
+
+        const adminSidebar = document.getElementById('adminSidebar');
+        const adminBackdrop = document.getElementById('adminSidebarBackdrop');
+        const adminMobileMenuBtn = document.getElementById('adminMobileMenuBtn');
+
+        // Check if on mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
+        // Open sidebar (mobile)
+        function openAdminSidebar() {
+            if (adminSidebar) {
+                adminSidebar.classList.remove('mobile-closed');
+            }
+            if (adminBackdrop) {
+                adminBackdrop.classList.add('active');
+            }
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close sidebar (mobile)
+        function closeAdminSidebar() {
+            if (adminSidebar) {
+                adminSidebar.classList.add('mobile-closed');
+            }
+            if (adminBackdrop) {
+                adminBackdrop.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+        }
+
+        // Toggle sidebar
+        function toggleAdminSidebar() {
+            if (adminSidebar?.classList.contains('mobile-closed')) {
+                openAdminSidebar();
+            } else {
+                closeAdminSidebar();
+            }
+        }
+
+        // Mobile menu button click
+        if (adminMobileMenuBtn) {
+            adminMobileMenuBtn.addEventListener('click', openAdminSidebar);
+        }
+
+        // Backdrop click closes sidebar
+        if (adminBackdrop) {
+            adminBackdrop.addEventListener('click', closeAdminSidebar);
+        }
+
+        // Handle resize - close sidebar on mobile when resizing to desktop
+        window.addEventListener('resize', () => {
+            if (!isMobile() && adminBackdrop?.classList.contains('active')) {
+                closeAdminSidebar();
+            }
+        });
+
+        // Make functions globally available
+        window.openAdminSidebar = openAdminSidebar;
+        window.closeAdminSidebar = closeAdminSidebar;
+        window.toggleAdminSidebar = toggleAdminSidebar;
 
         // Navigation
         document.querySelectorAll('.sidebar-nav a[data-page]').forEach(link => {
@@ -3051,10 +3517,15 @@
         function navigateTo(page) {
             document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
             document.querySelector(`.sidebar-nav a[data-page="${page}"]`).classList.add('active');
-            
+
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(`page-${page}`).classList.add('active');
-            
+
+            // Close sidebar on mobile after navigation
+            if (isMobile()) {
+                closeAdminSidebar();
+            }
+
             if (page === 'commissions') loadCommissions();
             if (page === 'clients') loadClientsWithServices();
             if (page === 'activity-logs') {
@@ -3066,7 +3537,7 @@
         // ═══════════════════════════════════════════════════════════════════
         // ACTIVITY LOGS
         // ═══════════════════════════════════════════════════════════════════
-        
+
         let activityLogsCurrentPage = 1;
         let activityLogsTotalPages = 1;
         let isGroupedView = true;
@@ -3077,7 +3548,7 @@
             isGroupedView = document.getElementById('groupedViewToggle').checked;
             const groupedContainer = document.getElementById('groupedLogsContainer');
             const tableView = document.getElementById('activityLogsTable');
-            
+
             if (isGroupedView) {
                 groupedContainer.style.display = 'block';
                 tableView.style.display = 'none';
@@ -3085,13 +3556,13 @@
                 groupedContainer.style.display = 'none';
                 tableView.style.display = 'table';
             }
-            
+
             loadActivityLogs(1);
         }
 
         async function loadActivityLogs(page = 1) {
             activityLogsCurrentPage = page;
-            
+
             if (isGroupedView) {
                 await loadGroupedLogs(page);
             } else {
@@ -3102,13 +3573,13 @@
         async function loadGroupedLogs(page = 1) {
             const groupedBody = document.getElementById('groupedLogsBody');
             groupedBody.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">' + t('loading') + '</div>';
-            
+
             const eventType = document.getElementById('logEventType').value;
             const userType = document.getElementById('logUserType').value;
             const dateFrom = document.getElementById('logDateFrom').value;
             const dateTo = document.getElementById('logDateTo').value;
             const search = document.getElementById('logSearch').value;
-            
+
             const params = new URLSearchParams();
             params.append('page', page);
             params.append('per_page', 50);
@@ -3117,20 +3588,20 @@
             if (dateFrom) params.append('date_from', dateFrom);
             if (dateTo) params.append('date_to', dateTo);
             if (search) params.append('search', search);
-            
+
             const result = await api(`/api/admin/activity-logs/grouped?${params}`);
-            
+
             if (result.status === 'success') {
                 const groups = result.groups;
                 suspiciousIPsData = result.suspicious_ips || {};
                 activityLogsTotalPages = result.pagination.total_pages || 1;
-                
-                document.getElementById('logsCount').textContent = 
+
+                document.getElementById('logsCount').textContent =
                     `${t('showing')} ${groups.length} ${t('groups')} ${t('of')} ${result.pagination.total}`;
-                
+
                 // Show suspicious IPs alert
                 displaySuspiciousIPs(suspiciousIPsData);
-                
+
                 if (groups.length === 0) {
                     groupedBody.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">' + t('no_logs_found') + '</div>';
                 } else {
@@ -3138,7 +3609,7 @@
                         const groupId = `group-${group.user_id || 'unknown'}-${(group.ip_address || 'unknown').replace(/\./g, '-')}`;
                         const isSuspicious = suspiciousIPsData[group.ip_address] && suspiciousIPsData[group.ip_address].length > 1;
                         const isExpanded = expandedGroups.has(groupId);
-                        
+
                         return `
                         <div class="log-group" style="border-bottom: 1px solid var(--border-color);">
                             <div class="log-group-header" 
@@ -3189,7 +3660,7 @@
                         `;
                     }).join('');
                 }
-                
+
                 updatePagination(result.pagination);
             } else {
                 groupedBody.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--accent-red);">Error loading logs</div>';
@@ -3199,16 +3670,16 @@
         function displaySuspiciousIPs(suspiciousIPs) {
             const alertDiv = document.getElementById('suspiciousIPsAlert');
             const alertBody = document.getElementById('suspiciousIPsBody');
-            
+
             const ipCount = Object.keys(suspiciousIPs).length;
-            
+
             if (ipCount === 0) {
                 alertDiv.style.display = 'none';
                 return;
             }
-            
+
             alertDiv.style.display = 'block';
-            
+
             alertBody.innerHTML = Object.entries(suspiciousIPs).map(([ip, users]) => `
                 <div style="padding: 8px 12px; background: rgba(239, 68, 68, 0.08); border-radius: 6px; margin-bottom: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
@@ -3237,26 +3708,26 @@
             const content = document.getElementById(`${groupId}-content`);
             const chevron = document.getElementById(`${groupId}-chevron`);
             const logsDiv = document.getElementById(`${groupId}-logs`);
-            
+
             if (content.style.display === 'none') {
                 content.style.display = 'block';
                 chevron.style.transform = 'rotate(90deg)';
                 expandedGroups.add(groupId);
-                
+
                 // Load detailed logs for this group
                 const parts = groupId.replace('group-', '').split('-');
                 const ip = parts.slice(-4).join('.');
                 const userId = parts.slice(0, -4).join('-');
-                
+
                 logsDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">' + t('loading') + '</div>';
-                
+
                 const params = new URLSearchParams();
                 if (userId && userId !== 'unknown') params.append('user_id', userId);
                 if (ip && ip !== 'unknown') params.append('ip_address', ip);
                 params.append('per_page', 20);
-                
+
                 const result = await api(`/api/admin/activity-logs/details?${params}`);
-                
+
                 if (result.status === 'success' && result.logs.length > 0) {
                     logsDiv.innerHTML = `
                         <table class="data-table" style="width: 100%; margin: 0;">
@@ -3300,13 +3771,13 @@
         async function loadFlatLogs(page = 1) {
             const tbody = document.getElementById('activityLogsBody');
             tbody.innerHTML = '<tr><td colspan="7" class="loading">' + t('loading') + '</td></tr>';
-            
+
             const eventType = document.getElementById('logEventType').value;
             const userType = document.getElementById('logUserType').value;
             const dateFrom = document.getElementById('logDateFrom').value;
             const dateTo = document.getElementById('logDateTo').value;
             const search = document.getElementById('logSearch').value;
-            
+
             const params = new URLSearchParams();
             params.append('page', page);
             params.append('per_page', 50);
@@ -3315,19 +3786,19 @@
             if (dateFrom) params.append('date_from', dateFrom);
             if (dateTo) params.append('date_to', dateTo);
             if (search) params.append('search', search);
-            
+
             const result = await api(`/api/admin/activity-logs?${params}`);
-            
+
             if (result.status === 'success') {
                 const logs = result.logs;
                 activityLogsTotalPages = result.pagination.total_pages || 1;
-                
-                document.getElementById('logsCount').textContent = 
+
+                document.getElementById('logsCount').textContent =
                     `${t('showing')} ${logs.length} ${t('of')} ${result.pagination.total} ${t('logs')}`;
-                
+
                 // Hide suspicious IPs alert in flat view
                 document.getElementById('suspiciousIPsAlert').style.display = 'none';
-                
+
                 if (logs.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">' + t('no_logs_found') + '</td></tr>';
                 } else {
@@ -3351,7 +3822,7 @@
                         </tr>
                     `).join('');
                 }
-                
+
                 updatePagination(result.pagination);
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" style="color: var(--accent-red);">Error loading logs</td></tr>';
@@ -3371,19 +3842,19 @@
                 'data_export': { color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)', label: 'Export' },
                 'settings_changed': { color: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)', label: 'Settings' }
             };
-            
+
             const badge = badges[eventType] || { color: '#6b7280', bg: 'rgba(107, 114, 128, 0.15)', label: eventType };
             return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${badge.bg}; color: ${badge.color};">${badge.label}</span>`;
         }
 
         function getStatusBadge(statusCode) {
             if (!statusCode) return '-';
-            
+
             let color = 'var(--text-secondary)';
             if (statusCode >= 200 && statusCode < 300) color = 'var(--accent-green)';
             else if (statusCode >= 400 && statusCode < 500) color = 'var(--accent-orange)';
             else if (statusCode >= 500) color = 'var(--accent-red)';
-            
+
             return `<span style="font-family: monospace; color: ${color};">${statusCode}</span>`;
         }
 
@@ -3396,10 +3867,10 @@
                     return details;
                 }
             }
-            
+
             if (details.action) return details.action;
             if (details.duration_ms) return `${details.duration_ms}ms`;
-            
+
             const keys = Object.keys(details);
             if (keys.length === 0) return '-';
             return keys.slice(0, 2).map(k => `${k}: ${details[k]}`).join(', ');
@@ -3408,47 +3879,47 @@
         function updatePagination(pagination) {
             const info = document.getElementById('paginationInfo');
             const controls = document.getElementById('paginationControls');
-            
+
             const start = (pagination.page - 1) * pagination.per_page + 1;
             const end = Math.min(pagination.page * pagination.per_page, pagination.total);
             info.textContent = `${start}-${end} ${t('of')} ${pagination.total}`;
-            
+
             let html = '';
-            
+
             // Previous button
             html += `<button class="btn btn-secondary" ${pagination.page <= 1 ? 'disabled' : ''} onclick="loadActivityLogs(${pagination.page - 1})" style="padding: 8px 12px; font-size: 12px;">Prev</button>`;
-            
+
             // Page numbers
             const totalPages = pagination.total_pages || 1;
             const currentPage = pagination.page;
-            
+
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
-            
+
             if (startPage > 1) {
                 html += `<button class="btn btn-secondary" onclick="loadActivityLogs(1)" style="padding: 8px 12px; font-size: 12px;">1</button>`;
                 if (startPage > 2) html += `<span style="color: var(--text-secondary); padding: 0 8px;">...</span>`;
             }
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 const isActive = i === currentPage;
                 html += `<button class="btn ${isActive ? 'btn-primary' : 'btn-secondary'}" onclick="loadActivityLogs(${i})" style="padding: 8px 12px; font-size: 12px;">${i}</button>`;
             }
-            
+
             if (endPage < totalPages) {
                 if (endPage < totalPages - 1) html += `<span style="color: var(--text-secondary); padding: 0 8px;">...</span>`;
                 html += `<button class="btn btn-secondary" onclick="loadActivityLogs(${totalPages})" style="padding: 8px 12px; font-size: 12px;">${totalPages}</button>`;
             }
-            
+
             // Next button
             html += `<button class="btn btn-secondary" ${pagination.page >= totalPages ? 'disabled' : ''} onclick="loadActivityLogs(${pagination.page + 1})" style="padding: 8px 12px; font-size: 12px;">Next</button>`;
-            
+
             controls.innerHTML = html;
         }
 
         async function loadActivityStats() {
             const result = await api('/api/admin/activity-logs/stats');
-            
+
             if (result.status === 'success') {
                 const stats = result.stats;
                 document.getElementById('statLoginsToday').textContent = stats.logins_today || 0;
@@ -3475,14 +3946,14 @@
             const dateFrom = document.getElementById('logDateFrom').value;
             const dateTo = document.getElementById('logDateTo').value;
             const search = document.getElementById('logSearch').value;
-            
+
             const params = new URLSearchParams();
             if (eventType) params.append('event_type', eventType);
             if (userType) params.append('user_type', userType);
             if (dateFrom) params.append('date_from', dateFrom);
             if (dateTo) params.append('date_to', dateTo);
             if (search) params.append('search', search);
-            
+
             // Open export URL in new window for download
             const token = localStorage.getItem('session_token');
             window.open(`/api/admin/activity-logs/export?${params}&token=${token}`, '_blank');
@@ -3503,7 +3974,7 @@
             const month = document.getElementById('commissionMonthFilter').value;
             const params = new URLSearchParams();
             if (month) params.append('month', month);
-            
+
             const token = localStorage.getItem('session_token');
             window.open(`/api/admin/commissions/summary/export?${params}&token=${token}`, '_blank');
         }
@@ -3513,7 +3984,7 @@
             const search = document.getElementById('clientSearch').value;
             const params = new URLSearchParams();
             if (search) params.append('search', search);
-            
+
             const token = localStorage.getItem('session_token');
             window.open(`/api/admin/clients/export?${params}&token=${token}`, '_blank');
         }
@@ -3525,14 +3996,14 @@
             const dateFrom = document.getElementById('logDateFrom').value;
             const dateTo = document.getElementById('logDateTo').value;
             const search = document.getElementById('logSearch').value;
-            
+
             const params = new URLSearchParams();
             if (eventType) params.append('event_type', eventType);
             if (userType) params.append('user_type', userType);
             if (dateFrom) params.append('date_from', dateFrom);
             if (dateTo) params.append('date_to', dateTo);
             if (search) params.append('search', search);
-            
+
             const token = localStorage.getItem('session_token');
             window.open(`/api/admin/activity-logs/export-xlsx?${params}&token=${token}`, '_blank');
         }
@@ -3540,7 +4011,7 @@
         // ═══════════════════════════════════════════════════════════════════
         // LANGUAGE SYSTEM
         // ═══════════════════════════════════════════════════════════════════
-        
+
         const translations = {
             vi: {
                 // Login
@@ -3553,7 +4024,7 @@
                 login: 'Đăng Nhập',
                 back_home: '← Quay về trang chủ',
                 login_failed: 'Đăng nhập thất bại',
-                
+
                 // Navigation
                 home_dashboard: '← Trang Chủ',
                 overview: 'Tổng Quan',
@@ -3564,7 +4035,7 @@
                 settings: 'Cài Đặt',
                 activity_logs: 'Nhat Ky',
                 logout: 'Đăng Xuất',
-                
+
                 // Activity Logs
                 logins_today: 'Dang Nhap Hom Nay',
                 failed_logins: 'Dang Nhap That Bai',
@@ -3598,11 +4069,11 @@
                 suspicious_ips_detected: 'Phat hien IP dang nghi',
                 multi_account_ip: 'Nhieu tai khoan',
                 accounts: 'tai khoan',
-                
+
                 // Client Management
                 client_management: 'Quản Lý Khách Hàng',
                 client_search_placeholder: 'Tìm theo tên hoặc số điện thoại...',
-                
+
                 // Dashboard
                 dashboard_overview: 'Tổng Quan Dashboard',
                 total_ctv: 'Tổng CTV',
@@ -3614,7 +4085,7 @@
                 ctv_name: 'CTV',
                 total_revenue: 'Doanh Thu',
                 total_commission: 'Hoa Hồng',
-                
+
                 // CTV Management
                 add_ctv: '+ Thêm CTV',
                 search_placeholder: 'Tìm theo tên, email, điện thoại...',
@@ -3629,13 +4100,13 @@
                 actions: 'Thao Tác',
                 active: 'Hoạt động',
                 inactive: 'Ngừng hoạt động',
-                
+
                 // Commission Settings
                 commission_settings: 'Cài Đặt Hoa Hồng',
                 commission_rates: 'Tỷ Lệ Hoa Hồng Theo Cấp',
                 save_changes: 'Lưu Thay Đổi',
                 settings_saved: 'Đã lưu cài đặt!',
-                
+
                 // Hierarchy
                 hierarchy_tree: 'Cây Cấp Bậc',
                 select_root: 'Chọn CTV Gốc',
@@ -3648,7 +4119,7 @@
                 direct_recruits: 'Trực Tiếp',
                 expand_all: 'Mở Rộng',
                 collapse_all: 'Thu Gọn',
-                
+
                 // Commission Reports
                 commission_reports: 'Báo Cáo Hoa Hồng',
                 filter_ctv: 'Lọc theo CTV',
@@ -3661,11 +4132,11 @@
                 transaction: 'Giao Dịch',
                 commission: 'Hoa Hồng',
                 date: 'Ngày',
-                
+
                 // Status
                 da_coc: 'Da coc',
                 chua_coc: 'Chua coc',
-                
+
                 // Modal
                 add_new_ctv: 'Thêm CTV Mới',
                 ctv_code: 'Mã CTV',
@@ -3675,12 +4146,12 @@
                 none_root: 'Không (CTV Gốc)',
                 cancel: 'Hủy',
                 create_ctv: 'Tạo CTV',
-                
+
                 // Loading
                 loading: 'Đang tải...',
                 loading_hierarchy: 'Đang tải cây cấp bậc...',
                 loading_please_wait: 'Vui lòng đợi, có thể mất một lúc cho cây lớn',
-                
+
                 // Service Card Labels
                 tong_tien: 'Tong tien:',
                 tien_coc: 'Tien coc:',
@@ -3688,7 +4159,7 @@
                 ngay_hen: 'Ngay hen:',
                 ngay_nhap_don: 'Ngày nhập đơn:',
                 ngay_hen_lam: 'Ngày hẹn làm:',
-                
+
                 // Client Card Labels
                 co_so: 'Co so',
                 first_visit: 'Lan dau',
@@ -3709,7 +4180,7 @@
                 login: 'Login',
                 back_home: '← Back to Home',
                 login_failed: 'Login failed',
-                
+
                 // Navigation
                 home_dashboard: '← Home Dashboard',
                 overview: 'Overview',
@@ -3720,7 +4191,7 @@
                 settings: 'Settings',
                 activity_logs: 'Activity Logs',
                 logout: 'Logout',
-                
+
                 // Activity Logs
                 logins_today: 'Logins Today',
                 failed_logins: 'Failed Logins',
@@ -3754,11 +4225,11 @@
                 suspicious_ips_detected: 'Suspicious IPs Detected',
                 multi_account_ip: 'Multi-Account IP',
                 accounts: 'accounts',
-                
+
                 // Client Management
                 client_management: 'Client Management',
                 client_search_placeholder: 'Search by name or phone...',
-                
+
                 // Dashboard
                 dashboard_overview: 'Dashboard Overview',
                 total_ctv: 'Total CTV',
@@ -3770,7 +4241,7 @@
                 ctv_name: 'CTV',
                 total_revenue: 'Total Revenue',
                 total_commission: 'Total Commission',
-                
+
                 // CTV Management
                 add_ctv: '+ Add CTV',
                 search_placeholder: 'Search by name, email, phone...',
@@ -3785,13 +4256,13 @@
                 actions: 'Actions',
                 active: 'Active',
                 inactive: 'Inactive',
-                
+
                 // Commission Settings
                 commission_settings: 'Commission Settings',
                 commission_rates: 'Commission Rates by Level',
                 save_changes: 'Save Changes',
                 settings_saved: 'Settings saved!',
-                
+
                 // Hierarchy
                 hierarchy_tree: 'Hierarchy Tree',
                 select_root: 'Select Root CTV',
@@ -3804,7 +4275,7 @@
                 direct_recruits: 'Direct Recruits',
                 expand_all: 'Expand All',
                 collapse_all: 'Collapse All',
-                
+
                 // Commission Reports
                 commission_reports: 'Commission Reports',
                 filter_ctv: 'Filter by CTV',
@@ -3817,7 +4288,7 @@
                 transaction: 'Transaction',
                 commission: 'Commission',
                 date: 'Date',
-                
+
                 // Modal
                 add_new_ctv: 'Add New CTV',
                 ctv_code: 'CTV Code',
@@ -3827,16 +4298,16 @@
                 none_root: 'None (Root CTV)',
                 cancel: 'Cancel',
                 create_ctv: 'Create CTV',
-                
+
                 // Status
                 da_coc: 'Deposited',
                 chua_coc: 'Not Deposited',
-                
+
                 // Loading
                 loading: 'Loading...',
                 loading_hierarchy: 'Loading hierarchy tree...',
                 loading_please_wait: 'Please wait, this may take a moment for large trees',
-                
+
                 // Service Card Labels
                 tong_tien: 'Total:',
                 tien_coc: 'Deposit:',
@@ -3844,7 +4315,7 @@
                 ngay_hen: 'Appointment:',
                 ngay_nhap_don: 'Order Date:',
                 ngay_hen_lam: 'Appointment Date:',
-                
+
                 // Client Card Labels
                 co_so: 'Facility',
                 first_visit: 'First Visit',
@@ -3862,17 +4333,17 @@
             currentLang = lang;
             localStorage.setItem('admin_language', lang);
             applyTranslations();
-            
+
             // Update button states
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
-            
+
             // Re-populate dropdowns with translated options
             if (allCTV.length > 0) {
                 populateCTVSelects();
             }
-            
+
             // Re-render client cards if they're currently displayed
             const clientsPage = document.getElementById('clientsPage');
             if (clientsPage && clientsPage.style.display !== 'none') {
@@ -3892,7 +4363,7 @@
                     el.textContent = translations[currentLang][key];
                 }
             });
-            
+
             // Update placeholders
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
@@ -3900,7 +4371,7 @@
                     el.placeholder = translations[currentLang][key];
                 }
             });
-            
+
             // Update tooltips
             document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
                 const key = el.getAttribute('data-i18n-tooltip');
@@ -3908,7 +4379,7 @@
                     el.setAttribute('data-tooltip', translations[currentLang][key]);
                 }
             });
-            
+
             // Update page title
             document.title = currentLang === 'vi' ? 'Admin Dashboard - Hệ Thống CTV' : 'Admin Dashboard - CTV System';
         }
@@ -3922,7 +4393,7 @@
         async function initPendingRegistrationsBadge() {
             const badge = document.getElementById('pendingRegistrationsBadge');
             if (!badge) return;
-            
+
             try {
                 // Fetch count from API
                 const response = await fetch('/api/admin/registrations/count', {
@@ -3930,9 +4401,9 @@
                         'Authorization': `Bearer ${localStorage.getItem('session_token')}`
                     }
                 });
-                
+
                 if (!response.ok) return;
-                
+
                 const data = await response.json();
                 if (data.status === 'success') {
                     const count = data.count;
@@ -3954,6 +4425,5 @@
         checkAuth();
     </script>
 </body>
+
 </html>
-
-

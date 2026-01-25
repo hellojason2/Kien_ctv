@@ -3,18 +3,29 @@
  * Sidebar navigation, page switching, collapsible groups, and responsive behavior
  * 
  * Created: December 30, 2025
- * Updated: January 24, 2026 - Collapsible Sidebar with Animations
+ * Updated: January 25, 2026 - TG KOL Style Mobile Sidebar (matches CTV behavior)
  */
 
 /* ═══════════════════════════════════════════════════════════════════
    STATE MANAGEMENT
    ═══════════════════════════════════════════════════════════════════ */
 
-// Sidebar state
-let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+// Sidebar state - separate for mobile and desktop (TG KOL Style)
+let sidebarMobileOpen = false; // Mobile: starts closed
+let sidebarDesktopCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+// For backward compatibility
+let sidebarCollapsed = sidebarDesktopCollapsed;
 
 // Expanded groups state (persisted)
 let expandedGroups = JSON.parse(localStorage.getItem('expandedGroups') || '{}');
+
+/**
+ * Check if currently on mobile
+ */
+function isMobileView() {
+    return window.innerWidth <= 768;
+}
 
 /**
  * Get current active page from URL or DOM
@@ -25,35 +36,74 @@ function getCurrentActivePage() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR COLLAPSE FUNCTIONALITY
+   MOBILE SIDEBAR FUNCTIONS (TG KOL STYLE)
    ═══════════════════════════════════════════════════════════════════ */
 
 /**
- * Toggle sidebar collapsed state
+ * Open sidebar (mobile only) - TG KOL Style
  */
-function toggleSidebarCollapsed() {
+function openMobileSidebar() {
     const sidebar = document.getElementById('adminSidebar');
-    const mainContent = document.querySelector('.main-content');
     const backdrop = document.getElementById('sidebarBackdrop');
 
-    sidebarCollapsed = !sidebarCollapsed;
+    sidebarMobileOpen = true;
 
     if (sidebar) {
-        sidebar.classList.toggle('collapsed', sidebarCollapsed);
+        sidebar.classList.remove('collapsed');
+    }
+    if (backdrop) {
+        backdrop.classList.add('active');
+    }
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close sidebar (mobile only) - TG KOL Style
+ */
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('adminSidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    sidebarMobileOpen = false;
+
+    if (sidebar) {
+        sidebar.classList.add('collapsed');
+    }
+    if (backdrop) {
+        backdrop.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DESKTOP SIDEBAR COLLAPSE FUNCTIONALITY
+   ═══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Toggle sidebar collapsed state (desktop only)
+ */
+function toggleSidebarCollapsed() {
+    // On mobile, don't toggle - use openMobileSidebar/closeMobileSidebar instead
+    if (isMobileView()) {
+        return;
+    }
+
+    const sidebar = document.getElementById('adminSidebar');
+    const mainContent = document.querySelector('.main-content');
+
+    sidebarDesktopCollapsed = !sidebarDesktopCollapsed;
+    sidebarCollapsed = sidebarDesktopCollapsed; // backward compat
+
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed', sidebarDesktopCollapsed);
     }
 
     if (mainContent) {
-        mainContent.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+        mainContent.classList.toggle('sidebar-collapsed', sidebarDesktopCollapsed);
     }
 
-    if (backdrop) {
-        backdrop.classList.toggle('active', !sidebarCollapsed && window.innerWidth < 640);
-    }
-
-    // Persist state (only on desktop)
-    if (window.innerWidth >= 640) {
-        localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
-    }
+    // Persist state on desktop
+    localStorage.setItem('sidebarCollapsed', sidebarDesktopCollapsed);
 }
 
 /**
@@ -64,33 +114,42 @@ function initSidebarCollapse() {
     const mainContent = document.querySelector('.main-content');
     const collapseBtn = document.getElementById('sidebarCollapseBtn');
     const backdrop = document.getElementById('sidebarBackdrop');
+    const mobileMenuBtn = document.getElementById('adminMobileMenuBtn');
 
-    // On mobile, always start collapsed
-    if (window.innerWidth < 640) {
-        sidebarCollapsed = true;
+    // Mobile: Always start with sidebar closed (hidden)
+    // Sidebar HTML has 'collapsed' class by default for mobile
+    if (isMobileView()) {
+        // Ensure collapsed on mobile
+        if (sidebar) sidebar.classList.add('collapsed');
+        sidebarMobileOpen = false;
+    } else {
+        // Desktop: Apply saved collapsed state
+        // If user had it expanded, remove the default collapsed class
+        if (sidebar) {
+            if (sidebarDesktopCollapsed) {
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        }
+        if (mainContent) {
+            mainContent.classList.toggle('sidebar-collapsed', sidebarDesktopCollapsed);
+        }
     }
 
-    // Apply initial state
-    if (sidebar && sidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-    }
-
-    if (mainContent && sidebarCollapsed) {
-        mainContent.classList.add('sidebar-collapsed');
-    }
-
-    // Collapse button click handler
+    // Desktop collapse button
     if (collapseBtn) {
         collapseBtn.addEventListener('click', toggleSidebarCollapsed);
     }
 
-    // Backdrop click handler (close sidebar on mobile)
+    // Mobile menu button (hamburger) - ONLY opens sidebar
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', openMobileSidebar);
+    }
+
+    // Backdrop click - ONLY closes sidebar
     if (backdrop) {
-        backdrop.addEventListener('click', () => {
-            if (!sidebarCollapsed) {
-                toggleSidebarCollapsed();
-            }
-        });
+        backdrop.addEventListener('click', closeMobileSidebar);
     }
 
     // Handle window resize
@@ -98,14 +157,40 @@ function initSidebarCollapse() {
 }
 
 /**
- * Handle window resize for responsive behavior
+ * Handle window resize - adjust state appropriately
+ * IMPORTANT: On mobile, sidebar should NEVER auto-expand. It stays collapsed
+ * until user explicitly opens it with the hamburger button.
  */
 function handleResize() {
+    const sidebar = document.getElementById('adminSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
+    const mainContent = document.querySelector('.main-content');
 
-    // On desktop, hide backdrop
-    if (window.innerWidth >= 640 && backdrop) {
-        backdrop.classList.remove('active');
+    if (isMobileView()) {
+        // On mobile: ALWAYS keep sidebar collapsed unless explicitly opened
+        // Never auto-expand based on desktop state
+        if (!sidebarMobileOpen) {
+            // Sidebar should be hidden
+            if (sidebar) sidebar.classList.add('collapsed');
+            if (backdrop) backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        // Remove desktop-specific classes on mobile
+        if (mainContent) mainContent.classList.remove('sidebar-collapsed');
+    } else {
+        // Switching TO desktop: apply desktop state
+        // Close any mobile sidebar state first
+        sidebarMobileOpen = false;
+        document.body.style.overflow = '';
+        if (backdrop) backdrop.classList.remove('active');
+
+        // Apply desktop collapsed state
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed', sidebarDesktopCollapsed);
+        }
+        if (mainContent) {
+            mainContent.classList.toggle('sidebar-collapsed', sidebarDesktopCollapsed);
+        }
     }
 }
 
@@ -217,8 +302,8 @@ function navigateTo(page) {
     }
 
     // Auto-close sidebar on mobile after navigation
-    if (window.innerWidth < 640 && !sidebarCollapsed) {
-        toggleSidebarCollapsed();
+    if (isMobileView() && sidebarMobileOpen) {
+        closeMobileSidebar();
     }
 
     // Load page-specific data
@@ -295,30 +380,9 @@ function initNavigation() {
     initNavGroups();
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   MOBILE MENU TOGGLE (for header hamburger if needed)
-   ═══════════════════════════════════════════════════════════════════ */
-
-/**
- * Open sidebar on mobile
- */
-function openMobileSidebar() {
-    if (sidebarCollapsed) {
-        toggleSidebarCollapsed();
-    }
-}
-
-/**
- * Close sidebar on mobile
- */
-function closeMobileSidebar() {
-    if (!sidebarCollapsed && window.innerWidth < 640) {
-        toggleSidebarCollapsed();
-    }
-}
-
 // Export functions for global access
 window.toggleSidebarCollapsed = toggleSidebarCollapsed;
 window.openMobileSidebar = openMobileSidebar;
 window.closeMobileSidebar = closeMobileSidebar;
 window.navigateTo = navigateTo;
+window.isMobileView = isMobileView;
