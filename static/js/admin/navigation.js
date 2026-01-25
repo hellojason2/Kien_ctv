@@ -3,7 +3,7 @@
  * Sidebar navigation, page switching, collapsible groups, and responsive behavior
  * 
  * Created: December 30, 2025
- * Updated: January 25, 2026 - TG KOL Style Mobile Sidebar (matches CTV behavior)
+ * Updated: January 25, 2026 - TG KOL Style Mobile Sidebar - FIXED scroll auto-expand
  */
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -19,6 +19,10 @@ let sidebarCollapsed = sidebarDesktopCollapsed;
 
 // Expanded groups state (persisted)
 let expandedGroups = JSON.parse(localStorage.getItem('expandedGroups') || '{}');
+
+// Track last window width to detect REAL width changes (not scroll-triggered)
+let lastWindowWidth = window.innerWidth;
+let resizeDebounceTimer = null;
 
 /**
  * Check if currently on mobile
@@ -158,16 +162,45 @@ function initSidebarCollapse() {
         closeBtn.addEventListener('click', closeMobileSidebar);
     }
 
-    // Handle window resize
-    window.addEventListener('resize', handleResize);
+    // Handle window resize - with debounce to prevent scroll-triggered issues
+    window.addEventListener('resize', debouncedHandleResize);
+}
+
+/**
+ * Debounced resize handler wrapper
+ * This prevents scroll-triggered resize events (from address bar hiding on mobile)
+ * from causing unwanted sidebar state changes
+ */
+function debouncedHandleResize() {
+    // Clear any existing timer
+    if (resizeDebounceTimer) {
+        clearTimeout(resizeDebounceTimer);
+    }
+
+    // Debounce: wait 100ms after last resize event
+    resizeDebounceTimer = setTimeout(() => {
+        actualHandleResize();
+    }, 100);
 }
 
 /**
  * Handle window resize - adjust state appropriately
- * IMPORTANT: On mobile, sidebar should NEVER auto-expand. It stays collapsed
- * until user explicitly opens it with the hamburger button.
+ * CRITICAL: Only respond to ACTUAL width changes, not height changes from scrolling
+ * On mobile, sidebar should NEVER auto-expand unless user clicks hamburger.
  */
-function handleResize() {
+function actualHandleResize() {
+    const currentWidth = window.innerWidth;
+
+    // CRITICAL: Only process if width actually changed
+    // Mobile browsers often fire resize events when scrolling (address bar hides)
+    // but those only change height, not width. We ignore height-only changes.
+    if (currentWidth === lastWindowWidth) {
+        return; // No width change - ignore this resize event
+    }
+
+    // Width changed - update tracking
+    lastWindowWidth = currentWidth;
+
     const sidebar = document.getElementById('adminSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
     const mainContent = document.querySelector('.main-content');
@@ -198,6 +231,11 @@ function handleResize() {
             mainContent.classList.toggle('sidebar-collapsed', sidebarDesktopCollapsed);
         }
     }
+}
+
+// Backward compatibility alias
+function handleResize() {
+    debouncedHandleResize();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
