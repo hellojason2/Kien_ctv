@@ -16,7 +16,7 @@
     <!-- Modular CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=3.3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=3.4">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=3.9">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=4.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/forms.css') }}?v=3.3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tables.css') }}?v=3.3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/hierarchy.css') }}?v=3.3">
@@ -24,15 +24,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/activity-logs.css') }}?v=3.3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/overview.css') }}?v=3.4">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/badges.css') }}?v=3.3">
+    <!-- CTV Sidebar Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ctv/layout.css') }}?v=4.0">
 </head>
 
 <body>
     {% include 'admin/components/login.html' %}
 
-    <!-- Dashboard (No Sidebar - Full Width Layout) -->
-    <div class="dashboard no-sidebar" id="dashboard">
-        <!-- Main Content - Full Width -->
-        <main class="main-content full-width">
+    <!-- Dashboard with CTV Style Sidebar -->
+    <div class="dashboard" id="dashboard">
+        <!-- Mobile Header with Hamburger Menu -->
+        <header class="mobile-header" id="adminMobileHeader">
+            <div class="mobile-header-left">
+                <button class="mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <span class="mobile-header-title">CTV Admin</span>
+            </div>
+            <div class="mobile-header-avatar">A</div>
+        </header>
+
+        {% include 'admin/components/sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="main-content">
             {% include 'admin/pages/overview.html' %}
             {% include 'admin/pages/ctv-management.html' %}
             {% include 'admin/pages/registrations.html' %}
@@ -48,24 +67,24 @@
     {% include 'admin/components/modals.html' %}
 
     <!-- Modular JavaScript Files -->
-    <script src="{{ url_for('static', filename='js/commission-labels.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/api.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/db-validator.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/utils.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/translations.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/navigation.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/auth.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/overview.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/registrations.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/commissions.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/clients.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/settings.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/signup-terms.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}?v=3.8"></script>
-    <script src="{{ url_for('static', filename='js/admin/main.js') }}?v=3.8"></script>
+    <script src="{{ url_for('static', filename='js/commission-labels.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/api.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/db-validator.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/utils.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/translations.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/navigation.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/auth.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/overview.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/ctv-management.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/registrations.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/hierarchy.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/commissions.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/clients.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/settings.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/signup-terms.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/activity-logs.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/excel-export.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/admin/main.js') }}?v=4.0"></script>
 </body>
 
 </html>
