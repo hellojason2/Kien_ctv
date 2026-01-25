@@ -13,7 +13,8 @@
 .recent-commissions-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 8px; /* Space between rows */
+    border-spacing: 0 8px;
+    /* Space between rows */
     margin-top: 10px;
 }
 
@@ -35,12 +36,12 @@
 .recent-commissions-table tbody tr {
     background-color: var(--glass-bg, rgba(255, 255, 255, 0.5));
     transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
 }
 
 .recent-commissions-table tbody tr:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     background-color: var(--glass-bg-hover, rgba(255, 255, 255, 0.8));
 }
 
@@ -95,7 +96,8 @@
 .col-count {
     font-weight: 600;
     color: var(--text-primary);
-    padding-left: 24px !important; /* Visual alignment with header */
+    padding-left: 24px !important;
+    /* Visual alignment with header */
 }
 
 /* Total Commission column */
@@ -125,7 +127,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     padding: 0 24px 16px 24px;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* 
@@ -145,7 +147,7 @@
 }
 
 .stats-table tbody tr:hover {
-    background-color: rgba(0,0,0,0.02);
+    background-color: rgba(0, 0, 0, 0.02);
     border-radius: 8px;
 }
 
@@ -154,7 +156,7 @@
     font-size: 14px;
     color: var(--text-secondary);
     font-weight: 600;
-    border-bottom: 1px solid rgba(0,0,0,0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .stats-table tbody tr:last-child td {
@@ -184,8 +186,208 @@
         overflow-x: auto;
         white-space: nowrap;
     }
-    
+
     .stats-table td {
         padding: 12px 16px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DIRECT DOWNLINE TABLE - Modern Clean Design
+   ═══════════════════════════════════════════════════════════════════════════════
+   Used in the Network page to display direct CTV list with symmetrical layout,
+   proper spacing, and modern aesthetics matching the portal design.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.direct-downline-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 0 16px 0;
+}
+
+.direct-downline-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+    table-layout: fixed;
+}
+
+/* Table Header */
+.direct-downline-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0 20px 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    white-space: nowrap;
+}
+
+/* Column widths for symmetry */
+.direct-downline-table th:nth-child(1) {
+    width: 15%;
+}
+
+/* Mã CTV */
+.direct-downline-table th:nth-child(2) {
+    width: 22%;
+}
+
+/* Tên */
+.direct-downline-table th:nth-child(3) {
+    width: 25%;
+}
+
+/* Email */
+.direct-downline-table th:nth-child(4) {
+    width: 16%;
+}
+
+/* SĐT */
+.direct-downline-table th:nth-child(5) {
+    width: 22%;
+    text-align: center;
+}
+
+/* Cấp Bậc */
+
+/* Table Body Rows */
+.direct-downline-table tbody tr {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.9) 100%);
+    border-radius: 14px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.direct-downline-table tbody tr:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.06),
+        0 2px 8px rgba(59, 130, 246, 0.08);
+}
+
+/* Table Cells */
+.direct-downline-table td {
+    padding: 18px 20px;
+    font-size: 14px;
+    color: var(--text-primary, #1e293b);
+    font-weight: 500;
+    vertical-align: middle;
+    border: none;
+    background: transparent;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* First cell rounded left corners */
+.direct-downline-table td:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--primary-blue, #3b82f6);
+    letter-spacing: 0.3px;
+}
+
+/* Last cell rounded right corners */
+.direct-downline-table td:last-child {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+    text-align: center;
+}
+
+/* Name column styling */
+.direct-downline-table td:nth-child(2) {
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+}
+
+/* Email column styling */
+.direct-downline-table td:nth-child(3) {
+    color: var(--text-secondary, #64748b);
+    font-size: 13px;
+}
+
+/* Phone column styling */
+.direct-downline-table td:nth-child(4) {
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--text-secondary, #64748b);
+    letter-spacing: 0.2px;
+}
+
+/* Rank Badge */
+.direct-downline-table .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px;
+    border-radius: 24px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Empty state */
+.direct-downline-table-wrapper .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted, #94a3b8);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Responsive - Tablet */
+@media (max-width: 900px) {
+    .direct-downline-table {
+        table-layout: auto;
+    }
+
+    .direct-downline-table th,
+    .direct-downline-table td {
+        padding: 14px 16px;
+    }
+
+    .direct-downline-table th:nth-child(1),
+    .direct-downline-table th:nth-child(2),
+    .direct-downline-table th:nth-child(3),
+    .direct-downline-table th:nth-child(4),
+    .direct-downline-table th:nth-child(5) {
+        width: auto;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 640px) {
+    .direct-downline-table-wrapper {
+        margin: 0 -12px;
+        padding: 8px 12px 16px 12px;
+    }
+
+    .direct-downline-table {
+        min-width: 600px;
+    }
+
+    .direct-downline-table th,
+    .direct-downline-table td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .direct-downline-table .rank-badge {
+        padding: 6px 14px;
+        font-size: 11px;
+        min-width: 100px;
     }
 }

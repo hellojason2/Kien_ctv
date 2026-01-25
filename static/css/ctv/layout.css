@@ -332,12 +332,13 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR LOGOUT
+   SIDEBAR LOGOUT - Bottom Position with EXIT Label
    ═══════════════════════════════════════════════════════════════════ */
 
-.sidebar-logout {
-    margin-top: auto;
+.sidebar-logout-bottom {
+    margin-top: 8px;
     margin-bottom: 0;
+    width: 100%;
 }
 
 .sidebar-logout:hover {
@@ -348,6 +349,32 @@
 .sidebar-logout:hover svg {
     stroke: var(--danger);
     color: var(--danger);
+}
+
+/* EXIT label - hidden by default, shown when collapsed */
+.logout-exit-label {
+    display: none;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--danger);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* When collapsed, show EXIT label and hide logout text */
+.sidebar.collapsed .sidebar-logout-bottom {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 8px;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-logout-bottom .logout-exit-label {
+    display: block;
+}
+
+.sidebar.collapsed .sidebar-logout-bottom span[data-i18n="logout"] {
+    display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
