@@ -1514,7 +1514,65 @@
                 checkGoogleStatus();
             }
         });
+
+        // ══════════════════════════════════════════════════════════════════
+        // HIDDEN ADMIN ACCESS - Easter Egg (4 taps to access /admin89)
+        // ══════════════════════════════════════════════════════════════════
+        (function() {
+            let tapCount = 0;
+            let tapTimer = null;
+            const requiredTaps = 4;
+            const tapTimeout = 3000; // 3 seconds to complete all taps
+
+            const hiddenBtn = document.getElementById('hiddenAdminBtn');
+            if (hiddenBtn) {
+                hiddenBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    tapCount++;
+                    
+                    // Reset timer on each tap
+                    if (tapTimer) {
+                        clearTimeout(tapTimer);
+                    }
+                    
+                    if (tapCount >= requiredTaps) {
+                        // Success! Navigate to admin89
+                        tapCount = 0;
+                        window.location.href = '/admin89';
+                    } else {
+                        // Set timer to reset tap count
+                        tapTimer = setTimeout(function() {
+                            tapCount = 0;
+                        }, tapTimeout);
+                    }
+                });
+
+                // Also handle touch events for mobile
+                hiddenBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    hiddenBtn.click();
+                });
+            }
+        })();
     </script>
+
+    <!-- Hidden Admin Access Button - Bottom Right Corner (Easter Egg) -->
+    <div id="hiddenAdminBtn" style="
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 60px;
+        height: 60px;
+        z-index: 9999;
+        cursor: default;
+        background: transparent;
+        border: none;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    "></div>
 
 </body>
 
