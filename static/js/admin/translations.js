@@ -18,20 +18,25 @@ const translations = {
         remember_me: 'Ghi nhớ đăng nhập',
         back_home: '<- Quay về trang chủ',
         login_failed: 'Đăng nhập thất bại',
-        
+
         // Navigation
         home_dashboard: '<- Trang Chủ',
         overview: 'Tổng Quan',
+        administration: 'Quản Trị',
         ctv_management: 'Quản Lý CTV',
+        ctv_list: 'Danh Sách CTV',
         ctv_registrations: 'Đơn Đăng Ký',
         hierarchy: 'Cấp Bậc',
+        financial: 'Tài Chính',
         commissions: 'Hoa Hồng',
         clients: 'Khách Hàng',
+        configuration: 'Cấu Hình',
         settings: 'Cài Đặt',
         signup_terms: 'Điều Khoản',
         activity_logs: 'Nhật Ký',
         logout: 'Đăng Xuất',
-        
+        toggle_sidebar: 'Thu/Mở Thanh Bên',
+
         // Activity Logs
         logins_today: 'Đăng Nhập Hôm Nay',
         failed_logins: 'Đăng Nhập Thất Bại',
@@ -65,11 +70,11 @@ const translations = {
         suspicious_ips_detected: 'Phát hiện IP đáng nghi',
         multi_account_ip: 'Nhiều tài khoản',
         accounts: 'tài khoản',
-        
+
         // Client Management
         client_management: 'Quản Lý Khách Hàng',
         client_search_placeholder: 'Tìm theo tên hoặc số điện thoại...',
-        
+
         // Dashboard
         dashboard_overview: 'Tổng Quan Dashboard',
         total_ctv: 'Tổng CTV',
@@ -87,7 +92,7 @@ const translations = {
         filter_by_date: 'Lọc Theo Ngày',
         select_month: 'Chọn Tháng',
         select_day: 'Chọn Ngày (Tùy Chọn)',
-        
+
         // CTV Management
         add_ctv: '+ Thêm CTV',
         search_placeholder: 'Tìm theo tên, email, điện thoại...',
@@ -106,7 +111,7 @@ const translations = {
         clients: 'khách hàng',
         service: 'dịch vụ',
         services: 'dịch vụ',
-        
+
         // CTV Registrations
         pending: 'Chờ Duyệt',
         approved: 'Đã Duyệt',
@@ -134,13 +139,13 @@ const translations = {
         reviewed_by: 'Người Duyệt',
         notes: 'Ghi Chú',
         close: 'Đóng',
-        
+
         // Commission Settings
         commission_settings: 'Cài Đặt Hoa Hồng',
         commission_rates: 'Tỷ Lệ Hoa Hồng Theo Cấp',
         save_changes: 'Lưu Thay Đổi',
         settings_saved: 'Đã lưu cài đặt!',
-        
+
         // Signup Terms
         signup_terms_title: 'Điều Khoản Đăng Ký',
         version_history: 'Lịch Sử Phiên Bản',
@@ -151,7 +156,7 @@ const translations = {
         preview_label: 'Xem Trước',
         version_history_title: 'Lịch Sử Phiên Bản Điều Khoản',
         close: 'Đóng',
-        
+
         // Hierarchy
         hierarchy_tree: 'Cây Cấp Bậc',
         select_root: 'Chọn CTV Gốc',
@@ -164,7 +169,7 @@ const translations = {
         direct_recruits: 'Trực Tiếp',
         expand_all: 'Mở Rộng',
         collapse_all: 'Thu Gọn',
-        
+
         // Commission Reports
         commission_reports: 'Báo Cáo Hoa Hồng',
         filter_ctv: 'Lọc theo CTV',
@@ -193,13 +198,13 @@ const translations = {
         apply: 'Áp Dụng',
         please_select_both_dates: 'Vui lòng chọn cả ngày bắt đầu và ngày kết thúc',
         date_from_must_be_before_date_to: 'Ngày bắt đầu phải trước ngày kết thúc',
-        
+
         // Status
         da_coc: 'Đã cọc',
         chua_coc: 'Chưa cọc',
         cskh_potential: 'CSKH Tiềm Năng (360+ ngày)',
         all_statuses: 'Tất cả trạng thái',
-        
+
         // Modal
         add_new_ctv: 'Thêm CTV Mới',
         edit_ctv: 'Chỉnh Sửa CTV',
@@ -218,16 +223,16 @@ const translations = {
         password_changed: 'Mật khẩu đã được thay đổi thành công',
         ctv_updated: 'CTV đã được cập nhật thành công',
         enter_password: 'Vui lòng nhập mật khẩu',
-        
+
         // Language
         language: 'Ngôn Ngữ',
         choose_language: 'Chọn Ngôn Ngữ',
-        
+
         // Loading
         loading: 'Đang tải...',
         loading_hierarchy: 'Đang tải cây cấp bậc...',
         loading_please_wait: 'Vui lòng đợi, có thể mất một lúc cho cây lớn',
-        
+
         // Service Card Labels
         tong_tien: 'Tổng tiền:',
         tien_coc: 'Tiền cọc:',
@@ -235,7 +240,7 @@ const translations = {
         ngay_hen: 'Ngày hẹn:',
         ngay_nhap_don: 'Ngày nhập đơn:',
         ngay_hen_lam: 'Ngày hẹn làm:',
-        
+
         // Client Card Labels
         co_so: 'Cơ sở',
         first_visit: 'Lần đầu',
@@ -259,19 +264,24 @@ const translations = {
         remember_me: 'Remember Me',
         back_home: '<- Back to Home',
         login_failed: 'Login failed',
-        
+
         // Navigation
         home_dashboard: '<- Home Dashboard',
         overview: 'Overview',
+        administration: 'Administration',
         ctv_management: 'CTV Management',
+        ctv_list: 'CTV List',
         ctv_registrations: 'Registrations',
         hierarchy: 'Hierarchy',
+        financial: 'Financial',
         commissions: 'Commissions',
         clients: 'Clients',
+        configuration: 'Configuration',
         settings: 'Settings',
         activity_logs: 'Activity Logs',
         logout: 'Logout',
-        
+        toggle_sidebar: 'Toggle Sidebar',
+
         // Activity Logs
         logins_today: 'Logins Today',
         failed_logins: 'Failed Logins',
@@ -305,11 +315,11 @@ const translations = {
         suspicious_ips_detected: 'Suspicious IPs Detected',
         multi_account_ip: 'Multi-Account IP',
         accounts: 'accounts',
-        
+
         // Client Management
         client_management: 'Client Management',
         client_search_placeholder: 'Search by name or phone...',
-        
+
         // Dashboard
         dashboard_overview: 'Dashboard Overview',
         total_ctv: 'Total CTV',
@@ -326,7 +336,7 @@ const translations = {
         filter_by_date: 'Filter By Date',
         select_month: 'Select Month',
         select_day: 'Select Day (Optional)',
-        
+
         // CTV Management
         add_ctv: '+ Add CTV',
         search_placeholder: 'Search by name, email, phone...',
@@ -341,7 +351,7 @@ const translations = {
         actions: 'Actions',
         active: 'Active',
         inactive: 'Inactive',
-        
+
         // CTV Registrations
         pending: 'Pending',
         approved: 'Approved',
@@ -369,13 +379,13 @@ const translations = {
         reviewed_by: 'Reviewed By',
         notes: 'Notes',
         close: 'Close',
-        
+
         // Commission Settings
         commission_settings: 'Commission Settings',
         commission_rates: 'Commission Rates by Level',
         save_changes: 'Save Changes',
         settings_saved: 'Settings saved!',
-        
+
         // Signup Terms
         signup_terms_title: 'Signup Agreement Terms',
         version_history: 'Version History',
@@ -386,7 +396,7 @@ const translations = {
         preview_label: 'Live Preview',
         version_history_title: 'Terms Version History',
         close: 'Close',
-        
+
         // Hierarchy
         hierarchy_tree: 'Hierarchy Tree',
         select_root: 'Select Root CTV',
@@ -399,7 +409,7 @@ const translations = {
         direct_recruits: 'Direct Recruits',
         expand_all: 'Expand All',
         collapse_all: 'Collapse All',
-        
+
         // Commission Reports
         commission_reports: 'Commission Reports',
         filter_ctv: 'Filter by CTV',
@@ -428,7 +438,7 @@ const translations = {
         apply: 'Apply',
         please_select_both_dates: 'Please select both start and end dates',
         date_from_must_be_before_date_to: 'Start date must be before end date',
-        
+
         // Modal
         add_new_ctv: 'Add New CTV',
         edit_ctv: 'Edit CTV',
@@ -447,22 +457,22 @@ const translations = {
         password_changed: 'Password changed successfully',
         ctv_updated: 'CTV updated successfully',
         enter_password: 'Please enter a password',
-        
+
         // Language
         language: 'Language',
         choose_language: 'Choose Language',
-        
+
         // Status
         da_coc: 'Deposited',
         chua_coc: 'Not Deposited',
         cskh_potential: 'CSKH Potential (360+ days)',
         all_statuses: 'All Statuses',
-        
+
         // Loading
         loading: 'Loading...',
         loading_hierarchy: 'Loading hierarchy tree...',
         loading_please_wait: 'Please wait, this may take a moment for large trees',
-        
+
         // Service Card Labels
         tong_tien: 'Total:',
         tien_coc: 'Deposit:',
@@ -470,7 +480,7 @@ const translations = {
         ngay_hen: 'Appointment:',
         ngay_nhap_don: 'Order Date:',
         ngay_hen_lam: 'Appointment Date:',
-        
+
         // Client Card Labels
         co_so: 'Facility',
         first_visit: 'First Visit',
@@ -520,23 +530,23 @@ function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('admin_language', lang);
     applyTranslations();
-    
+
     // Update popup option states
     document.querySelectorAll('.lang-option').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
-    
+
     // Update current language label
     const langLabel = document.getElementById('currentLangLabel');
     if (langLabel) {
         langLabel.textContent = lang.toUpperCase();
     }
-    
+
     // Re-populate dropdowns with translated options
     if (typeof allCTV !== 'undefined' && allCTV.length > 0) {
         populateCTVSelects();
     }
-    
+
     // Re-render client cards if they're currently displayed
     const clientsPage = document.getElementById('clientsPage');
     if (clientsPage && clientsPage.style.display !== 'none') {
@@ -564,7 +574,7 @@ function applyTranslations() {
             el.textContent = translations[currentLang][key];
         }
     });
-    
+
     // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
@@ -572,15 +582,21 @@ function applyTranslations() {
             el.placeholder = translations[currentLang][key];
         }
     });
-    
-    // Update tooltips
+
+    // Update tooltips (data-tooltip attribute)
     document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
         const key = el.getAttribute('data-i18n-tooltip');
         if (translations[currentLang][key]) {
             el.setAttribute('data-tooltip', translations[currentLang][key]);
+
+            // Also update the child .sidebar-tooltip element if it exists
+            const tooltipEl = el.querySelector('.sidebar-tooltip');
+            if (tooltipEl) {
+                tooltipEl.textContent = translations[currentLang][key];
+            }
         }
     });
-    
+
     // Update page title
     document.title = currentLang === 'vi' ? 'Admin Dashboard - Hệ Thống CTV' : 'Admin Dashboard - CTV System';
 }
