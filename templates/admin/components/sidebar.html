@@ -117,41 +117,42 @@
             <div class="sidebar-tooltip" data-i18n="settings">Cài Đặt</div>
         </div>
 
-        <!-- Language Switcher -->
-        <div class="sidebar-lang" id="adminLangSwitcher">
-            <div class="sidebar-icon" data-i18n-title="language">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path
-                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                    </path>
+
+
+    </div>
+
+    <!-- Language Switcher - Moved specific here to avoid scroll clipping and correct positioning -->
+    <div class="sidebar-lang" id="adminLangSwitcher">
+        <div class="sidebar-icon" data-i18n-title="language">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+            </svg>
+            <span data-i18n="language">Ngôn Ngữ</span>
+            <span class="lang-current" id="adminCurrentLangLabel">VI</span>
+            <div class="sidebar-tooltip" data-i18n="language">Ngôn Ngữ</div>
+        </div>
+        <div class="lang-popup" id="adminLangPopup">
+            <div class="lang-popup-title" data-i18n="choose_language">Chọn Ngôn Ngữ</div>
+            <div class="lang-option" data-lang="vi" onclick="selectAdminLanguage('vi')">
+                <span class="lang-flag">VN</span>
+                <span class="lang-name" data-i18n="vietnamese">Tiếng Việt</span>
+                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                <span data-i18n="language">Ngôn Ngữ</span>
-                <span class="lang-current" id="adminCurrentLangLabel">VI</span>
-                <div class="sidebar-tooltip" data-i18n="language">Ngôn Ngữ</div>
             </div>
-            <div class="lang-popup" id="adminLangPopup">
-                <div class="lang-popup-title" data-i18n="choose_language">Chọn Ngôn Ngữ</div>
-                <div class="lang-option" data-lang="vi" onclick="selectAdminLanguage('vi')">
-                    <span class="lang-flag">VN</span>
-                    <span class="lang-name" data-i18n="vietnamese">Tiếng Việt</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="3">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <div class="lang-option" data-lang="en" onclick="selectAdminLanguage('en')">
-                    <span class="lang-flag">US</span>
-                    <span class="lang-name" data-i18n="english">English</span>
-                    <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="3">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
+            <div class="lang-option" data-lang="en" onclick="selectAdminLanguage('en')">
+                <span class="lang-flag">US</span>
+                <span class="lang-name" data-i18n="english">English</span>
+                <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
             </div>
         </div>
-
     </div>
 
     <!-- Logout - At Bottom -->

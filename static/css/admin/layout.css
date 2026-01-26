@@ -704,36 +704,67 @@
 
 /* Language Popup */
 .lang-popup {
+    /* DEFAULT STATE: Expanded Sidebar - Popup appears above the button inside sidebar */
     position: absolute;
-    left: calc(100% + 15px);
-    bottom: 0;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    /* Above the button */
     top: auto;
     background: var(--bg-solid);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     padding: 8px;
-    min-width: 180px;
+    min-width: 100%;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-10px);
+    transform: translateY(10px);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 9999;
+    margin-bottom: 12px;
 }
 
 .lang-popup::before {
+    /* Arrow pointing down */
     content: '';
     position: absolute;
+    left: 20px;
+    bottom: -6px;
+    top: auto;
+    border: 6px solid transparent;
+    border-top-color: var(--bg-solid);
+    border-bottom: none;
+}
+
+/* Collapsed Sidebar Override - Popup appears to the right */
+.sidebar.collapsed .lang-popup {
+    left: calc(100% + 15px);
+    right: auto;
+    bottom: 0;
+    min-width: 180px;
+    margin-bottom: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateX(-10px);
+}
+
+.sidebar.collapsed .lang-popup::before {
+    /* Arrow pointing left */
     left: -6px;
     bottom: 16px;
     top: auto;
     border: 6px solid transparent;
     border-right-color: var(--bg-solid);
+    border-top-color: transparent;
 }
 
 .sidebar-lang.active .lang-popup {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
+}
+
+.sidebar.collapsed .sidebar-lang.active .lang-popup {
     transform: translateX(0);
 }
 

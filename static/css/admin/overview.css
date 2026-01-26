@@ -83,8 +83,13 @@
 }
 
 /* Header alignment (Legacy) */
-.header-revenue { text-align: right; }
-.header-commission { text-align: right; }
+.header-revenue {
+    text-align: right;
+}
+
+.header-commission {
+    text-align: right;
+}
 
 /* Loading state (Legacy) */
 .top-earners .loading {
@@ -120,7 +125,7 @@
     background-color: transparent;
     border: none;
     box-shadow: none;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
     animation: envelope-float 3s ease-in-out infinite;
     z-index: 10;
     display: block;
@@ -129,10 +134,13 @@
 
 /* Float animation for the envelope */
 @keyframes envelope-float {
-    0%, 100% { 
+
+    0%,
+    100% {
         transform: translateY(0) rotate(5deg);
     }
-    50% { 
+
+    50% {
         transform: translateY(-6px) rotate(-5deg);
     }
 }
@@ -146,11 +154,14 @@
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
-    .earner-header, .earner-row {
+
+    .earner-header,
+    .earner-row {
         grid-template-columns: 1.5fr 1fr;
     }
-    
-    .header-commission, .commission {
+
+    .header-commission,
+    .commission {
         display: none;
     }
 }
@@ -184,7 +195,8 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background-color: #9ca3af; /* Default gray */
+    background-color: #9ca3af;
+    /* Default gray */
     transition: background-color 0.3s ease;
 }
 
@@ -203,9 +215,12 @@
 
 /* Pulse animation for green dot */
 @keyframes pulse-green {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
     }
+
     50% {
         box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);
     }
@@ -240,9 +255,12 @@
 }
 
 @keyframes badge-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }
@@ -253,7 +271,7 @@
     .sync-status-text {
         display: none;
     }
-    
+
     .sync-status-container {
         padding: 6px 10px;
     }
@@ -336,9 +354,12 @@
 }
 
 @keyframes missing-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
     }
+
     50% {
         box-shadow: 0 2px 12px rgba(239, 68, 68, 0.35);
     }
@@ -361,13 +382,27 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .row-count-indicators {
-        display: none;
+        /* Allow display on mobile */
+        display: inline-flex;
+    }
+
+    .row-count-box {
+        padding: 4px 8px;
+    }
+
+    .row-count-label {
+        font-size: 10px;
+    }
+
+    .row-count-value {
+        font-size: 11px;
     }
 }
 
 @media (max-width: 600px) {
     .row-count-indicators {
-        display: none;
+        /* Allow display on mobile */
+        display: inline-flex;
     }
 }
 
@@ -391,8 +426,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .progress-modal {
@@ -410,6 +450,7 @@
         opacity: 0;
         transform: translateY(30px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -434,8 +475,13 @@
 }
 
 @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .progress-modal-icon svg {
@@ -515,8 +561,15 @@
 }
 
 @keyframes pulse-icon {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
 }
 
 .step-icon svg {
@@ -599,8 +652,13 @@
 }
 
 @keyframes progress-pulse {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 .progress-step.complete .step-progress-fill {
