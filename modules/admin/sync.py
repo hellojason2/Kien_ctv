@@ -204,118 +204,89 @@ def reset_step_commissions():
 def manual_sync():
     """
     Manually trigger a sync to pull new records from Google Sheets.
-    Returns detailed logs for progress display.
+    Streams detailed logs for progress display using Server-Sent Events (SSE).
     """
-    try:
-        from ..mlm_core import calculate_new_commissions_fast
-        
-        logs = []
-        def add_log(message, level='info'):
-            logs.append({'message': message, 'level': level, 'timestamp': datetime.now().isoformat()})
-            logger.info(f"[SYNC {level.upper()}] {message}")
-        
-        from datetime import datetime
-        
-        add_log("Manual sync initiated")
-        add_log("Connecting to Google Sheets...")
-        
-        syncer = GoogleSheetSync()
-        client = syncer.get_google_client()
-        spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
-        
-        add_log("Connected to Google Sheets ✓")
-        add_log("Connecting to database...")
-        
-        conn = syncer.get_db_connection()
-        add_log("Connected to database ✓")
-        
-        stats = {
-            'tham_my': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
-            'nha_khoa': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
-            'gioi_thieu': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0}
-        }
-        
-        # Get DB counts before sync
-        cur = conn.cursor()
-        before_counts = {}
-        for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
-            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (source,))
-            before_counts[source] = cur.fetchone()[0]
-        cur.close()
-        
-        add_log(f"Database before: TM={before_counts['tham_my']:,}, NK={before_counts['nha_khoa']:,}, GT={before_counts['gioi_thieu']:,}")
-        
-        # --- Sync Tham My ---
-        add_log("")
-        add_log("═══ Processing Thẩm Mỹ (Beauty) ═══")
-        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my')
-        stats['tham_my']['inserted'] = ins
-        stats['tham_my']['updated'] = upd
-        add_log(f"Thẩm Mỹ: {ins} new, {upd} updated")
-        
-        # --- Sync Nha Khoa ---
-        add_log("")
-        add_log("═══ Processing Nha Khoa (Dental) ═══")
-        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa')
-        stats['nha_khoa']['inserted'] = ins
-        stats['nha_khoa']['updated'] = upd
-        add_log(f"Nha Khoa: {ins} new, {upd} updated")
-        
-        # --- Sync Gioi Thieu ---
-        add_log("")
-        add_log("═══ Processing Giới Thiệu (Referral) ═══")
-        ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu')
-        stats['gioi_thieu']['inserted'] = ins
-        stats['gioi_thieu']['updated'] = upd
-        add_log(f"Giới Thiệu: {ins} new, {upd} updated")
-        
-        # Get DB counts after sync
-        cur = conn.cursor()
-        after_counts = {}
-        for source in ['tham_my', 'nha_khoa', 'gioi_thieu']:
-            cur.execute("SELECT COUNT(*) FROM khach_hang WHERE source = %s", (source,))
-            after_counts[source] = cur.fetchone()[0]
-        cur.close()
-        
-        add_log("")
-        add_log(f"Database after: TM={after_counts['tham_my']:,}, NK={after_counts['nha_khoa']:,}, GT={after_counts['gioi_thieu']:,}")
-        
-        # Calculate total changes
-        total_new = sum(s['inserted'] for s in stats.values())
-        total_updated = sum(s['updated'] for s in stats.values())
-        
-        # Calculate commissions if there were any changes
-        commission_stats = None
-        if total_new > 0:
-            add_log("")
-            add_log("═══ Calculating Commissions ═══")
-            commission_stats = calculate_new_commissions_fast(connection=conn)
-            add_log(f"Commissions calculated: {commission_stats}")
-        
-        # Update heartbeat
-        syncer.update_heartbeat(conn, total_new)
-        
-        conn.close()
-        
-        add_log("")
-        add_log(f"✓ Sync complete! {total_new} new records, {total_updated} updated")
-        
-        return jsonify({
-            'status': 'success',
-            'stats': stats,
-            'before_counts': before_counts,
-            'after_counts': after_counts,
-            'total_new': total_new,
-            'total_updated': total_updated,
-            'commission_stats': commission_stats,
-            'logs': logs
-        })
-        
-    except Exception as e:
-        logger.error(f"MANUAL SYNC ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'status': 'error', 'message': str(e), 'logs': logs if 'logs' in dir() else []}), 500
+    from flask import Response, stream_with_context
+    import json
+    import time
+    from ..mlm_core import calculate_new_commissions_fast
+    
+    def generate_sync_process():
+        # Helper to send log events
+        def send_log(message, level='info', step='general'):
+            return f"data: {json.dumps({'message': message, 'level': level, 'step': step})}\n\n"
+            
+        try:
+            yield send_log("Manual sync initiated...", 'info', 'init')
+            
+            yield send_log("Connecting to Google Sheets...", 'info', 'connect')
+            syncer = GoogleSheetSync()
+            # Force re-auth to ensure fresh token
+            client = syncer.get_google_client()
+            spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+            yield send_log("Connected to Google Sheets ✓", 'success', 'connect')
+            
+            yield send_log("Connecting to database...", 'info', 'connect')
+            conn = syncer.get_db_connection()
+            yield send_log("Connected to database ✓", 'success', 'connect')
+            
+            stats = {
+                'tham_my': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
+                'nha_khoa': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0},
+                'gioi_thieu': {'inserted': 0, 'updated': 0, 'skipped': 0, 'errors': 0}
+            }
+            
+            # --- Sync Tham My ---
+            yield send_log("Processing Thẩm Mỹ (Beauty)...", 'info', 'sync_tm')
+            # Custom logging wrapper for sync
+            # Note: We can't easily stream the internal sync logs without modifying `google_sync.py` 
+            # to accept a callback, but for now we'll report the result.
+            ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my')
+            stats['tham_my']['inserted'] = ins
+            stats['tham_my']['updated'] = upd
+            yield send_log(f"Thẩm Mỹ: {ins} new, {upd} updated", 'success', 'sync_tm')
+            
+            # --- Sync Nha Khoa ---
+            yield send_log("Processing Nha Khoa (Dental)...", 'info', 'sync_nk')
+            ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa')
+            stats['nha_khoa']['inserted'] = ins
+            stats['nha_khoa']['updated'] = upd
+            yield send_log(f"Nha Khoa: {ins} new, {upd} updated", 'success', 'sync_nk')
+            
+            # --- Sync Gioi Thieu ---
+            yield send_log("Processing Giới Thiệu (Referral)...", 'info', 'sync_gt')
+            ins, upd = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu')
+            stats['gioi_thieu']['inserted'] = ins
+            stats['gioi_thieu']['updated'] = upd
+            yield send_log(f"Giới Thiệu: {ins} new, {upd} updated", 'success', 'sync_gt')
+            
+            # Calculate total changes
+            total_new = sum(s['inserted'] for s in stats.values())
+            total_updated = sum(s['updated'] for s in stats.values())
+            
+            # Commission Calculation
+            commission_stats = None
+            if total_new > 0:
+                yield send_log("Calculating Commissions...", 'warning', 'commissions')
+                commission_stats = calculate_new_commissions_fast(connection=conn)
+                yield send_log(f"Commissions: {commission_stats}", 'success', 'commissions')
+            else:
+                yield send_log("No new records, skipping commission calc.", 'info', 'commissions')
+            
+            # Update heartbeat
+            syncer.update_heartbeat(conn, total_new)
+            conn.close()
+            
+            yield send_log("Sync complete!", 'success', 'complete')
+            
+            # Final event with full stats
+            yield f"data: {json.dumps({'done': True, 'stats': stats, 'total_new': total_new, 'total_updated': total_updated})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"MANUAL SYNC ERROR: {e}")
+            yield send_log(f"Error: {str(e)}", 'error', 'exception')
+            
+    return Response(stream_with_context(generate_sync_process()), mimetype='text/event-stream')
 
 
 @admin_bp.route('/api/admin/sync/tab/<tab_type>', methods=['POST'])

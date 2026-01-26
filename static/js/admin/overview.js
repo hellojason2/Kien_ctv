@@ -742,6 +742,7 @@ async function manualSync() {
         logEntries.innerHTML = '';
         statusDisplay.style.display = 'block';
         summary.style.display = 'none';
+        if (currentStep) currentStep.textContent = 'Connecting...';
     }
 
     // Disable button
@@ -765,156 +766,109 @@ async function manualSync() {
         if (currentStep) currentStep.textContent = text;
     }
 
-    const stats = {
-        tham_my: { inserted: 0, skipped: 0 },
-        nha_khoa: { inserted: 0, skipped: 0 },
-        gioi_thieu: { inserted: 0, skipped: 0 }
-    };
-    const beforeCounts = {};
-    const afterCounts = {};
-
     try {
-        // Step 1: Get current database counts
-        updateStep(t('step_read_db') + '...');
-        addSyncLog('📊 ' + t('log_read_counts') + '...');
+        const authToken = localStorage.getItem('adminToken');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(authToken && authToken !== 'cookie-auth' && { 'Authorization': `Bearer ${authToken}` })
+        };
 
-        const previewResult = await api('/api/admin/reset-data/preview');
-        if (previewResult.status === 'success') {
-            beforeCounts.tham_my = previewResult.counts?.tham_my || 0;
-            beforeCounts.nha_khoa = previewResult.counts?.nha_khoa || 0;
-            beforeCounts.gioi_thieu = previewResult.counts?.gioi_thieu || 0;
-            addSyncLog(`✓ Database: TM=${beforeCounts.tham_my.toLocaleString()}, NK=${beforeCounts.nha_khoa.toLocaleString()}, GT=${beforeCounts.gioi_thieu.toLocaleString()}`, 'success');
+        const response = await fetch('/api/admin/sync/manual', {
+            method: 'POST',
+            headers: headers,
+            credentials: 'include'
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n\n');
+
+            lines.forEach(line => {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const jsonStr = line.substring(6);
+                        if (!jsonStr.trim()) return;
+
+                        const data = JSON.parse(jsonStr);
+
+                        // Log message
+                        if (data.message) {
+                            addSyncLog(data.message, data.level || 'info');
+                            if (data.level !== 'error') {
+                                updateStep(data.message.length > 50 ? 'Processing...' : data.message);
+                            }
+                        }
+
+                        // Completion
+                        if (data.done) {
+                            // Show summary
+                            statusDisplay.style.display = 'none';
+                            summary.style.display = 'block';
+
+                            const stats = data.stats;
+                            const totalNew = data.total_new;
+                            const totalUpdated = data.total_updated;
+
+                            // Safe fallbacks for stats
+                            const tm = stats.tham_my || { inserted: 0, updated: 0 };
+                            const nk = stats.nha_khoa || { inserted: 0, updated: 0 };
+                            const gt = stats.gioi_thieu || { inserted: 0, updated: 0 };
+
+                            const summaryHtml = `
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Thẩm Mỹ</div>
+                                        <div style="font-weight: 600; color: #166534;">+${tm.inserted}</div>
+                                        <div style="font-size: 11px; color: #3b82f6;">↻ ${tm.updated}</div>
+                                    </div>
+                                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Nha Khoa</div>
+                                        <div style="font-weight: 600; color: #166534;">+${nk.inserted}</div>
+                                        <div style="font-size: 11px; color: #3b82f6;">↻ ${nk.updated}</div>
+                                    </div>
+                                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Giới Thiệu</div>
+                                        <div style="font-weight: 600; color: #166534;">+${gt.inserted}</div>
+                                        <div style="font-size: 11px; color: #3b82f6;">↻ ${gt.updated}</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; color: #374151; font-weight: 500;">
+                                    Total: ${totalNew} new, ${totalUpdated} updated
+                                </div>
+                            `;
+
+                            document.getElementById('syncSummaryStats').innerHTML = summaryHtml;
+                            refreshRowCounts();
+
+                            // Refresh overall stats if function exists
+                            if (typeof loadStats === 'function') {
+                                loadStats();
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing SSE data', e, line);
+                    }
+                }
+            });
         }
-
-        // Step 2: Sync Tham My
-        updateStep(t('step_sync_tm') + '...');
-        addSyncLog('');
-        addSyncLog('═══ ' + t('step_sync_tm') + ' ═══');
-        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
-        addSyncLog('📖 ' + t('log_read_rows') + '...');
-        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
-
-        const tmResult = await api('/api/admin/sync/tab/tham_my', { method: 'POST' });
-        if (tmResult.status === 'success') {
-            stats.tham_my = tmResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ ${t('tm_success').replace('{inserted}', stats.tham_my.inserted).replace('{skipped}', stats.tham_my.skipped)}`, 'success');
-        } else {
-            addSyncLog(`✗ ${t('tm_fail').replace('{error}', tmResult.message)}`, 'error');
-        }
-
-        // Step 3: Sync Nha Khoa
-        updateStep(t('log_sync_nk') + '...');
-        addSyncLog('');
-        addSyncLog('═══ ' + t('log_sync_nk') + ' ═══');
-        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
-        addSyncLog('📖 ' + t('log_read_rows') + '...');
-        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
-
-        const nkResult = await api('/api/admin/sync/tab/nha_khoa', { method: 'POST' });
-        if (nkResult.status === 'success') {
-            stats.nha_khoa = nkResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ ${t('nk_success').replace('{inserted}', stats.nha_khoa.inserted).replace('{skipped}', stats.nha_khoa.skipped)}`, 'success');
-        } else {
-            addSyncLog(`✗ ${t('nk_fail').replace('{error}', nkResult.message)}`, 'error');
-        }
-
-        // Step 4: Sync Gioi Thieu
-        updateStep(t('log_sync_gt') + '...');
-        addSyncLog('');
-        addSyncLog('═══ ' + t('log_sync_gt') + ' ═══');
-        addSyncLog('📥 ' + t('log_connect_sheet') + '...');
-        addSyncLog('📖 ' + t('log_read_rows') + '...');
-        addSyncLog('🔍 ' + t('log_check_dupes') + '...');
-
-        const gtResult = await api('/api/admin/sync/tab/gioi_thieu', { method: 'POST' });
-        if (gtResult.status === 'success') {
-            stats.gioi_thieu = gtResult.stats || { inserted: 0, skipped: 0 };
-            addSyncLog(`✓ ${t('gt_success').replace('{inserted}', stats.gioi_thieu.inserted).replace('{skipped}', stats.gioi_thieu.skipped)}`, 'success');
-        } else {
-            addSyncLog(`✗ ${t('gt_fail').replace('{error}', gtResult.message)}`, 'error');
-        }
-
-        // Step 5: Calculate commissions if needed
-        const totalNew = stats.tham_my.inserted + stats.nha_khoa.inserted + stats.gioi_thieu.inserted;
-
-        if (totalNew > 0) {
-            updateStep(t('step_calc_comm') + '...');
-            addSyncLog('');
-            addSyncLog('═══ ' + t('step_calc_comm') + ' ═══');
-            addSyncLog('💰 ' + t('log_recalc_comm'));
-
-            const commResult = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
-            if (commResult.status === 'success') {
-                addSyncLog(`✓ ${t('comm_updated')}`, 'success');
-            }
-        } else {
-            updateStep(t('step_no_records') + '...');
-            addSyncLog('');
-            addSyncLog('ℹ️ ' + t('log_no_records'));
-        }
-
-        // Get final counts
-        const finalPreview = await api('/api/admin/reset-data/preview');
-        if (finalPreview.status === 'success') {
-            afterCounts.tham_my = finalPreview.counts?.tham_my || 0;
-            afterCounts.nha_khoa = finalPreview.counts?.nha_khoa || 0;
-            afterCounts.gioi_thieu = finalPreview.counts?.gioi_thieu || 0;
-        }
-
-        addSyncLog('');
-        addSyncLog(`✅ SYNC COMPLETE! ${totalNew} new records added.`, 'success');
-
-        // Hide spinner, show summary
-        statusDisplay.style.display = 'none';
-        summary.style.display = 'block';
-
-        // Build summary stats
-        const summaryStats = document.getElementById('syncSummaryStats');
-        if (summaryStats) {
-            summaryStats.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
-                    <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Thẩm Mỹ</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.tham_my.inserted}</div>
-                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.tham_my || 0).toLocaleString()} → ${(afterCounts.tham_my || 0).toLocaleString()}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Nha Khoa</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.nha_khoa.inserted}</div>
-                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.nha_khoa || 0).toLocaleString()} → ${(afterCounts.nha_khoa || 0).toLocaleString()}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Giới Thiệu</div>
-                        <div style="font-size: 18px; font-weight: 700; color: #166534;">+${stats.gioi_thieu.inserted}</div>
-                        <div style="font-size: 11px; color: #6b7280;">${(beforeCounts.gioi_thieu || 0).toLocaleString()} → ${(afterCounts.gioi_thieu || 0).toLocaleString()}</div>
-                    </div>
-                </div>
-                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbf7d0; text-align: center;">
-                    <strong>Total: ${totalNew} new records</strong>
-                </div>
-            `;
-        }
-
-        // Refresh the row counts display
-        loadRowCounts();
-
-        // Refresh stats
-        loadOverviewStats();
 
     } catch (error) {
+        addSyncLog(`Connection failed: ${error.message}`, 'error');
         console.error('Manual sync error:', error);
-        addSyncLog('');
-        addSyncLog('✗ ERROR: ' + error.message, 'error');
         if (statusDisplay) {
             statusDisplay.innerHTML = `
                 <div style="color: #b91c1c; font-size: 48px; margin-bottom: 12px;">✗</div>
                 <div style="color: #b91c1c; font-weight: 600;">Sync Failed</div>
                 <div style="color: #6b7280; margin-top: 8px;">${error.message}</div>
-                <button onclick="closeSyncModal()" style="margin-top: 16px; background: #fee2e2; color: #b91c1c; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer;">Close</button>
             `;
         }
     } finally {
-        // Restore button state
         syncBtn.disabled = false;
         syncBtn.innerHTML = originalText;
         syncBtn.style.opacity = '1';
@@ -954,14 +908,14 @@ function addLogEntry(message, type = 'info') {
     const logEntries = document.getElementById('logEntries');
     if (logEntries) {
         const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
-        entry.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-message">${message}</span>`;
+        entry.className = `log - entry ${type} `;
+        entry.innerHTML = `< span class="log-time" > [${timeStr}]</span > <span class="log-message">${message}</span>`;
         logEntries.appendChild(entry);
         logEntries.scrollTop = logEntries.scrollHeight;
     }
 
     // Also log to console
-    console.log(`[HardReset ${type.toUpperCase()}] ${message}`);
+    console.log(`[HardReset ${type.toUpperCase()}] ${message} `);
 }
 
 /**
@@ -996,15 +950,15 @@ function showHardResetModal() {
 
         // Reset all steps to initial state
         resetProgress.steps.forEach(step => {
-            const stepEl = document.getElementById(`step-${step}`);
+            const stepEl = document.getElementById(`step - ${step} `);
             if (stepEl) {
                 stepEl.classList.remove('active', 'complete', 'error');
             }
-            const progressBar = document.getElementById(`step-${step}-progress`);
+            const progressBar = document.getElementById(`step - ${step} -progress`);
             if (progressBar) {
                 progressBar.style.width = '0%';
             }
-            const status = document.getElementById(`step-${step}-status`);
+            const status = document.getElementById(`step - ${step} -status`);
             if (status) {
                 status.textContent = 'Waiting...';
             }
@@ -1041,9 +995,9 @@ function showHardResetModal() {
         if (icon) {
             icon.style.animation = 'spin-slow 3s linear infinite';
             icon.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
-            icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>`;
+            icon.innerHTML = `< svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" >
+        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg > `;
             icon.querySelector('svg').style.stroke = '#b91c1c';
         }
         const header = document.querySelector('.progress-modal-header h3');
@@ -1075,10 +1029,10 @@ function closeHardResetModal() {
  * Update a step's progress
  */
 function updateStepProgress(stepId, status, progress, detail) {
-    const stepEl = document.getElementById(`step-${stepId}`);
-    const progressBar = document.getElementById(`step-${stepId}-progress`);
-    const statusEl = document.getElementById(`step-${stepId}-status`);
-    const detailEl = document.getElementById(`step-${stepId}-detail`);
+    const stepEl = document.getElementById(`step - ${stepId} `);
+    const progressBar = document.getElementById(`step - ${stepId} -progress`);
+    const statusEl = document.getElementById(`step - ${stepId} -status`);
+    const detailEl = document.getElementById(`step - ${stepId} -detail`);
 
     if (stepEl) {
         stepEl.classList.remove('active', 'complete', 'error', 'pending');
@@ -1090,7 +1044,7 @@ function updateStepProgress(stepId, status, progress, detail) {
 
     if (progressBar) {
         if (progress !== undefined && progress !== null) {
-            progressBar.style.width = `${progress}%`;
+            progressBar.style.width = `${progress}% `;
         } else if (status === 'active') {
             // Indeterminate progress - show pulsing bar
             progressBar.style.width = '100%';
@@ -1106,7 +1060,7 @@ function updateStepProgress(stepId, status, progress, detail) {
 
     if (statusEl) {
         if (status === 'active') {
-            statusEl.textContent = progress !== null ? `${Math.round(progress)}%` : 'Processing...';
+            statusEl.textContent = progress !== null ? `${Math.round(progress)}% ` : 'Processing...';
         } else if (status === 'complete') {
             statusEl.textContent = '✓ Done';
         } else if (status === 'error') {
@@ -1169,9 +1123,9 @@ function showResetSummary(stats) {
     const icon = document.querySelector('.progress-modal-icon');
     if (icon) {
         icon.style.animation = 'none';
-        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>`;
+        icon.innerHTML = `< svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" >
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg > `;
         icon.style.background = 'linear-gradient(135deg, #dcfce7, #bbf7d0)';
         icon.querySelector('svg').style.stroke = '#16a34a';
     }
@@ -1194,10 +1148,10 @@ function showResetSummary(stats) {
         const afterTotal = (stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0);
 
         summaryStats.innerHTML = `
-            <div class="summary-stat">
+        < div class="summary-stat" >
                 <div class="summary-stat-value">${stats.tham_my?.processed || 0}</div>
                 <div class="summary-stat-label">Thẩm Mỹ</div>
-            </div>
+            </div >
             <div class="summary-stat">
                 <div class="summary-stat-value">${stats.nha_khoa?.processed || 0}</div>
                 <div class="summary-stat-label">Nha Khoa</div>
@@ -1206,7 +1160,7 @@ function showResetSummary(stats) {
                 <div class="summary-stat-value">${stats.gioi_thieu?.processed || 0}</div>
                 <div class="summary-stat-label">Giới Thiệu</div>
             </div>
-        `;
+    `;
         summary.style.display = 'block';
     }
 
@@ -1366,7 +1320,7 @@ async function confirmHardReset() {
         const commissionResponse = await api('/api/admin/reset-data/step/commissions', { method: 'POST' });
 
         if (commissionResponse.status !== 'success') {
-            addLogEntry(`⚠ Commission calculation warning: ${commissionResponse.message}`, 'warning');
+            addLogEntry(`⚠ Commission calculation warning: ${commissionResponse.message} `, 'warning');
         } else {
             addLogEntry('✓ Commission calculation complete', 'success');
         }
@@ -1385,7 +1339,7 @@ async function confirmHardReset() {
 
         addLogEntry(`Total imported: ${totalImported.toLocaleString()} records`, 'success');
         if (totalErrors > 0) {
-            addLogEntry(`Total errors: ${totalErrors}`, 'warning');
+            addLogEntry(`Total errors: ${totalErrors} `, 'warning');
         }
 
         // Show summary after short delay
@@ -1395,7 +1349,7 @@ async function confirmHardReset() {
 
     } catch (error) {
         console.error('Hard reset error:', error);
-        addLogEntry(`✗ ERROR: ${error.message}`, 'error');
+        addLogEntry(`✗ ERROR: ${error.message} `, 'error');
 
         // Stop all animations
         Object.keys(resetProgress.progressIntervals).forEach(key => {
@@ -1404,11 +1358,11 @@ async function confirmHardReset() {
 
         // Mark current step as error
         const currentActiveStep = resetProgress.steps.find(step => {
-            const el = document.getElementById(`step-${step}`);
+            const el = document.getElementById(`step - ${step} `);
             return el && el.classList.contains('active');
         });
         if (currentActiveStep) {
-            updateStepProgress(currentActiveStep, 'error', 0, `Error: ${error.message}`);
+            updateStepProgress(currentActiveStep, 'error', 0, `Error: ${error.message} `);
         }
 
         addLogEntry('Hard reset failed. Check logs above for details.', 'error');

@@ -293,30 +293,26 @@ class GoogleSheetSync:
     def check_exact_record_exists(self, conn, sdt, ngay_nhap, dich_vu, source):
         """
         Check if an EXACT record exists (same phone + date + service).
-        This currently returns False to allow all rows from the sheet to be imported,
-        even if they look like duplicates (per user request).
+        This prevents duplicate entries while allowing multiple services per customer.
         """
-        return False
-        
-        # Original logic preserved below for reference:
-        # cur = conn.cursor()
-        # try:
-        #     # Normalize service for comparison (trim whitespace)
-        #     dich_vu_clean = str(dich_vu).strip() if dich_vu else ''
-        #     
-        #     cur.execute("""
-        #         SELECT COUNT(*) FROM khach_hang 
-        #         WHERE sdt = %s 
-        #         AND ngay_nhap_don IS NOT DISTINCT FROM %s 
-        #         AND TRIM(COALESCE(dich_vu, '')) = %s
-        #         AND source = %s
-        #     """, (sdt, ngay_nhap, dich_vu_clean, source))
-        #     count = cur.fetchone()[0]
-        #     cur.close()
-        #     return count > 0
-        # except Exception as e:
-        #     cur.close()
-        #     return False
+        cur = conn.cursor()
+        try:
+            # Normalize service for comparison (trim whitespace)
+            dich_vu_clean = str(dich_vu).strip() if dich_vu else ''
+            
+            cur.execute("""
+                SELECT COUNT(*) FROM khach_hang 
+                WHERE sdt = %s 
+                AND ngay_nhap_don IS NOT DISTINCT FROM %s 
+                AND TRIM(COALESCE(dich_vu, '')) = %s
+                AND source = %s
+            """, (sdt, ngay_nhap, dich_vu_clean, source))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count > 0
+        except Exception as e:
+            cur.close()
+            return False
 
     def bulk_insert_or_update_tham_my(self, conn, rows):
         """
