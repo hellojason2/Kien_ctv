@@ -58,42 +58,51 @@ def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
         logger.info("Connecting to database...")
         conn = syncer.get_db_connection()
         
-        sync_mode = "phone matching" if use_phone_matching else "count-based"
-        logger.info(f"Sync mode: {sync_mode}")
-        if timestamp_column:
-            logger.info(f"Timestamp column: {timestamp_column}")
-        
-        logger.info("\n--- Processing Tham My ---")
-        if use_phone_matching:
-            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my', timestamp_column)
-        else:
-            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'tham_my')
-        stats['tham_my'] = {'processed': p, 'errors': e}
-        
-        logger.info("\n--- Processing Nha Khoa ---")
-        if use_phone_matching:
-            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa', timestamp_column)
-        else:
-            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'nha_khoa')
-        stats['nha_khoa'] = {'processed': p, 'errors': e}
-        
-        logger.info("\n--- Processing Gioi Thieu ---")
-        if use_phone_matching:
-            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu', timestamp_column)
-        else:
-            p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu')
-        stats['gioi_thieu'] = {'processed': p, 'errors': e}
-        
-        if sum(s['processed'] for s in stats.values()) > 0:
-            logger.info("\n--- Calculating Commissions ---")
-            comm_stats = calculate_new_commissions_fast(connection=conn)
-            logger.info(f"Commission calculation: {comm_stats}")
-        
-        # Update heartbeat after successful sync with count of new records
-        total_new = sum(s['processed'] for s in stats.values())
-        syncer.update_heartbeat(conn, total_new)
-        
-        conn.close()
+        try:
+            sync_mode = "phone matching" if use_phone_matching else "count-based"
+            logger.info(f"Sync mode: {sync_mode}")
+            if timestamp_column:
+                logger.info(f"Timestamp column: {timestamp_column}")
+            
+            logger.info("\n--- Processing Tham My ---")
+            if use_phone_matching:
+                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my', timestamp_column)
+            else:
+                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'tham_my')
+            stats['tham_my'] = {'processed': p, 'errors': e}
+            
+            logger.info("\n--- Processing Nha Khoa ---")
+            if use_phone_matching:
+                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa', timestamp_column)
+            else:
+                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'nha_khoa')
+            stats['nha_khoa'] = {'processed': p, 'errors': e}
+            
+            logger.info("\n--- Processing Gioi Thieu ---")
+            if use_phone_matching:
+                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu', timestamp_column)
+            else:
+                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu')
+            stats['gioi_thieu'] = {'processed': p, 'errors': e}
+            
+            if sum(s['processed'] for s in stats.values()) > 0:
+                logger.info("\n--- Calculating Commissions ---")
+                start_time = time.time()
+                comm_stats = calculate_new_commissions_fast(connection=conn)
+                duration = time.time() - start_time
+                logger.info(f"Commission calculation: {comm_stats} (took {duration:.2f}s)")
+            
+            # Update heartbeat after successful sync with count of new records
+            total_new = sum(s['processed'] for s in stats.values())
+            syncer.update_heartbeat(conn, total_new)
+            
+        except Exception as e:
+            # Re-raise exception to be caught by outer handler, but finally will close conn first
+            raise e
+        finally:
+            if conn:
+                conn.close()
+                logger.info("Database connection closed")
         
     except Exception as e:
         logger.error(f"Sync error: {e}")
