@@ -186,7 +186,7 @@
     flex-shrink: 0;
 }
 
-.searchable-dropdown .dropdown-item > span:not(.level-count-badge) {
+.searchable-dropdown .dropdown-item>span:not(.level-count-badge) {
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -287,11 +287,25 @@
     border-color: var(--accent-primary);
 }
 
-.commission-card.l0 .rate { color: var(--accent-green); }
-.commission-card.l1 .rate { color: var(--accent-orange); }
-.commission-card.l2 .rate { color: var(--accent-purple); }
-.commission-card.l3 .rate { color: var(--accent-pink); }
-.commission-card.l4 .rate { color: var(--accent-cyan); }
+.commission-card.l0 .rate {
+    color: var(--accent-green);
+}
+
+.commission-card.l1 .rate {
+    color: var(--accent-orange);
+}
+
+.commission-card.l2 .rate {
+    color: var(--accent-purple);
+}
+
+.commission-card.l3 .rate {
+    color: var(--accent-pink);
+}
+
+.commission-card.l4 .rate {
+    color: var(--accent-cyan);
+}
 
 /* Commission Card Header Row - for toggle switch */
 .commission-card .card-header-row {
@@ -449,16 +463,16 @@
     .commission-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .quick-filter-buttons {
         gap: 8px;
     }
-    
+
     .quick-filter-btn {
         padding: 9px 16px;
         font-size: 12px;
     }
-    
+
     .custom-date-range {
         gap: 12px;
     }
@@ -468,28 +482,29 @@
     .commission-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .quick-filter-buttons {
         gap: 8px;
     }
-    
+
     .quick-filter-btn {
         padding: 10px 14px;
         font-size: 12px;
-        flex: 1 1 calc(50% - 4px);
-        min-width: calc(50% - 4px);
+        flex: 0 1 auto;
+        width: auto;
+        min-width: auto;
     }
-    
+
     .custom-date-range {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
     }
-    
+
     .custom-date-range .form-group {
         margin-bottom: 0;
     }
-    
+
     .custom-date-range .form-group:last-child {
         margin-top: 4px;
     }
@@ -499,42 +514,48 @@
     .form-group {
         margin-bottom: 16px;
     }
+
     .form-group input,
     .form-group select {
         padding: 10px 12px;
         font-size: 14px;
     }
+
     .commission-grid {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
+
     .commission-card {
         padding: 14px;
     }
+
     .commission-card .rate {
         font-size: 24px;
     }
-    
+
     .date-filter-section {
         margin-bottom: 16px;
     }
-    
+
     .quick-filter-buttons {
-        gap: 6px;
+        gap: 8px;
+        /* Slightly increased gap for better touch targets */
     }
-    
+
     .quick-filter-btn {
         padding: 9px 12px;
         font-size: 11px;
-        flex: 1 1 calc(50% - 3px);
-        min-width: calc(50% - 3px);
+        flex: 0 1 auto;
+        width: auto;
+        min-width: auto;
     }
-    
+
     .filter-label {
         font-size: 11px;
         margin-bottom: 10px;
     }
-    
+
     .date-input {
         padding: 10px 12px;
         font-size: 14px;
