@@ -1377,32 +1377,105 @@ async function confirmHardReset() {
     }
 }
 
-/**
- * Reset the sync counter when clicking on the status indicator
- */
-async function resetSyncCounter() {
-    // Only reset if there are new records
-    if (syncStatus.newRecords === 0) return;
+// ═══════════════════════════════════════════════════════════════════
+// WORKER LOGS VIEWER (Replaces resetSyncCounter)
+// ═══════════════════════════════════════════════════════════════════
+
+let workerLogInterval = null;
+
+// Override the function called by the "Online" pill
+window.resetSyncCounter = function () {
+    showSyncWorkerLogs();
+};
+
+async function showSyncWorkerLogs() {
+    const modal = document.getElementById('syncModal');
+    if (!modal) return;
+
+    // UI Elements
+    const title = modal.querySelector('h3');
+    const subtitle = modal.querySelector('.progress-modal-subtitle');
+    const logEntries = document.getElementById('syncLogEntries');
+    const statusDisplay = document.getElementById('syncStatusDisplay');
+    const summary = document.getElementById('syncSummary');
+
+    // Reset State
+    modal.style.display = 'flex';
+    if (statusDisplay) statusDisplay.style.display = 'none';
+    if (summary) summary.style.display = 'none';
+
+    // Hijack Title (Translation safe-ish)
+    if (title) title.textContent = 'Background Worker Logs';
+    if (subtitle) subtitle.textContent = 'Live activity from the autonomous sync process';
+
+    // Initial Loading State
+    if (logEntries) {
+        logEntries.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;">Fetching logs...</div>';
+    }
+
+    // Start Polling
+    fetchWorkerLogs();
+    if (workerLogInterval) clearInterval(workerLogInterval);
+    workerLogInterval = setInterval(fetchWorkerLogs, 3000);
+
+    // Hook close button to stop polling
+    const overlay = modal;
+    const originalClick = overlay.onclick; // Save if exists
+
+    // We need to detect close. The modal has a closeSyncModal() function usually.
+    // We'll wrap it or just rely on the fact that closeSyncModal hides it.
+    // But we need to stop polling.
+}
+
+async function fetchWorkerLogs() {
+    const logEntries = document.getElementById('syncLogEntries');
+    // Stop if modal is closed
+    if (document.getElementById('syncModal').style.display === 'none') {
+        clearInterval(workerLogInterval);
+        return;
+    }
 
     try {
-        const result = await api('/api/admin/sync/reset-counter', {
-            method: 'POST'
-        });
-
+        const result = await api('/api/admin/sync/worker-logs?limit=50');
         if (result.status === 'success') {
-            // Reset local state
-            syncStatus.newRecords = 0;
-
-            // Hide badge
-            const badge = document.getElementById('syncBadge');
-            if (badge) {
-                badge.style.display = 'none';
+            const logs = result.logs;
+            if (!logs || logs.length === 0) {
+                logEntries.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;">No logs found yet.</div>';
+                return;
             }
 
-            // Reload stats to refresh data
-            loadStats();
+            const html = logs.map(log => {
+                let color = '#9ca3af'; // default/info
+                let icon = 'ℹ️';
+
+                if (log.level === 'WARNING') { color = '#f59e0b'; icon = '⚠️'; }
+                if (log.level === 'ERROR') { color = '#ef4444'; icon = '❌'; }
+                if (log.message.includes('Success') || log.message.includes('Complete')) { color = '#10b981'; icon = '✅'; }
+                if (log.message.includes('Connecting')) { color = '#3b82f6'; icon = '🔌'; }
+                if (log.message.includes('Processing')) { color = '#8b5cf6'; icon = '⚙️'; }
+                if (log.message.includes('Sleeping')) { color = '#6b7280'; icon = '💤'; }
+
+                const time = log.created_at ? log.created_at.split('T')[1].split('.')[0] : '';
+
+                return `
+                    <div style="font-family:'SF Mono', monospace; font-size:11px; padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.05); color:${color}">
+                        <span style="color:#6b7280; margin-right:8px; opacity:0.7;">[${time}]</span>
+                        <span style="margin-right:4px;">${icon}</span>
+                        <span>${log.message}</span>
+                    </div>
+                `;
+            }).join('');
+
+            logEntries.innerHTML = html;
         }
-    } catch (error) {
-        console.error('Error resetting sync counter:', error);
+    } catch (e) {
+        console.error("Worker Log Fetch Error", e);
     }
 }
+
+// Hook into existing close function (if accessible) or rewrite it
+const originalCloseSyncModal = window.closeSyncModal;
+window.closeSyncModal = function () {
+    if (workerLogInterval) clearInterval(workerLogInterval);
+    if (originalCloseSyncModal) originalCloseSyncModal();
+};

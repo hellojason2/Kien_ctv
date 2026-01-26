@@ -786,3 +786,41 @@ def check_google_creds():
     except Exception as e:
         return jsonify({'valid': False, 'message': str(e)}), 500
 
+
+@admin_bp.route('/api/admin/sync/worker-logs', methods=['GET'])
+@require_admin
+def get_worker_logs():
+    """
+    Get latest logs from the background worker.
+    """
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur.execute("""
+            SELECT level, message, created_at, source 
+            FROM worker_logs 
+            ORDER BY created_at DESC 
+            LIMIT %s
+        """, (limit,))
+        
+        logs = cur.fetchall()
+        
+        # Format dates
+        for log in logs:
+            if log['created_at']:
+                log['created_at'] = log['created_at'].isoformat()
+                
+        cur.close()
+        return_db_connection(conn)
+        
+        return jsonify({
+            'status': 'success',
+            'logs': logs
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting worker logs: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+

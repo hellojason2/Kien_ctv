@@ -35,6 +35,31 @@ USE_PHONE_MATCHING = os.getenv('SYNC_USE_PHONE_MATCHING', 'true').lower() == 'tr
 # If set, only rows with timestamp > last_sync will be processed
 TIMESTAMP_COLUMN = os.getenv('SYNC_TIMESTAMP_COLUMN', None)
 
+# Custom Database Handler
+class DBLogHandler(logging.Handler):
+    def __init__(self, syncer):
+        super().__init__()
+        self.syncer = syncer
+        self.conn = None
+        
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            if not self.conn or self.conn.closed:
+                self.conn = self.syncer.get_db_connection()
+                
+            if self.conn:
+                with self.conn.cursor() as cur:
+                    cur.execute(
+                        "INSERT INTO worker_logs (level, message, created_at, source) VALUES (%s, %s, %s, 'sync_worker')",
+                        (record.levelname, msg, datetime.now())
+                    )
+                self.conn.commit()
+        except Exception:
+            # Fallback to stderr if DB logging fails
+            import sys
+            sys.stderr.write(f"Failed to log to DB: {record.msg}\n")
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -132,6 +157,17 @@ def main():
         logger.info(f"Using Google credentials from file: {CREDENTIALS_FILE}")
     
     syncer = GoogleSheetSync()
+    
+    # Add Database Logger
+    try:
+        db_handler = DBLogHandler(syncer)
+        db_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(message)s') # Cleaner logs for UI
+        db_handler.setFormatter(formatter)
+        logger.addHandler(db_handler)
+        logger.info("Database logging enabled")
+    except Exception as e:
+        logger.error(f"Failed to setup DB logging: {e}")
     
     cycle = 0
     while True:
