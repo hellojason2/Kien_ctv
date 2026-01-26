@@ -286,21 +286,21 @@ function initNavGroups() {
  */
 function navigateTo(page) {
     // Remove active class from all links (sidebar, flyout, and mobile)
-    document.querySelectorAll('.sidebar-nav a, .nav-flyout a, .mobile-menu-item').forEach(el => {
+    document.querySelectorAll('.sidebar-nav a, .nav-flyout a, .mobile-menu-item, .sidebar-icon').forEach(el => {
         el.classList.remove('active');
     });
 
     // Set active on clicked item (both in nav, flyout, and mobile menu)
     document.querySelectorAll(`[data-page="${page}"]`).forEach(el => {
-        // Handle Sidebar Links (A tags), Flyout Links (A tags), and Mobile Menu Items (DIVs)
-        if (el.tagName === 'A' || el.classList.contains('mobile-menu-item')) {
+        // Handle Sidebar Links (A tags), Flyout Links (A tags), Mobile Menu Items (DIVs), and Sidebar Icons (DIVs)
+        if (el.tagName === 'A' || el.classList.contains('mobile-menu-item') || el.classList.contains('sidebar-icon')) {
             el.classList.add('active');
         }
     });
 
     // Update has-active state on groups
     document.querySelectorAll('.nav-group').forEach(group => {
-        const hasActiveChild = group.querySelector(`a.active[data-page]`);
+        const hasActiveChild = group.querySelector(`a.active[data-page], .sidebar-icon.active[data-page]`);
         group.classList.toggle('has-active', !!hasActiveChild);
     });
 
@@ -365,8 +365,8 @@ function loadPageData(page) {
  * Initialize navigation event listeners
  */
 function initNavigation() {
-    // Main sidebar nav links
-    document.querySelectorAll('.sidebar-nav a[data-page]').forEach(link => {
+    // Main sidebar nav links (Support both standard A tags and CTV style sidebar icons)
+    document.querySelectorAll('.sidebar-nav a[data-page], .sidebar-menu .sidebar-icon[data-page]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const page = e.currentTarget.dataset.page;
