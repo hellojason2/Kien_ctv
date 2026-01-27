@@ -28,9 +28,9 @@ function showStatsLoading() {
 function updateRecentCommissionsTitle(preset) {
     // Find the Recent Commissions header - it's the h3 inside the card-header
     const recentCommissionsCard = document.querySelector('#page-dashboard .card:nth-of-type(2) .card-header h3') ||
-                                   document.querySelector('#page-dashboard .card-header h3[data-i18n="recent_commissions"]') ||
-                                   document.querySelector('#page-dashboard .card-header h3');
-    
+        document.querySelector('#page-dashboard .card-header h3[data-i18n="recent_commissions"]') ||
+        document.querySelector('#page-dashboard .card-header h3');
+
     if (recentCommissionsCard && preset) {
         const periodLabels = {
             'today': t('today'),
@@ -55,10 +55,10 @@ function updatePeriodLabels(preset) {
     // Update Total Earnings label (shows revenue for the period)
     // Use a selector that doesn't depend on data-i18n since we remove it
     const statsGrid = document.querySelector('#page-dashboard .stats-grid');
-    const totalEarningsLabel = statsGrid ? statsGrid.querySelector('.stat-card.green .label') : 
-                                document.querySelector('#page-dashboard .stat-card.green .label') ||
-                                document.querySelector('.stat-card.green .label');
-    
+    const totalEarningsLabel = statsGrid ? statsGrid.querySelector('.stat-card.green .label') :
+        document.querySelector('#page-dashboard .stat-card.green .label') ||
+        document.querySelector('.stat-card.green .label');
+
     if (totalEarningsLabel) {
         const revenueLabels = {
             'today': t('total_revenue_today'),
@@ -75,7 +75,7 @@ function updatePeriodLabels(preset) {
         totalEarningsLabel.removeAttribute('data-i18n');
         totalEarningsLabel.textContent = labelText;
     }
-    
+
     // Update Commission label (shows commission for the period)
     const periodEarningsLabel = document.getElementById('periodEarningsLabel');
     if (periodEarningsLabel) {
@@ -91,7 +91,7 @@ function updatePeriodLabels(preset) {
         };
         periodEarningsLabel.textContent = commissionLabels[preset] || t('commission_period_month');
     }
-    
+
     // Update Services label
     const periodServicesLabel = document.getElementById('periodServicesLabel');
     if (periodServicesLabel) {
@@ -107,7 +107,7 @@ function updatePeriodLabels(preset) {
         };
         periodServicesLabel.textContent = servicesLabels[preset] || t('services_period_month');
     }
-    
+
     // Update Recent Commissions title
     updateRecentCommissionsTitle(preset);
 }
@@ -119,13 +119,13 @@ async function checkDashboardDateRangesWithData() {
     try {
         // Wait a bit for the page to be fully rendered
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         const result = await api('/api/ctv/date-ranges-with-data');
-        
+
         if (result.status === 'success' && result.ranges_with_data) {
             const dashboardPage = document.getElementById('page-dashboard');
             if (!dashboardPage) return;
-            
+
             // Update each button based on data availability
             Object.keys(result.ranges_with_data).forEach(preset => {
                 const button = dashboardPage.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
@@ -154,47 +154,59 @@ async function loadProfile(fromDate = null, toDate = null) {
     if (fromDate && toDate) {
         url += `?from_date=${fromDate}&to_date=${toDate}`;
     }
-    
+
     const result = await api(url);
     if (result.status === 'success') {
         setCurrentUser(result.profile);
         document.getElementById('userName').textContent = result.profile.ten;
-        
+
         const levelBadge = document.getElementById('userLevel');
-        
+
         // Helper to get role class based on keywords
         const getRoleClass = (role) => {
             if (!role) return 'bronze';
             const lowerRole = role.toLowerCase();
-            
+
             // High level roles
             if (lowerRole.includes('giám đốc') || lowerRole.includes('director') || lowerRole.includes('ceo')) return 'director';
             if (lowerRole.includes('trưởng phòng') || lowerRole.includes('manager') || lowerRole.includes('head')) return 'manager';
             if (lowerRole.includes('trưởng nhóm') || lowerRole.includes('leader')) return 'leader';
-            
+
             // Standard levels
             if (lowerRole.includes('gold')) return 'gold';
             if (lowerRole.includes('silver')) return 'silver';
             if (lowerRole.includes('bronze')) return 'bronze';
-            
+
             return 'bronze'; // Default
         };
-        
+
         const roleClass = getRoleClass(result.profile.cap_bac);
         levelBadge.textContent = result.profile.cap_bac || 'Bronze';
         levelBadge.className = 'user-badge ' + roleClass;
-        
+
         // Update stats
         // Total Earnings card should show period revenue (total transaction revenue) for the selected date filter
         // The API always calculates period_revenue based on the date filter (or defaults to current month)
-        const totalEarningsValue = (result.stats.period_revenue !== undefined && result.stats.period_revenue !== null) 
-            ? result.stats.period_revenue 
+        const totalEarningsValue = (result.stats.period_revenue !== undefined && result.stats.period_revenue !== null)
+            ? result.stats.period_revenue
             : (result.stats.total_earnings || 0);
         document.getElementById('statTotalEarnings').textContent = formatCurrency(totalEarningsValue);
         document.getElementById('statMonthlyEarnings').textContent = formatCurrency(result.stats.monthly_earnings);
         document.getElementById('statNetworkSize').textContent = result.stats.network_size;
         document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
-        
+
+        // Update referral badge notification
+        const referralBadge = document.getElementById('referralBadge');
+        if (referralBadge) {
+            const networkSize = parseInt(result.stats.network_size) || 0;
+            if (networkSize > 0) {
+                referralBadge.textContent = networkSize;
+                referralBadge.style.display = 'flex';
+            } else {
+                referralBadge.style.display = 'none';
+            }
+        }
+
         // Update booking referrer phone if booking form exists
         if (typeof updateBookingReferrerPhone === 'function') {
             updateBookingReferrerPhone();
@@ -206,7 +218,7 @@ async function loadProfile(fromDate = null, toDate = null) {
 function applyDashboardPreset(preset) {
     const today = new Date();
     let fromDate, toDate;
-    
+
     // Reset all buttons to default text first, then update active button
     document.querySelectorAll('.btn-filter-preset').forEach(btn => {
         btn.classList.remove('active');
@@ -223,7 +235,7 @@ function applyDashboardPreset(preset) {
                     translatedText = translations[currentLang][translationKey];
                 }
             }
-            
+
             // Only update if we got a valid translation (not the key itself)
             if (translatedText && translatedText !== translationKey) {
                 // Save indicator before clearing
@@ -239,13 +251,13 @@ function applyDashboardPreset(preset) {
         }
         btn.removeAttribute('data-date-range');
     });
-    
+
     // Hide custom date filter if not custom
     if (preset !== 'custom') {
         document.getElementById('customDateFilter').style.display = 'none';
     }
-    
-    switch(preset) {
+
+    switch (preset) {
         case 'today':
             fromDate = today;
             toDate = today;
@@ -282,24 +294,24 @@ function applyDashboardPreset(preset) {
             fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
             toDate = today;
     }
-    
+
     dashboardDateFilter.preset = preset;
     dashboardDateFilter.fromDate = formatDateForAPI(fromDate);
     dashboardDateFilter.toDate = formatDateForAPI(toDate);
-    
+
     // Update date inputs for reference
     const fromInput = document.getElementById('dashFromDate');
     const toInput = document.getElementById('dashToDate');
     if (fromInput) fromInput.value = dashboardDateFilter.fromDate;
     if (toInput) toInput.value = dashboardDateFilter.toDate;
-    
+
     // Update button text with date range for active button
     const activeButton = document.querySelector(`.btn-filter-preset[data-preset="${preset}"]`);
     if (activeButton && typeof formatDateRangeForButton === 'function') {
         activeButton.classList.add('active');
         const dateRange = formatDateRangeForButton(fromDate, toDate);
         const translationKey = activeButton.getAttribute('data-i18n');
-        
+
         // Get translation - ensure we get the actual translated text, not the key
         let translatedText = translationKey;
         if (typeof t === 'function') {
@@ -310,14 +322,14 @@ function applyDashboardPreset(preset) {
                 translatedText = translations[currentLang][translationKey];
             }
         }
-        
+
         // Only proceed if we have a valid translation (not the key itself)
         if (translatedText && translatedText !== translationKey) {
             const indicator = activeButton.querySelector('.data-indicator');
-            
+
             // Store date range in data attribute for translation preservation
             activeButton.setAttribute('data-date-range', dateRange);
-            
+
             // Update button text: show translation + date range
             activeButton.innerHTML = '';
             activeButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
@@ -326,21 +338,21 @@ function applyDashboardPreset(preset) {
             }
         }
     }
-    
+
     // Update period labels AFTER button updates
     updatePeriodLabels(preset);
-    
+
     // Apply translations (but our labels won't be overwritten since we removed data-i18n)
     if (typeof applyTranslations === 'function') {
         applyTranslations();
     }
-    
+
     // Update labels again after translations to ensure they're correct
     updatePeriodLabels(preset);
-    
+
     // Show loading animation
     showStatsLoading();
-    
+
     // Reload profile with date filter
     loadProfile(dashboardDateFilter.fromDate, dashboardDateFilter.toDate);
     loadRecentCommissions(dashboardDateFilter.fromDate, dashboardDateFilter.toDate);
@@ -350,7 +362,7 @@ function applyDashboardPreset(preset) {
 function toggleCustomDateFilter() {
     const customFilter = document.getElementById('customDateFilter');
     const isVisible = customFilter.style.display !== 'none';
-    
+
     // Update active button
     document.querySelectorAll('.btn-filter-preset').forEach(btn => {
         btn.classList.remove('active');
@@ -358,7 +370,7 @@ function toggleCustomDateFilter() {
             btn.classList.add('active');
         }
     });
-    
+
     customFilter.style.display = isVisible ? 'none' : 'block';
 }
 
@@ -366,16 +378,16 @@ function toggleCustomDateFilter() {
 function applyCustomDateFilter() {
     const fromDate = document.getElementById('dashFromDate').value;
     const toDate = document.getElementById('dashToDate').value;
-    
+
     if (!fromDate || !toDate) {
         alert(t('select_filter_hint'));
         return;
     }
-    
+
     dashboardDateFilter.preset = 'custom';
     dashboardDateFilter.fromDate = fromDate;
     dashboardDateFilter.toDate = toDate;
-    
+
     // Update button text with date range for custom button
     const customButton = document.querySelector('.btn-filter-preset[data-preset="custom"]');
     if (customButton && typeof formatDateRangeForButton === 'function') {
@@ -385,13 +397,13 @@ function applyCustomDateFilter() {
         const translationKey = customButton.getAttribute('data-i18n');
         const translatedText = typeof t === 'function' ? t(translationKey) : translationKey;
         const indicator = customButton.querySelector('.data-indicator');
-        
+
         // Update active state
         document.querySelectorAll('.btn-filter-preset').forEach(btn => {
             btn.classList.remove('active');
         });
         customButton.classList.add('active');
-        
+
         // Update button text
         customButton.innerHTML = '';
         customButton.appendChild(document.createTextNode(`${translatedText} ${dateRange}`));
@@ -399,13 +411,13 @@ function applyCustomDateFilter() {
             customButton.appendChild(indicator.cloneNode(true));
         }
     }
-    
+
     // Update period labels
     updatePeriodLabels('custom');
-    
+
     // Show loading animation
     showStatsLoading();
-    
+
     loadProfile(fromDate, toDate);
     loadRecentCommissions(fromDate, toDate);
 }
