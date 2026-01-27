@@ -238,15 +238,15 @@
 
 .commission-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
 }
 
 .commission-card {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
+    padding: 16px;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
 }

@@ -187,6 +187,33 @@ function initSidebarScrollCollapse() {
 }
 
 /**
+ * Initialize sidebar collapse button click handler
+ */
+function initSidebarCollapseButton() {
+    const sidebar = document.getElementById('adminSidebar');
+    const mainContent = document.querySelector('.main-content');
+    const collapseBtn = document.getElementById('sidebarCollapseBtn');
+
+    if (!sidebar || !mainContent || !collapseBtn) return;
+
+    // Restore saved state from localStorage
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState === 'true') {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('sidebar-collapsed');
+    }
+
+    // Toggle on click
+    collapseBtn.addEventListener('click', () => {
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('sidebar-collapsed');
+
+        // Save state to localStorage
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+    });
+}
+
+/**
  * Initialize all event handlers and check auth
  */
 async function initializeApp() {
@@ -230,6 +257,9 @@ async function initializeApp() {
 
     // Initialize sidebar scroll collapse
     initSidebarScrollCollapse();
+
+    // Initialize sidebar collapse button
+    initSidebarCollapseButton();
 
     // Initialize pending registrations badge
     initPendingRegistrationsBadge();
