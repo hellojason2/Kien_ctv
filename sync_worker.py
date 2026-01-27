@@ -159,6 +159,7 @@ def main():
     syncer = GoogleSheetSync()
     
     # Add Database Logger
+    db_handler = None
     try:
         db_handler = DBLogHandler(syncer)
         db_handler.setLevel(logging.INFO)
@@ -170,34 +171,80 @@ def main():
         logger.error(f"Failed to setup DB logging: {e}")
     
     cycle = 0
+    consecutive_failures = 0
+    MAX_CONSECUTIVE_FAILURES = 10  # After 10 failures, wait longer
+    
     while True:
         cycle += 1
-        logger.info(f"\n{'='*60}")
-        logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info("=" * 60)
-        
-        stats = run_sync(syncer, use_phone_matching=USE_PHONE_MATCHING, timestamp_column=TIMESTAMP_COLUMN)
-        
-        # --- Pricing Sync Step ---
         try:
-            from modules.pricing_sync import sync_pricing_sheet
-            PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
-            sync_pricing_sheet(syncer.get_google_client(), PRICING_SHEET_ID)
-            logger.info("  - Pricing Data: Synced successfully")
-        except Exception as e:
-            logger.error(f"  - Pricing Sync Error: {e}")
-        # -------------------------
+            logger.info(f"\n{'='*60}")
+            logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            logger.info("=" * 60)
+            
+            stats = run_sync(syncer, use_phone_matching=USE_PHONE_MATCHING, timestamp_column=TIMESTAMP_COLUMN)
+            
+            # --- Pricing Sync Step ---
+            try:
+                from modules.pricing_sync import sync_pricing_sheet
+                PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
+                sync_pricing_sheet(syncer.get_google_client(), PRICING_SHEET_ID)
+                logger.info("  - Pricing Data: Synced successfully")
+            except Exception as e:
+                logger.error(f"  - Pricing Sync Error: {e}")
+            # -------------------------
 
-        total_processed = sum(s['processed'] for s in stats.values())
-        total_errors = sum(s['errors'] for s in stats.values())
-        logger.info(f"\nCycle #{cycle} Complete:")
-        logger.info(f"  - Tham My: {stats['tham_my']['processed']} processed")
-        logger.info(f"  - Nha Khoa: {stats['nha_khoa']['processed']} processed")
-        logger.info(f"  - Gioi Thieu: {stats['gioi_thieu']['processed']} processed")
-        logger.info(f"  - Total: {total_processed} processed, {total_errors} errors")
-        
-        logger.info(f"\nSleeping for {SYNC_INTERVAL} seconds...")
-        time.sleep(SYNC_INTERVAL)
+            total_processed = sum(s['processed'] for s in stats.values())
+            total_errors = sum(s['errors'] for s in stats.values())
+            logger.info(f"\nCycle #{cycle} Complete:")
+            logger.info(f"  - Tham My: {stats['tham_my']['processed']} processed")
+            logger.info(f"  - Nha Khoa: {stats['nha_khoa']['processed']} processed")
+            logger.info(f"  - Gioi Thieu: {stats['gioi_thieu']['processed']} processed")
+            logger.info(f"  - Total: {total_processed} processed, {total_errors} errors")
+            
+            # Reset failure counter on success
+            consecutive_failures = 0
+            
+            logger.info(f"\nSleeping for {SYNC_INTERVAL} seconds...")
+            time.sleep(SYNC_INTERVAL)
+            
+        except KeyboardInterrupt:
+            logger.info("\n" + "=" * 60)
+            logger.info("Worker stopped by user (Ctrl+C)")
+            logger.info("=" * 60)
+            break
+            
+        except Exception as e:
+            consecutive_failures += 1
+            logger.error(f"\n{'!'*60}")
+            logger.error(f"CYCLE #{cycle} CRASHED: {e}")
+            logger.error(f"Consecutive failures: {consecutive_failures}/{MAX_CONSECUTIVE_FAILURES}")
+            logger.error("!" * 60)
+            
+            import traceback
+            traceback.print_exc()
+            
+            # Exponential backoff on failures
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                wait_time = 300  # 5 minutes after too many failures
+                logger.error(f"Too many consecutive failures! Waiting {wait_time}s before retry...")
+            else:
+                wait_time = min(SYNC_INTERVAL * (2 ** consecutive_failures), 300)  # Max 5 min
+                logger.warning(f"Retrying in {wait_time}s...")
+            
+            time.sleep(wait_time)
+            
+            # Try to recreate syncer on repeated failures (connection may be stale)
+            if consecutive_failures >= 3:
+                logger.info("Recreating GoogleSheetSync instance...")
+                try:
+                    syncer = GoogleSheetSync()
+                    # Reconnect DB handler
+                    if db_handler:
+                        db_handler.syncer = syncer
+                        db_handler.conn = None
+                    logger.info("GoogleSheetSync recreated successfully")
+                except Exception as re_e:
+                    logger.error(f"Failed to recreate syncer: {re_e}")
 
 if __name__ == '__main__':
     main()
