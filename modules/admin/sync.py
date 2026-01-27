@@ -792,25 +792,49 @@ def check_google_creds():
 def get_worker_logs():
     """
     Get latest logs from the background worker.
+    Only keeps and returns last 10 entries. Auto-cleans old logs.
+    Timestamps are converted to Vietnamese time (UTC+7).
     """
     try:
-        limit = request.args.get('limit', 50, type=int)
+        from datetime import timezone, timedelta
+        
+        # Vietnamese timezone (UTC+7)
+        VN_TZ = timezone(timedelta(hours=7))
+        MAX_LOGS = 10
+        
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
+        # First, cleanup old logs - keep only last 10
+        cur.execute("""
+            DELETE FROM worker_logs 
+            WHERE id NOT IN (
+                SELECT id FROM worker_logs 
+                ORDER BY created_at DESC 
+                LIMIT %s
+            )
+        """, (MAX_LOGS,))
+        conn.commit()
+        
+        # Get the remaining logs
         cur.execute("""
             SELECT level, message, created_at, source 
             FROM worker_logs 
             ORDER BY created_at DESC 
             LIMIT %s
-        """, (limit,))
+        """, (MAX_LOGS,))
         
         logs = cur.fetchall()
         
-        # Format dates
+        # Format dates to Vietnamese time
         for log in logs:
             if log['created_at']:
-                log['created_at'] = log['created_at'].isoformat()
+                # Convert to Vietnamese timezone
+                utc_time = log['created_at']
+                if utc_time.tzinfo is None:
+                    utc_time = utc_time.replace(tzinfo=timezone.utc)
+                vn_time = utc_time.astimezone(VN_TZ)
+                log['created_at'] = vn_time.strftime('%Y-%m-%d %H:%M:%S (VN)')
                 
         cur.close()
         return_db_connection(conn)

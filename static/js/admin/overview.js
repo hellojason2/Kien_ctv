@@ -1451,7 +1451,7 @@ async function fetchWorkerLogs() {
     }
 
     try {
-        const result = await api('/api/admin/sync/worker-logs?limit=50');
+        const result = await api('/api/admin/sync/worker-logs');
         if (result.status === 'success') {
             const logs = result.logs;
             if (!logs || logs.length === 0) {
@@ -1470,11 +1470,21 @@ async function fetchWorkerLogs() {
                 if (log.message.includes('Processing')) { color = '#8b5cf6'; icon = '⚙️'; }
                 if (log.message.includes('Sleeping')) { color = '#6b7280'; icon = '💤'; }
 
-                const time = log.created_at ? log.created_at.split('T')[1].split('.')[0] : '';
+                // Vietnamese time format: "2026-01-27 11:41:12 (VN)"
+                // Extract just the time with VN marker
+                let timeDisplay = '';
+                if (log.created_at) {
+                    const parts = log.created_at.split(' ');
+                    if (parts.length >= 2) {
+                        timeDisplay = parts[1] + ' ' + (parts[2] || '');
+                    } else {
+                        timeDisplay = log.created_at;
+                    }
+                }
 
                 return `
                     <div style="font-family:'SF Mono', monospace; font-size:11px; padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.05); color:${color}">
-                        <span style="color:#6b7280; margin-right:8px; opacity:0.7;">[${time}]</span>
+                        <span style="color:#0369a1; margin-right:8px; font-weight:600;">[${timeDisplay}]</span>
                         <span style="margin-right:4px;">${icon}</span>
                         <span>${log.message}</span>
                     </div>
