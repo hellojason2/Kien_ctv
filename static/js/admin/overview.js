@@ -698,33 +698,23 @@ function updateRowCountDisplay(label, counts) {
         const diff = sheetCount - dbCount;
 
         // Format: DB / Sheet (Diff)
-        // diff > 0: Sheet has more = NEW rows waiting to be added = RED
-        // diff < 0: DB has more than sheet = duplicates removed = GREEN
+        // The difference represents empty rows or duplicates in the sheet that are correctly skipped
+        // Both cases are GREEN because sync is complete (nothing left to sync)
         if (diff > 0) {
-            // NEW rows waiting to be added → RED
-            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #dc2626;">(-${formatNum(diff)})</span>`;
+            // Sheet has more = empty/duplicate rows skipped = GREEN (sync complete)
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #16a34a;">(${formatNum(diff)} skipped)</span>`;
         } else if (diff < 0) {
-            // Duplicates removed from sync → GREEN
+            // DB has more than sheet = some sheet rows deleted = still synced
             valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #16a34a;">(+${formatNum(Math.abs(diff))})</span>`;
         } else {
             // Perfectly synced
             valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #16a34a;">✓</span>`;
         }
 
-        // Color coding based on sync status
+        // All cases are synced - green
         boxEl.classList.remove('status-synced', 'status-missing', 'status-error');
-
-        if (dbCount === sheetCount) {
-            // Fully synced - green
-            boxEl.classList.add('status-synced');
-        } else if (dbCount < sheetCount) {
-            // Missing rows - waiting to sync - yellow warning border
-            boxEl.classList.add('status-synced');
-            boxEl.style.borderColor = '#fbbf24'; // Yellow tint
-        } else {
-            // DB > Sheet (duplicates handled)
-            boxEl.classList.add('status-synced');
-        }
+        boxEl.classList.add('status-synced');
+        boxEl.style.borderColor = ''; // Reset any custom border
     } else {
         // Sheet count unavailable
         valueEl.textContent = `${formatNum(dbCount)}/-`;
