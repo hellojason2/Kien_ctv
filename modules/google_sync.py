@@ -527,16 +527,19 @@ class GoogleSheetSync:
             logger.warning(f"  Tab not found for {tab_type}")
             return 0, 0
         
+        
         logger.info(f"  Found worksheet: {worksheet.title}")
+        logger.info(f"  Downloading data from '{worksheet.title}'...")
         
         try:
             all_values = worksheet.get_all_values()
+            logger.info(f"  Downloaded {len(all_values)} rows. Analyzing data...")
         except Exception as e:
             logger.error(f"  Error reading worksheet: {e}")
             return 0, 0
         
         if len(all_values) < 2:
-            logger.info(f"  No data rows found")
+            logger.info(f"  No data rows found in '{worksheet.title}'")
             return 0, 0
         
         headers = all_values[0]
