@@ -1425,6 +1425,51 @@ async function showSyncWorkerLogs() {
     if (title) title.textContent = 'Background Worker Logs';
     if (subtitle) subtitle.textContent = 'Live activity from the autonomous sync process';
 
+    // Add Close Button if not exists
+    let closeBtn = modal.querySelector('.worker-logs-close-btn');
+    if (!closeBtn) {
+        const modalContent = modal.querySelector('.progress-modal-content') || modal.firstElementChild;
+        if (modalContent) {
+            closeBtn = document.createElement('button');
+            closeBtn.className = 'worker-logs-close-btn';
+            closeBtn.innerHTML = '✕';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 36px;
+                height: 36px;
+                border: none;
+                background: #f1f5f9;
+                border-radius: 8px;
+                font-size: 18px;
+                cursor: pointer;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                z-index: 10;
+            `;
+            closeBtn.onmouseover = () => { closeBtn.style.background = '#ef4444'; closeBtn.style.color = 'white'; };
+            closeBtn.onmouseout = () => { closeBtn.style.background = '#f1f5f9'; closeBtn.style.color = '#64748b'; };
+            closeBtn.onclick = () => {
+                if (workerLogInterval) clearInterval(workerLogInterval);
+                modal.style.display = 'none';
+            };
+            modalContent.style.position = 'relative';
+            modalContent.insertBefore(closeBtn, modalContent.firstChild);
+        }
+    }
+
+    // Also close when clicking outside the modal content
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            if (workerLogInterval) clearInterval(workerLogInterval);
+            modal.style.display = 'none';
+        }
+    };
+
     // Initial Loading State
     if (logEntries) {
         logEntries.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;">Fetching logs...</div>';
@@ -1434,14 +1479,6 @@ async function showSyncWorkerLogs() {
     fetchWorkerLogs();
     if (workerLogInterval) clearInterval(workerLogInterval);
     workerLogInterval = setInterval(fetchWorkerLogs, 3000);
-
-    // Hook close button to stop polling
-    const overlay = modal;
-    const originalClick = overlay.onclick; // Save if exists
-
-    // We need to detect close. The modal has a closeSyncModal() function usually.
-    // We'll wrap it or just rely on the fact that closeSyncModal hides it.
-    // But we need to stop polling.
 }
 
 async function fetchWorkerLogs() {

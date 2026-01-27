@@ -115,6 +115,18 @@ def start_embedded_sync_worker():
         SYNC_INTERVAL = 30
         MAX_FAILURES = 10
         
+        def log_to_db(conn, level, message):
+            """Helper to log to worker_logs table"""
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "INSERT INTO worker_logs (level, message, created_at, source) VALUES (%s, %s, %s, 'sync_worker')",
+                        (level, message, datetime.now())
+                    )
+                conn.commit()
+            except Exception:
+                pass
+        
         while True:
             cycle += 1
             try:
@@ -123,50 +135,72 @@ def start_embedded_sync_worker():
                 
                 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
                 
-                logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%H:%M:%S')}")
-                
                 syncer = GoogleSheetSync()
                 client = syncer.get_google_client()
                 spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
                 conn = syncer.get_db_connection()
                 
-                # Log to worker_logs table
-                try:
-                    with conn.cursor() as cur:
-                        cur.execute(
-                            "INSERT INTO worker_logs (level, message, created_at, source) VALUES (%s, %s, %s, 'sync_worker')",
-                            ('INFO', f'Sync Cycle #{cycle} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', datetime.now())
-                        )
-                    conn.commit()
-                except Exception:
-                    pass
+                # Start cycle log
+                log_to_db(conn, 'INFO', f'🔄 Cycle #{cycle} started')
                 
-                # Sync all tabs
+                # Sync all tabs with detailed logging
                 total_processed = 0
+                total_new = 0
+                total_skipped = 0
+                tab_names = {'tham_my': 'Thẩm Mỹ', 'nha_khoa': 'Nha Khoa', 'gioi_thieu': 'Giới Thiệu'}
+                
                 for tab in ['tham_my', 'nha_khoa', 'gioi_thieu']:
                     try:
+                        # Get sheet row count before sync
+                        tab_display = tab_names.get(tab, tab)
+                        
                         p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, tab)
                         total_processed += p
+                        
+                        if p > 0:
+                            total_new += p
+                            log_to_db(conn, 'INFO', f'✅ {tab_display}: +{p} new rows synced')
+                        else:
+                            total_skipped += 1
+                            log_to_db(conn, 'INFO', f'⏭️ {tab_display}: No new data, skipped')
+                            
                     except Exception as tab_e:
+                        log_to_db(conn, 'ERROR', f'❌ {tab_display}: Error - {str(tab_e)[:50]}')
                         logger.error(f"Tab {tab} error: {tab_e}")
                 
                 # Calculate commissions if new records
-                if total_processed > 0:
+                if total_new > 0:
                     try:
                         calculate_new_commissions_fast(connection=conn)
-                    except Exception:
-                        pass
+                        log_to_db(conn, 'INFO', f'💰 Commissions recalculated for {total_new} new records')
+                    except Exception as ce:
+                        log_to_db(conn, 'WARNING', f'⚠️ Commission calc skipped: {str(ce)[:30]}')
                 
                 # Update heartbeat
                 syncer.update_heartbeat(conn, total_processed)
                 
+                # Summary log
+                if total_new > 0:
+                    log_to_db(conn, 'INFO', f'✨ Cycle #{cycle} done: {total_new} new, {total_skipped} skipped')
+                else:
+                    log_to_db(conn, 'INFO', f'💤 Cycle #{cycle} done: All tabs up-to-date')
+                
                 conn.close()
                 consecutive_failures = 0
-                logger.info(f"Cycle #{cycle} complete: {total_processed} processed")
                 
             except Exception as e:
                 consecutive_failures += 1
                 logger.error(f"Cycle #{cycle} error: {e}")
+                
+                # Try to log error to DB
+                try:
+                    from modules.db_pool import get_db_connection as pool_conn
+                    err_conn = pool_conn()
+                    if err_conn:
+                        log_to_db(err_conn, 'ERROR', f'❌ Cycle #{cycle} failed: {str(e)[:50]}')
+                        err_conn.close()
+                except:
+                    pass
                 
                 if consecutive_failures >= MAX_FAILURES:
                     wait_time = 300
