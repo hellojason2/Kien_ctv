@@ -290,34 +290,40 @@ class GoogleSheetSync:
             cur.close()
             return False
 
-    def check_exact_record_exists(self, conn, sdt, ngay_nhap, dich_vu, source):
+    def check_exact_record_exists(self, conn, sdt, ngay_nhap, dich_vu, source, ten_khach=None):
         """
-        Check if an EXACT record exists (same phone + date + service).
-        This prevents duplicate entries while allowing multiple services per customer.
+        Check if an EXACT record exists.
+        New Logic (User Request):
+        Duplicate if (Date matches AND Service matches) AND (Phone matches OR Name matches).
         """
         cur = conn.cursor()
         try:
             # Normalize service for comparison (trim whitespace)
             dich_vu_clean = str(dich_vu).strip() if dich_vu else ''
+            ten_khach_clean = str(ten_khach).strip() if ten_khach else ''
             
             cur.execute("""
                 SELECT COUNT(*) FROM khach_hang 
-                WHERE sdt = %s 
-                AND ngay_nhap_don IS NOT DISTINCT FROM %s 
-                AND TRIM(COALESCE(dich_vu, '')) = %s
-                AND source = %s
-            """, (sdt, ngay_nhap, dich_vu_clean, source))
+                WHERE 
+                    ngay_nhap_don IS NOT DISTINCT FROM %s 
+                    AND TRIM(COALESCE(dich_vu, '')) = %s
+                    AND source = %s
+                    AND (
+                        sdt = %s 
+                        OR (%s != '' AND TRIM(COALESCE(ten_khach, '')) = %s)
+                    )
+            """, (ngay_nhap, dich_vu_clean, source, sdt, ten_khach_clean, ten_khach_clean))
             count = cur.fetchone()[0]
             cur.close()
             return count > 0
-        except Exception as e:
+        except Exception:
             cur.close()
             return False
 
     def bulk_insert_or_update_tham_my(self, conn, rows):
         """
         For Tham My tab: Insert ALL rows as separate entries.
-        Only skip exact duplicates (same phone + date + service).
+        Only skip exact duplicates (same phone/name + date + service).
         Each service visit should be a separate row!
         Returns (inserted_count, skipped_count)
         """
@@ -332,9 +338,10 @@ class GoogleSheetSync:
             sdt = row[2]        # Phone number
             ngay_nhap = row[0]  # Date
             dich_vu = row[6]    # Service
+            ten_khach = row[1]  # Name
             
-            # Only skip if EXACT same record exists (phone + date + service)
-            if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'tham_my'):
+            # Only skip if EXACT same record exists
+            if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'tham_my', ten_khach):
                 skipped += 1
             else:
                 # New service entry - add to insert batch
@@ -370,6 +377,44 @@ class GoogleSheetSync:
             conn.rollback()
             cur.close()
             raise e
+
+    def bulk_insert_or_update_nha_khoa(self, conn, rows):
+        """
+        For Nha Khoa tab: Insert ALL rows as separate entries.
+        Only skip exact duplicates (same phone/name + date + service).
+        Each service visit should be a separate row!
+        Returns (inserted_count, skipped_count)
+        
+        Row tuple indices from prepare_khach_hang_row:
+        0: ngay_nhap, 1: ten_khach, 2: sdt, 3: co_so, 4: ngay_lam, 5: gio,
+        6: dich_vu, 7: tong_tien, 8: tien_coc, 9: phai_dong, 10: nguoi_chot, 
+        11: ghi_chu, 12: trang_thai, 13: tab_type
+        """
+        if not rows:
+            return 0, 0
+        
+        inserted = 0
+        skipped = 0
+        insert_batch = []
+        
+        for row in rows:
+            sdt = row[2]        # Phone number
+            ngay_nhap = row[0]  # Date
+            dich_vu = row[6]    # Service (index 6, NOT 3!)
+            ten_khach = row[1]  # Name
+            
+            # Only skip if EXACT same record exists
+            if self.check_exact_record_exists(conn, sdt, ngay_nhap, dich_vu, 'nha_khoa', ten_khach):
+                skipped += 1
+            else:
+                # New service entry - add to insert batch
+                insert_batch.append(row)
+        
+        # Bulk insert all new service entries
+        if insert_batch:
+            inserted = self.bulk_insert_khach_hang(conn, insert_batch, 'nha_khoa')
+        
+        return inserted, skipped        
 
     def bulk_insert_gioi_thieu(self, conn, rows, ctv_phones):
         """Bulk insert referral rows and create CTVs if needed"""
