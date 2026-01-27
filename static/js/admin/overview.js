@@ -39,6 +39,21 @@ function initOverview() {
 
     // Check Google Sheet Variables
     checkGoogleStatus();
+
+    // Attach click handler to Sync Status
+    const syncStatusContainer = document.getElementById('syncStatusContainer');
+    if (syncStatusContainer) {
+        syncStatusContainer.style.cursor = 'pointer';
+        syncStatusContainer.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof showSyncWorkerLogs === 'function') {
+                showSyncWorkerLogs();
+            } else {
+                console.error('showSyncWorkerLogs is not defined');
+            }
+        };
+    }
 }
 
 /**
