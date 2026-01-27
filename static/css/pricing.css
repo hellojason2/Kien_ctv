@@ -409,108 +409,111 @@ body {
 }
 
 /* ========================================
-   PRICING GRID & CARDS
+   PRICING LIST (Clean Table Layout)
 ======================================== */
 .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--card-border);
+    overflow: hidden;
 }
 
 .pricing-card {
-    position: relative;
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    transition: all var(--transition-normal);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    transition: background var(--transition-fast);
+    gap: 16px;
+}
+
+.pricing-card:last-child {
+    border-bottom: none;
 }
 
 .pricing-card:hover {
-    background: var(--card-bg-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary-light);
+    background: rgba(99, 102, 241, 0.04);
 }
 
 .pricing-card.has-bonus {
-    border-color: var(--success-border);
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(16, 185, 129, 0.08) 100%);
+    background: rgba(16, 185, 129, 0.03);
 }
 
 .pricing-card.has-bonus:hover {
-    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
 }
 
 .pricing-card.premium {
-    border-color: var(--premium-border);
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(99, 102, 241, 0.08) 100%);
+    background: rgba(99, 102, 241, 0.03);
 }
 
 .pricing-card.premium:hover {
-    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.08);
 }
 
 .card-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    padding: 6px 14px;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 700;
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--primary);
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     color: white;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    margin-left: 8px;
+    flex-shrink: 0;
 }
 
 .card-name {
-    font-size: 1.05rem;
-    font-weight: 600;
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
     color: var(--text-dark);
-    margin-bottom: 12px;
-    padding-right: 70px;
-    line-height: 1.5;
-    letter-spacing: 0.5px;
-    word-spacing: 2px;
-}
-
-.pricing-card:not(.premium):not(.has-bonus) .card-name {
-    padding-right: 0;
+    line-height: 1.4;
+    min-width: 0;
 }
 
 .card-price {
-    font-size: 1.6rem;
+    font-size: 1rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--gold);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 120px;
+    text-align: right;
 }
 
 .card-bonus {
-    margin-top: 14px;
-    padding: 12px 16px;
-    background: var(--success-bg);
-    border: 1px solid var(--success-border);
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    color: #047857;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    word-spacing: 3px;
+    display: none;
+    /* Hide bonus in list view for cleaner look, shown on hover via tooltip */
 }
 
 .card-note {
-    margin-top: 12px;
-    font-size: 0.8rem;
-    color: var(--text-light);
-    font-style: italic;
+    display: none;
+    /* Hide notes in list view */
 }
+
+/* Show bonus as tooltip on hover */
+.pricing-card[data-bonus]:hover::after {
+    content: attr(data-bonus);
+    position: absolute;
+    right: 150px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--success);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+}
+
 
 /* ========================================
    SCROLL TO TOP BUTTON

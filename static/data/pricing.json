@@ -597,9 +597,9 @@
       ]
     },
     {
-      "id": "tham-my-co-be",
+      "id": "intimate",
       "name": "THẨM MỸ CÔ BÉ",
-      "icon": "🔹",
+      "icon": "🌺",
       "items": [
         {
           "name": "Tạo Hình môi bé độ 1",
@@ -784,9 +784,9 @@
       ]
     },
     {
-      "id": "cang-da-medi-lift",
+      "id": "facelift",
       "name": "CĂNG DA MEDI LIFT",
-      "icon": "🔹",
+      "icon": "✨",
       "items": [
         {
           "name": "Căng da Medi Lift  toàn mặt ( gây mê ) tại BV",
@@ -851,9 +851,9 @@
       ]
     },
     {
-      "id": "tham-my-cong-nghe-cao",
+      "id": "high-tech",
       "name": "THẨM MỸ CÔNG NGHỆ CAO",
-      "icon": "🔹",
+      "icon": "🔬",
       "items": [
         {
           "name": "Trẻ hóa PRH Cấp độ 1",
@@ -1254,5 +1254,5 @@
       ]
     }
   ],
-  "updated_at": "27/01/2026 01:47"
+  "updated_at": "27/01/2026 02:01"
 }

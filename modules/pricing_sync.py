@@ -9,16 +9,34 @@ logger = logging.getLogger(__name__)
 
 # Category Mapping to match existing HTML IDs and Icons
 CATEGORY_MAP = {
+    # Cosmetic/Beauty services
     'FILLER HÀN CƠ BẢN': {'id': 'filler-basic', 'icon': '💉'},
     'FILLER HÀN CAO CẤP': {'id': 'filler-premium', 'icon': '✨'},
     'DỊCH VỤ NÂNG NGỰC': {'id': 'breast', 'icon': '🌸'},
     'TIÊM THON GỌN TỪNG VÙNG': {'id': 'slimming', 'icon': '💫'},
     'THON GỌN HÀM V-LINE PERFECT': {'id': 'vline', 'icon': '✓', 'match_fuzzy': True},
-    'THON GỌN HÀM VLINE PERFECT': {'id': 'vline', 'icon': '✓'},  # Variation
+    'THON GỌN HÀM VLINE PERFECT': {'id': 'vline', 'icon': '✓'},
     'DỊCH VỤ KHÁC': {'id': 'other', 'icon': '⚡'},
     'NÂNG MŨI': {'id': 'nose', 'icon': '👃'},
     'CÁC DỊCH VỤ VỀ MẮT': {'id': 'eyes', 'icon': '👁'},
-    'DỊCH VỤ VỀ MẮT': {'id': 'eyes', 'icon': '👁'} # Variation
+    'DỊCH VỤ VỀ MẮT': {'id': 'eyes', 'icon': '👁'},
+    'THẨM MỸ CÔ BÉ': {'id': 'intimate', 'icon': '🌺'},
+    'CĂNG DA MEDI LIFT': {'id': 'facelift', 'icon': '✨'},
+    'THẨM MỸ CÔNG NGHỆ CAO': {'id': 'high-tech', 'icon': '🔬'},
+    
+    # Dental services - 🦷 tooth icon
+    'DỊCH VỤ NHA KHOA': {'id': 'dental', 'icon': '🦷'},
+    'NHA KHOA': {'id': 'dental', 'icon': '🦷'},
+    'IMPLANT': {'id': 'implant', 'icon': '🦷'},
+    'MẮC CÀI KIM LOẠI TIÊU CHUẨN': {'id': 'braces-metal', 'icon': '🦷'},
+    'MẮC CÀI KIM LOẠI TỰ ĐÓNG': {'id': 'braces-self', 'icon': '🦷'},
+    'MẮC CÀI SỨ TIÊU CHUẨN': {'id': 'braces-ceramic', 'icon': '🦷'},
+    'MẮC CÀI SỨ TỰ ĐÓNG': {'id': 'braces-ceramic-self', 'icon': '🦷'},
+    'MẮC CÀI KIM LOẠI TỰ ĐÓNG DAMON ULTIMA (MỚI)': {'id': 'braces-damon', 'icon': '🦷'},
+    'RĂNG SỨ': {'id': 'porcelain', 'icon': '🦷'},
+    'TRÁM RĂNG': {'id': 'filling', 'icon': '🦷'},
+    'TẨY TRẮNG RĂNG': {'id': 'whitening', 'icon': '🦷'},
+    'NHỔ RĂNG': {'id': 'extraction', 'icon': '🦷'},
 }
 
 def clean_price(price):
