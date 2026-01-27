@@ -126,6 +126,40 @@ def sync_pricing_sheet(client, sheet_id):
                     'badge': badge
                 }
                 current_category['items'].append(item)
+        
+        # === POST-PROCESSING: Extract dental items into separate category ===
+        DENTAL_KEYWORDS = [
+            'IMPLANT', 'MẮC CÀI', 'VENEER', 'RĂNG SỨ', 'RĂNG', 'NHA KHOA',
+            'TRÁM', 'TẨY TRẮNG', 'NHỔ', 'NIỀNG', 'CHỈ NHA', 'SỨ'
+        ]
+        
+        dental_category = {
+            'id': 'dental',
+            'name': 'DỊCH VỤ NHA KHOA',
+            'icon': '🦷',
+            'items': []
+        }
+        
+        # Extract dental items from all categories
+        for cat in categories:
+            items_to_keep = []
+            for item in cat['items']:
+                item_upper = item['name'].upper()
+                is_dental = any(kw in item_upper for kw in DENTAL_KEYWORDS)
+                
+                if is_dental:
+                    dental_category['items'].append(item)
+                else:
+                    items_to_keep.append(item)
+            
+            cat['items'] = items_to_keep
+        
+        # Remove empty categories and add dental if it has items
+        categories = [c for c in categories if len(c['items']) > 0]
+        
+        if len(dental_category['items']) > 0:
+            # Insert dental category at a sensible position (after beauty services)
+            categories.append(dental_category)
                 
         # Save to JSON
         output_file = Path(os.getcwd()) / 'static' / 'data' / 'pricing.json'

@@ -1066,6 +1066,19 @@
           "badge": null
         },
         {
+          "name": "DỊCH VỤ",
+          "price": "Giá mới",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "dental",
+      "name": "DỊCH VỤ NHA KHOA",
+      "icon": "🦷",
+      "items": [
+        {
           "name": "Dán sứ Veneer Emax Press",
           "price": "8.640.000đ",
           "bonus": "",
@@ -1122,12 +1135,6 @@
         {
           "name": "Implant Toàn hàm: All-on Phục hình cố định: Sứ",
           "price": "Theo loại sứ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "DỊCH VỤ",
-          "price": "Giá mới",
           "bonus": "",
           "badge": null
         },
@@ -1254,5 +1261,5 @@
       ]
     }
   ],
-  "updated_at": "27/01/2026 02:01"
+  "updated_at": "27/01/2026 02:07"
 }
