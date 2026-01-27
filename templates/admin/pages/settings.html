@@ -1,10 +1,43 @@
 <!-- Settings Page -->
 <div class="page-section" id="page-settings">
+    <!-- Build Version Indicator -->
+    <div class="build-version-banner" style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        font-size: 13px;
+    ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="
+                background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 12px;
+                letter-spacing: 0.5px;
+            ">v2.5.0</span>
+            <span style="color: #0369a1; font-weight: 500;">
+                Build: <strong>20260127-0402</strong>
+            </span>
+        </div>
+        <div style="color: #64748b; font-size: 12px;">
+            <span>🕐</span> Last Updated: <strong style="color: #0369a1;">Jan 27, 2026 @ 04:02 CST</strong>
+        </div>
+    </div>
+
     <div class="header">
         <h2 data-i18n="commission_settings">Commission Settings</h2>
         <div class="header-actions">
-            <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/commission-settings/export')" data-i18n="export_excel">Export Excel</button>
-            <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes" disabled>Save Changes</button>
+            <button class="btn btn-secondary" onclick="exportToExcel('/api/admin/commission-settings/export')"
+                data-i18n="export_excel">Export Excel</button>
+            <button class="btn btn-primary" onclick="saveCommissionSettings()" data-i18n="save_changes" disabled>Save
+                Changes</button>
         </div>
     </div>
     <div class="card">
@@ -18,4 +51,3 @@
         </div>
     </div>
 </div>
-
