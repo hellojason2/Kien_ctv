@@ -69,6 +69,130 @@ except ImportError as e:
     print(f"WARNING: Could not load modules: {e}")
     print("Some features will be unavailable.")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# EMBEDDED BACKGROUND SYNC WORKER (for platforms without separate worker dyno)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def start_embedded_sync_worker():
+    """
+    Start the sync worker as a background thread inside the main web process.
+    This is triggered when gunicorn starts (via gunicorn hooks or first request).
+    """
+    import threading
+    import os
+    
+    # Only start in production (gunicorn) - not in Flask debug mode
+    if os.environ.get('FLASK_DEBUG') == '1' or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        print("[SYNC] Skipping embedded worker in debug mode")
+        return
+    
+    # Check if already started (avoid duplicate threads)
+    if hasattr(app, '_sync_worker_started') and app._sync_worker_started:
+        return
+    
+    def run_sync_loop():
+        """Background sync loop - runs every 30 seconds"""
+        import time
+        import logging
+        from datetime import datetime
+        
+        logger = logging.getLogger('sync_worker_embedded')
+        logger.setLevel(logging.INFO)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter('[SYNC] %(asctime)s - %(message)s'))
+            logger.addHandler(handler)
+        
+        logger.info("=" * 50)
+        logger.info("Embedded Sync Worker Started")
+        logger.info("=" * 50)
+        
+        # Wait for app to fully initialize
+        time.sleep(10)
+        
+        cycle = 0
+        consecutive_failures = 0
+        SYNC_INTERVAL = 30
+        MAX_FAILURES = 10
+        
+        while True:
+            cycle += 1
+            try:
+                from modules.google_sync import GoogleSheetSync
+                from modules.mlm_core import calculate_new_commissions_fast
+                
+                GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
+                
+                logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%H:%M:%S')}")
+                
+                syncer = GoogleSheetSync()
+                client = syncer.get_google_client()
+                spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+                conn = syncer.get_db_connection()
+                
+                # Log to worker_logs table
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "INSERT INTO worker_logs (level, message, created_at, source) VALUES (%s, %s, %s, 'sync_worker')",
+                            ('INFO', f'Sync Cycle #{cycle} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', datetime.now())
+                        )
+                    conn.commit()
+                except Exception:
+                    pass
+                
+                # Sync all tabs
+                total_processed = 0
+                for tab in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+                    try:
+                        p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, tab)
+                        total_processed += p
+                    except Exception as tab_e:
+                        logger.error(f"Tab {tab} error: {tab_e}")
+                
+                # Calculate commissions if new records
+                if total_processed > 0:
+                    try:
+                        calculate_new_commissions_fast(connection=conn)
+                    except Exception:
+                        pass
+                
+                # Update heartbeat
+                syncer.update_heartbeat(conn, total_processed)
+                
+                conn.close()
+                consecutive_failures = 0
+                logger.info(f"Cycle #{cycle} complete: {total_processed} processed")
+                
+            except Exception as e:
+                consecutive_failures += 1
+                logger.error(f"Cycle #{cycle} error: {e}")
+                
+                if consecutive_failures >= MAX_FAILURES:
+                    wait_time = 300
+                else:
+                    wait_time = min(SYNC_INTERVAL * (2 ** consecutive_failures), 300)
+                
+                time.sleep(wait_time)
+                continue
+            
+            time.sleep(SYNC_INTERVAL)
+    
+    # Start the background thread
+    thread = threading.Thread(target=run_sync_loop, daemon=True)
+    thread.start()
+    app._sync_worker_started = True
+    print("[SYNC] Embedded sync worker thread started")
+
+# Start worker when app is ready (gunicorn)
+# Uses before_first_request equivalent for Flask
+@app.before_request
+def _start_sync_worker_once():
+    """Start embedded sync worker on first request (gunicorn warmup)"""
+    if not hasattr(app, '_sync_first_request_done'):
+        app._sync_first_request_done = True
+        start_embedded_sync_worker()
+
 # Database connection pool
 from modules.db_pool import get_db_connection, return_db_connection
 
