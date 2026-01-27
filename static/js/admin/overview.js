@@ -697,13 +697,18 @@ function updateRowCountDisplay(label, counts) {
     if (sheetCount != null) {
         const diff = sheetCount - dbCount;
 
-        // Format: DB / Sheet (-Diff)
+        // Format: DB / Sheet (Diff)
+        // diff > 0: Sheet has more = NEW rows waiting to be added = RED
+        // diff < 0: DB has more than sheet = duplicates removed = GREEN
         if (diff > 0) {
-            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; opacity: 0.8; color: #d97706;">(-${formatNum(diff)})</span>`;
+            // NEW rows waiting to be added → RED
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #dc2626;">(-${formatNum(diff)})</span>`;
         } else if (diff < 0) {
-            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; opacity: 0.8; color: #b91c1c;">(+${formatNum(Math.abs(diff))})</span>`;
+            // Duplicates removed from sync → GREEN
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #16a34a;">(+${formatNum(Math.abs(diff))})</span>`;
         } else {
-            valueEl.textContent = `${formatNum(dbCount)} / ${formatNum(sheetCount)}`;
+            // Perfectly synced
+            valueEl.innerHTML = `${formatNum(dbCount)} / ${formatNum(sheetCount)} <span style="font-size: 0.8em; font-weight: 700; color: #16a34a;">✓</span>`;
         }
 
         // Color coding based on sync status
@@ -713,14 +718,11 @@ function updateRowCountDisplay(label, counts) {
             // Fully synced - green
             boxEl.classList.add('status-synced');
         } else if (dbCount < sheetCount) {
-            // Missing rows (usually duplicates in sheet) - show as semi-synced/warning
-            // We'll keep it green-ish if it's just duplicates, but strictly it's 'missing' matches
-            // User wants to know "Sheet - Empty/Dup = DB". 
-            // Let's rely on the text to explain the diff.
-            boxEl.classList.add('status-synced'); // Keep it green as this is "normal" behavior now
-            boxEl.style.borderColor = '#fbbf24'; // Add a yellow tint border
+            // Missing rows - waiting to sync - yellow warning border
+            boxEl.classList.add('status-synced');
+            boxEl.style.borderColor = '#fbbf24'; // Yellow tint
         } else {
-            // More in DB than sheet (unusual)
+            // DB > Sheet (duplicates handled)
             boxEl.classList.add('status-synced');
         }
     } else {
