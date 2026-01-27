@@ -164,7 +164,7 @@ def main():
         db_handler.setLevel(logging.INFO)
         formatter = logging.Formatter('%(message)s') # Cleaner logs for UI
         db_handler.setFormatter(formatter)
-        logger.addHandler(db_handler)
+        logging.getLogger().addHandler(db_handler)
         logger.info("Database logging enabled")
     except Exception as e:
         logger.error(f"Failed to setup DB logging: {e}")
