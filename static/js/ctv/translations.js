@@ -160,6 +160,7 @@ window.translations = {
         page_booking: 'Giới thiệu khách',
         book_appointment: 'Giới thiệu khách',
         introduce_customer: 'Giới thiệu khách',
+        your_customers: 'Khách của bạn',
 
         // Catalogue
         catalogue: 'Catalog',
@@ -405,6 +406,7 @@ window.translations = {
         page_booking: 'Refer Customer',
         book_appointment: 'Refer Customer',
         introduce_customer: 'Refer Customer',
+        your_customers: 'Your Customers',
 
         // Catalogue
         catalogue: 'Catalog',

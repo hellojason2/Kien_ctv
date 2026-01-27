@@ -1002,125 +1002,257 @@
         {
           "name": "RS Titan",
           "price": "2.760.000đ",
-          "bonus": "1.920.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Katana",
           "price": "3.360.000đ",
-          "bonus": "2.340.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Venus 3D",
           "price": "4.080.000đ",
-          "bonus": "2.760.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Ful Zirconia",
           "price": "4.680.000đ",
-          "bonus": "3.240.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Ceramill",
           "price": "6.600.000đ",
-          "bonus": "4.620.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Emax",
           "price": "6.600.000đ",
-          "bonus": "4.620.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS HT Smile",
           "price": "7.200.000đ",
-          "bonus": "5.040.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Cercon HT",
           "price": "7.200.000đ",
-          "bonus": "5.040.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Nacera Vita",
           "price": "7.800.000đ",
-          "bonus": "5.460.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS 3M Lava Plus",
           "price": "9.600.000đ",
-          "bonus": "6.720.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "RS Orodent",
           "price": "18.600.000đ",
-          "bonus": "13.020.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Dán sứ Veneer Emax Press",
           "price": "8.640.000đ",
-          "bonus": "6.120.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Dán sứ Veneer Caramay Ngọc Trai",
           "price": "11.040.000đ",
-          "bonus": "7.800.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Dán sứ Veneer Lisi Press",
           "price": "17.040.000đ",
-          "bonus": "12.000.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Trụ Implant Hàn",
           "price": "23.650.000đ",
-          "bonus": "16.500.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Trụ Implant Mỹ",
           "price": "28.380.000đ",
-          "bonus": "19.800.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Trụ Implant Pháp",
           "price": "31.460.000đ",
-          "bonus": "22.000.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Trụ Implant Thụy Sỹ",
           "price": "48.290.000đ",
-          "bonus": "33.880.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Implant Toàn hàm: All-on Phục hình tạm",
           "price": "15.730.000đ",
-          "bonus": "11.000.000",
+          "bonus": "",
           "badge": null
         },
         {
           "name": "Implant Toàn hàm: All-on Phục hình cố định: thanh bar",
           "price": "39.380.000đ",
-          "bonus": "27.500.000",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Implant Toàn hàm: All-on Phục hình cố định: Sứ",
+          "price": "Theo loại sứ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "DỊCH VỤ",
+          "price": "Giá mới",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài kim loại cấp độ 1",
+          "price": "27.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài kim loại cấp độ 2",
+          "price": "33.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài kim loại cấp độ 3",
+          "price": "36.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài kim loại cấp độ 4",
+          "price": "43.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự buộc cấp độ 1",
+          "price": "31.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự buộc cấp độ 2",
+          "price": "38.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự buộc cấp độ 3",
+          "price": "41.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự buộc cấp độ 4",
+          "price": "48.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ cấp độ 1",
+          "price": "37.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ cấp độ 2",
+          "price": "45.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ cấp độ 3",
+          "price": "50.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ cấp độ 4",
+          "price": "56.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng cấp độ 1",
+          "price": "45.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng cấp độ 2",
+          "price": "52.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng cấp độ 3",
+          "price": "58.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng cấp độ 4",
+          "price": "63.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng Damon Ultima cấp độ 1",
+          "price": "47.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng Damon Ultima cấp độ 2",
+          "price": "55.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng Damon Ultima cấp độ 3",
+          "price": "57.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài tự đóng Damon Ultima cấp độ 4",
+          "price": "65.000.000đ",
+          "bonus": "",
           "badge": null
         }
       ]
     }
   ],
-  "updated_at": "24/01/2026 18:17"
+  "updated_at": "27/01/2026 01:47"
 }

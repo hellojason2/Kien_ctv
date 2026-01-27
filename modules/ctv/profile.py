@@ -155,6 +155,38 @@ def get_profile():
         
         monthly_services_count = kh_count + svc_count
         
+        # Count total customers referred by this CTV with "Cho xac nhan" (Pending) status
+        # Check both khach_hang and services tables, using both ma_ctv and ten as identifiers
+        # Also handle phone format differences (with/without leading 0)
+        print("DEBUG: counting pending customers")
+        
+        # Build list of possible identifiers for this CTV
+        # nguoi_chot can be: ma_ctv, ma_ctv without leading 0, or ten (name)
+        ma_ctv_no_leading_zero = ctv['ma_ctv'].lstrip('0') if ctv['ma_ctv'] else ''
+        
+        # Count from khach_hang - nguoi_chot can be ma_ctv (with or without leading 0) or ten
+        # Only count customers with "Cho xac nhan" status
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM khach_hang
+            WHERE (nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s)
+            AND trang_thai = 'Cho xac nhan'
+        """, (ctv['ma_ctv'], ma_ctv_no_leading_zero, ctv['ten']))
+        kh_customer_count = int(cursor.fetchone()['count'])
+        
+        # Count from services - ctv_code is typically ma_ctv
+        # Only count services with "Cho xac nhan" status
+        cursor.execute("""
+            SELECT COUNT(DISTINCT customer_id) as count
+            FROM services
+            WHERE (ctv_code = %s OR ctv_code = %s OR nguoi_chot = %s OR nguoi_chot = %s OR nguoi_chot = %s)
+            AND status = 'Cho xac nhan'
+        """, (ctv['ma_ctv'], ma_ctv_no_leading_zero, ctv['ma_ctv'], ma_ctv_no_leading_zero, ctv['ten']))
+        svc_customer_count = int(cursor.fetchone()['count'])
+        
+        # Total pending customers
+        total_customers = kh_customer_count + svc_customer_count
+        
         cursor.close()
         return_db_connection(connection)
         
@@ -175,7 +207,8 @@ def get_profile():
                 'total_earnings': total_earnings,
                 'monthly_earnings': monthly_earnings,
                 'monthly_services_count': monthly_services_count,
-                'period_revenue': period_revenue
+                'period_revenue': period_revenue,
+                'customer_count': total_customers
             }
         })
         

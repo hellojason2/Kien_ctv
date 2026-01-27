@@ -195,12 +195,12 @@ async function loadProfile(fromDate = null, toDate = null) {
         document.getElementById('statNetworkSize').textContent = result.stats.network_size;
         document.getElementById('statMonthlyServices').textContent = result.stats.monthly_services_count || 0;
 
-        // Update referral badge notification
+        // Update referral badge notification (show customer count, not network size)
         const referralBadge = document.getElementById('referralBadge');
         if (referralBadge) {
-            const networkSize = parseInt(result.stats.network_size) || 0;
-            if (networkSize > 0) {
-                referralBadge.textContent = networkSize;
+            const customerCount = parseInt(result.stats.customer_count) || 0;
+            if (customerCount > 0) {
+                referralBadge.textContent = customerCount;
                 referralBadge.style.display = 'flex';
             } else {
                 referralBadge.style.display = 'none';
