@@ -826,10 +826,14 @@
     flex: 1;
     padding: 24px;
     transition: margin-left var(--sidebar-transition);
+    max-width: calc(100vw - var(--sidebar-width-expanded));
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .main-content.sidebar-collapsed {
     margin-left: var(--sidebar-width-collapsed);
+    max-width: calc(100vw - var(--sidebar-width-collapsed));
 }
 
 /* FULL WIDTH LAYOUT - No Sidebar */
@@ -849,10 +853,13 @@
         margin-left: 0;
         padding-top: 72px;
         /* Space for mobile header */
+        max-width: 100vw;
+        width: 100%;
     }
 
     .main-content.sidebar-collapsed {
         margin-left: 0;
+        max-width: 100vw;
     }
 
     /* Full width on mobile - no padding for header since no header */
