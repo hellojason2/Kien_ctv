@@ -5,27 +5,68 @@
             <h3 data-i18n="booking_form_title">Thông Tin Khách Hàng</h3>
         </div>
         <div class="card-body">
-            <p style="color:#666;margin-bottom:24px;font-size:14px;text-align:center;" data-i18n="booking_form_subtitle">Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+            <p style="color:#666;margin-bottom:24px;font-size:14px;text-align:center;"
+                data-i18n="booking_form_subtitle">Bạn vui lòng nhập thông tin khách hàng tại đây</p>
+
+            <!-- Compact Voice Input Button -->
+            <div class="voice-input-compact" style="max-width:600px;margin:0 auto 20px;text-align:center;">
+                <div class="voice-btn-group">
+                    <button type="button" id="voiceRecordBtn" class="voice-pill-btn" onclick="toggleVoiceRecording()">
+                        <svg class="voice-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" x2="12" y1="19" y2="22" />
+                        </svg>
+                        <span class="voice-pill-text" data-i18n="voice_input_short">Nhập giọng nói</span>
+                    </button>
+
+                    <div class="voice-status-inline" id="voiceStatus" style="display:none;">
+                        <div class="voice-wave-mini">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="voice-status-text" data-i18n="listening">Đang nghe...</span>
+                    </div>
+                </div>
+
+                <div class="voice-result-inline" id="voiceResult" style="display:none;">
+                    <span class="voice-result-tag">
+                        <strong data-i18n="detected_name">Tên:</strong> <span id="voiceDetectedName">-</span>
+                    </span>
+                    <span class="voice-result-tag">
+                        <strong data-i18n="detected_phone">SĐT:</strong> <span id="voiceDetectedPhone">-</span>
+                    </span>
+                    <span class="voice-result-tag" id="voiceServiceTag" style="display:none;">
+                        <strong data-i18n="detected_service">DV:</strong> <span id="voiceDetectedService">-</span>
+                    </span>
+                </div>
+            </div>
+
             <form id="bookingForm" style="max-width:600px;margin:0 auto;">
                 <div class="form-group">
                     <label data-i18n="customer_name">Tên khách hàng <span style="color:#e53e3e;">*</span></label>
-                    <input type="text" id="bookingCustomerName" data-i18n-placeholder="customer_name_placeholder" placeholder="Nhập tên khách hàng" required>
+                    <input type="text" id="bookingCustomerName" data-i18n-placeholder="customer_name_placeholder"
+                        placeholder="Nhập tên khách hàng" required>
                 </div>
                 <div class="form-group">
                     <label data-i18n="customer_phone">Số điện thoại <span style="color:#e53e3e;">*</span></label>
                     <div class="phone-input-row">
-                        <input type="tel" id="bookingCustomerPhone" data-i18n-placeholder="customer_phone_placeholder" placeholder="Nhập số điện thoại" required>
-                        <button type="button" class="btn-check-phone" onclick="checkBookingPhone()" data-i18n="check">Kiểm Tra</button>
+                        <input type="tel" id="bookingCustomerPhone" data-i18n-placeholder="customer_phone_placeholder"
+                            placeholder="Nhập số điện thoại" required>
+                        <button type="button" class="btn-check-phone" onclick="checkBookingPhone()"
+                            data-i18n="check">Kiểm Tra</button>
                         <div class="phone-check-result" id="bookingPhoneResult" style="display:none;"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label data-i18n="service_interest">Dịch vụ Quan tâm <span style="color:#e53e3e;">*</span></label>
-                    <input type="text" id="bookingServiceInterest" data-i18n-placeholder="service_interest_placeholder" placeholder="Nhập dịch vụ quan tâm" required>
+                    <input type="text" id="bookingServiceInterest" data-i18n-placeholder="service_interest_placeholder"
+                        placeholder="Nhập dịch vụ quan tâm" required>
                 </div>
                 <div class="form-group">
                     <label data-i18n="notes">Ghi chú</label>
-                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                    <textarea id="bookingNotes" rows="3" data-i18n-placeholder="notes_placeholder"
+                        placeholder="Nhập ghi chú (tùy chọn)"></textarea>
                 </div>
                 <div class="form-group">
                     <label data-i18n="customer_region">Khu vực của khách hàng</label>
@@ -40,9 +81,12 @@
                     <label data-i18n="referrer_phone">SDT người giới thiệu</label>
                     <input type="tel" id="bookingReferrerPhone" readonly>
                 </div>
-                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn" data-i18n="submit_booking">Gửi Thông Tin</button>
-                <div class="error-msg" id="bookingError" style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
-                <div class="success-msg" id="bookingSuccess" style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
+                <button type="submit" class="btn btn-primary" id="bookingSubmitBtn" data-i18n="submit_booking">Gửi Thông
+                    Tin</button>
+                <div class="error-msg" id="bookingError"
+                    style="display:none;color:#e53e3e;font-size:14px;margin-top:16px;"></div>
+                <div class="success-msg" id="bookingSuccess"
+                    style="display:none;color:#28a745;font-size:14px;margin-top:16px;"></div>
             </form>
         </div>
     </div>

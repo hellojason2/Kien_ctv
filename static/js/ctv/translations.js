@@ -250,7 +250,22 @@ window.translations = {
         // Referral Link
         share_referral: 'Chia Sẻ Link',
         referral_link_copied: 'Đã sao chép link giới thiệu!',
-        copy_link: 'Sao Chép Link'
+        copy_link: 'Sao Chép Link',
+
+        // Voice Input
+        voice_input_title: 'Nhập bằng giọng nói',
+        voice_input_short: 'Nhập giọng nói',
+        press_to_speak: 'Bấm để nói',
+        tap_to_stop: 'Nhấn để dừng',
+        listening: 'Đang nghe...',
+        processing: 'Đang xử lý...',
+        detected_name: 'Tên:',
+        detected_phone: 'SĐT:',
+        detected_service: 'DV:',
+        voice_hint: '💡 Nói: "Tên Nguyễn Văn A, số điện thoại 0983..., muốn làm nâng mũi"',
+        mic_permission_denied: 'Không thể truy cập microphone. Vui lòng cấp quyền.',
+        recording_too_short: 'Bản ghi quá ngắn. Vui lòng nói lâu hơn.',
+        transcription_failed: 'Có lỗi xảy ra khi xử lý giọng nói'
     },
     en: {
         // Login
@@ -496,7 +511,22 @@ window.translations = {
         // Referral Link
         share_referral: 'Share Link',
         referral_link_copied: 'Referral link copied!',
-        copy_link: 'Copy Link'
+        copy_link: 'Copy Link',
+
+        // Voice Input
+        voice_input_title: 'Voice Input',
+        voice_input_short: 'Voice Input',
+        press_to_speak: 'Press to Speak',
+        tap_to_stop: 'Tap to Stop',
+        listening: 'Listening...',
+        processing: 'Processing...',
+        detected_name: 'Name:',
+        detected_phone: 'Phone:',
+        detected_service: 'Service:',
+        voice_hint: '💡 Say: \"Name John Smith, phone 0983..., want rhinoplasty\"',
+        mic_permission_denied: 'Cannot access microphone. Please grant permission.',
+        recording_too_short: 'Recording too short. Please speak longer.',
+        transcription_failed: 'Error processing voice input'
     }
 };
 
