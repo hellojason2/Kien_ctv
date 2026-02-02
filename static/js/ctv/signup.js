@@ -462,11 +462,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refPhone && referrerInput) {
         // Pre-fill the referrer phone number from URL
         referrerInput.value = refPhone;
+        referrerInput.readOnly = true; // Lock the field
+
+        // Robust locking: prevent all mouse and touch interaction
+        referrerInput.style.pointerEvents = 'none';
+        referrerInput.style.cursor = 'not-allowed';
+        referrerInput.style.userSelect = 'none';
+        referrerInput.tabIndex = -1; // Prevent keyboard focus
+
+        // Visual feedback for locked state
+        referrerInput.style.backgroundColor = '#f9fafb';
+        referrerInput.style.color = '#6b7280';
+        referrerInput.style.borderColor = '#e5e7eb';
+        referrerInput.style.fontWeight = '600';
+
         // Trigger validation to show referrer name
         debouncedCheckReferrer(refPhone);
-        // Add visual indicator that this was auto-filled
-        referrerInput.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
-        referrerInput.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+
+        // Add a small badge or note if possible, but for now just the styling is enough
     }
 
     // Auto-show terms modal on first visit
@@ -486,10 +499,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach real-time validation to referrer code input
     if (referrerInput) {
         referrerInput.addEventListener('input', (e) => {
+            // Revert changes if field is locked
+            if (e.target.readOnly && refPhone) {
+                e.target.value = refPhone;
+                return;
+            }
             debouncedCheckReferrer(e.target.value);
             // Reset styling if user manually changes
-            e.target.style.backgroundColor = '';
-            e.target.style.borderColor = '';
+            if (!e.target.readOnly) {
+                e.target.style.backgroundColor = '';
+                e.target.style.borderColor = '';
+            }
         });
     }
 

@@ -255,11 +255,9 @@ async function initializeApp() {
     // Initialize commission filters
     initCommissionFilters();
 
-    // Initialize sidebar scroll collapse
-    initSidebarScrollCollapse();
-
-    // Initialize sidebar collapse button
-    initSidebarCollapseButton();
+    // NOTE: Sidebar collapse is handled by navigation.js initSidebarCollapse()
+    // Do NOT call initSidebarScrollCollapse() or initSidebarCollapseButton() here
+    // as they conflict with the navigation.js state management
 
     // Initialize pending registrations badge
     initPendingRegistrationsBadge();

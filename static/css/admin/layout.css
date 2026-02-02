@@ -827,12 +827,13 @@
 
 .main-content {
     margin-left: var(--sidebar-width-expanded);
+    /* Force margin to clear sidebar */
     width: calc(100vw - var(--sidebar-width-expanded));
     max-width: calc(100vw - var(--sidebar-width-expanded));
     min-width: 0;
     flex: 1;
     padding: 24px;
-    transition: margin-left var(--sidebar-transition), width var(--sidebar-transition);
+    transition: margin-left var(--sidebar-transition), width var(--sidebar-transition), max-width var(--sidebar-transition);
     overflow-x: hidden;
     overflow-y: auto;
     box-sizing: border-box;

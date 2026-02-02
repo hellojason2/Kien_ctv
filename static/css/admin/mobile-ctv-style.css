@@ -2,18 +2,20 @@
    CTV STYLE FLOATING HEADER (MOBILE)
    ═══════════════════════════════════════════════════════════════════ */
 
-.floating-header {
-    display: none;
-    /* Hidden on desktop */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1001;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-color);
+@media (max-width: 768px) {
+    .floating-header {
+        display: none;
+        /* Hidden on desktop - Wait, this comment is wrong now */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+    }
 }
 
 .floating-header-inner {

@@ -1,0 +1,126 @@
+/* App-specific styles */
+
+/* Smooth scrolling for the entire app */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #F6F6F2;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #111111;
+  border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: #D73A3A;
+}
+
+/* Selection color */
+::selection {
+  background: #D73A3A;
+  color: white;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #D73A3A;
+  outline-offset: 2px;
+}
+
+/* Image loading placeholder */
+img {
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+}
+
+/* Prevent text selection on interactive elements */
+button, a {
+  user-select: none;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea {
+  transition: all 0.3s ease;
+}
+
+/* Card hover effects */
+.card-tier {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card-tier:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+}
+
+/* Circle image hover */
+.circle-image {
+  transition: transform 0.6s ease;
+}
+
+.circle-image:hover {
+  transform: scale(1.02);
+}
+
+/* Red rule animation */
+.red-rule {
+  transform-origin: left;
+  animation: scaleIn 0.8s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 1024px) {
+  .section-pinned {
+    min-height: 100vh;
+    height: auto;
+  }
+  
+  .text-hero {
+    font-size: clamp(36px, 12vw, 64px);
+  }
+  
+  .text-section {
+    font-size: clamp(28px, 10vw, 48px);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .grain-overlay,
+  nav,
+  .fixed {
+    display: none !important;
+  }
+  
+  .section-pinned {
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+}

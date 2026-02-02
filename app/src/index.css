@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 60 14% 96%;
+    --foreground: 0 0% 7%;
+    --card: 60 14% 96%;
+    --card-foreground: 0 0% 7%;
+    --popover: 60 14% 96%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;
+    --primary-foreground: 60 14% 96%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 43%;
+    --accent: 0 66% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 0 66% 53%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 60 14% 96%;
+    --card: 0 0% 12%;
+    --card-foreground: 60 14% 96%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 60 14% 96%;
+    --primary: 60 14% 96%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 60 14% 96%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 66% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 66% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  
+  .font-mono-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+  
+  .section-pinned {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .circle-image {
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  
+  .circle-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-4 bg-[#D73A3A] text-white font-medium rounded-full transition-all duration-300;
+  }
+  
+  .btn-primary:hover {
+    @apply bg-[#B82F2F] scale-105;
+  }
+  
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-8 py-4 border-2 border-[#111] text-[#111] font-medium rounded-full transition-all duration-300;
+  }
+  
+  .btn-outline:hover {
+    @apply bg-[#111] text-white;
+  }
+  
+  .btn-outline-white {
+    @apply inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-medium rounded-full transition-all duration-300;
+  }
+  
+  .btn-outline-white:hover {
+    @apply bg-white text-[#111];
+  }
+  
+  .red-rule {
+    width: 6vw;
+    height: 2px;
+    background-color: #D73A3A;
+  }
+  
+  .card-tier {
+    @apply rounded-[28px] overflow-hidden;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.10);
+  }
+}
+
+@layer utilities {
+  .text-hero {
+    font-size: clamp(48px, 8vw, 120px);
+    line-height: 0.95;
+  }
+  
+  .text-section {
+    font-size: clamp(36px, 6vw, 96px);
+    line-height: 0.95;
+  }
+  
+  .text-body {
+    font-size: clamp(14px, 1.2vw, 18px);
+    line-height: 1.6;
+  }
+}
