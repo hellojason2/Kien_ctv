@@ -301,6 +301,52 @@ def get_max_depth_below(ctv_code, connection=None):
             return_db_connection(connection)
         return 0
 
+def get_total_downline(ctv_code, connection=None):
+    """
+    DOES: Count the total number of CTV downline below a CTV (excluding self)
+    """
+    should_close = False
+    if connection is None:
+        connection = get_db_connection()
+        should_close = True
+    
+    if not connection:
+        return 0
+    
+    try:
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            WITH RECURSIVE descendants AS (
+                SELECT ma_ctv, 0 as level FROM ctv WHERE ma_ctv = %s
+                
+                UNION ALL
+                
+                SELECT c.ma_ctv, d.level + 1
+                FROM ctv c
+                INNER JOIN descendants d ON c.nguoi_gioi_thieu = d.ma_ctv
+                WHERE d.level < %s
+            )
+            SELECT COUNT(*) as total
+            FROM descendants
+            WHERE level > 0
+        """, (ctv_code, MAX_LEVEL))
+        
+        result = cursor.fetchone()
+        total = result[0] if result and result[0] is not None else 0
+        
+        cursor.close()
+        if should_close:
+            return_db_connection(connection)
+        
+        return total
+        
+    except Error as e:
+        print(f"Error getting total downline for CTV {ctv_code}: {e}")
+        if should_close and connection:
+            return_db_connection(connection)
+        return 0
+
 def get_network_stats(ctv_code, connection=None):
     """
     DOES: Get network statistics for a CTV

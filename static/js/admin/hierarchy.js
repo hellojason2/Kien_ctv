@@ -17,9 +17,9 @@ async function initHierarchyDropdown() {
     const dropdown = document.getElementById('hierarchyDropdown');
     const input = document.getElementById('hierarchySearch');
     const list = document.getElementById('hierarchyList');
-    
+
     if (!dropdown || !input || !list) return;
-    
+
     // Load CTV list if not already loaded or if it's empty
     if (!window.allCTV || window.allCTV.length === 0) {
         try {
@@ -31,10 +31,10 @@ async function initHierarchyDropdown() {
             console.error('Error loading CTV list for hierarchy:', error);
         }
     }
-    
+
     // Render all items initially (this will use the loaded CTV list)
     renderHierarchyList('');
-    
+
     // Input events
     input.addEventListener('focus', () => {
         // Clear the input when clicked/focused so user can search fresh
@@ -42,16 +42,16 @@ async function initHierarchyDropdown() {
         renderHierarchyList('');
         openHierarchyDropdown();
     });
-    
+
     input.addEventListener('input', (e) => {
         renderHierarchyList(e.target.value);
         openHierarchyDropdown();
         highlightedIndex = -1;
     });
-    
+
     input.addEventListener('keydown', (e) => {
         const items = list.querySelectorAll('.dropdown-item');
-        
+
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
@@ -69,14 +69,14 @@ async function initHierarchyDropdown() {
             closeHierarchyDropdown();
         }
     });
-    
+
     // Click outside to close
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target)) {
             closeHierarchyDropdown();
         }
     });
-    
+
     // Arrow click to toggle
     const arrow = dropdown.querySelector('.dropdown-arrow');
     if (arrow) {
@@ -112,21 +112,21 @@ function closeHierarchyDropdown() {
 function renderHierarchyList(searchTerm) {
     const list = document.getElementById('hierarchyList');
     if (!list) return;
-    
+
     const term = searchTerm.toLowerCase();
-    
+
     // Only show active CTVs in hierarchy dropdown
-    const filtered = (window.allCTV || []).filter(c => 
+    const filtered = (window.allCTV || []).filter(c =>
         c.is_active !== false &&
         (c.ma_ctv.toLowerCase().includes(term) ||
-        c.ten.toLowerCase().includes(term))
+            c.ten.toLowerCase().includes(term))
     );
-    
+
     if (filtered.length === 0) {
         list.innerHTML = `<div class="no-results">${t('no_ctv_found')}</div>`;
         return;
     }
-    
+
     // Sort: exact code match first, then by code
     filtered.sort((a, b) => {
         const aExact = a.ma_ctv.toLowerCase() === term;
@@ -135,19 +135,19 @@ function renderHierarchyList(searchTerm) {
         if (!aExact && bExact) return 1;
         return a.ma_ctv.localeCompare(b.ma_ctv);
     });
-    
+
     const selectedValue = document.getElementById('hierarchyRoot')?.value || '';
-    
+
     list.innerHTML = filtered.slice(0, 50).map(c => {
         // Show level badge if CTV has levels below
         // Check both max_depth_below property and ensure it's a number > 0
-        const maxDepth = c.max_depth_below !== undefined && c.max_depth_below !== null 
-            ? parseInt(c.max_depth_below) 
+        const totalDownline = c.total_downline !== undefined && c.total_downline !== null
+            ? parseInt(c.total_downline)
             : 0;
-        const levelBadge = (maxDepth > 0) 
-            ? `<span class="level-count-badge">${maxDepth}</span>` 
+        const levelBadge = (totalDownline > 0)
+            ? `<span class="level-count-badge">${totalDownline}</span>`
             : '';
-        
+
         return `
         <div class="dropdown-item ${c.ma_ctv === selectedValue ? 'selected' : ''}" 
              data-value="${c.ma_ctv}" 
@@ -186,35 +186,35 @@ async function loadHierarchy(ctvCode) {
     const loadingEl = document.getElementById('hierarchyLoading');
     const wrapperEl = document.getElementById('hierarchyTreeWrapper');
     const placeholderEl = document.getElementById('hierarchyPlaceholder');
-    
+
     if (loadingEl) loadingEl.classList.add('active');
     if (wrapperEl) wrapperEl.style.display = 'none';
     if (placeholderEl) placeholderEl.style.display = 'none';
-    
+
     try {
         const result = await api(`/api/admin/hierarchy/${ctvCode}`);
-        
+
         // Hide loading indicator
         if (loadingEl) loadingEl.classList.remove('active');
-        
+
         if (result.status === 'success') {
             currentHierarchyData = result.hierarchy;
-            
+
             // Show the wrapper
             if (wrapperEl) wrapperEl.style.display = 'block';
-            
+
             // Calculate and display stats
             const stats = calculateTreeStats(result.hierarchy);
             document.getElementById('statTotalMembers').textContent = stats.totalMembers;
-            document.getElementById('statLevelsDeep').textContent = stats.maxDepth;
+            document.getElementById('statTotalDownline').textContent = stats.totalMembers - 1;
             document.getElementById('statDirectRecruits').textContent = stats.directRecruits;
-            
+
             // Render the tree
             document.getElementById('hierarchyTree').innerHTML = '<ul>' + renderTree(result.hierarchy) + '</ul>';
-            
+
             // Initialize search
             initTreeSearch();
-            
+
             // Expand all by default
             expandAllNodes();
         } else {
@@ -235,7 +235,7 @@ function calculateTreeStats(node, depth = 1) {
         maxDepth: depth,
         directRecruits: node.children ? node.children.length : 0
     };
-    
+
     if (node.children && node.children.length > 0) {
         node.children.forEach(child => {
             const childStats = calculateTreeStats(child, depth + 1);
@@ -243,7 +243,7 @@ function calculateTreeStats(node, depth = 1) {
             stats.maxDepth = Math.max(stats.maxDepth, childStats.maxDepth);
         });
     }
-    
+
     return stats;
 }
 
@@ -251,19 +251,19 @@ function renderTree(node) {
     // Display level matches database level (L0-L4)
     const displayLevel = node.level;
     const levelClass = `l${displayLevel}`;
-    
+
     const hasChildren = node.children && node.children.length > 0;
     const hasChildrenClass = hasChildren ? 'has-children expanded' : '';
-    
+
     // Get custom label for this level
     const levelLabel = getCommissionLabel(displayLevel);
-    
+
     // Commission rate display
     const commissionPercent = (node.commission_rate * 100).toFixed(2);
-    
+
     // Cut-off badge for level 4 (L4)
     const cutoffBadge = node.level === 4 ? '<span class="cutoff-badge">CUT OFF</span>' : '';
-    
+
     let html = `
         <li>
             <div class="tree-node ${hasChildrenClass}" 
@@ -277,7 +277,7 @@ function renderTree(node) {
                 ${cutoffBadge}
             </div>
     `;
-    
+
     if (hasChildren) {
         html += '<ul class="tree-children">';
         node.children.forEach(child => {
@@ -285,7 +285,7 @@ function renderTree(node) {
         });
         html += '</ul>';
     }
-    
+
     html += '</li>';
     return html;
 }
@@ -293,7 +293,7 @@ function renderTree(node) {
 function toggleTreeNode(element) {
     const li = element.parentElement;
     const children = li.querySelector(':scope > ul.tree-children');
-    
+
     if (children) {
         element.classList.toggle('expanded');
         children.classList.toggle('collapsed');
@@ -321,40 +321,40 @@ function collapseAllNodes() {
 function initTreeSearch() {
     const searchBox = document.getElementById('treeSearchBox');
     const searchInfo = document.getElementById('treeSearchInfo');
-    
+
     if (!searchBox || !searchInfo) return;
-    
+
     // Clear previous listeners by cloning
     const newSearchBox = searchBox.cloneNode(true);
     searchBox.parentNode.replaceChild(newSearchBox, searchBox);
-    
-    newSearchBox.addEventListener('input', function() {
+
+    newSearchBox.addEventListener('input', function () {
         const query = this.value.toLowerCase().trim();
         const allNodes = document.querySelectorAll('#hierarchyTree .tree-node');
-        
+
         // Remove all highlights first
         allNodes.forEach(node => node.classList.remove('highlighted'));
-        
+
         if (query === '') {
             searchInfo.textContent = '';
             return;
         }
-        
+
         let matchCount = 0;
         let firstMatch = null;
-        
+
         allNodes.forEach(node => {
             const name = (node.dataset.name || '').toLowerCase();
             const code = (node.dataset.code || '').toLowerCase();
-            
+
             if (name.includes(query) || code.includes(query)) {
                 node.classList.add('highlighted');
                 matchCount++;
-                
+
                 if (!firstMatch) {
                     firstMatch = node;
                 }
-                
+
                 // Expand all parents to show this node
                 let parent = node.parentElement;
                 while (parent) {
@@ -369,7 +369,7 @@ function initTreeSearch() {
                 }
             }
         });
-        
+
         if (matchCount > 0) {
             searchInfo.textContent = `Tìm thấy ${matchCount} kết quả`;
             if (firstMatch) {

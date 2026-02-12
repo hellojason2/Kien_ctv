@@ -19,6 +19,7 @@ from .hierarchy import (
     build_hierarchy_tree,
     get_all_descendants,
     get_max_depth_below,
+    get_total_downline,
     get_network_stats
 )
 from .validation import validate_ctv_data
@@ -42,6 +43,7 @@ __all__ = [
     'build_hierarchy_tree',
     'get_all_descendants',
     'get_max_depth_below',
+    'get_total_downline',
     'get_network_stats',
     'validate_ctv_data'
 ]

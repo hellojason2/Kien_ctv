@@ -15,7 +15,7 @@
                 </div>
                 <input type="hidden" id="hierarchyRoot" value="">
             </div>
-            
+
             <!-- Hierarchy Tree Wrapper -->
             <div class="hierarchy-page-wrapper" id="hierarchyTreeWrapper" style="display: none;">
                 <!-- Stats Cards -->
@@ -25,46 +25,58 @@
                         <div class="stat-label" data-i18n="total_members">Total Members</div>
                     </div>
                     <div class="hierarchy-stat-card">
-                        <div class="stat-number" id="statLevelsDeep">0</div>
-                        <div class="stat-label" data-i18n="levels_deep">Levels Deep</div>
+                        <div class="stat-number" id="statTotalDownline">0</div>
+                        <div class="stat-label" data-i18n="total_downline">Total Downline</div>
                     </div>
                     <div class="hierarchy-stat-card">
                         <div class="stat-number" id="statDirectRecruits">0</div>
                         <div class="stat-label" data-i18n="direct_recruits">Direct Recruits</div>
                     </div>
                 </div>
-                
+
                 <!-- Search Box -->
                 <div class="hierarchy-search-container">
-                    <input type="text" class="hierarchy-search-box" id="treeSearchBox" placeholder="Search by name or CTV code...">
+                    <input type="text" class="hierarchy-search-box" id="treeSearchBox"
+                        placeholder="Search by name or CTV code...">
                     <div class="search-result-info" id="treeSearchInfo"></div>
                 </div>
-                
+
                 <!-- Controls -->
                 <div class="hierarchy-controls">
-                    <button class="hierarchy-btn hierarchy-btn-expand" onclick="expandAllNodes()" data-i18n="expand_all">Expand All</button>
-                    <button class="hierarchy-btn hierarchy-btn-collapse" onclick="collapseAllNodes()" data-i18n="collapse_all">Collapse All</button>
+                    <button class="hierarchy-btn hierarchy-btn-expand" onclick="expandAllNodes()"
+                        data-i18n="expand_all">Expand All</button>
+                    <button class="hierarchy-btn hierarchy-btn-collapse" onclick="collapseAllNodes()"
+                        data-i18n="collapse_all">Collapse All</button>
                 </div>
-                
+
                 <!-- Tree Container -->
                 <div class="hierarchy-tree-container" id="hierarchyTree">
                     <div class="loading" data-i18n="select_ctv_view">Select a CTV to view hierarchy</div>
                 </div>
             </div>
-            
+
             <!-- Loading Indicator -->
             <div class="hierarchy-loading" id="hierarchyLoading">
                 <div class="hierarchy-spinner"></div>
                 <div class="hierarchy-loading-text" data-i18n="loading_hierarchy">Loading hierarchy tree...</div>
-                <div class="hierarchy-loading-subtext" data-i18n="loading_please_wait">Please wait, this may take a moment for large trees</div>
+                <div class="hierarchy-loading-subtext" data-i18n="loading_please_wait">Please wait, this may take a
+                    moment for large trees</div>
             </div>
-            
+
             <!-- Placeholder when no CTV selected -->
-            <div id="hierarchyPlaceholder" class="loading" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
-                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 16px; opacity: 0.5;"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><line x1="12" y1="12" x2="6" y2="14"/><line x1="12" y1="12" x2="18" y2="14"/></svg>
+            <div id="hierarchyPlaceholder" class="loading"
+                style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    style="margin-bottom: 16px; opacity: 0.5;">
+                    <circle cx="12" cy="5" r="3" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <circle cx="6" cy="17" r="3" />
+                    <circle cx="18" cy="17" r="3" />
+                    <line x1="12" y1="12" x2="6" y2="14" />
+                    <line x1="12" y1="12" x2="18" y2="14" />
+                </svg>
                 <p data-i18n="select_ctv_view">Select a CTV to view hierarchy</p>
             </div>
         </div>
     </div>
 </div>
-

@@ -4,7 +4,7 @@ from psycopg2 import Error
 from .blueprint import admin_bp
 from ..auth import require_admin, hash_password
 from ..db_pool import get_db_connection, return_db_connection
-from ..mlm_core import get_max_depth_below, build_hierarchy_tree
+from ..mlm_core import get_total_downline, build_hierarchy_tree
 from ..activity_logger import log_ctv_created, log_ctv_updated, log_ctv_deleted
 
 @admin_bp.route('/api/admin/ctv/levels', methods=['GET'])
@@ -90,12 +90,12 @@ def list_ctv():
         cursor.execute(query, params)
         ctv_list = [dict(row) for row in cursor.fetchall()]
         
-        # Add max depth below each CTV for level badges
+        # Add total downline count for each CTV
         for ctv in ctv_list:
             if ctv.get('created_at'):
                 ctv['created_at'] = ctv['created_at'].strftime('%Y-%m-%d %H:%M:%S')
-            # Calculate max depth below this CTV
-            ctv['max_depth_below'] = get_max_depth_below(ctv['ma_ctv'], connection)
+            # Calculate total downline below this CTV
+            ctv['total_downline'] = get_total_downline(ctv['ma_ctv'], connection)
         
         cursor.close()
         return_db_connection(connection)
