@@ -2,10 +2,19 @@ import json
 import logging
 import re
 import os
+import time
 from pathlib import Path
 from slugify import slugify
 
 logger = logging.getLogger(__name__)
+
+# Resolve project root from this file's location (modules/pricing_sync.py -> project root)
+BASE_DIR = Path(__file__).parent.parent.absolute()
+
+# Retry config for transient Google API errors
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 5  # seconds
+RETRYABLE_CODES = [429, 500, 503]
 
 # Category Mapping to match existing HTML IDs and Icons
 CATEGORY_MAP = {
@@ -41,78 +50,96 @@ CATEGORY_MAP = {
 
 def clean_price(price):
     if not price: return ""
-    # Ensure it ends with 'đ' if it's a number
     p = str(price).strip()
     if p.replace('.', '').replace(',', '').isdigit():
         return f"{p}đ"
     return p
 
+
+def _is_retryable_error(error):
+    """Check if an error is a transient Google API error worth retrying."""
+    error_str = str(error)
+    for code in RETRYABLE_CODES:
+        if f'[{code}]' in error_str:
+            return True
+    if 'RemoteDisconnected' in error_str or 'Connection aborted' in error_str:
+        return True
+    if 'ServiceUnavailable' in error_str or 'Internal error' in error_str:
+        return True
+    return False
+
+
+def _fetch_sheet_data_with_retry(client, sheet_id):
+    """Fetch data from Google Sheet with retry logic for transient errors."""
+    last_error = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            sheet = client.open_by_key(sheet_id)
+            worksheet = sheet.get_worksheet(0)
+            rows = worksheet.get_all_values()
+            if attempt > 1:
+                logger.info(f"  Pricing sheet fetch succeeded on attempt {attempt}")
+            return rows
+        except Exception as e:
+            last_error = e
+            if attempt < MAX_RETRIES and _is_retryable_error(e):
+                delay = RETRY_BASE_DELAY * (3 ** (attempt - 1))  # 5s, 15s, 45s
+                logger.warning(f"  Pricing fetch attempt {attempt}/{MAX_RETRIES} failed: {e}")
+                logger.warning(f"  Retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
+    raise last_error
+
+
 def sync_pricing_sheet(client, sheet_id):
     """
     Sync pricing data from Google Sheet to static JSON file.
+    Includes retry logic for transient Google API errors.
     """
     try:
-        sheet = client.open_by_key(sheet_id)
-        # Use first tab
-        worksheet = sheet.get_worksheet(0)
-        
-        # Get all values
-        rows = worksheet.get_all_values()
+        rows = _fetch_sheet_data_with_retry(client, sheet_id)
         
         categories = []
         current_category = None
         
-        # Start scanning from row 3 (index 2)
-        # Row 1: Empty
-        # Row 2: Title
-        # Row 3 onwards: Data
-        
         for i, row in enumerate(rows):
-            if i < 2: continue # Skip first 2 rows
-            
-            # Safe get columns
+            if i < 2: continue
+
             col_b = row[1].strip() if len(row) > 1 else ""
-            col_c = row[2].strip() if len(row) > 2 else "" # Price
-            col_d = row[3].strip() if len(row) > 3 else "" # Bonus
+            col_c = row[2].strip() if len(row) > 2 else ""
+            col_d = row[3].strip() if len(row) > 3 else ""
             
-            if not col_b: continue # Skip empty rows
-            
-            # Detect Category Header
-            # Logic: Col B has text, Col C is empty or "GIÁ DỊCH VỤ" header
+            if not col_b: continue
+
             is_header = (not col_c or col_c.upper() == "GIÁ DỊCH VỤ") and (col_b.isupper() or "DỊCH VỤ" in col_b.upper() or "FILLER" in col_b.upper())
             
-            # Special case for "GIÁ DỊCH VỤ" row - skip it
             if col_c and "GIÁ DỊCH VỤ" in col_c.upper():
                 continue
                 
-            if is_header and col_b not in ["1cc"]: # "1cc" is an item, not a header
-                # Normalize header
+            if is_header and col_b not in ["1cc"]:
                 header_text = col_b.upper()
                 
-                # Find mapping
                 cat_info = CATEGORY_MAP.get(header_text)
                 if not cat_info:
-                    # Fuzzy match attempts
                     for k, v in CATEGORY_MAP.items():
                         if v.get('match_fuzzy') and k in header_text:
                             cat_info = v
                             break
                 
-                # Default if not found
                 if not cat_info:
                     cat_id = slugify(header_text)
                     cat_info = {'id': cat_id, 'icon': '🔹'}
                 
                 current_category = {
                     'id': cat_info['id'],
-                    'name': col_b, # Keep original casing if desirable, or use header_text
+                    'name': col_b,
                     'icon': cat_info['icon'],
                     'items': []
                 }
                 categories.append(current_category)
             
-            elif current_category and col_c: # Item
-                # Check for "Premium" or "Hot" keywords in name
+            elif current_category and col_c:
                 badge = None
                 if "PREMIUM" in col_b.upper() or "JUVERDERM" in col_b.upper() or "SỤN MỸ" in col_b.upper() or "SỤN SUGIFORM" in col_b.upper() or "BOTOX MỸ" in col_b.upper():
                     badge = "Premium"
@@ -140,7 +167,6 @@ def sync_pricing_sheet(client, sheet_id):
             'items': []
         }
         
-        # Extract dental items from all categories
         for cat in categories:
             items_to_keep = []
             for item in cat['items']:
@@ -154,15 +180,13 @@ def sync_pricing_sheet(client, sheet_id):
             
             cat['items'] = items_to_keep
         
-        # Remove empty categories and add dental if it has items
         categories = [c for c in categories if len(c['items']) > 0]
         
         if len(dental_category['items']) > 0:
-            # Insert dental category at a sensible position (after beauty services)
             categories.append(dental_category)
                 
-        # Save to JSON
-        output_file = Path(os.getcwd()) / 'static' / 'data' / 'pricing.json'
+        # Save to JSON using __file__-based path (reliable in production)
+        output_file = BASE_DIR / 'static' / 'data' / 'pricing.json'
         output_file.parent.mkdir(parents=True, exist_ok=True)
         
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -180,11 +204,9 @@ def import_time():
     return datetime.now().strftime("%d/%m/%Y %H:%M")
 
 if __name__ == "__main__":
-    # Test run
     from modules.google_sync import GoogleSheetSync
     logging.basicConfig(level=logging.INFO)
     syncer = GoogleSheetSync()
     client = syncer.get_google_client()
-    # Sheet ID from user request
     SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY' 
     sync_pricing_sheet(client, SHEET_ID)

@@ -4,6 +4,7 @@ Google Sheets Live Sync Worker (Hybrid Mode)
 - Syncs data from Google Sheets to PostgreSQL database
 - For Tham My: Uses phone matching to detect updates AND new rows (catches mid-sheet edits)
 - For Nha Khoa & Gioi Thieu: Uses phone matching for full sync
+- Syncs pricing data from a separate Google Sheet
 - Runs every 30 seconds
 """
 
@@ -22,6 +23,7 @@ from modules.mlm_core import calculate_new_commissions_fast
 
 SYNC_INTERVAL = 30
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID', '12YrAEGiOKLoqzj4tE-VLZNQNIda7S5hdMaQJO5UEsnQ')
+PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
 BASE_DIR = Path(__file__).parent.absolute()
 CREDENTIALS_FILE = BASE_DIR / 'google_credentials.json'
 # Environment variable for credentials (JSON string) - used in production
@@ -68,7 +70,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+def _sync_single_tab(syncer, spreadsheet, conn, tab_type, use_phone_matching, timestamp_column):
+    """Sync a single tab with error isolation. Returns (processed, errors)."""
+    try:
+        logger.info(f"\n--- Processing {tab_type.replace('_', ' ').title()} ---")
+        if use_phone_matching:
+            p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, tab_type, timestamp_column)
+        else:
+            p, e = syncer.sync_tab_by_count(spreadsheet, conn, tab_type)
+        return p, e
+    except Exception as e:
+        logger.error(f"  Tab {tab_type} error: {e}")
+        return 0, 1
+
+
 def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
+    """Run the main data sync (tham_my, nha_khoa, gioi_thieu).
+    Each tab syncs independently — one tab failing won't skip the others.
+    """
     stats = {
         'tham_my': {'processed': 0, 'errors': 0},
         'nha_khoa': {'processed': 0, 'errors': 0},
@@ -89,26 +109,10 @@ def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
             if timestamp_column:
                 logger.info(f"Timestamp column: {timestamp_column}")
             
-            logger.info("\n--- Processing Tham My ---")
-            if use_phone_matching:
-                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'tham_my', timestamp_column)
-            else:
-                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'tham_my')
-            stats['tham_my'] = {'processed': p, 'errors': e}
-            
-            logger.info("\n--- Processing Nha Khoa ---")
-            if use_phone_matching:
-                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'nha_khoa', timestamp_column)
-            else:
-                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'nha_khoa')
-            stats['nha_khoa'] = {'processed': p, 'errors': e}
-            
-            logger.info("\n--- Processing Gioi Thieu ---")
-            if use_phone_matching:
-                p, e = syncer.sync_tab_by_phone_matching(spreadsheet, conn, 'gioi_thieu', timestamp_column)
-            else:
-                p, e = syncer.sync_tab_by_count(spreadsheet, conn, 'gioi_thieu')
-            stats['gioi_thieu'] = {'processed': p, 'errors': e}
+            # Sync each tab independently (one failure doesn't block the others)
+            for tab_type in ['tham_my', 'nha_khoa', 'gioi_thieu']:
+                p, e = _sync_single_tab(syncer, spreadsheet, conn, tab_type, use_phone_matching, timestamp_column)
+                stats[tab_type] = {'processed': p, 'errors': e}
             
             if sum(s['processed'] for s in stats.values()) > 0:
                 logger.info("\n--- Calculating Commissions ---")
@@ -122,7 +126,6 @@ def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
             syncer.update_heartbeat(conn, total_new)
             
         except Exception as e:
-            # Re-raise exception to be caught by outer handler, but finally will close conn first
             raise e
         finally:
             if conn:
@@ -136,10 +139,28 @@ def run_sync(syncer, use_phone_matching=True, timestamp_column=None):
     
     return stats
 
+
+def run_pricing_sync(syncer):
+    """Run the pricing sheet sync independently.
+    Uses its own Google client call and has internal retry logic.
+    """
+    try:
+        from modules.pricing_sync import sync_pricing_sheet
+        client = syncer.get_google_client()
+        result = sync_pricing_sheet(client, PRICING_SHEET_ID)
+        if result > 0:
+            logger.info(f"  ✅ Pricing Data: Synced successfully ({result} categories)")
+        else:
+            logger.warning("  ⚠️ Pricing Data: Sync returned 0 categories")
+    except Exception as e:
+        logger.error(f"  ❌ Pricing Sync Error: {e}")
+
+
 def main():
     logger.info("=" * 60)
     logger.info("Google Sheets Live Sync Worker (Hybrid Mode)")
     logger.info(f"Sheet ID: {GOOGLE_SHEET_ID}")
+    logger.info(f"Pricing Sheet ID: {PRICING_SHEET_ID}")
     logger.info(f"Phone Matching: {'enabled' if USE_PHONE_MATCHING else 'disabled (count-based)'}")
     if TIMESTAMP_COLUMN:
         logger.info(f"Timestamp Column: {TIMESTAMP_COLUMN}")
@@ -181,30 +202,25 @@ def main():
             logger.info(f"Sync Cycle #{cycle} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             logger.info("=" * 60)
             
+            # ── Step 1: Main data sync (tham_my, nha_khoa, gioi_thieu) ──
             stats = run_sync(syncer, use_phone_matching=USE_PHONE_MATCHING, timestamp_column=TIMESTAMP_COLUMN)
             
-            # --- Pricing Sync Step ---
-            try:
-                from modules.pricing_sync import sync_pricing_sheet
-                PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
-                sync_pricing_sheet(syncer.get_google_client(), PRICING_SHEET_ID)
-                logger.info("  - Pricing Data: Synced successfully")
-            except Exception as e:
-                logger.error(f"  - Pricing Sync Error: {e}")
-            # -------------------------
-
             total_processed = sum(s['processed'] for s in stats.values())
             total_errors = sum(s['errors'] for s in stats.values())
-            logger.info(f"\nCycle #{cycle} Complete:")
+            logger.info(f"\nData Sync Summary:")
             logger.info(f"  - Tham My: {stats['tham_my']['processed']} processed")
             logger.info(f"  - Nha Khoa: {stats['nha_khoa']['processed']} processed")
             logger.info(f"  - Gioi Thieu: {stats['gioi_thieu']['processed']} processed")
             logger.info(f"  - Total: {total_processed} processed, {total_errors} errors")
+
+            # ── Step 2: Pricing sync (INDEPENDENT - always runs) ──
+            logger.info("\n--- Pricing Sync ---")
+            run_pricing_sync(syncer)
             
             # Reset failure counter on success
             consecutive_failures = 0
             
-            logger.info(f"\nSleeping for {SYNC_INTERVAL} seconds...")
+            logger.info(f"\nCycle #{cycle} Complete. Sleeping for {SYNC_INTERVAL}s...")
             time.sleep(SYNC_INTERVAL)
             
         except KeyboardInterrupt:
@@ -222,6 +238,13 @@ def main():
             
             import traceback
             traceback.print_exc()
+            
+            # Even if the main loop crashes, still try pricing sync
+            try:
+                logger.info("Attempting pricing sync despite main cycle failure...")
+                run_pricing_sync(syncer)
+            except Exception as pe:
+                logger.error(f"Pricing sync also failed: {pe}")
             
             # Exponential backoff on failures
             if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
@@ -248,3 +271,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

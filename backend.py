@@ -204,14 +204,18 @@ def start_embedded_sync_worker():
                     except Exception as ce:
                         log_to_db(conn, 'WARNING', f'⚠️ Commission: {str(ce)[:30]}')
                 
-                # Step 5.5: Sync Pricing Data from Google Sheet
+                # Step 5.5: Sync Pricing Data from Google Sheet (uses fresh client)
                 try:
                     from modules.pricing_sync import sync_pricing_sheet
                     PRICING_SHEET_ID = '19YZB-SgpqvI3-hu93xOk0OCDWtUPxrAAfR6CiFpU4GY'
-                    sync_pricing_sheet(client, PRICING_SHEET_ID)
-                    log_to_db(conn, 'INFO', f'📋 Pricing data synced')
+                    pricing_client = syncer.get_google_client()
+                    result = sync_pricing_sheet(pricing_client, PRICING_SHEET_ID)
+                    if result > 0:
+                        log_to_db(conn, 'INFO', f'📋 Pricing data synced ({result} categories)')
+                    else:
+                        log_to_db(conn, 'WARNING', f'⚠️ Pricing: 0 categories returned')
                 except Exception as pe:
-                    log_to_db(conn, 'WARNING', f'⚠️ Pricing: {str(pe)[:30]}')
+                    log_to_db(conn, 'WARNING', f'⚠️ Pricing: {str(pe)[:50]}')
                 
                 # Step 6: Update heartbeat & summary
                 try:
