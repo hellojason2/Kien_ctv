@@ -915,8 +915,8 @@ function addLogEntry(message, type = 'info') {
     const logEntries = document.getElementById('logEntries');
     if (logEntries) {
         const entry = document.createElement('div');
-        entry.className = `log - entry ${type} `;
-        entry.innerHTML = `< span class="log-time" > [${timeStr}]</span > <span class="log-message">${message}</span>`;
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-message">${message}</span>`;
         logEntries.appendChild(entry);
         logEntries.scrollTop = logEntries.scrollHeight;
     }
@@ -957,15 +957,15 @@ function showHardResetModal() {
 
         // Reset all steps to initial state
         resetProgress.steps.forEach(step => {
-            const stepEl = document.getElementById(`step - ${step} `);
+            const stepEl = document.getElementById(`step-${step}`);
             if (stepEl) {
                 stepEl.classList.remove('active', 'complete', 'error');
             }
-            const progressBar = document.getElementById(`step - ${step} -progress`);
+            const progressBar = document.getElementById(`step-${step}-progress`);
             if (progressBar) {
                 progressBar.style.width = '0%';
             }
-            const status = document.getElementById(`step - ${step} -status`);
+            const status = document.getElementById(`step-${step}-status`);
             if (status) {
                 status.textContent = 'Waiting...';
             }
@@ -1002,9 +1002,9 @@ function showHardResetModal() {
         if (icon) {
             icon.style.animation = 'spin-slow 3s linear infinite';
             icon.style.background = 'linear-gradient(135deg, #fee2e2, #fecaca)';
-            icon.innerHTML = `< svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" >
+            icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg > `;
+            </svg>`;
             icon.querySelector('svg').style.stroke = '#b91c1c';
         }
         const header = document.querySelector('.progress-modal-header h3');
@@ -1036,10 +1036,10 @@ function closeHardResetModal() {
  * Update a step's progress
  */
 function updateStepProgress(stepId, status, progress, detail) {
-    const stepEl = document.getElementById(`step - ${stepId} `);
-    const progressBar = document.getElementById(`step - ${stepId} -progress`);
-    const statusEl = document.getElementById(`step - ${stepId} -status`);
-    const detailEl = document.getElementById(`step - ${stepId} -detail`);
+    const stepEl = document.getElementById(`step-${stepId}`);
+    const progressBar = document.getElementById(`step-${stepId}-progress`);
+    const statusEl = document.getElementById(`step-${stepId}-status`);
+    const detailEl = document.getElementById(`step-${stepId}-detail`);
 
     if (stepEl) {
         stepEl.classList.remove('active', 'complete', 'error', 'pending');
@@ -1051,7 +1051,7 @@ function updateStepProgress(stepId, status, progress, detail) {
 
     if (progressBar) {
         if (progress !== undefined && progress !== null) {
-            progressBar.style.width = `${progress}% `;
+            progressBar.style.width = `${progress}%`;
         } else if (status === 'active') {
             // Indeterminate progress - show pulsing bar
             progressBar.style.width = '100%';
@@ -1067,7 +1067,7 @@ function updateStepProgress(stepId, status, progress, detail) {
 
     if (statusEl) {
         if (status === 'active') {
-            statusEl.textContent = progress !== null ? `${Math.round(progress)}% ` : 'Processing...';
+            statusEl.textContent = progress !== null ? `${Math.round(progress)}%` : 'Processing...';
         } else if (status === 'complete') {
             statusEl.textContent = '✓ Done';
         } else if (status === 'error') {
@@ -1130,9 +1130,9 @@ function showResetSummary(stats) {
     const icon = document.querySelector('.progress-modal-icon');
     if (icon) {
         icon.style.animation = 'none';
-        icon.innerHTML = `< svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" >
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg > `;
+        </svg>`;
         icon.style.background = 'linear-gradient(135deg, #dcfce7, #bbf7d0)';
         icon.querySelector('svg').style.stroke = '#16a34a';
     }
@@ -1155,10 +1155,10 @@ function showResetSummary(stats) {
         const afterTotal = (stats.tham_my?.processed || 0) + (stats.nha_khoa?.processed || 0) + (stats.gioi_thieu?.processed || 0);
 
         summaryStats.innerHTML = `
-        < div class="summary-stat" >
+            <div class="summary-stat">
                 <div class="summary-stat-value">${stats.tham_my?.processed || 0}</div>
                 <div class="summary-stat-label">Thẩm Mỹ</div>
-            </div >
+            </div>
             <div class="summary-stat">
                 <div class="summary-stat-value">${stats.nha_khoa?.processed || 0}</div>
                 <div class="summary-stat-label">Nha Khoa</div>
@@ -1365,7 +1365,7 @@ async function confirmHardReset() {
 
         // Mark current step as error
         const currentActiveStep = resetProgress.steps.find(step => {
-            const el = document.getElementById(`step - ${step} `);
+            const el = document.getElementById(`step-${step}`);
             return el && el.classList.contains('active');
         });
         if (currentActiveStep) {
