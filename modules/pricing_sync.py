@@ -17,6 +17,7 @@ RETRY_BASE_DELAY = 5  # seconds
 RETRYABLE_CODES = [429, 500, 503]
 
 # Category Mapping to match existing HTML IDs and Icons
+# These map to the exact headers found in the Google Sheet
 CATEGORY_MAP = {
     # Cosmetic/Beauty services
     'FILLER HÀN CƠ BẢN': {'id': 'filler-basic', 'icon': '💉'},
@@ -33,20 +34,31 @@ CATEGORY_MAP = {
     'CĂNG DA MEDI LIFT': {'id': 'facelift', 'icon': '✨'},
     'THẨM MỸ CÔNG NGHỆ CAO': {'id': 'high-tech', 'icon': '🔬'},
     
-    # Dental services - 🦷 tooth icon
-    'DỊCH VỤ NHA KHOA': {'id': 'dental', 'icon': '🦷'},
-    'NHA KHOA': {'id': 'dental', 'icon': '🦷'},
-    'IMPLANT': {'id': 'implant', 'icon': '🦷'},
-    'MẮC CÀI KIM LOẠI TIÊU CHUẨN': {'id': 'braces-metal', 'icon': '🦷'},
-    'MẮC CÀI KIM LOẠI TỰ ĐÓNG': {'id': 'braces-self', 'icon': '🦷'},
-    'MẮC CÀI SỨ TIÊU CHUẨN': {'id': 'braces-ceramic', 'icon': '🦷'},
-    'MẮC CÀI SỨ TỰ ĐÓNG': {'id': 'braces-ceramic-self', 'icon': '🦷'},
-    'MẮC CÀI KIM LOẠI TỰ ĐÓNG DAMON ULTIMA (MỚI)': {'id': 'braces-damon', 'icon': '🦷'},
-    'RĂNG SỨ': {'id': 'porcelain', 'icon': '🦷'},
-    'TRÁM RĂNG': {'id': 'filling', 'icon': '🦷'},
-    'TẨY TRẮNG RĂNG': {'id': 'whitening', 'icon': '🦷'},
-    'NHỔ RĂNG': {'id': 'extraction', 'icon': '🦷'},
+    # Nâng cơ (mixed case in sheet)
+    'NÂNG CƠ TÁO': {'id': 'apple-lift', 'icon': '🍎', 'match_fuzzy': True},
+    
+    # Dental services - 🦷 tooth icon (exact headers from Google Sheet)
+    'RĂNG SỨ THẨM MỸ': {'id': 'porcelain', 'icon': '🦷'},
+    'TRỒNG RĂNG IMPLANT': {'id': 'implant', 'icon': '🦷'},
+    'NIỀNG RĂNG MẮC CÀI KIM LOẠI': {'id': 'braces-metal', 'icon': '🦷'},
+    'NIỀNG RĂNG MẮC CÀI SỨ': {'id': 'braces-ceramic', 'icon': '🦷'},
 }
+
+# Keywords that indicate a row is a category header even if not fully uppercase
+HEADER_KEYWORDS = [
+    'FILLER', 'DỊCH VỤ', 'NÂNG MŨI', 'NÂNG NGỰC', 'THON GỌN', 'VLINE',
+    'THẨM MỸ', 'CĂNG DA', 'NÂNG CƠ', 'CÔNG NGHỆ',
+    'RĂNG SỨ', 'IMPLANT', 'MẮC CÀI', 'NIỀNG RĂNG', 'TRỒNG RĂNG',
+]
+
+# Sub-section labels in the sheet that should NOT be treated as categories
+# These are visual dividers with no price, just formatting text
+SUB_SECTION_SKIP = [
+    'MẮC CÀI KIM LOẠI TIÊU CHUẨN', 'MẮC CÀI KIM LOẠI TỰ ĐÓNG',
+    'MẮC CÀI KIM LOẠI TỰ ĐÓNG DAMON ULTIMA', 
+    'MẮC CÀI SỨ TIÊU CHUẨN', 'MẮC CÀI SỨ TỰ ĐÓNG',
+    'BẢNG GIÁ THẨM MỸ VIỆN TẤM',
+]
 
 def clean_price(price):
     if not price: return ""
@@ -112,10 +124,24 @@ def sync_pricing_sheet(client, sheet_id):
             
             if not col_b: continue
 
-            is_header = (not col_c or col_c.upper() == "GIÁ DỊCH VỤ") and (col_b.isupper() or "DỊCH VỤ" in col_b.upper() or "FILLER" in col_b.upper())
+            has_price = bool(col_c) and col_c.upper() != "GIÁ DỊCH VỤ"
+            col_b_upper = col_b.upper()
             
+            # Skip "GIÁ DỊCH VỤ" price-header rows
             if col_c and "GIÁ DỊCH VỤ" in col_c.upper():
                 continue
+            
+            # Skip sub-section labels (visual dividers, not real categories)
+            if not has_price and any(skip in col_b_upper for skip in SUB_SECTION_SKIP):
+                continue
+            
+            # Skip note/disclaimer rows (long text without price)
+            if not has_price and len(col_b) > 80:
+                continue
+            
+            # Detect category headers: no price + (uppercase OR contains known keyword)
+            has_keyword = any(kw in col_b_upper for kw in HEADER_KEYWORDS)
+            is_header = not has_price and (col_b.isupper() or has_keyword)
                 
             if is_header and col_b not in ["1cc"]:
                 header_text = col_b.upper()
@@ -154,36 +180,8 @@ def sync_pricing_sheet(client, sheet_id):
                 }
                 current_category['items'].append(item)
         
-        # === POST-PROCESSING: Extract dental items into separate category ===
-        DENTAL_KEYWORDS = [
-            'IMPLANT', 'MẮC CÀI', 'VENEER', 'RĂNG SỨ', 'RĂNG', 'NHA KHOA',
-            'TRÁM', 'TẨY TRẮNG', 'NHỔ', 'NIỀNG', 'CHỈ NHA', 'SỨ'
-        ]
-        
-        dental_category = {
-            'id': 'dental',
-            'name': 'DỊCH VỤ NHA KHOA',
-            'icon': '🦷',
-            'items': []
-        }
-        
-        for cat in categories:
-            items_to_keep = []
-            for item in cat['items']:
-                item_upper = item['name'].upper()
-                is_dental = any(kw in item_upper for kw in DENTAL_KEYWORDS)
-                
-                if is_dental:
-                    dental_category['items'].append(item)
-                else:
-                    items_to_keep.append(item)
-            
-            cat['items'] = items_to_keep
-        
+        # Keep categories exactly as they appear in the Google Sheet
         categories = [c for c in categories if len(c['items']) > 0]
-        
-        if len(dental_category['items']) > 0:
-            categories.append(dental_category)
                 
         # Save to JSON using __file__-based path (reliable in production)
         output_file = BASE_DIR / 'static' / 'data' / 'pricing.json'

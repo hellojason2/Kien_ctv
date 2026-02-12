@@ -823,7 +823,14 @@
           "price": "40.000.000đ",
           "bonus": "",
           "badge": null
-        },
+        }
+      ]
+    },
+    {
+      "id": "apple-lift",
+      "name": "NÂNG CƠ TÁO (Nâng cơ tầng mặt giữa)",
+      "icon": "🍎",
+      "items": [
         {
           "name": "Nâng cơ táo Cấp độ 1",
           "price": "40.000.000đ",
@@ -998,7 +1005,14 @@
           "price": "14.000.000đ",
           "bonus": "",
           "badge": null
-        },
+        }
+      ]
+    },
+    {
+      "id": "porcelain",
+      "name": "RĂNG SỨ THẨM MỸ",
+      "icon": "🦷",
+      "items": [
         {
           "name": "RS Titan",
           "price": "2.760.000đ",
@@ -1066,19 +1080,6 @@
           "badge": null
         },
         {
-          "name": "DỊCH VỤ",
-          "price": "Giá mới",
-          "bonus": "",
-          "badge": null
-        }
-      ]
-    },
-    {
-      "id": "dental",
-      "name": "DỊCH VỤ NHA KHOA",
-      "icon": "🦷",
-      "items": [
-        {
           "name": "Dán sứ Veneer Emax Press",
           "price": "8.640.000đ",
           "bonus": "",
@@ -1095,7 +1096,14 @@
           "price": "17.040.000đ",
           "bonus": "",
           "badge": null
-        },
+        }
+      ]
+    },
+    {
+      "id": "implant",
+      "name": "TRỒNG RĂNG IMPLANT",
+      "icon": "🦷",
+      "items": [
         {
           "name": "Trụ Implant Hàn",
           "price": "23.650.000đ",
@@ -1137,129 +1145,143 @@
           "price": "Theo loại sứ",
           "bonus": "",
           "badge": null
-        },
+        }
+      ]
+    },
+    {
+      "id": "braces-metal",
+      "name": "NIỀNG RĂNG MẮC CÀI KIM LOẠI",
+      "icon": "🦷",
+      "items": [
         {
-          "name": "Mắc cài kim loại cấp độ 1",
+          "name": "Mắc cài kim loại tiêu chuẩn cấp độ 1",
           "price": "27.500.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài kim loại cấp độ 2",
+          "name": "Mắc cài kim loại tiêu chuẩn cấp độ 2",
           "price": "33.750.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài kim loại cấp độ 3",
+          "name": "Mắc cài kim loại tiêu chuẩn cấp độ 3",
           "price": "36.250.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài kim loại cấp độ 4",
+          "name": "Mắc cài kim loại tiêu chuẩn cấp độ 4",
           "price": "43.750.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự buộc cấp độ 1",
+          "name": "Mắc cài kim loại tự đóng cấp độ 1",
           "price": "31.250.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự buộc cấp độ 2",
+          "name": "Mắc cài kim loại tự đóng cấp độ 2",
           "price": "38.750.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự buộc cấp độ 3",
+          "name": "Mắc cài kim loại tự đóng cấp độ 3",
           "price": "41.250.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự buộc cấp độ 4",
+          "name": "Mắc cài kim loại tự đóng cấp độ 4",
           "price": "48.750.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài sứ cấp độ 1",
-          "price": "37.500.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài sứ cấp độ 2",
-          "price": "45.000.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài sứ cấp độ 3",
-          "price": "50.000.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài sứ cấp độ 4",
-          "price": "56.250.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài tự đóng cấp độ 1",
-          "price": "45.000.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài tự đóng cấp độ 2",
-          "price": "52.500.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài tự đóng cấp độ 3",
-          "price": "58.750.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài tự đóng cấp độ 4",
-          "price": "63.750.000đ",
-          "bonus": "",
-          "badge": null
-        },
-        {
-          "name": "Mắc cài tự đóng Damon Ultima cấp độ 1",
+          "name": "Mắc cài kim loại tự đóng Damon Ultima cấp độ 1",
           "price": "47.500.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự đóng Damon Ultima cấp độ 2",
+          "name": "Mắc cài kim loại tự đóng Damon Ultima cấp độ 2",
           "price": "55.000.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự đóng Damon Ultima cấp độ 3",
+          "name": "Mắc cài kim loại tự đóng Damon Ultima cấp độ 3",
           "price": "57.500.000đ",
           "bonus": "",
           "badge": null
         },
         {
-          "name": "Mắc cài tự đóng Damon Ultima cấp độ 4",
+          "name": "Mắc cài kim loại tự đóng Damon Ultima cấp độ 4",
           "price": "65.000.000đ",
+          "bonus": "",
+          "badge": null
+        }
+      ]
+    },
+    {
+      "id": "braces-ceramic",
+      "name": "NIỀNG RĂNG MẮC CÀI SỨ",
+      "icon": "🦷",
+      "items": [
+        {
+          "name": "Mắc cài sứ tiêu chuẩn cấp độ 1",
+          "price": "37.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tiêu chuẩn cấp độ 2",
+          "price": "45.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tiêu chuẩn cấp độ 3",
+          "price": "50.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tiêu chuẩn cấp độ 4",
+          "price": "56.250.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tự đóng cấp độ 1",
+          "price": "45.000.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tự đóng cấp độ 2",
+          "price": "52.500.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tự đóng cấp độ 3",
+          "price": "58.750.000đ",
+          "bonus": "",
+          "badge": null
+        },
+        {
+          "name": "Mắc cài sứ tự đóng cấp độ 4",
+          "price": "63.750.000đ",
           "bonus": "",
           "badge": null
         }
       ]
     }
   ],
-  "updated_at": "27/01/2026 02:07"
+  "updated_at": "12/02/2026 00:41"
 }
