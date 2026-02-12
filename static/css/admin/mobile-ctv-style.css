@@ -1,11 +1,19 @@
 /* ═══════════════════════════════════════════════════════════════════
-   CTV STYLE FLOATING HEADER (MOBILE)
+   CTV STYLE FLOATING HEADER (MOBILE ONLY)
+   Hidden on desktop to prevent covering page content.
    ═══════════════════════════════════════════════════════════════════ */
 
+/* Desktop: hide the floating header completely */
+@media (min-width: 769px) {
+    .floating-header {
+        display: none !important;
+    }
+}
+
+/* Mobile: show as fixed top bar */
 @media (max-width: 768px) {
     .floating-header {
-        display: none;
-        /* Hidden on desktop - Wait, this comment is wrong now */
+        display: block;
         position: fixed;
         top: 0;
         left: 0;
@@ -15,6 +23,8 @@
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-bottom: 1px solid var(--border-color);
+        border-radius: 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
 }
 
