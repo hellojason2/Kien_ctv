@@ -79,7 +79,7 @@ const translations = {
         password_mismatch: 'Mật khẩu không khớp',
         password_too_short: 'Mật khẩu phải có ít nhất 6 ký tự',
         invalid_phone: 'Số điện thoại không hợp lệ',
-        signup_success: 'Đăng ký thành công! Tài khoản của bạn đang chờ phê duyệt. Chúng tôi sẽ liên hệ với bạn sớm.',
+        signup_success: 'Đăng ký thành công! Bạn có thể đăng nhập ngay bằng số điện thoại.',
         signup_error: 'Đăng ký thất bại. Vui lòng thử lại.',
         phone_exists: 'Số điện thoại này đã được đăng ký',
         submitting: 'Đang gửi...',
@@ -132,7 +132,7 @@ const translations = {
         password_mismatch: 'Passwords do not match',
         password_too_short: 'Password must be at least 6 characters',
         invalid_phone: 'Invalid phone number',
-        signup_success: 'Sign up successful! Your account is pending approval. We will contact you soon.',
+        signup_success: 'Sign up successful! You can now log in with your phone number.',
         signup_error: 'Sign up failed. Please try again.',
         phone_exists: 'This phone number is already registered',
         submitting: 'Submitting...',
@@ -413,17 +413,21 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.status === 'success') {
-            // Show success message
-            successMsg.textContent = t('signup_success');
+            // Show success message with CTV code if available
+            let msg = t('signup_success');
+            if (data.ctv_code) {
+                msg = `${msg} Mã CTV: ${data.ctv_code}`;
+            }
+            successMsg.textContent = msg;
             successMsg.style.display = 'block';
 
             // Clear form
             document.getElementById('signupForm').reset();
 
-            // Redirect to login after 3 seconds
+            // Redirect to login after 2 seconds (account is already active)
             setTimeout(() => {
                 window.location.href = '/ctv/portal';
-            }, 3000);
+            }, 2000);
         } else {
             // Show error message
             if (data.error_code === 'PENDING_APPROVAL') {

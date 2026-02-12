@@ -231,7 +231,7 @@ def check_referrer_phone():
 @ctv_bp.route('/api/ctv/signup', methods=['POST'])
 def ctv_signup():
     """
-    Handle CTV signup request - creates pending registration
+    Handle CTV signup request - auto-approved (creates CTV account immediately)
     """
     data = request.get_json()
     
@@ -251,7 +251,7 @@ def ctv_signup():
     dob = data.get('dob') if data.get('dob') else None
     id_number = data.get('id_number', '').strip() if data.get('id_number') else None
     referrer_code = data.get('referrer_code', '').strip() if data.get('referrer_code') else None
-    signature_image = data.get('signature_image')  # Get signature image base64
+    signature_image = data.get('signature_image')
     password = data['password']
     
     # Clean phone number
@@ -299,11 +299,9 @@ def ctv_signup():
         # Verify referrer code if provided (now accepts phone number)
         referrer_id = None
         if referrer_code:
-            # First try as CTV code
             cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (referrer_code,))
             referrer = cursor.fetchone()
             
-            # If not found, try as phone number
             if not referrer:
                 referrer_digits = ''.join(c for c in referrer_code if c.isdigit())
                 if len(referrer_digits) >= 8:
@@ -320,15 +318,47 @@ def ctv_signup():
                 }), 400
             referrer_id = referrer['ma_ctv']
         
-        # Insert registration request
+        # ── Auto-generate CTV code ──
+        cursor.execute("""
+            SELECT ma_ctv FROM ctv 
+            WHERE ma_ctv ~ '^[0-9]+$'
+            ORDER BY CAST(ma_ctv AS INTEGER) DESC 
+            LIMIT 1
+        """)
+        result = cursor.fetchone()
+        ctv_code = str(int(result['ma_ctv']) + 1) if result else '1'
+        
+        # Ensure CTV code is unique (edge case safety)
+        cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
+        if cursor.fetchone():
+            ctv_code = str(int(ctv_code) + 1)
+        
+        # ── Insert registration record (for audit trail) ──
         cursor.execute("""
             INSERT INTO ctv_registrations 
-            (full_name, phone, email, address, dob, id_number, referrer_code, password_hash, status, created_at, signature_image)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', NOW(), %s)
+            (full_name, phone, email, address, dob, id_number, referrer_code, password_hash, status, created_at, reviewed_at, reviewed_by, admin_notes, signature_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'approved', NOW(), NOW(), 'system', %s, %s)
             RETURNING id
-        """, (full_name, phone_digits, email, address, dob, id_number, referrer_id, password_hash, signature_image))
+        """, (full_name, phone_digits, email, address, dob, id_number, referrer_id, password_hash, 
+              f'Auto-approved as {ctv_code}', signature_image))
         
         registration_id = cursor.fetchone()['id']
+        
+        # ── Create CTV account directly (auto-approved) ──
+        cursor.execute("""
+            INSERT INTO ctv 
+            (ma_ctv, ten, sdt, email, cap_bac, nguoi_gioi_thieu, password_hash, is_active, created_at, signature_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, NOW(), %s)
+        """, (
+            ctv_code,
+            full_name,
+            phone_digits,
+            email,
+            'Đồng',  # Default level
+            referrer_id,
+            password_hash,
+            signature_image
+        ))
         
         connection.commit()
         cursor.close()
@@ -336,8 +366,10 @@ def ctv_signup():
         
         return jsonify({
             'status': 'success',
-            'message': 'Registration submitted successfully. Awaiting admin approval.',
-            'registration_id': registration_id
+            'message': f'Đăng ký thành công! Mã CTV của bạn là {ctv_code}. Đăng nhập bằng số điện thoại hoặc mã CTV.',
+            'registration_id': registration_id,
+            'ctv_code': ctv_code,
+            'auto_approved': True
         })
         
     except Error as e:
