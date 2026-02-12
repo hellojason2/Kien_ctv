@@ -319,10 +319,12 @@ def ctv_signup():
             referrer_id = referrer['ma_ctv']
         
         # ── Auto-generate CTV code ──
+        # Only consider short numeric codes (not phone-number-like entries)
         cursor.execute("""
             SELECT ma_ctv FROM ctv 
             WHERE ma_ctv ~ '^[0-9]+$'
-            ORDER BY CAST(ma_ctv AS INTEGER) DESC 
+              AND LENGTH(ma_ctv) <= 6
+            ORDER BY CAST(ma_ctv AS BIGINT) DESC 
             LIMIT 1
         """)
         result = cursor.fetchone()

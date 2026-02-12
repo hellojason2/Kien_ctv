@@ -194,11 +194,12 @@ def generate_ctv_code():
     try:
         cursor = connection.cursor(cursor_factory=RealDictCursor)
         
-        # Find the highest numeric CTV code
+        # Find the highest numeric CTV code (exclude phone-number-like entries)
         cursor.execute("""
             SELECT ma_ctv FROM ctv 
             WHERE ma_ctv ~ '^[0-9]+$'
-            ORDER BY CAST(ma_ctv AS INTEGER) DESC 
+              AND LENGTH(ma_ctv) <= 6
+            ORDER BY CAST(ma_ctv AS BIGINT) DESC 
             LIMIT 1
         """)
         
