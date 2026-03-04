@@ -318,22 +318,23 @@ def ctv_signup():
                 }), 400
             referrer_id = referrer['ma_ctv']
         
-        # ── Auto-generate CTV code ──
-        # Only consider short numeric codes (not phone-number-like entries)
-        cursor.execute("""
-            SELECT ma_ctv FROM ctv 
-            WHERE ma_ctv ~ '^[0-9]+$'
-              AND LENGTH(ma_ctv) <= 6
-            ORDER BY CAST(ma_ctv AS BIGINT) DESC 
-            LIMIT 1
-        """)
-        result = cursor.fetchone()
-        ctv_code = str(int(result['ma_ctv']) + 1) if result else '1'
+        # ── Use phone number as CTV code (ma_ctv) ──
+        # This matches admin manual approval behavior where ma_ctv = phone number
+        ctv_code = phone_digits
         
-        # Ensure CTV code is unique (edge case safety)
+        # Ensure CTV code is unique (edge case: phone already used as ma_ctv)
         cursor.execute("SELECT ma_ctv FROM ctv WHERE ma_ctv = %s", (ctv_code,))
         if cursor.fetchone():
-            ctv_code = str(int(ctv_code) + 1)
+            # Fallback: auto-generate incremental code (should rarely happen)
+            cursor.execute("""
+                SELECT ma_ctv FROM ctv 
+                WHERE ma_ctv ~ '^[0-9]+$'
+                  AND LENGTH(ma_ctv) <= 6
+                ORDER BY CAST(ma_ctv AS BIGINT) DESC 
+                LIMIT 1
+            """)
+            result = cursor.fetchone()
+            ctv_code = str(int(result['ma_ctv']) + 1) if result else '1'
         
         # ── Insert registration record (for audit trail) ──
         cursor.execute("""
