@@ -437,22 +437,25 @@ function initCTVSearch() {
 
                 // Match by code, name, email, or phone (with flexible phone matching)
                 // ALSO match by referrer code/phone/name
-                return code.includes(term) ||
+                const matchTerm = term ? (
+                    code.includes(term) ||
                     name.includes(term) ||
                     email.includes(term) ||
                     referrerCode.includes(term) ||
-                    referrerName.includes(term) ||
-                    // Phone matching
+                    referrerName.includes(term)
+                ) : false;
+
+                const matchPhone = searchDigits ? (
                     phone.includes(searchDigits) ||
-                    phone.includes(searchDigitsNoZero) ||
                     phoneNoZero.includes(searchDigits) ||
-                    phoneNoZero.includes(searchDigitsNoZero) ||
-                    // Referrer Phone matching
+                    (searchDigitsNoZero && (phone.includes(searchDigitsNoZero) || phoneNoZero.includes(searchDigitsNoZero))) ||
                     (searchDigits.length > 3 && referrerPhone.includes(searchDigits)) ||
                     (searchDigits.length > 3 && referrerPhoneNoZero.includes(searchDigits)) ||
-
                     (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) ||
-                    (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
+                    (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)))
+                ) : false;
+
+                return matchTerm || matchPhone;
             });
 
             renderCTVTable(filtered);
@@ -547,14 +550,17 @@ function renderReferrerList(searchTerm = '') {
             const phoneNoZero = phone.replace(/^0+/, ''); // Remove leading zeros from stored phone
 
             // Match by code, name, or phone (with flexible phone matching)
-            return code.includes(term) ||
-                name.includes(term) ||
+            const matchTerm = term ? (code.includes(term) || name.includes(term)) : false;
+            
+            const matchPhone = searchDigits ? (
                 phone.includes(searchDigits) ||
-                phone.includes(searchDigitsNoZero) ||
                 phoneNoZero.includes(searchDigits) ||
-                phoneNoZero.includes(searchDigitsNoZero) ||
+                (searchDigitsNoZero && (phone.includes(searchDigitsNoZero) || phoneNoZero.includes(searchDigitsNoZero))) ||
                 (searchDigits.length >= 8 && phone.includes(searchDigits.slice(-8))) || // Last 8 digits
-                (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)));
+                (searchDigits.length >= 8 && phoneNoZero.includes(searchDigits.slice(-8)))
+            ) : false;
+            
+            return matchTerm || matchPhone;
         });
     }
 
